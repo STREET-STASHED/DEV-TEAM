@@ -8,6 +8,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        black: '#000000',
+        gold: {
+          light: '#FFEF9F',
+          DEFAULT: '#FFD700',
+          dark: '#B8860B',
+        },
+        gray: {
+          light: '#f7f7f7',
+          DEFAULT: '#a1a1aa',
+          dark: '#27272a',
+        },
         brand: {
           DEFAULT: '#000000',
           gold: '#FFD700',
@@ -23,6 +34,11 @@ module.exports = {
         'lg': '1024px',
         'xl': '1280px',
         '2xl': '1536px',
+      },
+      backgroundImage: {
+        'graffiti-1': "url('/images/graffiti-1.jpg')",
+        'graffiti-2': "url('/images/graffiti-2.jpg')",
+        'graffiti-dark': "url('/images/graffiti-dark.jpg')",
       },
     },
   },
