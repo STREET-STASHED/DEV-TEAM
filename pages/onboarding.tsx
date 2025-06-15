@@ -1,63 +1,53 @@
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import supabase from '../lib/supabaseClient';
 
 const OnboardingPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user) {
-        router.push('/login');
-      }
-    };
-    checkSession();
-  }, []);
 
   const selectRole = async (role: string) => {
     setLoading(true);
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    try {
+      const {
+        data: { session },
+        error: sessionError
+      } = await supabase.auth.getSession();
 
-    const user = session?.user;
+      if (sessionError || !session?.user) {
+        alert('User not logged in');
+        router.push('/login');
+        return;
+      }
 
-    if (!user) {
-      alert('User not logged in');
-      return;
-    }
-  
-    const { error } = await supabase
-      .from('users')
-      .update({ role })
-      .eq('id', user.id);
+      const userId = session.user.id;
 
-    if (error) {
-      alert('Failed to update role');
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ role })
+        .eq('id', userId);
+
+      if (updateError) {
+        alert('Failed to update role');
+        console.error(updateError.message);
+        return;
+      }
+
+      // Redirect to correct dashboard
+      const roleRedirectMap: { [key: string]: string } = {
+        buyer: '/buyer/marketplace',
+        seller: '/seller/dashboard',
+        stylist: '/stylist/dashboard',
+        driver: '/driver/dashboard',
+      };
+
+      router.push(roleRedirectMap[role] || '/');
+    } catch (err) {
+      console.error('Unexpected error in selectRole:', err);
+      alert('An unexpected error occurred');
+    } finally {
       setLoading(false);
-      return;
-    }
-
-    // Redirect to correct dashboard
-    switch (role) {
-      case 'buyer':
-        router.push('/buyer/marketplace');
-        break;
-      case 'seller':
-        router.push('/seller/dashboard');
-        break;
-      case 'stylist':
-        router.push('/stylist/dashboard');
-        break;
-      case 'driver':
-        router.push('/driver/dashboard');
-        break;
-      default:
-        router.push('/');
     }
   };
 
