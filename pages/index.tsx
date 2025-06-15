@@ -1,54 +1,26 @@
-import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../lib/supabaseClient';
+import { CartProvider } from '@/context/CartContext';
+import NoAuthProvider from '@/context/NoAuthProvider';
+import CartDrawer from '@/components/CartDrawer';
+import '@/styles/globals.css';
+import type { AppProps } from 'next/app';
 
-export default function IndexRedirect() {
+function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-
-  useEffect(() => {
-    const checkUserRole = async () => {
-      const {
-        data: { user },
-        error: userError
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        router.push('/login');
-        return;
-      }
-
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      const role = profile?.role;
-
-      if (!role || profileError) {
-        router.push('/onboarding');
-        return;
-      }
-
-      const redirectMap: Record<string, string> = {
-        buyer: '/buyer/marketplace',
-        seller: '/seller/dashboard',
-        stylist: '/stylist/dashboard',
-        driver: '/driver/dashboard',
-        admin: '/admin/dashboard',
-      };
-
-      router.push(redirectMap[role] || '/onboarding');
-    };
-
-    checkUserRole();
-  }, [router]);
+  const isBuyerRoute = router.pathname.startsWith('/buyer');
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="text-center space-y-4 animate-pulse">
-        <p className="text-lg">Redirecting you to your dashboard...</p>
-      </div>
-    </div>
+    <NoAuthProvider>
+      <CartProvider>
+        <div className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center">
+          <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+            <Component {...pageProps} />
+          </main>
+          {isBuyerRoute && <CartDrawer />}
+        </div>
+      </CartProvider>
+    </NoAuthProvider>
   );
 }
+
+export default MyApp;

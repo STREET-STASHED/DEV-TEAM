@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { CartProvider } from '../context/CartContext';
 import { useCart } from '../context/CartContext';
+import { useRouter } from 'next/router';
 
 const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
@@ -11,6 +12,12 @@ const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 function CartDrawer() {
   const { cartItems, removeFromCart } = useCart();
+  const router = useRouter();
+
+  if (!router.pathname.startsWith('/buyer')) {
+    return null;
+  }
+
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
