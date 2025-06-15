@@ -1,19 +1,37 @@
 import type { CartContextType } from '../context/CartContext';
 import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const CheckoutPage = () => {
-  const context = useCart() as CartContextType;
-  const cart = context?.cart || [];
+  const [isClient, setIsClient] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) return null;
+
+  const context = useCart() as CartContextType;
+  const cart = context?.cart || [];
 
   const totalQuantity = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const totalPrice = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
 
   const handleCheckout = async () => {
+    if (!name || !email) {
+      alert('Please enter your name and email.');
+      return;
+    }
+
+    if (cart.length === 0) {
+      alert('Your cart is empty.');
+      return;
+    }
+
     try {
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -29,6 +47,7 @@ const CheckoutPage = () => {
 
       if (response.ok) {
         alert('Order placed successfully!');
+        context.clearCart?.();
         router.push('/buyer/dashboard');
       } else {
         alert('Failed to place order.');

@@ -1,23 +1,17 @@
 import { buffer } from 'micro';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import Stripe from 'stripe';
-import supabase from '@/lib/supabaseClient';
-
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-05-28.basil',
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2022-11-15',
 });
+import supabase from '../../lib/supabaseClient'; // Adjust path if necessary
 
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).end('Method Not Allowed');
+    res.setHeader('Allow', 'POST');
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
   const sig = req.headers['stripe-signature'] as string;
@@ -34,13 +28,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
+    const metadata = session.metadata || {};
 
-    const { buyer_id, seller_id, cart } = session.metadata || {};
+    const buyer_id = metadata.buyer_id ?? null;
+    const seller_id = metadata.seller_id ?? null;
     const amount = session.amount_total ? session.amount_total / 100 : 0;
 
     let parsedCart = [];
     try {
-      parsedCart = cart ? JSON.parse(cart) : [];
+      parsedCart = metadata.cart ? JSON.parse(metadata.cart) : [];
     } catch (e) {
       console.error('Failed to parse cart metadata:', e);
     }
@@ -49,16 +45,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       {
         buyer_id,
         seller_id,
-        items: parsedCart, // assuming JSON column in Supabase
+        items: parsedCart,
         total: amount,
         status: 'pending',
       },
     ]);
 
     if (error) {
-      console.error('Failed to insert order into Supabase:', error.message);
+      console.error('Failed to insert order into Supabase:', error.message, error);
+    } else {
+      console.log('Order inserted successfully for buyer:', buyer_id);
     }
+  } else {
+    console.log(`Unhandled event type: ${event.type}`);
   }
 
-  res.status(200).json({ received: true });
+  res.status(200).json({ received: true, status: 'success' });
 }

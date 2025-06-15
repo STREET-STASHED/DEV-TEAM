@@ -7,7 +7,14 @@ import supabase from '@/lib/supabaseClient';
 
 const Marketplace = () => {
   const [products, setProducts] = useState([]);
-  const { toggleCart = () => {} } = useCart() || {};
+  const [toggleCart, setToggleCart] = useState(() => () => {});
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cart = useCart();
+      if (cart?.toggleCart) setToggleCart(() => cart.toggleCart);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -43,4 +50,4 @@ const Marketplace = () => {
   );
 };
 
-export default Marketplace;
+export default Marketplace;  
