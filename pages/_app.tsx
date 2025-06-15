@@ -12,11 +12,6 @@ const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 function CartDrawer() {
   const { cartItems, removeFromCart } = useCart();
-  const router = useRouter();
-
-  if (!router.pathname.startsWith('/buyer')) {
-    return null;
-  }
 
   const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -50,17 +45,28 @@ function CartDrawer() {
 }
 
 function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter();
+  const isBuyerRoute = router.pathname.startsWith('/buyer');
+
   return (
-    <CartProvider>
-      <NoAuthProvider>
+    <NoAuthProvider>
+      {isBuyerRoute ? (
+        <CartProvider>
+          <div className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/background.png')" }}>
+            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+              <Component {...pageProps} />
+            </main>
+            <CartDrawer />
+          </div>
+        </CartProvider>
+      ) : (
         <div className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/background.png')" }}>
           <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
             <Component {...pageProps} />
           </main>
-          <CartDrawer />
         </div>
-      </NoAuthProvider>
-    </CartProvider>
+      )}
+    </NoAuthProvider>
   );
 }
 
