@@ -39,6 +39,7 @@ module.exports = {
         'graffiti-1': "url('/images/graffiti-1.jpg')",
         'graffiti-2': "url('/images/graffiti-2.jpg')",
         'graffiti-dark': "url('/images/graffiti-dark.jpg')",
+        'default-bg': "url('/background.png')",
       },
     },
   },

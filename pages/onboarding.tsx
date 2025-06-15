@@ -61,37 +61,40 @@ const OnboardingPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold mb-6">Welcome to StreetStashed</h1>
-      <p className="mb-4 text-gray-600">Choose your role to get started:</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black bg-cover bg-center text-yellow-400 font-graffiti px-4 sm:px-8" style={{ backgroundImage: "url('/background.png')" }}>
+      <div className="flex flex-col items-center space-y-4">
+        <img src="/logo.png" alt="StreetStashed Logo" className="w-20 h-20" />
+        <h1 className="text-4xl font-bold text-center">Welcome to STREETSTASHED</h1>
+        <p className="text-yellow-300 text-center text-lg">Pick your role to unlock your lane in the culture.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8 w-full max-w-md">
         <button
           onClick={() => selectRole('buyer')}
-          className="bg-black text-white py-3 rounded"
+          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
-          I'm a Buyer
+          🛍️ I'm a Buyer
         </button>
         <button
           onClick={() => selectRole('seller')}
-          className="bg-black text-white py-3 rounded"
+          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
-          I'm a Seller
+          🏪 I'm a Seller
         </button>
         <button
           onClick={() => selectRole('stylist')}
-          className="bg-black text-white py-3 rounded"
+          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
-          I'm a Stylist
+          💅 I'm a Stylist
         </button>
         <button
           onClick={() => selectRole('driver')}
-          className="bg-black text-white py-3 rounded"
+          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
-          I'm a Driver
+          🚗 I'm a Driver
         </button>
       </div>
     </div>

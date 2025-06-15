@@ -1,1 +1,46 @@
-/* Starter file for globals.css */
+@font-face {
+  font-family: 'Urbanist';
+  src: url('/fonts/Urbanist-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Custom global styles */
+body {
+  background-color: #000;
+  background-image: url('/background.png'), linear-gradient(to bottom right, #000000, #1a1a1a);
+  background-size: cover;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  background-position: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  color: #fef3c7; /* softer yellow */
+  font-family: 'Urbanist', sans-serif;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+h1, h2, h3 {
+  color: #fef08a;
+}
+
+/* Link styles */
+a {
+  color: #fde68a;
+  text-decoration: underline;
+}
+
+a:hover {
+  color: #fef3c7;
+}
+
+.font-urbanist {
+  font-family: 'Urbanist', sans-serif;
+}
