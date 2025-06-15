@@ -43,13 +43,13 @@ export default function SellerDashboard() {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: user } = await supabase
+        .from('users')
         .select('role')
         .eq('id', currentUser.id)
         .single();
 
-      if (profile?.role !== 'seller') {
+      if (user?.role !== 'seller') {
         window.location.href = '/unauthorized';
       }
     };

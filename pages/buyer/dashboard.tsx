@@ -32,11 +32,16 @@ const BuyerDashboard = () => {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: profile, error } = await supabase
+        .from('users')
         .select('role')
         .eq('id', currentUser.id)
         .single();
+
+      if (error) {
+        console.error('Error fetching role:', error.message);
+        return;
+      }
 
       if (profile?.role !== 'buyer') {
         window.location.href = '/unauthorized';

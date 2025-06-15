@@ -15,13 +15,17 @@ const Dashboard = () => {
       setUser(user);
 
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
+        const { data: userData, error } = await supabase
+          .from('users')
           .select('role')
           .eq('id', user.id)
           .single();
 
-        setRole(profile?.role || null);
+        if (error) {
+          console.error('Error fetching role:', error.message);
+        }
+
+        setRole(userData?.role || null);
       }
 
       setLoading(false);

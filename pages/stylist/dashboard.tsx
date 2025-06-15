@@ -36,7 +36,7 @@ const StylistDashboard: React.FC = () => {
       }
 
       const { data: profileData } = await supabase
-        .from('profiles')
+        .from('users')
         .select('role, avatar_url')
         .eq('id', currentUser.id)
         .single();
