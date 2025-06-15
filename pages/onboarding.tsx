@@ -33,7 +33,8 @@ const OnboardingPage = () => {
   
     const { error } = await supabase
       .from('users')
-      .upsert({ id: user.id, role });
+      .update({ role })
+      .eq('id', user.id);
 
     if (error) {
       alert('Failed to update role');

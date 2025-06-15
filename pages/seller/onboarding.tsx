@@ -29,12 +29,25 @@ export default function SellerApplicationPage() {
       setError('Submission failed. Please try again.');
     } else {
       setSubmitted(true);
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await supabase
+          .from('users')
+          .update({ role: 'seller' })
+          .eq('id', user.id);
+      }
+
+      window.location.href = '/seller/dashboard';
     }
   };
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white p-6">
+      <div className="min-h-screen flex items-center justify-center bg-black text-yellow-400 p-6">
         <div className="max-w-md w-full text-center">
           <h1 className="text-2xl font-bold mb-4">Application Submitted</h1>
           <p className="text-gray-700">We'll review your info and reach out soon.</p>
@@ -44,10 +57,10 @@ export default function SellerApplicationPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-6">
+    <div className="min-h-screen flex items-center justify-center bg-black text-yellow-400 p-6">
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
+        className="bg-black text-yellow-400 p-8 rounded shadow-md w-full max-w-md"
       >
         <h1 className="text-2xl font-bold mb-6">Seller Application</h1>
 
