@@ -156,6 +156,50 @@ export default function SellerDashboard() {
         >
           Reload My Products
         </button>
+        <h2 className="text-xl font-semibold">Seller Profile</h2>
+        <div className="mb-4">
+          <p className="text-sm text-gray-500">Current Profile Image:</p>
+          <img
+            src={sessionStorage.getItem('profile_image') || '/default-avatar.png'}
+            alt="Current profile"
+            className="w-24 h-24 rounded-full border mt-2"
+          />
+        </div>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const fileInput = (e.target as HTMLFormElement).elements.namedItem('avatar') as HTMLInputElement;
+            const file = fileInput.files?.[0];
+            if (!file) return;
+
+            const session = await supabase.auth.getSession();
+            const userId = session.data.session?.user.id;
+
+            const { data, error } = await supabase.storage
+              .from('avatars')
+              .upload(`users/${userId}/profile.png`, file, { upsert: true });
+
+            if (!error) {
+              const publicURL = supabase.storage
+                .from('avatars')
+                .getPublicUrl(`users/${userId}/profile.png`).data.publicUrl;
+
+              await supabase.from('profiles')
+                .update({ profile_image: publicURL })
+                .eq('id', userId);
+
+              sessionStorage.setItem('profile_image', publicURL);
+              alert("Profile image updated!");
+            } else {
+              console.error(error.message);
+              alert("Failed to upload image.");
+            }
+          }}
+          className="space-y-4 mb-6"
+        >
+          <input type="file" name="avatar" accept="image/*" className="border p-2 w-full rounded" required />
+          <button type="submit" className="bg-black text-white px-4 py-2 rounded">Upload Profile Image</button>
+        </form>
         <h2 className="text-xl font-semibold">Upload New Product</h2>
         <form
           onSubmit={async (e) => {

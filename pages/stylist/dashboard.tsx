@@ -5,6 +5,7 @@ import React from 'react'
 
 const StylistDashboard: React.FC = () => {
   const [bookings, setBookings] = useState<any[]>([])
+  const [profile, setProfile] = useState<any>(null)
 
   const fetchBookings = async () => {
     const session = await supabase.auth.getSession()
@@ -34,13 +35,15 @@ const StylistDashboard: React.FC = () => {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, avatar_url')
         .eq('id', currentUser.id)
         .single();
 
-      if (profile?.role !== 'stylist') {
+      setProfile(profileData);
+
+      if (profileData?.role !== 'stylist') {
         window.location.href = '/unauthorized';
       }
     };
@@ -64,7 +67,14 @@ const StylistDashboard: React.FC = () => {
   return (
     <AuthGuard role="stylist">
       <div className="p-4 sm:p-6 md:p-8 space-y-4 max-w-4xl mx-auto">
-        <h1 className="text-xl sm:text-2xl font-bold">StreetStashed Stylist Suite</h1>
+        <div className="flex items-center space-x-4">
+          <img
+            src={profile?.avatar_url || '/default-avatar.png'}
+            alt="Profile"
+            className="w-16 h-16 rounded-full border border-yellow-400"
+          />
+          <h1 className="text-xl sm:text-2xl font-bold">StreetStashed Stylist Suite</h1>
+        </div>
         <h2 className="text-xl font-semibold">Incoming Bookings</h2>
         <button
           onClick={fetchBookings}

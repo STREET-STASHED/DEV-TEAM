@@ -32,7 +32,7 @@ const OnboardingPage = () => {
     }
   
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       .upsert({ id: user.id, role });
 
     if (error) {
@@ -63,7 +63,6 @@ const OnboardingPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black bg-cover bg-center text-yellow-400 font-graffiti px-4 sm:px-8" style={{ backgroundImage: "url('/background.png')" }}>
       <div className="flex flex-col items-center space-y-4">
-        <img src="/logo.png" alt="StreetStashed Logo" className="w-20 h-20" />
         <h1 className="text-4xl font-bold text-center">Welcome to STREETSTASHED</h1>
         <p className="text-yellow-300 text-center text-lg">Pick your role to unlock your lane in the culture.</p>
       </div>
