@@ -159,11 +159,13 @@ export default function SellerDashboard() {
         <h2 className="text-xl font-semibold">Seller Profile</h2>
         <div className="mb-4">
           <p className="text-sm text-gray-500">Current Profile Image:</p>
-          <img
-            src={sessionStorage.getItem('profile_image') || '/default-avatar.png'}
-            alt="Current profile"
-            className="w-24 h-24 rounded-full border mt-2"
-          />
+          {typeof window !== 'undefined' && (
+            <img
+              src={sessionStorage.getItem('profile_image') || '/default-avatar.png'}
+              alt="Current profile"
+              className="w-24 h-24 rounded-full border mt-2"
+            />
+          )}
         </div>
         <form
           onSubmit={async (e) => {
