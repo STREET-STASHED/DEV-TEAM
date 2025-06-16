@@ -61,8 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         amount: paymentIntent.amount,
       });
     } catch (err) {
-      console.error('Stripe PaymentIntent creation error:', err instanceof Error ? err.message : err);
-      return res.status(500).json({ error: 'Unable to create payment intent' });
+      console.error('Stripe PaymentIntent creation error:', err);
+      return res.status(500).json({
+        error: 'Unable to create payment intent',
+        message: err instanceof Error ? err.message : 'Unknown error',
+        raw: err,
+      });
     }
   }
 

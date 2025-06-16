@@ -10,10 +10,11 @@ interface CheckoutFormProps {
   items: any[];
   name: string;
   email: string;
+  totalAmount: number;
   mode?: 'buyNow' | 'cart';
 }
 
-export default function CheckoutForm({ items, name, email, mode = 'buyNow' }: CheckoutFormProps) {
+export default function CheckoutForm({ items, name, email, totalAmount, mode = 'buyNow' }: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
@@ -49,7 +50,8 @@ export default function CheckoutForm({ items, name, email, mode = 'buyNow' }: Ch
         paymentMethodId: paymentMethodRes.paymentMethod.id,
         items,
         name,
-        email
+        email,
+        totalAmount
       });
 
       if (data.requiresAction) {

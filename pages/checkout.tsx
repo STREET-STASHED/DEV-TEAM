@@ -58,7 +58,7 @@ const CheckoutPage = () => {
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <CheckoutForm items={cart} name={name} email={email} />
+      <CheckoutForm items={cart} name={name} email={email} totalAmount={totalPrice} />
     </main>
   );
 };
