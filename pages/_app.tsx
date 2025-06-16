@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
-import { CartProvider, useCart } from '../context/CartContext';
+import { CartProvider } from '../context/CartContext';
 import CartDrawer from '../components/CartDrawer';
 
 const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -29,7 +29,11 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <NoAuthProvider>
-      {isBuyerFacing ? <CartProvider>{AppContent}</CartProvider> : AppContent}
+      {isBuyerFacing ? (
+        <CartProvider>{AppContent}</CartProvider>
+      ) : (
+        AppContent
+      )}
     </NoAuthProvider>
   );
 }
