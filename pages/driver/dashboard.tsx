@@ -82,23 +82,28 @@ const Dashboard = () => {
         <div className="bg-white shadow rounded-lg p-6">
           <h2 className="text-xl font-medium mb-4">Your Deliveries</h2>
           <ul className="space-y-4">
-            {deliveries.map((delivery) => (
-              <li key={delivery.id} className="border rounded p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-semibold">Order #{delivery.id}</p>
-                  <p className="text-sm text-gray-600">Pickup: {delivery.pickup_location}</p>
-                  <p className="text-sm text-gray-600">Dropoff: {delivery.dropoff_location}</p>
-                  <p className="text-sm text-gray-500">Status: {delivery.status}</p>
-                  <p className="text-sm text-gray-400">Created: {new Date(delivery.created_at).toLocaleString()}</p>
-                </div>
-                <button
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded"
-                  onClick={() => markAsDelivered(delivery.id)}
-                >
-                  Mark as Delivered
-                </button>
-              </li>
-            ))}
+            {deliveries.length === 0 ? (
+              <p className="text-gray-500 text-sm">No deliveries assigned yet.</p>
+            ) : (
+              deliveries.map((delivery) => (
+                <li key={delivery.id} className="border rounded p-4 flex justify-between items-center">
+                  <div>
+                    <p className="font-semibold">Order #{delivery.id}</p>
+                    <p className="text-sm text-gray-600">Pickup: {delivery.pickup_location}</p>
+                    <p className="text-sm text-gray-600">Dropoff: {delivery.dropoff_location}</p>
+                    <p className="text-sm text-gray-500">Status: {delivery.status}</p>
+                    <p className="text-sm text-gray-400">Created: {new Date(delivery.created_at).toLocaleString()}</p>
+                  </div>
+                  <button
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded disabled:opacity-50"
+                    disabled={delivery.status === 'delivered'}
+                    onClick={() => markAsDelivered(delivery.id)}
+                  >
+                    {delivery.status === 'delivered' ? 'Delivered' : 'Mark as Delivered'}
+                  </button>
+                </li>
+              ))
+            )}
           </ul>
         </div>
 

@@ -31,24 +31,60 @@ const Dashboard = () => {
 
   return (
     <AuthGuard role="admin">
-      <div className="p-6">
+      <div className="p-6 space-y-4">
         {user ? (
           <>
-            <h1 className="text-xl font-bold mb-2">Welcome to your Dashboard</h1>
+            <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
+            <p className="text-gray-600">Role: {role}</p>
+
             {role === 'seller' && (
-              <p>Manage your products, track orders, and view performance analytics.</p>
+              <div className="bg-white shadow p-4 rounded">
+                <h2 className="font-semibold text-lg mb-2">Seller Tools</h2>
+                <ul className="list-disc pl-5">
+                  <li>Upload and manage products</li>
+                  <li>View and fulfill orders</li>
+                  <li>Check sales analytics</li>
+                </ul>
+              </div>
             )}
+
             {role === 'buyer' && (
-              <p>View your order history, track deliveries, and update your profile.</p>
+              <div className="bg-white shadow p-4 rounded">
+                <h2 className="font-semibold text-lg mb-2">Buyer Dashboard</h2>
+                <ul className="list-disc pl-5">
+                  <li>Track orders and deliveries</li>
+                  <li>Manage payment methods</li>
+                  <li>Update personal profile</li>
+                </ul>
+              </div>
             )}
+
             {role === 'stylist' && (
-              <p>Manage your bookings, offer new style bundles, and connect with clients.</p>
+              <div className="bg-white shadow p-4 rounded">
+                <h2 className="font-semibold text-lg mb-2">Stylist Panel</h2>
+                <ul className="list-disc pl-5">
+                  <li>View and manage bookings</li>
+                  <li>Create and update style bundles</li>
+                  <li>Message clients</li>
+                </ul>
+              </div>
             )}
+
             {role === 'driver' && (
-              <p>View available deliveries, track completed orders, and manage payout info.</p>
+              <div className="bg-white shadow p-4 rounded">
+                <h2 className="font-semibold text-lg mb-2">Driver Operations</h2>
+                <ul className="list-disc pl-5">
+                  <li>Accept and complete deliveries</li>
+                  <li>View assigned delivery routes</li>
+                  <li>Manage payout details</li>
+                </ul>
+              </div>
             )}
+
             {!['seller', 'buyer', 'stylist', 'driver'].includes(role || '') && (
-              <p>Your role is not recognized. Please contact support.</p>
+              <div className="bg-red-100 p-4 rounded text-red-800">
+                Your role is not recognized. Please contact support.
+              </div>
             )}
           </>
         ) : (
