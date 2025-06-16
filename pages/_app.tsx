@@ -15,22 +15,18 @@ function MyApp({ Component, pageProps }: AppProps) {
     !router.pathname.includes('/stylist') &&
     !router.pathname.includes('/driver');
 
-  const AppContent = (
-    <div
-      className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
-      style={{ backgroundImage: "url('/background.png')" }}
-    >
-      <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-        <Component {...pageProps} />
-      </main>
-    </div>
-  );
-
   return (
     <CartProvider>
       <NoAuthProvider>
-        {AppContent}
-        {isBuyerFacing && <CartDrawer />}
+        <div
+          className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
+          style={{ backgroundImage: "url('/background.png')" }}
+        >
+          <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+            <Component {...pageProps} />
+          </main>
+          {isBuyerFacing && <CartDrawer />}
+        </div>
       </NoAuthProvider>
     </CartProvider>
   );

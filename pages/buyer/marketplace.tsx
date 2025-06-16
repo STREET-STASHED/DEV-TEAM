@@ -27,6 +27,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div className="bg-white text-black rounded shadow p-4 flex flex-col items-start">
+      {product.image && (
+        <img src={product.image} alt={product.name} className="w-full h-40 object-cover rounded mb-2" />
+      )}
       <h2 className="text-lg font-semibold">{product.name}</h2>
       <p className="mb-2">${product.price.toFixed(2)}</p>
       <button
@@ -41,9 +44,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
 const Marketplace = () => {
   const products: Product[] = [
-    { id: '1', name: 'T-Shirt', price: 29.99 },
-    { id: '2', name: 'Sneakers', price: 89.99 },
-    { id: '3', name: 'Cap', price: 19.99 },
+    { id: '1', name: 'T-Shirt', price: 29.99, image: '/images/tshirt.png' },
+    { id: '2', name: 'Sneakers', price: 89.99, image: '/images/sneakers.png' },
+    { id: '3', name: 'Cap', price: 19.99, image: '/images/cap.png' },
   ];
 
   return (
