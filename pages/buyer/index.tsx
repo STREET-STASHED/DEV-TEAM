@@ -18,7 +18,7 @@ const mockProducts = [
 ];
 
 const ProductList = () => {
-  const { addItem } = useCart();
+  const { addToCart } = useCart();
 
   return (
     <div className="p-4">
@@ -37,7 +37,12 @@ const ProductList = () => {
             <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
             <p className="text-gray-600 mb-2">${product.price}</p>
             <button
-              onClick={() => addItem(product)}
+              onClick={() =>
+                addToCart({
+                  ...product,
+                  quantity: 1,
+                })
+              }
               className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors duration-200 w-full"
             >
               Add to Cart
