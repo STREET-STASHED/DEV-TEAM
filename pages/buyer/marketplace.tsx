@@ -1,53 +1,54 @@
-import AuthGuard from '@/components/AuthGuard';
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { useCart } from '@/context/CartContext';
-import ProductCard from '@/components/ProductCard';
-import CartDrawer from '@/components/CartDrawer';
-import supabase from '@/lib/supabaseClient';
 
-const Marketplace = () => {
-  const [products, setProducts] = useState([]);
-  const [toggleCart, setToggleCart] = useState(() => () => {});
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image?: string;
+}
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const cart = useCart();
-      if (cart?.toggleCart) setToggleCart(() => cart.toggleCart);
-    }
-  }, []);
+interface ProductCardProps {
+  product: Product;
+}
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const { data, error } = await supabase.from('products').select('*');
-      if (error) console.error('Error fetching products:', error);
-      else setProducts(data);
-    };
-    fetchProducts();
-  }, []);
+const ProductCard = ({ product }: ProductCardProps) => {
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    addToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || '',
+      quantity: 1,
+    });
+  };
 
   return (
-    <AuthGuard role="buyer">
-      <div className="min-h-screen bg-gray-50 p-6">
-        <header className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-800">Marketplace</h1>
-          <button
-            onClick={toggleCart}
-            className="bg-black text-white px-5 py-2 rounded hover:bg-gray-900 transition"
-          >
-            View Cart
-          </button>
-        </header>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {products.map((product: any) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-
-        <CartDrawer />
-      </div>
-    </AuthGuard>
+    <div>
+      <h2>{product.name}</h2>
+      <p>${product.price.toFixed(2)}</p>
+      <button onClick={handleAddToCart}>Add to Cart</button>
+    </div>
   );
 };
 
-export default Marketplace;  
+const Marketplace = () => {
+  const products: Product[] = [
+    { id: '1', name: 'T-Shirt', price: 29.99 },
+    { id: '2', name: 'Sneakers', price: 89.99 },
+    { id: '3', name: 'Cap', price: 19.99 },
+  ];
+
+  return (
+    <div>
+      <h1>Marketplace</h1>
+      {products.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+  );
+};
+
+export default Marketplace;

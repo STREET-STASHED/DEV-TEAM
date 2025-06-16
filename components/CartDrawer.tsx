@@ -25,6 +25,7 @@ const CartDrawer: React.FC = () => {
               <div key={index} className="rounded-lg border border-yellow-400 p-4 bg-gray-900 mb-4">
                 <p className="font-semibold text-lg text-yellow-200 font-graffiti">{item.name}</p>
                 <p className="text-sm text-yellow-300">Price: ${item.price.toFixed(2)}</p>
+                <p className="text-sm text-yellow-200">Subtotal: ${(item.price * item.quantity).toFixed(2)}</p>
                 <div className="flex items-center mt-2 gap-2">
                   <button
                     onClick={() => decreaseQuantity(item.name)}
@@ -48,12 +49,13 @@ const CartDrawer: React.FC = () => {
                 </div>
               </div>
             ))}
-            <div className="mt-4 font-bold text-right text-xl text-yellow-100 font-mono">
-              Total: ${total.toFixed(2)}
+            <div className="mt-4 flex justify-between items-center border-t border-yellow-400 pt-4">
+              <span className="text-yellow-300 font-semibold text-lg">Total</span>
+              <span className="text-yellow-100 font-bold text-xl font-mono">${total.toFixed(2)}</span>
             </div>
-            <div className="flex flex-col gap-2 mt-6">
+            <div className="grid grid-cols-1 gap-3 mt-6 sm:grid-cols-2">
               <button
-                className="w-full bg-yellow-400 text-black py-2 rounded hover:bg-yellow-300 font-bold"
+                className="bg-yellow-400 text-black py-2 px-4 rounded-md shadow hover:bg-yellow-300 font-bold transition"
                 onClick={async () => {
                   try {
                     const res = await fetch('/api/checkout-session', {
@@ -79,7 +81,7 @@ const CartDrawer: React.FC = () => {
                 Checkout
               </button>
               <button
-                className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700"
+                className="bg-red-600 text-white py-2 px-4 rounded-md shadow hover:bg-red-700 transition"
                 onClick={clearCart}
               >
                 Clear Cart

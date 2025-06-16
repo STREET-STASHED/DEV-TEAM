@@ -5,19 +5,45 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login logic
-    if (email.includes('buyer')) {
-      router.push('/buyer');
-    } else if (email.includes('seller')) {
-      router.push('/seller');
-    } else if (email.includes('stylist')) {
-      router.push('/stylist');
-    } else if (email.includes('driver')) {
-      router.push('/driver');
-    } else {
-      router.push('/onboarding');
+
+    try {
+      const res = await fetch('/api/get-role', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to fetch role');
+      }
+
+      const data = await res.json();
+      const role = data.role;
+
+      switch (role) {
+        case 'buyer':
+          router.push('/buyer/marketplace');
+          break;
+        case 'seller':
+          router.push('/seller/dashboard');
+          break;
+        case 'stylist':
+          router.push('/stylist/dashboard');
+          break;
+        case 'driver':
+          router.push('/driver/dashboard');
+          break;
+        default:
+          router.push('/onboarding');
+          break;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('There was an issue logging in. Please try again.');
     }
   };
 

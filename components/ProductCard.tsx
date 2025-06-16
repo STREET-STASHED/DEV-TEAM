@@ -6,6 +6,7 @@ interface Product {
   name: string;
   price: number;
   image?: string;
+  quantity?: number;
 }
 
 interface ProductCardProps {
@@ -16,14 +17,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
 
   const handleAddToCart = () => {
-    const newItem = {
+    addToCart({
       id: product.id,
       name: product.name,
       price: product.price,
+      image: product.image || '',
       quantity: 1,
-      image: product.image,
-    };
-    addToCart(newItem);
+    });
   };
 
   return (
@@ -33,7 +33,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       <p className="text-gray-700 mb-2">${product.price.toFixed(2)}</p>
       <button
         onClick={handleAddToCart}
-        className="bg-black text-white px-4 py-2 rounded"
+        className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+        aria-label={`Add ${product.name} to cart`}
       >
         Add to Cart
       </button>

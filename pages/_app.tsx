@@ -1,10 +1,7 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import Image from 'next/image';
-import Link from 'next/link';
-import { CartProvider } from '../context/CartContext';
-import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/router';
+import { CartProvider, useCart } from '../context/CartContext';
 
 const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
@@ -48,24 +45,21 @@ function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isBuyerRoute = router.pathname.startsWith('/buyer');
 
+  const AppContent = (
+    <div
+      className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: "url('/background.png')" }}
+    >
+      <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+        <Component {...pageProps} />
+      </main>
+      {isBuyerRoute && <CartDrawer />}
+    </div>
+  );
+
   return (
     <NoAuthProvider>
-      {isBuyerRoute ? (
-        <CartProvider>
-          <div className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/background.png')" }}>
-            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-              <Component {...pageProps} />
-            </main>
-            <CartDrawer />
-          </div>
-        </CartProvider>
-      ) : (
-        <div className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed" style={{ backgroundImage: "url('/background.png')" }}>
-          <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-            <Component {...pageProps} />
-          </main>
-        </div>
-      )}
+      {isBuyerRoute ? <CartProvider>{AppContent}</CartProvider> : AppContent}
     </NoAuthProvider>
   );
 }

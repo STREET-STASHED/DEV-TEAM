@@ -13,14 +13,15 @@ export type CartItem = Product & { quantity: number };
 export type CartContextType = {
   cart: CartItem[];
   cartItems: CartItem[]; // Alias for compatibility
-  addToCart: (product: Product) => void;
-  addItem: (product: Product) => void; // Add alias
+  addToCart: (item: CartItem) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   decreaseQuantity: (productId: string) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   toggleCart: () => void;
+  cartTotal: number;
+  cartCount: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -30,17 +31,24 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
-  const addToCart = (product: Product) => {
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const addToCart = (item: CartItem) => {
+    if (!item || !item.id || item.quantity <= 0) {
+      console.warn('Invalid item passed to addToCart:', item);
+      return;
+    }
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(p => p.id === item.id);
       if (existing) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+        return prev.map(p =>
+          p.id === item.id
+            ? { ...p, quantity: p.quantity + item.quantity }
+            : p
         );
       } else {
-        return [...prev, { ...product, quantity: 1 }];
+        return [...prev, item];
       }
     });
   };
@@ -79,13 +87,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         cart,
         cartItems: cart,
         addToCart,
-        addItem: addToCart,
         removeFromCart,
         updateQuantity,
         decreaseQuantity,
         clearCart,
         isCartOpen,
         toggleCart,
+        cartTotal,
+        cartCount,
       }}
     >
       {children}
