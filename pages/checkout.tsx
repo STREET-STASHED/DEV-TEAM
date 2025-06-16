@@ -2,6 +2,7 @@ import type { CartContextType } from '../context/CartContext';
 import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
+import CheckoutForm from '../components/CheckoutForm';
 
 const CheckoutPage = () => {
   const [isClient, setIsClient] = useState(false);
@@ -20,48 +21,6 @@ const CheckoutPage = () => {
 
   const totalQuantity = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
   const totalPrice = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
-
-  const handleCheckout = async () => {
-    if (!name || !email) {
-      alert('Please enter your name and email.');
-      return;
-    }
-
-    if (cart.length === 0) {
-      alert('Your cart is empty.');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          email,
-          items: cart,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const { redirectUrl } = data;
-        context.clearCart?.();
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        } else {
-          router.push('/buyer/dashboard');
-        }
-      } else {
-        alert('Failed to place order.');
-        console.error('Order error:', data);
-      }
-    } catch (error) {
-      alert('Checkout failed. Try again.');
-      console.error(error);
-    }
-  };
 
   return (
     <main className="max-w-2xl mx-auto p-6">
@@ -99,12 +58,7 @@ const CheckoutPage = () => {
         onChange={(e) => setEmail(e.target.value)}
       />
 
-      <button
-        onClick={handleCheckout}
-        className="w-full bg-black text-white py-2 px-4 rounded hover:bg-gray-800"
-      >
-        Place Order
-      </button>
+      <CheckoutForm items={cart} name={name} email={email} />
     </main>
   );
 };

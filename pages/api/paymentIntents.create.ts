@@ -16,34 +16,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Handle frontend-triggered checkout session creation
   if (!req.headers['stripe-signature']) {
+    if (!req.body.items || !Array.isArray(req.body.items) || req.body.items.length === 0) {
+      return res.status(400).json({ error: 'Invalid or empty cart items' });
+    }
+
+    console.log('Incoming cart items:', req.body.items);
     try {
-      const origin = req.headers.origin || 'https://streetstashed.vercel.app';
-      const session = await stripe.checkout.sessions.create({
-        payment_method_types: ['card'],
-        mode: 'payment',
-        line_items: req.body.items.map((item: any) => ({
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: item.name,
-            },
-            unit_amount: Math.round(item.price * 100),
-          },
-          quantity: item.quantity,
-        })),
+      const totalAmount = req.body.items.reduce((sum: number, item: any) => {
+        return sum + item.price * item.quantity;
+      }, 0);
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(totalAmount * 100), // convert dollars to cents
+        currency: 'usd',
         metadata: {
           buyer_id: 'test_buyer_id',
           seller_id: 'test_seller_id',
           cart: JSON.stringify(req.body.items),
         },
-        success_url: `${origin}/success`,
-        cancel_url: `${origin}/cancel`,
       });
 
-      return res.status(200).json({ redirectUrl: session.url });
+      return res.status(200).json({ clientSecret: paymentIntent.client_secret });
     } catch (err) {
-      console.error('Error creating checkout session:', err);
-      return res.status(500).json({ error: 'Unable to create checkout session' });
+      console.error('Stripe PaymentIntent creation error:', err instanceof Error ? err.message : err);
+      return res.status(500).json({ error: 'Unable to create payment intent' });
     }
   }
 

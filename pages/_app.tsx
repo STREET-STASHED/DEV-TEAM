@@ -3,6 +3,10 @@ import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import { CartProvider } from '../context/CartContext';
 import CartDrawer from '../components/CartDrawer';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
@@ -16,19 +20,21 @@ function MyApp({ Component, pageProps }: AppProps) {
     !router.pathname.includes('/driver');
 
   return (
-    <CartProvider>
-      <NoAuthProvider>
-        <div
-          className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
-          style={{ backgroundImage: "url('/background.png')" }}
-        >
-          <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-            <Component {...pageProps} />
-          </main>
-          {isBuyerFacing && <CartDrawer />}
-        </div>
-      </NoAuthProvider>
-    </CartProvider>
+    <Elements stripe={stripePromise}>
+      <CartProvider>
+        <NoAuthProvider>
+          <div
+            className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
+            style={{ backgroundImage: "url('/background.png')" }}
+          >
+            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+              <Component {...pageProps} />
+            </main>
+            {isBuyerFacing && <CartDrawer />}
+          </div>
+        </NoAuthProvider>
+      </CartProvider>
+    </Elements>
   );
 }
 
