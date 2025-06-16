@@ -43,7 +43,7 @@ function CartDrawer() {
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const isBuyerRoute = router.pathname.startsWith('/buyer');
+  const isBuyerFacing = !router.pathname.startsWith('/seller') && !router.pathname.startsWith('/stylist') && !router.pathname.startsWith('/driver');
 
   const AppContent = (
     <div
@@ -53,13 +53,13 @@ function MyApp({ Component, pageProps }: AppProps) {
       <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
         <Component {...pageProps} />
       </main>
-      {isBuyerRoute && <CartDrawer />}
+      {isBuyerFacing && <CartDrawer />}
     </div>
   );
 
   return (
     <NoAuthProvider>
-      {isBuyerRoute ? <CartProvider>{AppContent}</CartProvider> : AppContent}
+      {isBuyerFacing ? <CartProvider>{AppContent}</CartProvider> : AppContent}
     </NoAuthProvider>
   );
 }
