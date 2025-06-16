@@ -26,10 +26,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
   };
 
   return (
-    <div>
-      <h2>{product.name}</h2>
-      <p>${product.price.toFixed(2)}</p>
-      <button onClick={handleAddToCart}>Add to Cart</button>
+    <div className="bg-white text-black rounded shadow p-4 flex flex-col items-start">
+      <h2 className="text-lg font-semibold">{product.name}</h2>
+      <p className="mb-2">${product.price.toFixed(2)}</p>
+      <button
+        onClick={handleAddToCart}
+        className="mt-auto bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition"
+      >
+        Add to Cart
+      </button>
     </div>
   );
 };
@@ -42,11 +47,13 @@ const Marketplace = () => {
   ];
 
   return (
-    <div>
-      <h1>Marketplace</h1>
-      {products.map(product => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4 text-white">Marketplace</h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {products.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
     </div>
   );
 };

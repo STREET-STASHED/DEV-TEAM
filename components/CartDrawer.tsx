@@ -55,9 +55,16 @@ const CartDrawer: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 gap-3 mt-6 sm:grid-cols-2">
               <button
-                className="bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 font-bold transition"
+                className="bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={cartItems.length === 0}
                 onClick={async () => {
+                  if (cartItems.length === 0) {
+                    alert('Cart is empty.');
+                    return;
+                  }
+
                   try {
+                    console.log('Sending cartItems:', cartItems);
                     const res = await fetch('/api/checkout-session', {
                       method: 'POST',
                       headers: {
@@ -67,14 +74,17 @@ const CartDrawer: React.FC = () => {
                     });
 
                     const data = await res.json();
+                    console.log('Received response:', data);
 
                     if (data.url) {
-                      router.push(data.url);
+                      window.location.href = data.url;
                     } else {
-                      console.error('Checkout session failed:', data);
+                      console.error('Checkout session failed or URL not found:', data);
+                      alert('Checkout failed. Please try again.');
                     }
                   } catch (error) {
                     console.error('Error creating checkout session:', error);
+                    alert('An error occurred. Please try again.');
                   }
                 }}
               >
