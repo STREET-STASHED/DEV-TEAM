@@ -41,7 +41,10 @@ const Storefront = () => {
               <h3>{item.name}</h3>
               <p>Type: {item.type === 'bundle' ? 'Bundle' : 'Product'}</p>
               <p>Price: {item.price}</p>
-              <button>Add to Cart</button>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button>Add to Cart</button>
+                <button>Buy Now</button>
+              </div>
             </div>
           ))}
         </div>

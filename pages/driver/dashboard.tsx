@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../../supabase/supabaseClient';
+import { supabase } from '@/supabase/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
 
 const Dashboard = () => {
@@ -11,38 +11,42 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('Auth error:', authError?.message);
+        setLoading(false);
+        return;
+      }
       setUser(user);
 
-      if (user) {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .single();
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, role, email')
+        .eq('id', user.id)
+        .single();
 
-        if (error) {
-          console.error('Error fetching role:', error.message);
-        }
+      if (userError || !userData) {
+        console.error('Error fetching user metadata:', userError?.message);
+        setLoading(false);
+        return;
+      }
 
-        setRole(userData?.role || null);
+      setRole(userData.role);
 
-        const { data: deliveryData, error: deliveryError } = await supabase
-          .from('deliveries')
-          .select('*')
-          .eq('driver_id', user.id)
-          .order('created_at', { ascending: false });
+      const { data: deliveryData, error: deliveryError } = await supabase
+        .from('deliveries')
+        .select('*')
+        .eq('driver_id', user.id)
+        .order('created_at', { ascending: false });
 
-        if (deliveryError) console.error('Error fetching deliveries:', deliveryError);
-        else {
-          setDeliveries(deliveryData);
-          const total = deliveryData
-            .filter(d => d.status === 'delivered')
-            .reduce((sum, d) => sum + (d.earnings || 0), 0);
-          setEarnings(total);
-        }
+      if (deliveryError) {
+        console.error('Error fetching deliveries:', deliveryError.message);
+      } else {
+        setDeliveries(deliveryData);
+        const total = deliveryData
+          .filter(d => d.status === 'delivered')
+          .reduce((sum, d) => sum + (Number(d.earnings) || 0), 0);
+        setEarnings(total);
       }
 
       setLoading(false);

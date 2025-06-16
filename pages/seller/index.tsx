@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export default function SellerOnboarding() {
-  const [form, setForm] = useState({ name: '', storeName: '', email: '' });
+  const [form, setForm] = useState({ name: '', storeName: '', email: '', phone: '', storeAddress: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -35,6 +35,20 @@ export default function SellerOnboarding() {
           name="email"
           placeholder="Email"
           value={form.email}
+          onChange={handleChange}
+          className="border border-gray-300 p-3 w-full rounded"
+        />
+        <input
+          name="phone"
+          placeholder="Phone Number"
+          value={form.phone}
+          onChange={handleChange}
+          className="border border-gray-300 p-3 w-full rounded"
+        />
+        <input
+          name="storeAddress"
+          placeholder="Store Address"
+          value={form.storeAddress}
           onChange={handleChange}
           className="border border-gray-300 p-3 w-full rounded"
         />
