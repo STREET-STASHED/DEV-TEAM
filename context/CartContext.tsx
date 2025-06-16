@@ -22,6 +22,7 @@ export type CartContextType = {
   toggleCart: () => void;
   cartTotal: number;
   cartCount: number;
+  getCartItemById: (productId: string) => CartItem | undefined;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -77,6 +78,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
+  const getCartItemById = (productId: string) => {
+    return cart.find(item => item.id === productId);
+  };
+
   const clearCart = () => {
     setCart([]);
   };
@@ -95,6 +100,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         toggleCart,
         cartTotal,
         cartCount,
+        getCartItemById,
       }}
     >
       {children}

@@ -15,8 +15,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Missing cart items' });
     }
 
+    if (!items.every(item => typeof item.price === 'number' && typeof item.quantity === 'number')) {
+      return res.status(400).json({ error: 'Invalid item format' });
+    }
+
     const totalAmount = items.reduce((sum: number, item: any) => {
-      return sum + item.price * item.quantity;
+      return sum + parseFloat(item.price) * item.quantity;
     }, 0);
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -27,6 +31,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         customer_email: email,
         cart: JSON.stringify(items),
       },
+      receipt_email: email,
+      description: `Order by ${name}`,
     });
 
     return res.status(200).json({ clientSecret: paymentIntent.client_secret });

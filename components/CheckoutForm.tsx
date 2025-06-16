@@ -56,13 +56,20 @@ export default function CheckoutForm({ items, name, email }: CheckoutFormProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto' }}>
-      <CardElement options={{ hidePostalCode: true }} />
-      <button type="submit" disabled={!stripe || loading} style={{ marginTop: '20px' }}>
+    <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
+      <h2>Checkout</h2>
+      
+      <div style={{ marginBottom: '1rem' }}>
+        <label htmlFor="card-element">Card Details</label>
+        <CardElement id="card-element" options={{ hidePostalCode: true }} />
+      </div>
+
+      <button type="submit" disabled={!stripe || loading} style={{ width: '100%', padding: '0.75rem', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '4px' }}>
         {loading ? 'Processing…' : 'Pay Now'}
       </button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {success && <p style={{ color: 'green' }}>Payment successful!</p>}
+
+      {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
+      {success && <p style={{ color: 'green', marginTop: '1rem' }}>Payment successful!</p>}
     </form>
   );
 }
