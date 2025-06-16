@@ -1,6 +1,5 @@
 import React from 'react';
-import { CartProvider, useCart } from '../../context/CartContext';
-import CartDrawer from '@/components/CartDrawer';
+import { useCart } from '../../context/CartContext';
 
 const mockProducts = [
   {
@@ -60,13 +59,4 @@ const ProductList = () => {
   );
 };
 
-const BuyerPage = () => {
-  return (
-    <CartProvider>
-      <CartDrawer />
-      <ProductList />
-    </CartProvider>
-  );
-};
-
-export default BuyerPage;
+export default ProductList;

@@ -14,8 +14,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const sig = req.headers['stripe-signature'] as string;
+  // Handle frontend-triggered checkout session creation
+  if (!req.headers['stripe-signature']) {
+    try {
+      const session = await stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        mode: 'payment',
+        line_items: req.body.items.map((item: any) => ({
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: item.name,
+            },
+            unit_amount: Math.round(item.price * 100),
+          },
+          quantity: item.quantity,
+        })),
+        success_url: `${req.headers.origin}/success`,
+        cancel_url: `${req.headers.origin}/cancel`,
+      });
 
+      return res.status(200).json({ url: session.url });
+    } catch (err) {
+      console.error('Error creating checkout session:', err);
+      return res.status(500).json({ error: 'Unable to create checkout session' });
+    }
+  }
+
+  // Handle Stripe webhook
+  const sig = req.headers['stripe-signature'] as string;
   let event;
 
   try {

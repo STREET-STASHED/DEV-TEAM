@@ -10,7 +10,10 @@ const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const isBuyerFacing = !router.pathname.startsWith('/seller') && !router.pathname.startsWith('/stylist') && !router.pathname.startsWith('/driver');
+  const isBuyerFacing =
+    !router.pathname.includes('/seller') &&
+    !router.pathname.includes('/stylist') &&
+    !router.pathname.includes('/driver');
 
   const AppContent = (
     <div
