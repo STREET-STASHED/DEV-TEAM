@@ -23,18 +23,16 @@ function MyApp({ Component, pageProps }: AppProps) {
       <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
         <Component {...pageProps} />
       </main>
-      {isBuyerFacing && <CartDrawer />}
     </div>
   );
 
   return (
-    <NoAuthProvider>
-      {isBuyerFacing ? (
-        <CartProvider>{AppContent}</CartProvider>
-      ) : (
-        AppContent
-      )}
-    </NoAuthProvider>
+    <CartProvider>
+      <NoAuthProvider>
+        {AppContent}
+        {isBuyerFacing && <CartDrawer />}
+      </NoAuthProvider>
+    </CartProvider>
   );
 }
 
