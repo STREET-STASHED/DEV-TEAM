@@ -55,7 +55,7 @@ const CartDrawer: React.FC = () => {
             </div>
             <div className="grid grid-cols-1 gap-3 mt-6 sm:grid-cols-2">
               <button
-                className="bg-yellow-400 text-black py-2 px-4 rounded-md shadow hover:bg-yellow-300 font-bold transition"
+                className="bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 font-bold transition"
                 onClick={async () => {
                   try {
                     const res = await fetch('/api/checkout-session', {
@@ -78,13 +78,13 @@ const CartDrawer: React.FC = () => {
                   }
                 }}
               >
-                Checkout
+                Buy Now
               </button>
               <button
-                className="bg-red-600 text-white py-2 px-4 rounded-md shadow hover:bg-red-700 transition"
-                onClick={clearCart}
+                className="bg-yellow-400 text-black py-2 px-4 rounded-md shadow hover:bg-yellow-300 font-bold transition"
+                onClick={toggleCart}
               >
-                Clear Cart
+                Keep Browsing
               </button>
             </div>
           </div>
