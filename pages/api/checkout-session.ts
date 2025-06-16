@@ -17,6 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Handle frontend-triggered checkout session creation
   if (!req.headers['stripe-signature']) {
     try {
+      const origin = req.headers.origin || 'https://streetstashed.vercel.app';
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
         mode: 'payment',
@@ -30,8 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           quantity: item.quantity,
         })),
-        success_url: `${req.headers.origin}/success`,
-        cancel_url: `${req.headers.origin}/cancel`,
+        metadata: {
+          buyer_id: 'test_buyer_id',
+          seller_id: 'test_seller_id',
+          cart: JSON.stringify(req.body.items),
+        },
+        success_url: `${origin}/success`,
+        cancel_url: `${origin}/cancel`,
       });
 
       return res.status(200).json({ url: session.url });
