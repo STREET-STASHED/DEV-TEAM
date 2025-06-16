@@ -48,7 +48,7 @@ export default function CheckoutForm({ items, name, email }: CheckoutFormProps) 
         setSuccess(true);
       }
     } catch (err) {
-      console.error('Payment error', err);
+      console.error('Payment error', JSON.stringify(err, null, 2));
       setError('An unexpected error occurred');
     }
 
