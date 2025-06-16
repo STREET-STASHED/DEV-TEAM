@@ -11,7 +11,7 @@ export default function DriverIndex() {
 
     if (!user) {
       router.replace('/login');
-    } else if (user.role === 'driver') {
+    } else if (user?.role === 'driver') {
       router.replace('/driver/dashboard');
     } else {
       router.replace('/unauthorized');
