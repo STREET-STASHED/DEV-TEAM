@@ -27,16 +27,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }, 0);
 
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: Math.round(totalAmount * 100), // convert dollars to cents
+        amount: Math.round(totalAmount * 100),
         currency: 'usd',
+        payment_method: req.body.paymentMethodId,
+        confirmation_method: 'automatic',
+        confirm: true,
         metadata: {
           buyer_id: 'test_buyer_id',
           seller_id: 'test_seller_id',
           cart: JSON.stringify(req.body.items),
         },
+        receipt_email: req.body.email ?? undefined,
+        description: `In-app order by ${req.body.name ?? 'Guest User'}`,
       });
 
-      return res.status(200).json({ clientSecret: paymentIntent.client_secret });
+      if (
+        paymentIntent.status === 'requires_action' &&
+        paymentIntent.next_action?.type === 'use_stripe_sdk'
+      ) {
+        return res.status(200).json({
+          requiresAction: true,
+          paymentIntentClientSecret: paymentIntent.client_secret,
+        });
+      }
+
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(500).json({ error: 'Payment failed', status: paymentIntent.status });
+      }
+
+      return res.status(200).json({
+        success: true,
+        paymentIntentId: paymentIntent.id,
+        amount: paymentIntent.amount,
+      });
     } catch (err) {
       console.error('Stripe PaymentIntent creation error:', err instanceof Error ? err.message : err);
       return res.status(500).json({ error: 'Unable to create payment intent' });
