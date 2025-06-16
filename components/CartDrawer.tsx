@@ -57,41 +57,13 @@ const CartDrawer: React.FC = () => {
               <button
                 className="bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={cartItems.length === 0}
-                onClick={async () => {
+                onClick={() => {
                   if (cartItems.length === 0) {
                     alert('Cart is empty.');
                     return;
                   }
-
-                  try {
-                    console.log('Sending cartItems:', cartItems);
-                    const res = await fetch('/api/checkout-session', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        items: cartItems.map(item => ({
-                          name: item.name,
-                          price: item.price,
-                          quantity: item.quantity,
-                        })),
-                      }),
-                    });
-
-                    const data = await res.json();
-                    console.log('Received response:', data);
-
-                    if (data.url) {
-                      window.location.href = data.url;
-                    } else {
-                      console.error('Checkout session failed or URL not found:', data);
-                      alert('Checkout failed. Please try again.');
-                    }
-                  } catch (error) {
-                    console.error('Error creating checkout session:', error);
-                    alert('An error occurred. Please try again.');
-                  }
+                  toggleCart(); // close cart drawer
+                  router.push('/buyer/checkout'); // navigate to in-app checkout
                 }}
               >
                 Buy Now

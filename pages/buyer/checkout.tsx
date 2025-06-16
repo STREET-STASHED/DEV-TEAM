@@ -1,8 +1,8 @@
-import type { CartContextType } from '../context/CartContext';
-import { useCart } from '../context/CartContext';
+import type { CartContextType } from '@/context/CartContext';
+import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import CheckoutForm from '../components/CheckoutForm';
+import CheckoutForm from '@/components/CheckoutForm';
 
 const CheckoutPage = () => {
   const [isClient, setIsClient] = useState(false);
