@@ -18,11 +18,17 @@ const mockProducts = [
 ];
 
 const ProductList = () => {
-  const { addToCart } = useCart();
+  const { addToCart, toggleCart } = useCart();
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4 text-center">Explore the Drip</h2>
+      <button
+        onClick={toggleCart}
+        className="mb-4 bg-yellow-400 text-black font-bold px-4 py-2 rounded hover:bg-yellow-300 transition"
+      >
+        View Cart
+      </button>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {mockProducts.map((product) => (
           <div
