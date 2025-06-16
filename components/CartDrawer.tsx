@@ -70,7 +70,13 @@ const CartDrawer: React.FC = () => {
                       headers: {
                         'Content-Type': 'application/json',
                       },
-                      body: JSON.stringify({ items: cartItems }),
+                      body: JSON.stringify({
+                        items: cartItems.map(item => ({
+                          name: item.name,
+                          price: item.price,
+                          quantity: item.quantity,
+                        })),
+                      }),
                     });
 
                     const data = await res.json();
