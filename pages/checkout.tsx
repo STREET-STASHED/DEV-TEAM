@@ -46,9 +46,13 @@ const CheckoutPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Order placed successfully!');
+        const { redirectUrl } = data;
         context.clearCart?.();
-        router.push('/buyer/dashboard');
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          router.push('/buyer/dashboard');
+        }
       } else {
         alert('Failed to place order.');
         console.error('Order error:', data);

@@ -51,13 +51,18 @@ const Marketplace = () => {
   ];
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4 text-white">Marketplace</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {products.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
-      </div>
+    <div
+      className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
+      style={{ backgroundImage: "url('/background.png')" }}
+    >
+      <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+        <h1 className="text-2xl font-bold mb-4 text-white">Marketplace</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {products.map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      </main>
       <CartDrawer />
     </div>
   );

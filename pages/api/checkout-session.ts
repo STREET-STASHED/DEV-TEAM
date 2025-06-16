@@ -40,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         cancel_url: `${origin}/cancel`,
       });
 
-      return res.status(200).json({ url: session.url });
+      return res.status(200).json({ redirectUrl: session.url });
     } catch (err) {
       console.error('Error creating checkout session:', err);
       return res.status(500).json({ error: 'Unable to create checkout session' });
