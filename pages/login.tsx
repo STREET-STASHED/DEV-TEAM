@@ -20,21 +20,18 @@ export default function AuthPage() {
     try {
       let authRes;
       if (isSignUp) {
-        authRes = await supabase.auth.signUp({ email, password });
-        if (authRes.error) throw authRes.error;
-
-        if (!role) throw new Error('Role is required');
-
-        const roleRes = await fetch('/api/set-role', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, role }),
+        // Sign up and include role in user_metadata
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: { role }
+          }
         });
-
-        if (!roleRes.ok) {
-          console.error('Set role failed:', await roleRes.text());
-          throw new Error('Failed to set role');
-        }
+        if (signUpError) throw signUpError;
+        console.log('Supabase returned user_metadata:', signUpData.user?.user_metadata);
+        // For testing flows, treat sign-up as immediate sign-in
+        authRes = { data: { user: signUpData.user }, error: null };
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
         if (authRes.error) throw authRes.error;
