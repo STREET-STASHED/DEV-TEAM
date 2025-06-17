@@ -1,5 +1,3 @@
-
-
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
@@ -13,20 +11,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, role } = req.body;
+  const { email, userId, role } = req.body;
 
-  if (!email || !role) {
-    return res.status(400).json({ error: 'Missing email or role' });
+  if ((!email && !userId) || !role) {
+    return res.status(400).json({ error: 'Missing email/userId or role' });
   }
 
-  const { data, error } = await supabase
-    .from('users')
-    .update({ role })
-    .eq('email', email);
+  const query = userId
+    ? supabase.from('users').update({ role }).eq('id', userId)
+    : supabase.from('users').update({ role }).eq('email', email);
+
+  const { data, error } = await query;
 
   if (error) {
+    console.error('Set role error:', error.message);
     return res.status(500).json({ error: error.message });
   }
 
-  res.status(200).json({ message: 'Role set successfully', data });
+  if (!data || (Array.isArray(data) ? data.length === 0 : Object.keys(data).length === 0)) {
+    return res.status(404).json({ error: 'User not found or update failed' });
+  }
+
+  return res.status(200).json({ message: 'Role set successfully', data });
 }
