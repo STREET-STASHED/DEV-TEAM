@@ -9,9 +9,27 @@ export function useUser() {
     const getUser = async () => {
       const {
         data: { user },
+        error: authError,
       } = await supabase.auth.getUser();
 
-      setUser(user);
+      if (authError || !user) {
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*, role')
+        .eq('id', user.id)
+        .single();
+
+      if (userError || !userData) {
+        setUser(null);
+      } else {
+        setUser({ ...user, ...userData });
+      }
+
       setLoading(false);
     };
 

@@ -12,6 +12,7 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [role, setRole] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,17 +21,14 @@ export default function AuthPage() {
       let authRes;
       if (isSignUp) {
         authRes = await supabase.auth.signUp({ email, password });
-
         if (authRes.error) throw authRes.error;
 
-        const selectedRole = prompt('What is your role? (buyer, seller, stylist, driver)');
-        if (!selectedRole) throw new Error('Role is required');
+        if (!role) throw new Error('Role is required');
 
-        // Note: The /api/set-role endpoint should store the `role` in your Supabase `users` table mapped by `email`.
         const roleRes = await fetch('/api/set-role', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, role: selectedRole }),
+          body: JSON.stringify({ email, role }),
         });
 
         if (!roleRes.ok) throw new Error('Failed to set role');
@@ -49,9 +47,9 @@ export default function AuthPage() {
       if (!res.ok) throw new Error('Failed to fetch role');
 
       const data = await res.json();
-      const role = data.role;
+      const userRole = data.role;
 
-      switch (role) {
+      switch (userRole) {
         case 'buyer':
           router.push('/buyer/marketplace');
           break;
@@ -94,6 +92,20 @@ export default function AuthPage() {
           className="w-full p-2 mb-4 text-black rounded"
           required
         />
+        {isSignUp && (
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full p-2 mb-4 text-black rounded"
+            required
+          >
+            <option value="">Select your role</option>
+            <option value="buyer">Buyer</option>
+            <option value="seller">Seller</option>
+            <option value="stylist">Stylist</option>
+            <option value="driver">Driver</option>
+          </select>
+        )}
         <button
           type="submit"
           className="w-full bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-yellow-400"

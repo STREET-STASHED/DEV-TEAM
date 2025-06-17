@@ -10,6 +10,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
     const checkAuth = async () => {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
+        console.error('No session or session error:', sessionError);
         return router.push('/login');
       }
 
@@ -19,8 +20,14 @@ export default function AuthGuard({ role, children }: { role: string, children: 
         .eq('id', session.user.id)
         .single();
 
-      if (userError || userData?.role !== role) {
-        return router.push('/');
+      if (userError) {
+        console.error('Error fetching user role:', userError.message);
+        return router.push('/error');
+      }
+
+      if (userData?.role !== role) {
+        console.warn(`Role mismatch. Expected: ${role}, Got: ${userData?.role}`);
+        return router.push('/not-authorized');
       }
 
       setLoading(false);
