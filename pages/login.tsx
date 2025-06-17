@@ -31,23 +31,39 @@ export default function AuthPage() {
           body: JSON.stringify({ email, role }),
         });
 
-        if (!roleRes.ok) throw new Error('Failed to set role');
+        if (!roleRes.ok) {
+          console.error('Set role failed:', await roleRes.text());
+          throw new Error('Failed to set role');
+        }
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
         if (authRes.error) throw authRes.error;
       }
 
-      // fetch user role after auth
       const res = await fetch('/api/get-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
-      if (!res.ok) throw new Error('Failed to fetch role');
+      if (!res.ok) {
+        console.error('Get role failed:', await res.text());
+        throw new Error('Failed to fetch role');
+      }
 
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        console.error('Failed to parse role response:', jsonErr);
+        throw new Error('Invalid role response');
+      }
+
       const userRole = data.role;
+      if (!userRole) {
+        console.error('Role missing in response:', data);
+        throw new Error('No role assigned to this user');
+      }
 
       switch (userRole) {
         case 'buyer':

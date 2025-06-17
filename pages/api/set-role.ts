@@ -23,14 +23,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ? supabase.from('users').update({ role }).eq('id', userId)
       : supabase.from('users').update({ role }).eq('email', email);
 
-    const { data, error } = await query.select();
+    const { data, error }: { data: any[] | null; error: any } = await query.select();
 
     if (error) {
       console.error('Set role error:', error);
       return res.status(500).json({ error: error.message });
     }
 
-    if (!data || data.length === 0) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
       console.warn('No user found or no rows updated:', { email, userId });
       return res.status(404).json({ error: 'User not found or update failed' });
     }
