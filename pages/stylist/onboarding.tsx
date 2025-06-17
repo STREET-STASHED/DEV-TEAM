@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import supabase from '@/lib/supabaseClient';
+import type { Database } from '@/types/supabase'
 
 export default function StylistApplicationPage() {
   const [formData, setFormData] = useState({
-    name: '',
+    full_name: '',
     email: '',
     instagram: '',
     city: '',
@@ -23,7 +24,22 @@ export default function StylistApplicationPage() {
     e.preventDefault();
     setError('');
 
-    const { error } = await supabase.from('stylist_applications').insert([formData]);
+    const { error } = await supabase
+      .from('stylist_applications')
+      .insert([
+        {
+          full_name: formData.full_name,
+          email: formData.email,
+          instagram: formData.instagram,
+          city: formData.city,
+          phone: formData.phone,
+          specialty: formData.specialty,
+          portfolio_url: formData.portfolioUrl,
+          bio: '',
+          booking_link: '',
+          created_at: new Date().toISOString(),
+        } satisfies Database['public']['Tables']['stylist_applications']['Insert'],
+      ]);
 
     if (error) {
       setError('Submission failed. Please try again.');
@@ -53,9 +69,9 @@ export default function StylistApplicationPage() {
 
         <input
           type="text"
-          name="name"
+          name="full_name"
           placeholder="Full Name"
-          value={formData.name}
+          value={formData.full_name}
           onChange={handleChange}
           required
           className="w-full px-4 py-2 border rounded mb-4"

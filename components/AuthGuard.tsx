@@ -8,29 +8,37 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        console.error('No session or session error:', sessionError);
-        return router.push('/login');
+      try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError || !sessionData?.session?.user) {
+          console.error('Session error or user not found:', sessionError);
+          return router.push('/login');
+        }
+
+        const userId = sessionData.session.user.id;
+
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (userError || !userData) {
+          console.error('Error fetching user role:', userError?.message);
+          return router.push('/error');
+        }
+
+        if (userData.role !== role) {
+          console.warn(`Role mismatch. Expected: ${role}, Got: ${userData.role}`);
+          return router.push('/not-authorized');
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Unexpected error in auth guard:', err);
+        router.push('/login');
       }
-
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (userError) {
-        console.error('Error fetching user role:', userError.message);
-        return router.push('/error');
-      }
-
-      if (userData?.role !== role) {
-        console.warn(`Role mismatch. Expected: ${role}, Got: ${userData?.role}`);
-        return router.push('/not-authorized');
-      }
-
-      setLoading(false);
     };
 
     checkAuth();

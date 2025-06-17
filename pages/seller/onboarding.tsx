@@ -23,25 +23,30 @@ export default function SellerApplicationPage() {
     e.preventDefault();
     setError('');
 
-    const { error } = await supabase.from('seller_applications').insert([formData]);
+    const { error: insertError } = await supabase
+      .from('seller_applications' as any)
+      .insert([{ ...formData, full_name: formData.contactName }]);
 
-    if (error) {
+    if (insertError) {
       setError('Submission failed. Please try again.');
-    } else {
+      return;
+    }
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (user && !userError) {
+      await supabase
+        .from('users')
+        .update({ role: 'seller', full_name: formData.contactName })
+        .eq('id', user.id);
+
       setSubmitted(true);
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        await supabase
-          .from('users')
-          .update({ role: 'seller' })
-          .eq('id', user.id);
-      }
-
       window.location.href = '/seller/dashboard';
+    } else {
+      setError('User authentication failed.');
     }
   };
 

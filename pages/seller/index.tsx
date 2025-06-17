@@ -1,16 +1,33 @@
 import { useState } from 'react';
+import supabase from '../../lib/supabaseClient';
 
 export default function SellerOnboarding() {
   const [form, setForm] = useState({ name: '', storeName: '', email: '', phone: '', storeAddress: '' });
+  const [status, setStatus] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Seller submitted:', form);
-    alert('Seller submitted: ' + JSON.stringify(form));
+    setStatus('Submitting...');
+
+    const { error } = await supabase.from('storefronts').insert([
+      {
+        name: form.storeName,
+        location: form.storeAddress,
+        description: `Owner: ${form.name}, Email: ${form.email}, Phone: ${form.phone}`
+      }
+    ]);
+
+    if (error) {
+      console.error(error);
+      setStatus('Error submitting. Please try again.');
+    } else {
+      setStatus('Seller info submitted successfully!');
+      setForm({ name: '', storeName: '', email: '', phone: '', storeAddress: '' });
+    }
   };
 
   return (
@@ -55,6 +72,7 @@ export default function SellerOnboarding() {
         <button type="submit" className="bg-black text-white px-6 py-2 rounded">
           Submit
         </button>
+        {status && <p className="text-sm mt-2">{status}</p>}
       </form>
     </div>
   );

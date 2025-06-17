@@ -1,5 +1,3 @@
-
-
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import supabase from '../../lib/supabaseClient'
@@ -16,22 +14,13 @@ const Storefront = () => {
 
     const fetchStore = async () => {
       try {
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('*')
-          .eq('slug', store_id)
+        const { data: storeData, error: storeError } = await supabase
+          .from('storefronts')
+          .select('id, name, description')
+          .eq('slug', store_id as string)
           .single()
 
-        if (storeData) {
-          const { data: productData } = await supabase
-            .from('products')
-            .select('*')
-            .eq('store_id', storeData.id)
-
-          setStore(storeData)
-          setProducts(productData || [])
-        } else {
-          // mock store directory
+        if (storeError || !storeData) {
           const mockStores: Record<string, any> = {
             'demo': {
               name: 'Demo Boutique',
@@ -76,26 +65,28 @@ const Storefront = () => {
           }
 
           const mockStore = mockStores[store_id as string]
-
           if (mockStore) {
-            setStore({
-              name: mockStore.name,
-              description: mockStore.description
-            })
+            setStore({ name: mockStore.name, description: mockStore.description })
             setProducts(mockStore.products)
           } else {
-            setStore({
-              name: 'Unknown Store',
-              description: 'This store does not exist. Showing empty product list.'
-            })
+            setStore({ name: 'Unknown Store', description: 'This store does not exist.' })
             setProducts([])
           }
+          return
         }
-      } catch (error) {
-        console.error('Error fetching store:', error)
+
+        const { data: productData } = await supabase
+          .from('products')
+          .select('id, name, type, price, image_url')
+          .eq('store_id', storeData.id)
+
+        setStore(storeData)
+        setProducts(productData || [])
+      } catch (err) {
+        console.error('Store fetch error:', err)
         setStore({
           name: 'Demo Boutique (Error)',
-          description: 'Unable to fetch real store data. Showing mock items instead.'
+          description: 'Unable to load data. Showing mock items.'
         })
         setProducts([
           {
@@ -145,4 +136,3 @@ const Storefront = () => {
 }
 
 export default Storefront
-

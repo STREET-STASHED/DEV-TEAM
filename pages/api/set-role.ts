@@ -6,6 +6,8 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const VALID_ROLES = ['buyer', 'seller', 'driver', 'stylist', 'admin'];
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -18,12 +20,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing email/userId or role' });
   }
 
+  if (!VALID_ROLES.includes(role)) {
+    console.error('Invalid role specified:', role);
+    return res.status(400).json({ error: 'Invalid role specified' });
+  }
+
   try {
     const query = userId
       ? supabase.from('users').update({ role }).eq('id', userId)
       : supabase.from('users').update({ role }).eq('email', email);
 
-    const { data, error }: { data: any[] | null; error: any } = await query.select();
+    const { data, error }: { data: any[] | null; error: any } = await query.select('id, email, role');
 
     if (error) {
       console.error('Set role error:', error);
@@ -32,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (!data || !Array.isArray(data) || data.length === 0) {
       console.warn('No user found or no rows updated:', { email, userId });
-      return res.status(404).json({ error: 'User not found or update failed' });
+      return res.status(404).json({ error: `User not found or update failed for ${userId || email}` });
     }
 
     console.log('Role updated successfully:', data[0]);

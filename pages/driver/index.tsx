@@ -9,14 +9,18 @@ export default function DriverIndex() {
   useEffect(() => {
     if (loading) return;
 
-    if (!user) {
-      router.replace('/login');
-    } else if (user?.role === 'driver') {
-      router.replace('/driver/dashboard');
-    } else {
-      router.replace('/unauthorized');
-    }
-  }, [user, loading, router]);
+    const timeout = setTimeout(() => {
+      if (!user) {
+        router.replace('/login');
+      } else if (user?.role === 'driver') {
+        router.replace('/driver/dashboard');
+      } else {
+        router.replace('/unauthorized');
+      }
+    }, 100); // slight delay to ensure auth loads properly
+
+    return () => clearTimeout(timeout);
+  }, [user, loading]);
 
   return (
     <div className="flex items-center justify-center min-h-screen text-lg">

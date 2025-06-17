@@ -1,9 +1,4 @@
 import { useState } from 'react';
-import {
-  CardElement,
-  useStripe,
-  useElements
-} from '@stripe/react-stripe-js';
 import axios from 'axios';
 
 interface CheckoutFormProps {
@@ -15,8 +10,6 @@ interface CheckoutFormProps {
 }
 
 export default function CheckoutForm({ items, name, email, totalAmount, mode = 'buyNow' }: CheckoutFormProps) {
-  const stripe = useStripe();
-  const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -27,45 +20,14 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
     setError(null);
 
     try {
-      if (!stripe || !elements) {
-        throw new Error('Stripe not initialized');
-      }
-
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        throw new Error('Card Element not found');
-      }
-
-      const paymentMethodRes = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: { name, email },
-      });
-
-      if (paymentMethodRes.error) {
-        throw new Error(paymentMethodRes.error.message || 'Payment method creation failed');
-      }
-
-      const { data } = await axios.post('/api/paymentIntents.create', {
-        paymentMethodId: paymentMethodRes.paymentMethod.id,
+      const { data } = await axios.post('/api/checkout', {
         items,
         name,
         email,
-        totalAmount
+        totalAmount,
       });
 
-      if (data.requiresAction) {
-        const confirmResult = await stripe.confirmCardPayment(data.paymentIntentClientSecret);
-        if (confirmResult.error) {
-          throw new Error(confirmResult.error.message || '3D Secure confirmation failed');
-        }
-
-        if (confirmResult.paymentIntent.status !== 'succeeded') {
-          throw new Error('Payment not completed after confirmation');
-        }
-
-        setSuccess(true);
-      } else if (data.success) {
+      if (data.success) {
         setSuccess(true);
       } else {
         throw new Error(data.message || 'Payment failed on server');
@@ -83,16 +45,11 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
       <h2>Checkout</h2>
-      
-      <div style={{ marginBottom: '1rem' }}>
-        <label htmlFor="card-element">Card Details</label>
-        <CardElement id="card-element" options={{ hidePostalCode: true }} />
-      </div>
 
       {mode === 'buyNow' ? (
         <button
           type="submit"
-          disabled={!stripe || loading}
+          disabled={loading}
           style={{
             width: '100%',
             padding: '0.75rem',

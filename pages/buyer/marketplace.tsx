@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCart } from '@/context/CartContext';
+import CartDrawer from '@/components/CartDrawer';
 
 interface Product {
   id: string;
@@ -62,6 +63,7 @@ const Marketplace = () => {
           ))}
         </div>
       </main>
+      <CartDrawer />
     </div>
   );
 };

@@ -23,18 +23,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.log('Incoming cart items:', req.body.items);
     try {
       const totalAmount = req.body.items.reduce((sum: number, item: any) => {
-        return sum + item.price * item.quantity;
+        return sum + (typeof item.price === 'number' && typeof item.quantity === 'number' ? item.price * item.quantity : 0);
       }, 0);
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(totalAmount * 100),
         currency: 'usd',
-        payment_method: req.body.paymentMethodId,
-        confirmation_method: 'automatic',
-        confirm: true,
+        automatic_payment_methods: { enabled: true },
         metadata: {
-          buyer_id: 'test_buyer_id',
-          seller_id: 'test_seller_id',
+          buyer_id: req.body.buyerId || 'guest_buyer',
+          seller_id: req.body.sellerId || 'unknown_seller',
           cart: JSON.stringify(req.body.items),
         },
         receipt_email: req.body.email ?? undefined,
@@ -51,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      if (paymentIntent.status !== 'succeeded') {
+      if (!['succeeded', 'requires_action', 'processing'].includes(paymentIntent.status)) {
         return res.status(500).json({ error: 'Payment failed', status: paymentIntent.status });
       }
 

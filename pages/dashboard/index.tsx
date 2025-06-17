@@ -1,8 +1,16 @@
-import { useEffect, useState } from 'react';
-import { supabase } from '../../supabase/supabaseClient';
+import { useEffect, useState, type FC } from 'react';
+import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
+import SellerDashboard from '../seller/dashboard';
+import BuyerDashboard from '../buyer/dashboard';
+import StylistDashboard from '../stylist/dashboard';
+import DriverDashboard from '../driver/dashboard';
 
-const Dashboard = () => {
+interface DashboardProps {
+  userId: string;
+}
+
+const Dashboard: FC = () => {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -12,13 +20,20 @@ const Dashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
 
+      if (!user) {
+        console.error('No user found in auth session.');
+      }
+
       if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
+        const { data: userData, error } = await supabase
+          .from('users')
           .select('role')
           .eq('id', user.id)
           .single();
-        setRole(profile?.role || null);
+        if (error) {
+          console.error('Error fetching role:', error);
+        }
+        setRole(userData?.role || null);
       }
 
       setLoading(false);
@@ -37,49 +52,10 @@ const Dashboard = () => {
             <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
             <p className="text-gray-600">Role: {role}</p>
 
-            {role === 'seller' && (
-              <div className="bg-white shadow p-4 rounded">
-                <h2 className="font-semibold text-lg mb-2">Seller Tools</h2>
-                <ul className="list-disc pl-5">
-                  <li>Upload and manage products</li>
-                  <li>View and fulfill orders</li>
-                  <li>Check sales analytics</li>
-                </ul>
-              </div>
-            )}
-
-            {role === 'buyer' && (
-              <div className="bg-white shadow p-4 rounded">
-                <h2 className="font-semibold text-lg mb-2">Buyer Dashboard</h2>
-                <ul className="list-disc pl-5">
-                  <li>Track orders and deliveries</li>
-                  <li>Manage payment methods</li>
-                  <li>Update personal profile</li>
-                </ul>
-              </div>
-            )}
-
-            {role === 'stylist' && (
-              <div className="bg-white shadow p-4 rounded">
-                <h2 className="font-semibold text-lg mb-2">Stylist Panel</h2>
-                <ul className="list-disc pl-5">
-                  <li>View and manage bookings</li>
-                  <li>Create and update style bundles</li>
-                  <li>Message clients</li>
-                </ul>
-              </div>
-            )}
-
-            {role === 'driver' && (
-              <div className="bg-white shadow p-4 rounded">
-                <h2 className="font-semibold text-lg mb-2">Driver Operations</h2>
-                <ul className="list-disc pl-5">
-                  <li>Accept and complete deliveries</li>
-                  <li>View assigned delivery routes</li>
-                  <li>Manage payout details</li>
-                </ul>
-              </div>
-            )}
+            {role === 'seller' && <SellerDashboard userId={user.id} />}
+            {role === 'buyer' && <BuyerDashboard userId={user.id} />}
+            {role === 'stylist' && <StylistDashboard userId={user.id} />}
+            {role === 'driver' && <DriverDashboard userId={user.id} />}
 
             {!['seller', 'buyer', 'stylist', 'driver'].includes(role || '') && (
               <div className="bg-red-100 p-4 rounded text-red-800">

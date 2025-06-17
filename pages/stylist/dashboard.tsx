@@ -3,42 +3,38 @@ import supabase from '../../lib/supabaseClient'
 import AuthGuard from '@/components/AuthGuard';
 import React from 'react'
 
-const StylistDashboard: React.FC = () => {
+interface StylistDashboardProps {
+  userId: string;
+}
+
+const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   const [bookings, setBookings] = useState<any[]>([])
   const [profile, setProfile] = useState<any>(null)
 
   const fetchBookings = async () => {
-    const session = await supabase.auth.getSession()
-    console.log('Session:', session)
-    const stylist_id = session.data?.session?.user?.id
-
-    if (!stylist_id) return
+    const stylist_id = userId;
+    if (!stylist_id) return;
 
     const { data, error } = await supabase
       .from('bookings')
-      .select('*, orders(*)') // Join related orders if exists
-      .eq('stylist_id', stylist_id)
+      .select('id, stylist_id, client_name, event_type, budget, status, time, notes, created_at, orders(id, order_total, status)')
+      .eq('stylist_id', stylist_id);
 
-    if (!error) setBookings(data || [])
-  }
+    if (!error) setBookings(data || []);
+  };
 
   // Role guard: Ensure only authenticated stylists can access
   useEffect(() => {
     const checkRole = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const currentUser = session?.user;
-      if (!currentUser) {
+      if (!userId) {
         window.location.href = '/login';
         return;
       }
 
       const { data: profileData } = await supabase
         .from('users')
-        .select('role, avatar_url')
-        .eq('id', currentUser.id)
+        .select('*')
+        .eq('id', userId)
         .single();
 
       setProfile(profileData);
@@ -49,7 +45,7 @@ const StylistDashboard: React.FC = () => {
     };
 
     checkRole();
-  }, []);
+  }, [userId]);
 
   const updateStatus = async (id: string, status: string) => {
     const { error } = await supabase
@@ -62,7 +58,7 @@ const StylistDashboard: React.FC = () => {
 
   useEffect(() => {
     fetchBookings()
-  }, [])
+  }, [userId])
 
   return (
     <AuthGuard role="stylist">

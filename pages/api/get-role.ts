@@ -12,23 +12,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Email or user ID is required' });
   }
 
-  let query;
-  if (email) {
-    query = supabase.from('users').select('role').eq('email', email).single();
-  } else if (id) {
-    query = supabase.from('users').select('role').eq('id', id).single();
-  } else {
-    return res.status(400).json({ error: 'Email or user ID is required' });
-  }
+  let data, error;
 
-  const { data, error } = await query;
+  if (email) {
+    ({ data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('email', email)
+      .single());
+  } else if (id) {
+    ({ data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', id)
+      .single());
+  }
 
   if (error) {
     return res.status(500).json({ error: error.message });
   }
 
-  if (!data) {
-    return res.status(404).json({ error: 'User not found' });
+  if (!data || !data.role) {
+    return res.status(404).json({ error: 'User role not found' });
   }
 
   return res.status(200).json({ role: data.role });

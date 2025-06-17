@@ -33,6 +33,7 @@ const BookStylist = () => {
         stylist_id: stylistId,
         buyer_id: user.id,
         time: bookingTime,
+        date: bookingTime,
         notes,
       },
     ])
