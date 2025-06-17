@@ -1,4 +1,5 @@
 import { useEffect, useState, type FC } from 'react';
+import { useRouter } from 'next/router';
 import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
 import SellerDashboard from '../seller/dashboard';
@@ -6,14 +7,20 @@ import BuyerDashboard from '../buyer/dashboard';
 import StylistDashboard from '../stylist/dashboard';
 import DriverDashboard from '../driver/dashboard';
 
-interface DashboardProps {
-  userId: string;
-}
+// interface DashboardProps {
+//   userId: string;
+// }
 
 const Dashboard: FC = () => {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
+  const userId = router.query.userId as string;
+  if (!userId) {
+    return <div>Unauthorized. Missing user ID.</div>;
+  }
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -52,10 +59,10 @@ const Dashboard: FC = () => {
             <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
             <p className="text-gray-600">Role: {role}</p>
 
-            {role === 'seller' && <SellerDashboard userId={user.id} />}
-            {role === 'buyer' && <BuyerDashboard userId={user.id} />}
-            {role === 'stylist' && <StylistDashboard userId={user.id} />}
-            {role === 'driver' && <DriverDashboard userId={user.id} />}
+            {role === 'seller' && <SellerDashboard userId={userId} />}
+            {role === 'buyer' && <BuyerDashboard userId={userId} />}
+            {role === 'stylist' && <StylistDashboard userId={userId} />}
+            {role === 'driver' && <DriverDashboard userId={userId} />}
 
             {!['seller', 'buyer', 'stylist', 'driver'].includes(role || '') && (
               <div className="bg-red-100 p-4 rounded text-red-800">

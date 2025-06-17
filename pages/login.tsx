@@ -65,18 +65,24 @@ export default function AuthPage() {
         throw new Error('No role assigned to this user');
       }
 
+      const userId = authRes.data.user?.id;
+
+      if (!userId) {
+        throw new Error('User ID missing after login');
+      }
+
       switch (userRole) {
         case 'buyer':
-          router.push('/buyer/marketplace');
+          router.push(`/buyer/dashboard?userId=${userId}`);
           break;
         case 'seller':
-          router.push('/seller/dashboard');
+          router.push(`/seller/dashboard?userId=${userId}`);
           break;
         case 'stylist':
-          router.push('/stylist/dashboard');
+          router.push(`/stylist/dashboard?userId=${userId}`);
           break;
         case 'driver':
-          router.push('/driver/dashboard');
+          router.push(`/driver/dashboard?userId=${userId}`);
           break;
         default:
           router.push('/onboarding');

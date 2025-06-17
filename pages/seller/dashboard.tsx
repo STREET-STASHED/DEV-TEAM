@@ -1,6 +1,10 @@
-import { useEffect, useState } from 'react'
-import supabase from '../../lib/supabaseClient'
+import React, { useEffect, useState } from 'react';
+import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
+
+interface SellerDashboardProps {
+  userId: string;
+}
 
 // Progress helper for order status
 const getProgress = (status: string) => {
@@ -14,16 +18,7 @@ const getProgress = (status: string) => {
   }
 };
 
-const getStylistId = async () => {
-  const session = await supabase.auth.getSession().then(r => r.data.session);
-  return session?.user.id || null;
-};
-
-type Props = {
-  userId?: string;
-};
-
-export default function SellerDashboard({ userId }: Props) {
+const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
   const [services, setServices] = useState<Array<Record<string, any>>>([])
   const [bookings, setBookings] = useState<Array<Record<string, any>>>([]);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
@@ -59,7 +54,7 @@ export default function SellerDashboard({ userId }: Props) {
     };
 
     const fetchServices = async () => {
-      const seller_id = userId || await getStylistId();
+      const seller_id = userId;
       if (!seller_id) return;
       const { data, error } = await supabase
         .from('products')
@@ -72,7 +67,7 @@ export default function SellerDashboard({ userId }: Props) {
     };
 
     const fetchBookings = async () => {
-      const seller_id = userId || await getStylistId();
+      const seller_id = userId;
       if (!seller_id) return;
       const { data, error } = await supabase
         .from('bookings')
@@ -116,7 +111,7 @@ export default function SellerDashboard({ userId }: Props) {
       setLoading(false);
 
       // Setup real-time subscriptions
-      const seller_id = userId || await getStylistId();
+      const seller_id = userId;
       if (!seller_id) return;
       const serviceSubscription = supabase
         .channel('products_changes')
@@ -253,45 +248,45 @@ export default function SellerDashboard({ userId }: Props) {
             const image_url = (form.elements.namedItem('image_url') as HTMLInputElement).value;
             const description = (form.elements.namedItem('description') as HTMLInputElement).value;
             const duration = (form.elements.namedItem('duration') as HTMLInputElement).value;
-            const seller_id = userId || await getStylistId();
-            if (!seller_id) {
-              alert("Seller ID not found. Please log in again.");
-              return;
-            }
-            const { error } = await supabase
-              .from('products')
-              .insert([
-                {
-                  name: service_name,
-                  price: price,
-                  image_url: image_url,
-                  seller_id: seller_id,
-                  status: 'active',
-                  description: description,
-                  duration: duration
-                }
-              ]);
-            if (error) {
-              console.error('Upload error:', error.message);
-              setUploadMessage('Failed to upload product');
-              return;
-            }
-            setUploadMessage('Product uploaded successfully');
-            // refetch services
-            const fetchServices = async () => {
-              const seller_id = userId || await getStylistId();
-              if (!seller_id) return;
-              const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .eq('seller_id', seller_id)
-              if (!error) {
-                setServices(data || []);
-                setAnalytics(prev => ({ ...prev, totalServices: (data || []).length }));
+          const seller_id = userId;
+          if (!seller_id) {
+            alert("Seller ID not found. Please log in again.");
+            return;
+          }
+          const { error } = await supabase
+            .from('products')
+            .insert([
+              {
+                name: service_name,
+                price: price,
+                image_url: image_url,
+                seller_id: seller_id,
+                status: 'active',
+                description: description,
+                duration: duration
               }
-            };
-            fetchServices();
-            form.reset();
+            ]);
+          if (error) {
+            console.error('Upload error:', error.message);
+            setUploadMessage('Failed to upload product');
+            return;
+          }
+          setUploadMessage('Product uploaded successfully');
+          // refetch services
+          const fetchServices = async () => {
+            const seller_id = userId;
+            if (!seller_id) return;
+            const { data, error } = await supabase
+              .from('products')
+              .select('*')
+              .eq('seller_id', seller_id)
+            if (!error) {
+              setServices(data || []);
+              setAnalytics(prev => ({ ...prev, totalServices: (data || []).length }));
+            }
+          };
+          fetchServices();
+          form.reset();
           }}
           className="space-y-4 mb-6"
         >
@@ -413,3 +408,5 @@ export default function SellerDashboard({ userId }: Props) {
     </AuthGuard>
   )
 }
+
+export default SellerDashboard;
