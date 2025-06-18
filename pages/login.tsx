@@ -32,6 +32,9 @@ export default function AuthPage() {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: { role }, // store role in metadata
+          },
         });
 
         if (signUpError) {
@@ -46,22 +49,6 @@ export default function AuthPage() {
 
         if (!signUpData.user) throw new Error('User creation failed');
 
-        const upsertRes = await supabase
-          .from('users')
-          .upsert(
-            {
-              id: signUpData.user.id,
-              email,
-              role,
-            },
-            { onConflict: 'id' }
-          );
-
-        if (upsertRes.error) {
-          console.error('Upsert error:', upsertRes.error);
-          throw new Error('Failed to save user data');
-        }
-
         authRes = { data: { user: signUpData.user }, error: null };
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
@@ -71,13 +58,8 @@ export default function AuthPage() {
       const userId = authRes.data.user?.id;
       if (!userId) throw new Error('Missing user ID');
 
-      const { data: roleData, error: roleError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (roleError || !roleData?.role) throw new Error('User role not found');
+      const roleFromMetadata = authRes.data.user?.user_metadata?.role;
+      if (!roleFromMetadata) throw new Error('User role not found');
 
       const redirectMap: Record<string, string> = {
         seller: '/seller/onboarding',
@@ -86,7 +68,7 @@ export default function AuthPage() {
         driver: '/driver/onboarding',
       };
 
-      router.push(`${redirectMap[roleData.role] || '/dashboard'}?userId=${userId}`);
+      router.push(`${redirectMap[roleFromMetadata] || '/dashboard'}?userId=${userId}`);
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');
