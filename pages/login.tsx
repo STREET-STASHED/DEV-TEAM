@@ -57,14 +57,17 @@ export default function AuthPage() {
         body: JSON.stringify({ id: userId, email }),
       });
 
+      const rawText = await res.text();
+      console.log('Raw role API response:', rawText);
+
       if (!res.ok) {
-        console.error('Get role failed:', await res.text());
+        console.error('Get role failed:', rawText);
         throw new Error('Failed to fetch role');
       }
 
       let data;
       try {
-        data = await res.json();
+        data = JSON.parse(rawText);
       } catch (jsonErr) {
         console.error('Failed to parse role response:', jsonErr);
         throw new Error('Invalid role response');
