@@ -54,6 +54,12 @@ export default function AuthPage() {
               console.error('Error inserting user into users table:', insertRes.error);
               throw new Error('Failed to save user data');
             }
+
+            await fetch('/api/set-role', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: signUpData.user.id, role }),
+            });
           }
           authRes = { data: { user: signUpData.user }, error: null };
         }

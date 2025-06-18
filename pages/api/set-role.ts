@@ -13,12 +13,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, userId, role } = req.body;
+  let { email, userId, role } = req.body;
 
   if ((!email && !userId) || !role) {
     console.error('Missing required fields:', { email, userId, role });
     return res.status(400).json({ error: 'Missing email/userId or role' });
   }
+
+  role = role.trim().toLowerCase();
 
   if (!VALID_ROLES.includes(role)) {
     console.error('Invalid role specified:', role);
@@ -27,23 +29,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const query = userId
-      ? supabase.from('users').update({ role }).eq('id', userId)
-      : supabase.from('users').update({ role }).eq('email', email);
+      ? supabase.from('users').update({ role }).eq('id', userId).select('id, email, role').single()
+      : supabase.from('users').update({ role }).eq('email', email).select('id, email, role').single();
 
-    const { data, error }: { data: any[] | null; error: any } = await query.select('id, email, role');
+    const { data, error }: { data: any | null; error: any } = await query;
 
     if (error) {
       console.error('Set role error:', error);
       return res.status(500).json({ error: error.message });
     }
 
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (!data) {
       console.warn('No user found or no rows updated:', { email, userId });
       return res.status(404).json({ error: `User not found or update failed for ${userId || email}` });
     }
 
-    console.log('Role updated successfully:', data[0]);
-    return res.status(200).json({ message: 'Role set successfully', data: data[0] });
+    console.log('Role updated successfully:', data);
+    return res.status(200).json({ message: 'Role set successfully', data });
 
   } catch (err: any) {
     console.error('Unexpected error in set-role:', err);
