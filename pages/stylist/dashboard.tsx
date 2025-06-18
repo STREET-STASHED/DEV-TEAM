@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '@/lib/supabaseClient';
+import { GetServerSideProps } from 'next';
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import AuthGuard from '@/components/AuthGuard';
 
 interface StylistDashboardProps {
   userId: string;
@@ -68,27 +71,51 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   if (loading) return <p>Loading bookings...</p>;
 
   return (
-    <div>
-      <h1>Stylist Dashboard</h1>
-      {bookings.length === 0 ? (
-        <p>No bookings found.</p>
-      ) : (
-        <ul>
-          {bookings.map((booking) => (
-            <li key={booking.id}>
-              <p><strong>Client:</strong> {booking.client_name}</p>
-              <p><strong>Date:</strong> {booking.date}</p>
-              <p><strong>Event:</strong> {booking.event_type}</p>
-              <p><strong>Request:</strong> {booking.outfit_request}</p>
-              <p><strong>Status:</strong> {booking.status}</p>
-              <button onClick={() => updateStatus(booking.id, 'accepted')}>Accept</button>
-              <button onClick={() => updateStatus(booking.id, 'declined')}>Decline</button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <AuthGuard role="stylist">
+      <div>
+        <h1>Stylist Dashboard</h1>
+        {bookings.length === 0 ? (
+          <p>No bookings found.</p>
+        ) : (
+          <ul>
+            {bookings.map((booking) => (
+              <li key={booking.id}>
+                <p><strong>Client:</strong> {booking.client_name}</p>
+                <p><strong>Date:</strong> {booking.date}</p>
+                <p><strong>Event:</strong> {booking.event_type}</p>
+                <p><strong>Request:</strong> {booking.outfit_request}</p>
+                <p><strong>Status:</strong> {booking.status}</p>
+                <button onClick={() => updateStatus(booking.id, 'accepted')}>Accept</button>
+                <button onClick={() => updateStatus(booking.id, 'declined')}>Decline</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </AuthGuard>
   );
 };
 
 export default StylistDashboard;
+
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const supabase = createServerSupabaseClient(ctx);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      userId: session.user.id,
+    },
+  };
+};

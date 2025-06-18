@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../../lib/supabaseClient';
 
-const DriverDashboard: React.FC = () => {
-  const [user, setUser] = useState<any>(null);
+const DriverDashboard: React.FC<{ userId: string }> = ({ userId }) => {
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [earnings, setEarnings] = useState<number>(0);
   const [pastDeliveries, setPastDeliveries] = useState<any[]>([]);
@@ -52,38 +51,28 @@ const DriverDashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUser(data.user);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (user?.id) {
-      fetchDriverData(user.id);
+    if (userId) {
+      fetchDriverData(userId);
     }
-  }, [user]);
+  }, [userId]);
 
   const handleAcceptDelivery = async (deliveryId: string) => {
-    if (!user?.id) return;
+    if (!userId) return;
     const { error } = await supabase
       .from('deliveries')
-      .update({ driver_id: user.id })
+      .update({ driver_id: userId })
       .eq('id', deliveryId);
 
     if (!error) {
       // Re-fetch data to update UI
-      fetchDriverData(user.id);
+      fetchDriverData(userId);
     }
   };
 
   return (
     <div style={{ padding: '2rem' }}>
       <h1>Driver Dashboard</h1>
-      {user && <p><strong>User ID:</strong> {user.id}</p>}
+      <p><strong>User ID:</strong> {userId}</p>
 
       <section style={{ marginTop: '2rem' }}>
         <h2>Available Deliveries</h2>
@@ -128,7 +117,7 @@ const DriverDashboard: React.FC = () => {
                         .from('deliveries')
                         .update({ status: 'picked_up' })
                         .eq('id', delivery.id);
-                      if (!error && user?.id) fetchDriverData(user.id);
+                      if (!error && userId) fetchDriverData(userId);
                     }}
                     disabled={delivery.status !== 'scheduled'}
                   >
@@ -140,7 +129,7 @@ const DriverDashboard: React.FC = () => {
                         .from('deliveries')
                         .update({ status: 'delivered' })
                         .eq('id', delivery.id);
-                      if (!error && user?.id) fetchDriverData(user.id);
+                      if (!error && userId) fetchDriverData(userId);
                     }}
                     disabled={delivery.status !== 'picked_up'}
                   >

@@ -3,18 +3,16 @@ import { useEffect, useState } from 'react'
 import supabase from '../../lib/supabaseClient'
 import OrderProgressBar from '@/components/OrderProgressBar';
 
-const BuyerDashboard = () => {
+interface BuyerDashboardProps {
+  userId: string;
+}
+
+const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
   const [orders, setOrders] = useState<Array<{ id: string; status?: string }>>([])
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user?.id) {
-        console.error('Error fetching user:', userError?.message);
-        return;
-      }
-
-      const userId = userData.user.id;
+      if (!userId) return;
 
       const { data, error } = await supabase
         .from('orders')
@@ -35,7 +33,7 @@ const BuyerDashboard = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [userId]);
 
   return (
     <div className="p-4 sm:p-8 md:p-12 max-w-4xl mx-auto">

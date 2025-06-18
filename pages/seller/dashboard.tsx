@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { GetServerSidePropsContext } from 'next';
 
 interface SellerDashboardProps {
   userId: string;
@@ -413,4 +415,28 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
   )
 }
 
-export default SellerDashboard;
+export default function SellerDashboardPage(props: { userId: string }) {
+  return <SellerDashboard userId={props.userId} />;
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const supabase = createServerSupabaseClient(context);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      userId: session.user.id,
+    },
+  };
+}
