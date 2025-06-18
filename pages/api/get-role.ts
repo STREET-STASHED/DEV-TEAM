@@ -11,10 +11,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Email or user ID is required' });
   }
 
-  // Query the users table for metadata by email or id
+  // Query the users table for the role by email or id
   const { data: user, error } = await supabaseAdmin
     .from('users')
-    .select('user_metadata')
+    .select('role')
     .match(email ? { email } : { id: id as string })
     .maybeSingle();
 
@@ -25,9 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: 'User not found' });
   }
 
-  // Check if user_metadata exists on the user object
-  const userMetadata = (user as { user_metadata?: { role?: string } })?.user_metadata;
-  const role = userMetadata?.role;
+  const role = (user as { role?: string })?.role;
   if (!role) {
     return res.status(404).json({ error: 'User role not found' });
   }
