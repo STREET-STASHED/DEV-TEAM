@@ -34,7 +34,16 @@ export default function AuthPage() {
           password,
         });
 
-        if (signUpError) throw signUpError;
+        if (signUpError) {
+          if (signUpError.message.includes('already registered')) {
+            alert('User already registered. Please log in instead.');
+            setIsSignUp(false);
+            setLoading(false);
+            return;
+          }
+          throw signUpError;
+        }
+
         if (!signUpData.user) throw new Error('User creation failed');
 
         const upsertRes = await supabase

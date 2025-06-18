@@ -1,27 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import supabase from '../../lib/supabaseClient';
-import AuthGuard from '@/components/AuthGuard';
+interface Booking {
+  id: string;
+  status: string;
+  created_at: string;
+  service_id?: string;
+  product_name?: string;
+  service_name?: string;
+}
+import React, { useEffect, useState } from "react";
+import supabase from "../../lib/supabaseClient";
+import AuthGuard from "@/components/AuthGuard";
 
 interface SellerDashboardProps {
   userId: string;
 }
 
-// Progress helper for order status
-const getProgress = (status: string) => {
+// Helper for progress bar
+function getProgressPercent(status: string) {
   switch (status) {
-    case 'pending': return 20;
-    case 'packed': return 40;
-    case 'ready_for_pickup': return 60;
-    case 'picked_up': return 80;
-    case 'delivered': return 100;
-    default: return 0;
+    case "pending":
+      return 20;
+    case "packed":
+      return 40;
+    case "ready_for_pickup":
+      return 60;
+    case "picked_up":
+      return 80;
+    case "delivered":
+      return 100;
+    default:
+      return 0;
   }
-};
+}
 
 const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
-  const [services, setServices] = useState<Array<Record<string, any>>>([])
-  const [bookings, setBookings] = useState<Array<Record<string, any>>>([]);
-  const [uploadMessage, setUploadMessage] = useState<string | null>(null);
+  const [services, setServices] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [uploadMsg, setUploadMsg] = useState<string | null>(null);
   const [analytics, setAnalytics] = useState({
     totalServices: 0,
     totalBookings: 0,
@@ -30,155 +44,147 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
       packed: 0,
       ready_for_pickup: 0,
       picked_up: 0,
-      delivered: 0
-    }
+      delivered: 0,
+    },
   });
   const [loading, setLoading] = useState(true);
   const [localUserId, setLocalUserId] = useState(userId);
 
+  // Fetch userId if not present (client navigation fallback)
   useEffect(() => {
-    const fetchUserId = async () => {
+    async function fetchUserId() {
       if (!localUserId) {
-        const session = await supabase.auth.getSession().then(r => r.data.session);
-        const currentUser = session?.user;
-        if (currentUser) {
-          setLocalUserId(currentUser.id);
-        } else {
-          window.location.href = '/login';
-        }
+        const session = await supabase.auth.getSession().then((r) => r.data.session);
+        if (session?.user) setLocalUserId(session.user.id);
+        else window.location.href = "/login";
       }
-    };
-
+    }
     fetchUserId();
   }, [localUserId]);
 
+  // Fetch and subscribe to data
   useEffect(() => {
-    const checkRole = async () => {
-      const session = await supabase.auth.getSession().then(r => r.data.session);
+    if (!localUserId) return;
+    let cleanup: (() => void) | undefined;
+    const fetchAll = async () => {
+      // Role check
+      const session = await supabase.auth.getSession().then((r) => r.data.session);
       const currentUser = session?.user;
       if (!currentUser) {
-        window.location.href = '/login';
+        window.location.href = "/login";
         return;
       }
       const { data: user } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', currentUser.id)
+        .from("users")
+        .select("role")
+        .eq("id", currentUser.id)
         .single();
-      if (user?.role !== 'seller') {
-        window.location.href = '/unauthorized';
-      }
-    };
-
-    const fetchServices = async () => {
-      const seller_id = localUserId;
-      if (!seller_id) return;
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('seller_id', seller_id)
-      if (!error) {
-        setServices(data || []);
-        setAnalytics(prev => ({ ...prev, totalServices: (data || []).length }));
-      }
-    };
-
-    const fetchBookings = async () => {
-      const seller_id = localUserId;
-      if (!seller_id) return;
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('id, status, service_name, service_id, created_at')
-        .eq('seller_id', seller_id)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Failed to fetch bookings:', error.message);
+      if (user?.role !== "seller") {
+        window.location.href = "/unauthorized";
         return;
       }
+      // Fetch services
+      const { data: prodData } = await supabase
+        .from("products")
+        .select("*")
+        .eq("seller_id", localUserId);
+      setServices(prodData || []);
+      setAnalytics((prev) => ({
+        ...prev,
+        totalServices: (prodData || []).length,
+      }));
+      // Fetch bookings
+      const { data: bookData, error: bookError } = await supabase
+        .from('bookings')
+        .select('id, status, created_at')
+        .eq('seller_id', localUserId)
+        .order('created_at', { ascending: false });
 
-      if (Array.isArray(data)) {
-        setBookings(data);
+      if (bookError) {
+        console.error('Failed to fetch bookings:', bookError.message);
+        setBookings([]);
+      } else if (bookData) {
+        // Fetch product names for each booking
+        const bookingsWithProductNames: Booking[] = await Promise.all(
+          (bookData as Booking[]).map(async (booking: Booking) => {
+            if (booking.service_id) {
+              const { data: productData, error: productError } = await supabase
+                .from('products')
+                .select('name')
+                .eq('id', booking.service_id)
+                .single();
+
+              if (!productError && productData) {
+                return { ...booking, product_name: productData.name };
+              }
+            }
+            return { ...booking, product_name: 'Unknown Product' };
+          })
+        );
+
+        setBookings(bookingsWithProductNames);
+        // Analytics update
         const statusCounts = {
           pending: 0,
           packed: 0,
           ready_for_pickup: 0,
           picked_up: 0,
-          delivered: 0
+          delivered: 0,
         };
-        type BookingStatus = 'pending' | 'packed' | 'ready_for_pickup' | 'picked_up' | 'delivered';
-        data.forEach((booking) => {
-          const status = (booking as { status?: string }).status;
-          if (status && typeof status === 'string' && statusCounts.hasOwnProperty(status)) {
-            statusCounts[status as BookingStatus]++;
+        (bookData as Booking[]).forEach((b: Booking) => {
+          const s = b.status;
+          if (s && statusCounts.hasOwnProperty(s)) {
+            statusCounts[s as keyof typeof statusCounts]++;
           }
         });
-        setAnalytics(prev => ({
+        setAnalytics((prev) => ({
           ...prev,
-          totalBookings: data.length,
-          statusCounts
+          totalBookings: bookData.length,
+          statusCounts,
         }));
       }
-    };
-
-    const init = async () => {
-      await checkRole();
-      await fetchServices();
-      await fetchBookings();
       setLoading(false);
-
-      // Setup real-time subscriptions
-      const seller_id = localUserId;
-      if (!seller_id) return;
-      const serviceSubscription = supabase
-        .channel('products_changes')
+      // Subscriptions
+      const prodSub = supabase
+        .channel("products_changes")
         .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'products', filter: `seller_id=eq.${seller_id}` },
-          payload => {
-            fetchServices();
-          }
+          "postgres_changes",
+          { event: "*", schema: "public", table: "products", filter: `seller_id=eq.${localUserId}` },
+          () => fetchAll()
         )
         .subscribe();
-      const bookingSubscription = supabase
-        .channel('bookings_changes')
+      const bookSub = supabase
+        .channel("bookings_changes")
         .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'bookings', filter: `seller_id=eq.${seller_id}` },
-          payload => {
-            fetchBookings();
-          }
+          "postgres_changes",
+          { event: "*", schema: "public", table: "bookings", filter: `seller_id=eq.${localUserId}` },
+          () => fetchAll()
         )
         .subscribe();
-      return () => {
-        supabase.removeChannel(serviceSubscription);
-        supabase.removeChannel(bookingSubscription);
+      cleanup = () => {
+        supabase.removeChannel(prodSub);
+        supabase.removeChannel(bookSub);
       };
     };
-    if (localUserId) {
-      init();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchAll();
+    return () => {
+      if (cleanup) cleanup();
+    };
   }, [localUserId]);
 
-  // Update booking status handler
-  const updateBookingStatus = async (bookingId: string, newStatus: string) => {
-    const { error } = await supabase
-      .from('bookings')
-      .update({ status: newStatus })
-      .eq('id', bookingId);
-    if (error) {
-      console.error('Failed to update booking status:', error.message);
-      return;
-    }
-    // fetchBookings(); // Not needed because of real-time subscription
-  };
+  // Booking status update
+  async function updateBookingStatus(bookingId: string, newStatus: string) {
+    await supabase.from("bookings").update({ status: newStatus }).eq("id", bookingId);
+    // No need to refetch, realtime handles it
+  }
 
-  if (loading) return <div className="p-8 text-center">Loading seller dashboard...</div>;
+  if (loading)
+    return <div className="p-8 text-center">Loading seller dashboard...</div>;
 
-  const profileImg = typeof window !== 'undefined' 
-    ? sessionStorage.getItem('profile_image') || '/default-avatar.png'
-    : '/default-avatar.png';
+  const profileImg =
+    typeof window !== "undefined"
+      ? sessionStorage.getItem("profile_image") || "/default-avatar.png"
+      : "/default-avatar.png";
 
   return (
     <AuthGuard role="seller">
@@ -186,11 +192,17 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
         <h2 className="text-xl font-semibold">Seller Analytics</h2>
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div className="bg-gray-100 p-4 rounded shadow">
-            <p><strong>Total Services:</strong> {analytics.totalServices}</p>
-            <p><strong>Total Bookings:</strong> {analytics.totalBookings}</p>
+            <p>
+              <strong>Total Services:</strong> {analytics.totalServices}
+            </p>
+            <p>
+              <strong>Total Bookings:</strong> {analytics.totalBookings}
+            </p>
           </div>
           <div className="bg-gray-100 p-4 rounded shadow">
-            <p><strong>Booking Status Counts:</strong></p>
+            <p>
+              <strong>Booking Status Counts:</strong>
+            </p>
             <ul className="list-disc list-inside">
               <li>Pending: {analytics.statusCounts.pending}</li>
               <li>Packed: {analytics.statusCounts.packed}</li>
@@ -200,13 +212,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
             </ul>
           </div>
         </div>
-        <h1 className="text-xl sm:text-2xl font-bold">StreetStashed Seller Dashboard</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">
+          StreetStashed Seller Dashboard
+        </h1>
         <button
           className="bg-gray-800 text-white px-4 py-2 rounded"
           onClick={() => window.location.reload()}
         >
           Reload My Services
         </button>
+        {/* Seller Profile */}
         <h2 className="text-xl font-semibold">Seller Profile</h2>
         <div className="mb-4">
           <p className="text-sm text-gray-500">Current Profile Image:</p>
@@ -219,133 +234,219 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
         <form
           onSubmit={async (e) => {
             e.preventDefault();
-            const fileInput = (e.target as HTMLFormElement).elements.namedItem('avatar') as HTMLInputElement;
+            const fileInput = (e.target as HTMLFormElement).elements.namedItem(
+              "avatar"
+            ) as HTMLInputElement;
             const file = fileInput.files?.[0];
             if (!file) return;
             try {
-              const session = await supabase.auth.getSession().then(r => r.data.session);
+              const session = await supabase.auth
+                .getSession()
+                .then((r) => r.data.session);
               const currentUserId = session?.user.id;
               if (!currentUserId) {
                 alert("User not found. Please log in again.");
                 return;
               }
-              // Try uploading to avatars bucket
-              const { data, error } = await supabase.storage
-                .from('avatars')
-                .upload(`users/${currentUserId}/profile.png`, file, { upsert: true });
+              const { error } = await supabase.storage
+                .from("avatars")
+                .upload(`users/${currentUserId}/profile.png`, file, {
+                  upsert: true,
+                });
               if (!error) {
                 const publicURL = supabase.storage
-                  .from('avatars')
-                  .getPublicUrl(`users/${currentUserId}/profile.png`).data.publicUrl;
-                // Update avatar_url in users table
-                await supabase.from('users')
-                  .update({ avatar_url: publicURL } as any)
-                  .eq('id', currentUserId);
-                sessionStorage.setItem('profile_image', publicURL);
+                  .from("avatars")
+                  .getPublicUrl(
+                    `users/${currentUserId}/profile.png`
+                  ).data.publicUrl;
+                await supabase
+                  .from("users")
+                  .update({ profile_image_url: publicURL })
+                  .eq("id", currentUserId);
+                sessionStorage.setItem("profile_image", publicURL);
                 alert("Profile image updated!");
               } else {
-                console.error(error.message);
                 alert("Failed to upload image.");
               }
             } catch (err: any) {
-              console.error("Error uploading avatar:", err.message || err);
               alert("Error uploading profile image. Please try again later.");
             }
           }}
           className="space-y-4 mb-6"
         >
-          <input type="file" name="avatar" accept="image/*" className="border p-2 w-full rounded" required />
-          <button type="submit" className="bg-black text-white px-4 py-2 rounded">Upload Profile Image</button>
+          <input
+            type="file"
+            name="avatar"
+            accept="image/*"
+            className="border p-2 w-full rounded"
+            required
+          />
+          <button
+            type="submit"
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            Upload Profile Image
+          </button>
         </form>
+        {/* Upload Product */}
         <h2 className="text-xl font-semibold">Upload New Product/Bundle</h2>
         <form
           onSubmit={async (e) => {
             e.preventDefault();
             const form = e.target as HTMLFormElement;
-            const service_name = (form.elements.namedItem('service_name') as HTMLInputElement).value;
-            const price = parseFloat((form.elements.namedItem('price') as HTMLInputElement).value);
-            const image_url = (form.elements.namedItem('image_url') as HTMLInputElement).value;
-            const description = (form.elements.namedItem('description') as HTMLInputElement).value;
-            const duration = (form.elements.namedItem('duration') as HTMLInputElement).value;
+            const service_name = (
+              form.elements.namedItem("service_name") as HTMLInputElement
+            ).value;
+            const price = parseFloat(
+              (form.elements.namedItem("price") as HTMLInputElement).value
+            );
+            const image_url = (
+              form.elements.namedItem("image_url") as HTMLInputElement
+            ).value;
+            const description = (
+              form.elements.namedItem("description") as HTMLInputElement
+            ).value;
+            const duration = (
+              form.elements.namedItem("duration") as HTMLInputElement
+            ).value;
             const seller_id = localUserId;
             if (!seller_id) {
               alert("Seller ID not found. Please log in again.");
               return;
             }
-            const { error } = await supabase
-              .from('products')
-              .insert([
-                {
-                  name: service_name,
-                  price: price,
-                  image_url: image_url,
-                  seller_id: seller_id,
-                  status: 'active',
-                  description: description,
-                  duration: duration
-                }
-              ]);
+            const { error } = await supabase.from("products").insert([
+              {
+                name: service_name,
+                price: price,
+                image_url: image_url,
+                seller_id: seller_id,
+                status: "active",
+                description: description,
+                duration: duration,
+              },
+            ]);
             if (error) {
-              console.error('Upload error:', error.message);
-              setUploadMessage('Failed to upload product');
+              setUploadMsg("Failed to upload product");
               return;
             }
-            setUploadMessage('Product uploaded successfully');
-            // refetch services
-            const fetchServices = async () => {
-              const seller_id = localUserId;
-              if (!seller_id) return;
-              const { data, error } = await supabase
-                .from('products')
-                .select('*')
-                .eq('seller_id', seller_id)
-              if (!error) {
-                setServices(data || []);
-                setAnalytics(prev => ({ ...prev, totalServices: (data || []).length }));
-              }
-            };
-            fetchServices();
+            setUploadMsg("Product uploaded successfully");
+            // Refetch services
+            const { data: prodData } = await supabase
+              .from("products")
+              .select("*")
+              .eq("seller_id", seller_id);
+            setServices(prodData || []);
+            setAnalytics((prev) => ({
+              ...prev,
+              totalServices: (prodData || []).length,
+            }));
             form.reset();
           }}
           className="space-y-4 mb-6"
         >
-          <input name="service_name" placeholder="Product Name" className="border p-2 w-full rounded" required />
-          <input name="price" type="number" placeholder="Price" className="border p-2 w-full rounded" required />
-          <input name="image_url" placeholder="Image URL" className="border p-2 w-full rounded" required />
-          <input name="duration" placeholder="Duration (e.g. 1 hr)" className="border p-2 w-full rounded" required />
-          <textarea name="description" placeholder="Description" className="border p-2 w-full rounded" rows={3}></textarea>
-          <button type="submit" className="bg-black text-white px-4 py-2 rounded">Upload Product</button>
-          {uploadMessage && <p className="text-sm italic">{uploadMessage}</p>}
+          <input
+            name="service_name"
+            placeholder="Product Name"
+            className="border p-2 w-full rounded"
+            required
+          />
+          <input
+            name="price"
+            type="number"
+            placeholder="Price"
+            className="border p-2 w-full rounded"
+            required
+          />
+          <input
+            name="image_url"
+            placeholder="Image URL"
+            className="border p-2 w-full rounded"
+            required
+          />
+          <input
+            name="duration"
+            placeholder="Duration (e.g. 1 hr)"
+            className="border p-2 w-full rounded"
+            required
+          />
+          <textarea
+            name="description"
+            placeholder="Description"
+            className="border p-2 w-full rounded"
+            rows={3}
+          ></textarea>
+          <button
+            type="submit"
+            className="bg-black text-white px-4 py-2 rounded"
+          >
+            Upload Product
+          </button>
+          {uploadMsg && <p className="text-sm italic">{uploadMsg}</p>}
         </form>
+        {/* Service List */}
         <h2 className="text-xl font-semibold">Your Products</h2>
         {Array.isArray(services) && services.length === 0 ? (
-          <p className="text-gray-500 italic">No products uploaded yet. Start by adding one above.</p>
+          <p className="text-gray-500 italic">
+            No products uploaded yet. Start by adding one above.
+          </p>
         ) : (
           Array.isArray(services) &&
-          services.map((service: any) => (
-            <div key={service.id} className="border p-4 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          services.map((service) => (
+            <div
+              key={service.id}
+              className="border p-4 rounded shadow flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+            >
               <div className="flex-1">
-                <img src={service.image_url} alt={service.name || service.service_name} className="w-full sm:w-48 h-48 object-cover rounded mb-2" />
-                <p><strong>Name:</strong> {service.name || service.service_name}</p>
-                <p><strong>Price:</strong> ${service.price}</p>
-                <p><strong>Duration:</strong> {service.duration}</p>
-                <p><strong>Status:</strong> {service.status}</p>
+                <img
+                  src={service.image_url}
+                  alt={service.name || service.service_name}
+                  className="w-full sm:w-48 h-48 object-cover rounded mb-2"
+                />
+                <p>
+                  <strong>Name:</strong> {service.name || service.service_name}
+                </p>
+                <p>
+                  <strong>Price:</strong> ${service.price}
+                </p>
+                <p>
+                  <strong>Duration:</strong> {service.duration}
+                </p>
+                <p>
+                  <strong>Status:</strong> {service.status}
+                </p>
               </div>
             </div>
           ))
         )}
+        {/* Bookings */}
         <h2 className="text-xl font-semibold mt-8">Recent Bookings</h2>
         {Array.isArray(bookings) && bookings.length === 0 ? (
-          <p className="text-gray-500 italic">No bookings found for your products yet.</p>
+          <p className="text-gray-500 italic">
+            No bookings found for your products yet.
+          </p>
         ) : (
           Array.isArray(bookings) &&
-          bookings.map((booking: any) => (
-            <div key={booking.id} className="border p-4 rounded shadow mt-2 bg-white flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          bookings.map((booking: Booking) => (
+            <div
+              key={booking.id}
+              className="border p-4 rounded shadow mt-2 bg-white flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+            >
               <div className="flex-1">
-                <p><strong>Booking ID:</strong> {booking.id}</p>
-                <p><strong>Status:</strong> {booking.status}</p>
-                <p><strong>Booked Product:</strong> {booking.product_name || booking.service_name || booking.service_id}</p>
-                <p className="text-sm text-gray-500">Created: {new Date(booking.created_at).toLocaleString()}</p>
+                <p>
+                  <strong>Booking ID:</strong> {booking.id}
+                </p>
+                <p>
+                  <strong>Status:</strong> {booking.status}
+                </p>
+                <p>
+                  <strong>Booked Product:</strong>{" "}
+                  {booking.product_name ||
+                    booking.service_name ||
+                    booking.service_id}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Created: {new Date(booking.created_at).toLocaleString()}
+                </p>
                 {/* Progress Bar */}
                 <div className="mt-4 space-y-2">
                   <div className="flex justify-between text-xs text-gray-600 mb-1">
@@ -357,25 +458,41 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
                   </div>
                   <div className="flex w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 25 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '25%' }}
+                      className={`h-full transition-all duration-500 ${
+                        getProgressPercent(booking.status) >= 25
+                          ? "bg-blue-600"
+                          : "bg-gray-300"
+                      }`}
+                      style={{ width: "25%" }}
                     />
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 50 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '25%' }}
+                      className={`h-full transition-all duration-500 ${
+                        getProgressPercent(booking.status) >= 50
+                          ? "bg-blue-600"
+                          : "bg-gray-300"
+                      }`}
+                      style={{ width: "25%" }}
                     />
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 75 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '25%' }}
+                      className={`h-full transition-all duration-500 ${
+                        getProgressPercent(booking.status) >= 75
+                          ? "bg-blue-600"
+                          : "bg-gray-300"
+                      }`}
+                      style={{ width: "25%" }}
                     />
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 100 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '25%' }}
+                      className={`h-full transition-all duration-500 ${
+                        getProgressPercent(booking.status) >= 100
+                          ? "bg-blue-600"
+                          : "bg-gray-300"
+                      }`}
+                      style={{ width: "25%" }}
                     />
                   </div>
                 </div>
                 {/* Optional Tracking Field */}
-                {booking.status !== 'delivered' && (
+                {booking.status !== "delivered" && (
                   <input
                     type="text"
                     placeholder="Tracking or seller notes (optional)"
@@ -383,35 +500,46 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
                     disabled
                   />
                 )}
-                {booking.status !== 'delivered' && (
+                {booking.status !== "delivered" && (
                   <div className="mt-2 space-y-2">
-                    {booking.status === 'pending' && (
+                    {booking.status === "pending" && (
                       <button
-                        onClick={() => updateBookingStatus(String(booking.id), 'packed')}
+                        onClick={() =>
+                          updateBookingStatus(String(booking.id), "packed")
+                        }
                         className="w-full px-4 py-2 bg-blue-600 text-white rounded"
                       >
                         Mark as Packed
                       </button>
                     )}
-                    {booking.status === 'packed' && (
+                    {booking.status === "packed" && (
                       <button
-                        onClick={() => updateBookingStatus(String(booking.id), 'ready_for_pickup')}
+                        onClick={() =>
+                          updateBookingStatus(
+                            String(booking.id),
+                            "ready_for_pickup"
+                          )
+                        }
                         className="w-full px-4 py-2 bg-green-600 text-white rounded"
                       >
                         Mark as Ready for Pickup
                       </button>
                     )}
-                    {booking.status === 'ready_for_pickup' && (
+                    {booking.status === "ready_for_pickup" && (
                       <button
-                        onClick={() => updateBookingStatus(String(booking.id), 'picked_up')}
+                        onClick={() =>
+                          updateBookingStatus(String(booking.id), "picked_up")
+                        }
                         className="w-full px-4 py-2 bg-yellow-600 text-white rounded"
                       >
                         Mark as Picked Up
                       </button>
                     )}
-                    {booking.status === 'picked_up' && (
+                    {booking.status === "picked_up" && (
                       <button
-                        onClick={() => updateBookingStatus(String(booking.id), 'delivered')}
+                        onClick={() =>
+                          updateBookingStatus(String(booking.id), "delivered")
+                        }
                         className="w-full px-4 py-2 bg-purple-600 text-white rounded"
                       >
                         Mark as Delivered
@@ -425,28 +553,26 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
         )}
       </div>
     </AuthGuard>
-  )
-}
+  );
+};
 
 export default function SellerDashboardPage(props: { userId: string }) {
   return <SellerDashboard userId={props.userId} />;
 }
 
 export async function getServerSideProps(context: any) {
-  const supabase = require('../../lib/supabaseClient').default;
+  const supabase = require("../../lib/supabaseClient").default;
   const {
     data: { session },
   } = await supabase.auth.getSession();
-
   if (!session) {
     return {
       redirect: {
-        destination: '/login',
+        destination: "/login",
         permanent: false,
       },
     };
   }
-
   return {
     props: {
       userId: session.user.id,

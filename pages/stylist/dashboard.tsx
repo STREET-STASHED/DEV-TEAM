@@ -17,39 +17,59 @@ interface Booking {
   outfit_request: string;
 }
 
+const formatDate = (dateString: string) => {
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch {
+    return dateString;
+  }
+};
+
+const Spinner = () => (
+  <div role="status" aria-live="polite" style={{ padding: '1rem', textAlign: 'center' }}>
+    <svg
+      aria-hidden="true"
+      className="animate-spin h-8 w-8 text-gray-600 mx-auto"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v8z"
+      ></path>
+    </svg>
+    <span className="sr-only">Loading...</span>
+  </div>
+);
+
 const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // If userId is not passed, fetch it from Supabase auth
-  useEffect(() => {
-    const fetchUserId = async () => {
-      if (!userId) {
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
-        if (user) {
-          setUserId(user.id);
-        }
-      }
-    };
-    fetchUserId();
-  }, []);
-
-  const [localUserId, setUserId] = useState(userId);
-
+  // Use userId from props directly; no need for separate localUserId state or fetching
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!localUserId) return;
+      if (!userId) return;
 
       const { data, error } = await supabase
         .from('bookings')
         .select('id, client_name, date, status, event_type, outfit_request')
-        .eq('stylist_id', localUserId);
+        .eq('stylist_id', userId);
 
       if (error) {
         console.error('Error fetching bookings:', error.message);
+        setBookings([]);
       } else {
         setBookings(
           (data || []).map((booking: any) => ({
@@ -66,7 +86,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
     };
 
     fetchBookings();
-  }, [localUserId]);
+  }, [userId]);
 
   const updateStatus = async (bookingId: string, status: string) => {
     const { error } = await supabase
@@ -86,7 +106,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
     );
   };
 
-  if (loading) return <p>Loading bookings...</p>;
+  if (loading) return <Spinner />;
 
   return (
     <AuthGuard role="stylist">
@@ -97,14 +117,29 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
         ) : (
           <ul>
             {bookings.map((booking) => (
-              <li key={booking.id}>
+              <li key={booking.id} style={{ marginBottom: '1.5rem' }}>
                 <p><strong>Client:</strong> {booking.client_name}</p>
-                <p><strong>Date:</strong> {booking.date}</p>
+                <p><strong>Date:</strong> {formatDate(booking.date)}</p>
                 <p><strong>Event:</strong> {booking.event_type}</p>
                 <p><strong>Request:</strong> {booking.outfit_request}</p>
                 <p><strong>Status:</strong> {booking.status}</p>
-                <button onClick={() => updateStatus(booking.id, 'accepted')}>Accept</button>
-                <button onClick={() => updateStatus(booking.id, 'declined')}>Decline</button>
+                {booking.status === 'pending' && (
+                  <>
+                    <button
+                      onClick={() => updateStatus(booking.id, 'accepted')}
+                      aria-label={`Accept booking for ${booking.client_name}`}
+                      style={{ marginRight: '0.5rem' }}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => updateStatus(booking.id, 'declined')}
+                      aria-label={`Decline booking for ${booking.client_name}`}
+                    >
+                      Decline
+                    </button>
+                  </>
+                )}
               </li>
             ))}
           </ul>

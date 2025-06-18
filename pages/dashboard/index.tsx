@@ -51,16 +51,24 @@ const Dashboard: FC = () => {
         <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
         <p className="text-gray-600">Role: {role}</p>
 
-        {role === 'seller' && <SellerDashboard userId={userId} />}
-        {role === 'buyer' && <BuyerDashboard userId={userId} />}
-        {role === 'stylist' && <StylistDashboard userId={userId} />}
-        {role === 'driver' && <DriverDashboard userId={userId} />}
-
-        {!['seller', 'buyer', 'stylist', 'driver'].includes(role || '') && (
-          <div className="bg-red-100 p-4 rounded text-red-800">
-            Your role is not recognized. Please contact support.
-          </div>
-        )}
+        {(() => {
+          switch (role) {
+            case 'seller':
+              return <SellerDashboard userId={userId} />;
+            case 'buyer':
+              return <BuyerDashboard userId={userId} />;
+            case 'stylist':
+              return <StylistDashboard userId={userId} />;
+            case 'driver':
+              return <DriverDashboard userId={userId} />;
+            default:
+              return (
+                <div className="bg-red-100 p-4 rounded text-red-800">
+                  Your role is not recognized. Please contact support.
+                </div>
+              );
+          }
+        })()}
       </div>
     </AuthGuard>
   );

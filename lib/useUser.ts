@@ -1,18 +1,25 @@
 import { useEffect, useState } from 'react';
 import supabase from './supabaseClient';
 
+interface AppUser {
+  id: string;
+  email: string;
+  role: string;
+  [key: string]: any;
+}
+
 export function useUser() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const getUser = async () => {
+  const fetchUser = async () => {
+    try {
       const {
-        data: { user },
+        data: { user: authUser },
         error: authError,
       } = await supabase.auth.getUser();
 
-      if (authError || !user) {
+      if (authError || !authUser) {
         setUser(null);
         setLoading(false);
         return;
@@ -21,19 +28,34 @@ export function useUser() {
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*, role')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single();
 
       if (userError || !userData) {
+        console.error('Error fetching user data:', userError);
         setUser(null);
       } else {
-        setUser({ ...user, ...userData });
+        setUser({ ...authUser, ...userData } as AppUser);
       }
-
+    } catch (error) {
+      console.error('Unexpected error fetching user:', error);
+      setUser(null);
+    } finally {
       setLoading(false);
-    };
+    }
+  };
 
-    getUser();
+  useEffect(() => {
+    fetchUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+      setLoading(true);
+      fetchUser();
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   return { user, loading };

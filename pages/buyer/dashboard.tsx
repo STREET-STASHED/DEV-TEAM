@@ -8,7 +8,7 @@ interface BuyerDashboardProps {
 }
 
 const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
-  const [orders, setOrders] = useState<Array<{ id: string; status?: string }>>([])
+  const [orders, setOrders] = useState<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>([])
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -16,8 +16,9 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
 
       const { data, error } = await supabase
         .from('orders')
-        .select('id, status')
-        .eq('buyer_id', userId);
+        .select('id, status, total_price, created_at')
+        .eq('buyer_id', userId)
+        .returns<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>();
 
       if (error) {
         console.error('Error fetching orders:', error.message);
@@ -28,6 +29,8 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
         (data || []).map(order => ({
           id: order.id,
           status: order.status === null ? undefined : order.status,
+          total_price: order.total_price,
+          created_at: order.created_at,
         }))
       );
     };
@@ -54,6 +57,12 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
               </p>
               <p className="text-sm sm:text-base text-gray-600 italic">
                 Status: {order.status}
+              </p>
+              <p className="text-sm sm:text-base text-gray-700">
+                Total Price: ${order.total_price?.toFixed(2) ?? 'N/A'}
+              </p>
+              <p className="text-sm sm:text-base text-gray-500">
+                Ordered At: {order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}
               </p>
               <div className="mt-2">
                 <OrderProgressBar status={(order?.status ?? 'pending').toLowerCase().replace(/ /g, '_')} />
