@@ -79,7 +79,14 @@ export default function AuthPage() {
 
       if (roleError || !roleData?.role) throw new Error('User role not found');
 
-      router.push(`/${roleData.role}/dashboard?userId=${userId}`);
+      const redirectMap: Record<string, string> = {
+        seller: '/seller/onboarding',
+        buyer: '/buyer/marketplace',
+        stylist: '/stylist/onboarding',
+        driver: '/driver/onboarding',
+      };
+
+      router.push(`${redirectMap[roleData.role] || '/dashboard'}?userId=${userId}`);
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');
