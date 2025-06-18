@@ -11,17 +11,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Email or user ID is required' });
   }
 
-  let user;
-  let error;
-
   // Query the users table for metadata by email or id
-  const { data, error: dbError } = await supabaseAdmin
+  const { data: user, error } = await supabaseAdmin
     .from('users')
     .select('user_metadata')
     .match(email ? { email } : { id: id as string })
-    .single();
-  error = dbError;
-  user = data;
+    .maybeSingle();
 
   if (error) {
     return res.status(500).json({ error: error.message });
