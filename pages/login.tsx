@@ -24,9 +24,7 @@ export default function AuthPage() {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: { role }
-          }
+          options: { data: { role } }
         });
         if (signUpError) {
           // If user already registered, fall back to login
@@ -49,7 +47,7 @@ export default function AuthPage() {
       const res = await fetch('/api/get-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ id: authRes.data.user?.id, email }),
       });
 
       if (!res.ok) {
