@@ -8,15 +8,22 @@ const supabase = createClient(
 );
 
 export default function AuthPage() {
-// This unified component handles both login and sign-up flows depending on isSignUp state
+  // This unified component handles both login and sign-up flows depending on isSignUp state
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [role, setRole] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSignUp && !role) {
+      alert('Please select a role.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       let authRes;
@@ -28,16 +35,22 @@ export default function AuthPage() {
         });
 
         if (signUpError) throw signUpError;
+        if (!signUpData.user) throw new Error('User creation failed');
 
-        const insertRes = await supabase.from('users').insert({
-          id: signUpData.user?.id,
-          email,
-          role,
-        });
+        const upsertRes = await supabase
+          .from('users')
+          .upsert(
+            {
+              id: signUpData.user.id,
+              email,
+              role,
+            },
+            { onConflict: 'id' }
+          );
 
-        if (insertRes.error) {
-          console.error('Insert error:', insertRes.error);
-          throw new Error('Failed to save user');
+        if (upsertRes.error) {
+          console.error('Upsert error:', upsertRes.error);
+          throw new Error('Failed to save user data');
         }
 
         authRes = { data: { user: signUpData.user }, error: null };
@@ -58,15 +71,17 @@ export default function AuthPage() {
       if (roleError || !roleData?.role) throw new Error('User role not found');
 
       router.push(`/${roleData.role}/dashboard?userId=${userId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Auth error:', error);
-      alert('There was an issue. Please try again.');
+      alert(error.message || 'There was an issue. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <form onSubmit={handleSubmit} className="bg-gray-900 p-8 rounded shadow-md">
+      <form onSubmit={handleSubmit} className="bg-gray-900 p-8 rounded shadow-md w-full max-w-md">
         <h1 className="text-2xl mb-4 font-bold text-center">Login to StreetStashed</h1>
         <input
           type="email"
@@ -75,6 +90,7 @@ export default function AuthPage() {
           onChange={(e) => setEmail(e.target.value)}
           className="w-full p-2 mb-4 text-black rounded"
           required
+          disabled={loading}
         />
         <input
           type="password"
@@ -83,6 +99,7 @@ export default function AuthPage() {
           onChange={(e) => setPassword(e.target.value)}
           className="w-full p-2 mb-4 text-black rounded"
           required
+          disabled={loading}
         />
         {isSignUp && (
           <select
@@ -90,6 +107,7 @@ export default function AuthPage() {
             onChange={(e) => setRole(e.target.value)}
             className="w-full p-2 mb-4 text-black rounded"
             required
+            disabled={loading}
           >
             <option value="">Select your role</option>
             <option value="buyer">Buyer</option>
@@ -100,9 +118,10 @@ export default function AuthPage() {
         )}
         <button
           type="submit"
-          className="w-full bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-yellow-400"
+          className="w-full bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 disabled:opacity-50"
+          disabled={loading}
         >
-          {isSignUp ? 'Sign Up' : 'Login'}
+          {loading ? (isSignUp ? 'Signing up...' : 'Logging in...') : (isSignUp ? 'Sign Up' : 'Login')}
         </button>
         <p className="mt-4 text-center text-sm">
           {isSignUp ? 'Already have an account?' : 'Need an account?'}{' '}
@@ -110,6 +129,7 @@ export default function AuthPage() {
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
             className="text-yellow-400 underline"
+            disabled={loading}
           >
             {isSignUp ? 'Log in' : 'Sign up'}
           </button>

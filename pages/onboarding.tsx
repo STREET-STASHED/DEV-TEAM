@@ -1,96 +1,116 @@
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import supabase from '../lib/supabaseClient';
+
+const roles = ['buyer', 'seller', 'stylist', 'driver'];
 
 const OnboardingPage = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [error, setError] = useState('');
 
-
-  const selectRole = async (role: string) => {
-    setLoading(true);
-    try {
-      const {
-        data: { session },
-        error: sessionError
-      } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user) {
-        alert('User not logged in');
+  useEffect(() => {
+    async function fetchRole() {
+      const { data, error } = await supabase.auth.getSession();
+      if (error || !data.session?.user) {
         router.push('/login');
         return;
       }
 
-      const userId = session.user.id;
+      const uid = data.session.user.id;
+      setUserId(uid);
 
-      const email = session.user.email ?? ""; // ensure string
-
-      const { error: upsertError } = await supabase
+      const { data: userData, error: userError } = await supabase
         .from('users')
-        .upsert(
-          { id: userId, email, role },
-          { onConflict: 'id' }
-        );
+        .select('role')
+        .eq('id', uid)
+        .single();
 
-      if (upsertError) {
-        alert('Failed to set role');
-        console.error(upsertError.message);
-        return;
+      if (userError) {
+        console.error('Error fetching user role:', userError);
       }
 
-      // Redirect to correct dashboard
-      const roleRedirectMap: { [key: string]: string } = {
-        buyer: '/buyer/marketplace',
-        seller: '/seller/dashboard',
-        stylist: '/stylist/dashboard',
-        driver: '/driver/dashboard',
-      };
-
-      router.push(roleRedirectMap[role] || '/');
-    } catch (err) {
-      console.error('Unexpected error in selectRole:', err);
-      alert('An unexpected error occurred');
-    } finally {
-      setLoading(false);
+      if (userData?.role) {
+        router.push(getRedirectPath(userData.role));
+      } else {
+        setLoading(false);
+      }
     }
-  };
+
+    fetchRole();
+  }, [router]);
+
+  function getRedirectPath(role: string) {
+    const map: { [key: string]: string } = {
+      buyer: '/buyer/marketplace',
+      seller: '/seller/dashboard',
+      stylist: '/stylist/dashboard',
+      driver: '/driver/dashboard',
+    };
+    return map[role] || '/';
+  }
+
+  async function updateRole() {
+    setError('');
+    if (!selectedRole) {
+      setError('Please select a role.');
+      return;
+    }
+    if (!userId) {
+      setError('User not authenticated.');
+      return;
+    }
+    setLoading(true);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const email = sessionData?.session?.user?.email;
+    const { error } = await supabase
+      .from('users')
+      .upsert({ id: userId, email: email ?? '', role: selectedRole }, { onConflict: 'id' });
+
+    if (error) {
+      setError('Failed to update role. Try again.');
+      setLoading(false);
+      return;
+    }
+    router.push(getRedirectPath(selectedRole));
+  }
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center text-yellow-400 font-graffiti bg-black bg-cover bg-center"
+        style={{ backgroundImage: "url('/background.png')" }}
+      >
+        <p className="text-xl">Loading your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black bg-cover bg-center text-yellow-400 font-graffiti px-4 sm:px-8" style={{ backgroundImage: "url('/background.png')" }}>
-      <div className="flex flex-col items-center space-y-4">
-        <h1 className="text-4xl font-bold text-center">Welcome to STREETSTASHED</h1>
-        <p className="text-yellow-300 text-center text-lg">Pick your role to unlock your lane in the culture.</p>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-8 w-full max-w-md">
-        <button
-          onClick={() => selectRole('buyer')}
-          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          🛍️ I'm a Buyer
-        </button>
-        <button
-          onClick={() => selectRole('seller')}
-          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          🏪 I'm a Seller
-        </button>
-        <button
-          onClick={() => selectRole('stylist')}
-          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          💅 I'm a Stylist
-        </button>
-        <button
-          onClick={() => selectRole('driver')}
-          className="bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading}
-        >
-          🚗 I'm a Driver
-        </button>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-yellow-400 font-graffiti">
+      <h1 className="text-3xl mb-6">Select Your Role</h1>
+      {error && <p className="mb-4 text-red-500">{error}</p>}
+      <select
+        value={selectedRole}
+        onChange={(e) => setSelectedRole(e.target.value)}
+        className="mb-6 p-2 text-black rounded w-64"
+      >
+        <option value="">-- Choose a role --</option>
+        {roles.map((r) => (
+          <option key={r} value={r}>
+            {r.charAt(0).toUpperCase() + r.slice(1)}
+          </option>
+        ))}
+      </select>
+      <button
+        onClick={updateRole}
+        className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-6 rounded"
+      >
+        Continue
+      </button>
     </div>
   );
 };
