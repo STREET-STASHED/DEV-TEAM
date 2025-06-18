@@ -17,10 +17,17 @@ const Dashboard: FC = () => {
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
-  const userId = router.query.userId as string;
-  if (!userId) {
-    return <div>Unauthorized. Missing user ID.</div>;
-  }
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.id) {
+        setUserId(user.id);
+      }
+    };
+    getUserId();
+  }, []);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -49,7 +56,7 @@ const Dashboard: FC = () => {
     fetchUserData();
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading || !userId) return <p>Loading dashboard...</p>;
 
   return (
     <AuthGuard role="admin">

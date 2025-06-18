@@ -8,6 +8,7 @@ const supabase = createClient(
 );
 
 export default function AuthPage() {
+// This unified component handles both login and sign-up flows depending on isSignUp state
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,6 +20,7 @@ export default function AuthPage() {
 
     try {
       let authRes;
+      // Handle Sign Up logic — creates account, inserts into users table, or logs in if already registered
       if (isSignUp) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -41,8 +43,21 @@ export default function AuthPage() {
             throw signUpError;
           }
         } else {
+          if (signUpData?.user?.id) {
+            const insertRes = await supabase.from('users').insert({
+              id: signUpData.user.id,
+              email,
+              role,
+            });
+
+            if (insertRes.error) {
+              console.error('Error inserting user into users table:', insertRes.error);
+              throw new Error('Failed to save user data');
+            }
+          }
           authRes = { data: { user: signUpData.user }, error: null };
         }
+      // Handle Login logic — signs in with email/password
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
         if (authRes.error) throw authRes.error;

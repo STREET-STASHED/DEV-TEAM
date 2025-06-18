@@ -368,37 +368,41 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
                     disabled
                   />
                 )}
-                {booking.status === 'pending' && (
-                  <button
-                    onClick={() => updateBookingStatus(String(booking.id), 'packed')}
-                    className="mt-2 px-4 py-2 bg-blue-600 text-white rounded"
-                  >
-                    Mark as Packed
-                  </button>
-                )}
-                {booking.status === 'packed' && (
-                  <button
-                    onClick={() => updateBookingStatus(String(booking.id), 'ready_for_pickup')}
-                    className="mt-2 px-4 py-2 bg-green-600 text-white rounded"
-                  >
-                    Mark as Ready for Pickup
-                  </button>
-                )}
-                {booking.status === 'ready_for_pickup' && (
-                  <button
-                    onClick={() => updateBookingStatus(String(booking.id), 'picked_up')}
-                    className="mt-2 px-4 py-2 bg-yellow-600 text-white rounded"
-                  >
-                    Mark as Picked Up
-                  </button>
-                )}
-                {booking.status === 'picked_up' && (
-                  <button
-                    onClick={() => updateBookingStatus(String(booking.id), 'delivered')}
-                    className="mt-2 px-4 py-2 bg-purple-600 text-white rounded"
-                  >
-                    Mark as Delivered
-                  </button>
+                {booking.status !== 'delivered' && (
+                  <div className="mt-2 space-y-2">
+                    {booking.status === 'pending' && (
+                      <button
+                        onClick={() => updateBookingStatus(String(booking.id), 'packed')}
+                        className="w-full px-4 py-2 bg-blue-600 text-white rounded"
+                      >
+                        Mark as Packed
+                      </button>
+                    )}
+                    {booking.status === 'packed' && (
+                      <button
+                        onClick={() => updateBookingStatus(String(booking.id), 'ready_for_pickup')}
+                        className="w-full px-4 py-2 bg-green-600 text-white rounded"
+                      >
+                        Mark as Ready for Pickup
+                      </button>
+                    )}
+                    {booking.status === 'ready_for_pickup' && (
+                      <button
+                        onClick={() => updateBookingStatus(String(booking.id), 'picked_up')}
+                        className="w-full px-4 py-2 bg-yellow-600 text-white rounded"
+                      >
+                        Mark as Picked Up
+                      </button>
+                    )}
+                    {booking.status === 'picked_up' && (
+                      <button
+                        onClick={() => updateBookingStatus(String(booking.id), 'delivered')}
+                        className="w-full px-4 py-2 bg-purple-600 text-white rounded"
+                      >
+                        Mark as Delivered
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

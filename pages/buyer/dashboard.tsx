@@ -3,19 +3,27 @@ import { useEffect, useState } from 'react'
 import supabase from '../../lib/supabaseClient'
 import OrderProgressBar from '@/components/OrderProgressBar';
 
-const BuyerDashboard = ({ userId }: { userId: string }) => {
+const BuyerDashboard = () => {
   const [orders, setOrders] = useState<Array<{ id: string; status?: string }>>([])
 
   useEffect(() => {
     const fetchOrders = async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData?.user?.id) {
+        console.error('Error fetching user:', userError?.message);
+        return;
+      }
+
+      const userId = userData.user.id;
+
       const { data, error } = await supabase
         .from('orders')
         .select('id, status')
         .eq('buyer_id', userId);
 
       if (error) {
-        console.error('Error fetching orders:', error.message)
-        return
+        console.error('Error fetching orders:', error.message);
+        return;
       }
 
       setOrders(
@@ -23,11 +31,11 @@ const BuyerDashboard = ({ userId }: { userId: string }) => {
           id: order.id,
           status: order.status === null ? undefined : order.status,
         }))
-      )
-    }
+      );
+    };
 
-    fetchOrders()
-  }, [userId])
+    fetchOrders();
+  }, []);
 
   return (
     <div className="p-4 sm:p-8 md:p-12 max-w-4xl mx-auto">
