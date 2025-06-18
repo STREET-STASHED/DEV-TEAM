@@ -34,6 +34,23 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
     }
   });
   const [loading, setLoading] = useState(true);
+  const [localUserId, setLocalUserId] = useState(userId);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (!localUserId) {
+        const session = await supabase.auth.getSession().then(r => r.data.session);
+        const currentUser = session?.user;
+        if (currentUser) {
+          setLocalUserId(currentUser.id);
+        } else {
+          window.location.href = '/login';
+        }
+      }
+    };
+
+    fetchUserId();
+  }, [localUserId]);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -54,7 +71,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
     };
 
     const fetchServices = async () => {
-      const seller_id = userId;
+      const seller_id = localUserId;
       if (!seller_id) return;
       const { data, error } = await supabase
         .from('products')
@@ -67,7 +84,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
     };
 
     const fetchBookings = async () => {
-      const seller_id = userId;
+      const seller_id = localUserId;
       if (!seller_id) return;
       const { data, error } = await supabase
         .from('bookings')
@@ -111,7 +128,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
       setLoading(false);
 
       // Setup real-time subscriptions
-      const seller_id = userId;
+      const seller_id = localUserId;
       if (!seller_id) return;
       const serviceSubscription = supabase
         .channel('products_changes')
@@ -138,9 +155,11 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
         supabase.removeChannel(bookingSubscription);
       };
     };
-    init();
+    if (localUserId) {
+      init();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [localUserId]);
 
   // Update booking status handler
   const updateBookingStatus = async (bookingId: string, newStatus: string) => {
@@ -205,23 +224,23 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
             if (!file) return;
             try {
               const session = await supabase.auth.getSession().then(r => r.data.session);
-              const userId = session?.user.id;
-              if (!userId) {
+              const currentUserId = session?.user.id;
+              if (!currentUserId) {
                 alert("User not found. Please log in again.");
                 return;
               }
               // Try uploading to avatars bucket
               const { data, error } = await supabase.storage
                 .from('avatars')
-                .upload(`users/${userId}/profile.png`, file, { upsert: true });
+                .upload(`users/${currentUserId}/profile.png`, file, { upsert: true });
               if (!error) {
                 const publicURL = supabase.storage
                   .from('avatars')
-                  .getPublicUrl(`users/${userId}/profile.png`).data.publicUrl;
+                  .getPublicUrl(`users/${currentUserId}/profile.png`).data.publicUrl;
                 // Update avatar_url in users table
                 await supabase.from('users')
                   .update({ avatar_url: publicURL } as any)
-                  .eq('id', userId);
+                  .eq('id', currentUserId);
                 sessionStorage.setItem('profile_image', publicURL);
                 alert("Profile image updated!");
               } else {
@@ -248,45 +267,45 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
             const image_url = (form.elements.namedItem('image_url') as HTMLInputElement).value;
             const description = (form.elements.namedItem('description') as HTMLInputElement).value;
             const duration = (form.elements.namedItem('duration') as HTMLInputElement).value;
-          const seller_id = userId;
-          if (!seller_id) {
-            alert("Seller ID not found. Please log in again.");
-            return;
-          }
-          const { error } = await supabase
-            .from('products')
-            .insert([
-              {
-                name: service_name,
-                price: price,
-                image_url: image_url,
-                seller_id: seller_id,
-                status: 'active',
-                description: description,
-                duration: duration
-              }
-            ]);
-          if (error) {
-            console.error('Upload error:', error.message);
-            setUploadMessage('Failed to upload product');
-            return;
-          }
-          setUploadMessage('Product uploaded successfully');
-          // refetch services
-          const fetchServices = async () => {
-            const seller_id = userId;
-            if (!seller_id) return;
-            const { data, error } = await supabase
-              .from('products')
-              .select('*')
-              .eq('seller_id', seller_id)
-            if (!error) {
-              setServices(data || []);
-              setAnalytics(prev => ({ ...prev, totalServices: (data || []).length }));
+            const seller_id = localUserId;
+            if (!seller_id) {
+              alert("Seller ID not found. Please log in again.");
+              return;
             }
-          };
-          fetchServices();
-          form.reset();
+            const { error } = await supabase
+              .from('products')
+              .insert([
+                {
+                  name: service_name,
+                  price: price,
+                  image_url: image_url,
+                  seller_id: seller_id,
+                  status: 'active',
+                  description: description,
+                  duration: duration
+                }
+              ]);
+            if (error) {
+              console.error('Upload error:', error.message);
+              setUploadMessage('Failed to upload product');
+              return;
+            }
+            setUploadMessage('Product uploaded successfully');
+            // refetch services
+            const fetchServices = async () => {
+              const seller_id = localUserId;
+              if (!seller_id) return;
+              const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('seller_id', seller_id)
+              if (!error) {
+                setServices(data || []);
+                setAnalytics(prev => ({ ...prev, totalServices: (data || []).length }));
+              }
+            };
+            fetchServices();
+            form.reset();
           }}
           className="space-y-4 mb-6"
         >
@@ -332,30 +351,26 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
                   <div className="flex justify-between text-xs text-gray-600 mb-1">
                     <span>Pending</span>
                     <span>Packed</span>
-                    <span>Ready</span>
-                    <span>Picked</span>
+                    <span>Ready for Pickup</span>
+                    <span>Picked Up</span>
                     <span>Delivered</span>
                   </div>
                   <div className="flex w-full bg-gray-200 h-2.5 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 20 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '20%' }}
+                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 25 ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      style={{ width: '25%' }}
                     />
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 40 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '20%' }}
+                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 50 ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      style={{ width: '25%' }}
                     />
                     <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 60 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '20%' }}
-                    />
-                    <div
-                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 80 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '20%' }}
+                      className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 75 ? 'bg-blue-600' : 'bg-gray-300'}`}
+                      style={{ width: '25%' }}
                     />
                     <div
                       className={`h-full transition-all duration-500 ${getProgress(booking.status) >= 100 ? 'bg-blue-600' : 'bg-gray-300'}`}
-                      style={{ width: '20%' }}
+                      style={{ width: '25%' }}
                     />
                   </div>
                 </div>

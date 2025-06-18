@@ -71,15 +71,17 @@ const DriverDashboard: React.FC<{ userId: string }> = ({ userId }) => {
 
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>Driver Dashboard</h1>
-      <p><strong>User ID:</strong> {userId}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 'bold' }}>🚚 Driver Dashboard</h1>
+        <span style={{ fontSize: '0.9rem', color: '#666' }}>User ID: {userId}</span>
+      </div>
 
       <section style={{ marginTop: '2rem' }}>
-        <h2>Available Deliveries</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📦 Available Deliveries</h2>
         {availableDeliveries.length > 0 ? (
           <ul>
             {availableDeliveries.map((delivery, index) => (
-              <li key={index}>
+              <li key={index} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
                 <div>
                   <strong>Pickup:</strong> {delivery.pickup_location} <br />
                   <strong>Dropoff:</strong> {delivery.destination} <br />
@@ -98,11 +100,11 @@ const DriverDashboard: React.FC<{ userId: string }> = ({ userId }) => {
       </section>
 
       <section style={{ marginTop: '2rem' }}>
-        <h2>Upcoming Deliveries</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>🚀 Upcoming Deliveries</h2>
         {deliveries.length > 0 ? (
           <ul>
             {deliveries.map((delivery, index) => (
-              <li key={index}>
+              <li key={index} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
                 <div>
                   <strong>Pickup:</strong> {delivery.pickup_location} <br />
                   <strong>Dropoff:</strong> {delivery.destination} <br />
@@ -145,16 +147,16 @@ const DriverDashboard: React.FC<{ userId: string }> = ({ userId }) => {
       </section>
 
       <section style={{ marginTop: '2rem' }}>
-        <h2>Earnings Summary</h2>
-        <p>${earnings.toFixed(2)} earned this week</p>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>💰 Earnings Summary</h2>
+        <p style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>${earnings.toFixed(2)} earned this week</p>
       </section>
 
       <section style={{ marginTop: '2rem' }}>
-        <h2>Past Deliveries</h2>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>📜 Past Deliveries</h2>
         {pastDeliveries.length > 0 ? (
           <ul>
             {pastDeliveries.map((delivery, index) => (
-              <li key={index}>
+              <li key={index} style={{ marginBottom: '1rem', padding: '1rem', border: '1px solid #ddd', borderRadius: '8px' }}>
                 <div>
                   <strong>Pickup:</strong> {delivery.pickup_location} <br />
                   <strong>Dropoff:</strong> {delivery.destination} <br />

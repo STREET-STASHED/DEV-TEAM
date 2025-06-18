@@ -20,103 +20,44 @@ export default function AuthPage() {
 
     try {
       let authRes;
-      // Handle Sign Up logic — creates account, inserts into users table, or logs in if already registered
+
       if (isSignUp) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/welcome`,
-            data: { role }
-          }
         });
 
-        if (signUpError) {
-          if (
-            signUpError.status === 400 &&
-            signUpError.message.toLowerCase().includes('already registered')
-          ) {
-            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
-            if (loginError) throw loginError;
-            authRes = { data: { user: loginData.user }, error: null };
-          } else {
-            throw signUpError;
-          }
-        } else {
-          if (signUpData?.user?.id) {
-            const insertRes = await supabase.from('users').insert({
-              id: signUpData.user.id,
-              email,
-              role,
-            });
+        if (signUpError) throw signUpError;
 
-            if (insertRes.error) {
-              console.error('Error inserting user into users table:', insertRes.error);
-              throw new Error('Failed to save user data');
-            }
+        const insertRes = await supabase.from('users').insert({
+          id: signUpData.user?.id,
+          email,
+          role,
+        });
 
-            await fetch('/api/set-role', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ id: signUpData.user.id, role }),
-            });
-          }
-          authRes = { data: { user: signUpData.user }, error: null };
+        if (insertRes.error) {
+          console.error('Insert error:', insertRes.error);
+          throw new Error('Failed to save user');
         }
-      // Handle Login logic — signs in with email/password
+
+        authRes = { data: { user: signUpData.user }, error: null };
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
         if (authRes.error) throw authRes.error;
       }
 
       const userId = authRes.data.user?.id;
-      if (!userId) throw new Error('User ID missing after auth');
+      if (!userId) throw new Error('Missing user ID');
 
-      const res = await fetch('/api/get-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId, email }),
-      });
+      const { data: roleData, error: roleError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single();
 
-      const rawText = await res.text();
-      console.log('Raw role API response:', rawText);
+      if (roleError || !roleData?.role) throw new Error('User role not found');
 
-      if (!res.ok) {
-        console.error('Get role failed:', rawText);
-        throw new Error('Failed to fetch role');
-      }
-
-      let data;
-      try {
-        data = JSON.parse(rawText);
-      } catch (jsonErr) {
-        console.error('Failed to parse role response:', jsonErr);
-        throw new Error('Invalid role response');
-      }
-
-      const userRole = data.role;
-      if (!userRole) {
-        console.error('Role missing in response:', data);
-        throw new Error('No role assigned to this user');
-      }
-
-      switch (userRole) {
-        case 'buyer':
-          router.push(`/buyer/dashboard?userId=${userId}`);
-          break;
-        case 'seller':
-          router.push(`/seller/dashboard?userId=${userId}`);
-          break;
-        case 'stylist':
-          router.push(`/stylist/dashboard?userId=${userId}`);
-          break;
-        case 'driver':
-          router.push(`/driver/dashboard?userId=${userId}`);
-          break;
-        default:
-          router.push('/onboarding');
-          break;
-      }
+      router.push(`/${roleData.role}/dashboard?userId=${userId}`);
     } catch (error) {
       console.error('Auth error:', error);
       alert('There was an issue. Please try again.');

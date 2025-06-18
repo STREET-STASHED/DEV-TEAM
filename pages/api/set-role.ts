@@ -28,25 +28,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const query = userId
-      ? supabase.from('users').update({ role }).eq('id', userId).select('id, email, role').single()
-      : supabase.from('users').update({ role }).eq('email', email).select('id, email, role').single();
+    const { data: existingUser, error: fetchError } = userId
+      ? await supabase.from('users').select('*').eq('id', userId).single()
+      : await supabase.from('users').select('*').eq('email', email).single();
 
-    const { data, error }: { data: any | null; error: any } = await query;
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error fetching user:', fetchError);
+      return res.status(500).json({ error: fetchError.message });
+    }
+
+    const upsertPayload = {
+      id: userId,
+      email,
+      role,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase.from('users').upsert(upsertPayload, { onConflict: 'id' }).select().single();
 
     if (error) {
-      console.error('Set role error:', error);
+      console.error('Upsert role error:', error);
       return res.status(500).json({ error: error.message });
     }
 
-    if (!data) {
-      console.warn('No user found or no rows updated:', { email, userId });
-      return res.status(404).json({ error: `User not found or update failed for ${userId || email}` });
-    }
-
-    console.log('Role updated successfully:', data);
+    console.log('Role upserted successfully:', data);
     return res.status(200).json({ message: 'Role set successfully', data });
-
   } catch (err: any) {
     console.error('Unexpected error in set-role:', err);
     return res.status(500).json({ error: 'Unexpected server error' });

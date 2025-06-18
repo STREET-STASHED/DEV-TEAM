@@ -7,46 +7,33 @@ import BuyerDashboard from '../buyer/dashboard';
 import StylistDashboard from '../stylist/dashboard';
 import DriverDashboard from '../driver/dashboard';
 
-// interface DashboardProps {
-//   userId: string;
-// }
-
 const Dashboard: FC = () => {
-  const [user, setUser] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const getUserId = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.id) {
-        setUserId(user.id);
-      }
-    };
-    getUserId();
-  }, []);
-
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-      if (!user) {
-        console.error('No user found in auth session.');
+      if (authError || !user?.id) {
+        console.error('Error retrieving authenticated user:', authError);
+        setLoading(false);
+        return;
       }
 
-      if (user) {
-        const { data: userData, error } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .single();
-        if (error) {
-          console.error('Error fetching role:', error);
-        }
+      setUserId(user.id);
+
+      const { data: userData, error: roleError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (roleError) {
+        console.error('Error fetching user role:', roleError);
+        setRole(null);
+      } else {
         setRole(userData?.role || null);
       }
 
@@ -61,24 +48,18 @@ const Dashboard: FC = () => {
   return (
     <AuthGuard role="admin">
       <div className="p-6 space-y-4">
-        {user ? (
-          <>
-            <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
-            <p className="text-gray-600">Role: {role}</p>
+        <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
+        <p className="text-gray-600">Role: {role}</p>
 
-            {role === 'seller' && <SellerDashboard userId={userId} />}
-            {role === 'buyer' && <BuyerDashboard userId={userId} />}
-            {role === 'stylist' && <StylistDashboard userId={userId} />}
-            {role === 'driver' && <DriverDashboard userId={userId} />}
+        {role === 'seller' && <SellerDashboard userId={userId} />}
+        {role === 'buyer' && <BuyerDashboard userId={userId} />}
+        {role === 'stylist' && <StylistDashboard userId={userId} />}
+        {role === 'driver' && <DriverDashboard userId={userId} />}
 
-            {!['seller', 'buyer', 'stylist', 'driver'].includes(role || '') && (
-              <div className="bg-red-100 p-4 rounded text-red-800">
-                Your role is not recognized. Please contact support.
-              </div>
-            )}
-          </>
-        ) : (
-          <p>Unable to load user data.</p>
+        {!['seller', 'buyer', 'stylist', 'driver'].includes(role || '') && (
+          <div className="bg-red-100 p-4 rounded text-red-800">
+            Your role is not recognized. Please contact support.
+          </div>
         )}
       </div>
     </AuthGuard>

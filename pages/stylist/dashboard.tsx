@@ -21,14 +21,32 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // If userId is not passed, fetch it from Supabase auth
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (!userId) {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+        if (user) {
+          setUserId(user.id);
+        }
+      }
+    };
+    fetchUserId();
+  }, []);
+
+  const [localUserId, setUserId] = useState(userId);
+
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!userId) return;
+      if (!localUserId) return;
 
       const { data, error } = await supabase
         .from('bookings')
         .select('id, client_name, date, status, event_type, outfit_request')
-        .eq('stylist_id', userId);
+        .eq('stylist_id', localUserId);
 
       if (error) {
         console.error('Error fetching bookings:', error.message);
@@ -48,7 +66,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
     };
 
     fetchBookings();
-  }, [userId]);
+  }, [localUserId]);
 
   const updateStatus = async (bookingId: string, status: string) => {
     const { error } = await supabase

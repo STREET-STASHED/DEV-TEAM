@@ -24,7 +24,27 @@ export default function StylistApplicationPage() {
     e.preventDefault();
     setError('');
 
-    const { error } = await supabase
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+
+    if (!user) {
+      setError('You must be logged in to apply.');
+      return;
+    }
+
+    // Check if application already exists
+    const { data: existing, error: fetchError } = await supabase
+      .from('stylist_applications')
+      .select('id')
+      .eq('email', formData.email)
+      .single();
+
+    if (existing) {
+      setError('You already submitted an application.');
+      return;
+    }
+
+    const { error: insertError } = await supabase
       .from('stylist_applications')
       .insert([
         {
@@ -41,11 +61,19 @@ export default function StylistApplicationPage() {
         } satisfies Database['public']['Tables']['stylist_applications']['Insert'],
       ]);
 
-    if (error) {
+    if (insertError) {
       setError('Submission failed. Please try again.');
-    } else {
-      setSubmitted(true);
+      return;
     }
+
+    // Update the user's role in Supabase metadata
+    await supabase.auth.updateUser({
+      data: {
+        role: 'stylist',
+      },
+    });
+
+    setSubmitted(true);
   };
 
   if (submitted) {

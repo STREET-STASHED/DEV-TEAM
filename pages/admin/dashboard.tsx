@@ -52,22 +52,25 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkRole = async () => {
       try {
-        const { data: { session } = {} } = await supabase.auth.getSession();
-        const user = session?.user;
-        if (!user) {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error || !user) {
+          console.error('Auth error or user not found:', error);
           router.push('/login');
           return;
         }
-        // Check role from 'users' table (assuming that's the correct table with 'role' column)
-        const { data: profile } = await supabase
+
+        const { data: profile, error: roleError } = await supabase
           .from('users')
           .select('role')
           .eq('id', user.id)
           .single();
-        if (!profile || !profile.role || profile.role !== 'admin') {
+
+        if (roleError || !profile || profile.role !== 'admin') {
+          console.error('Unauthorized or role error:', roleError);
           router.push('/unauthorized');
         }
       } catch (err) {
+        console.error('Role check failure:', err);
         router.push('/unauthorized');
       }
     };
@@ -88,6 +91,7 @@ const AdminDashboard = () => {
         setSellerApps(sellers ?? []);
         setStylistApps(stylists ?? []);
       } catch (err) {
+        console.error('Error fetching applications:', err);
         setSellerApps([]);
         setStylistApps([]);
       }
@@ -237,7 +241,7 @@ const AdminDashboard = () => {
       setSellerApps(updatedSellers ?? []);
       setStylistApps(updatedStylists ?? []);
     } catch (err) {
-      // handle error
+      console.error('Failed to update application status:', err);
     }
   };
 
@@ -298,7 +302,13 @@ const AdminDashboard = () => {
               <li>✅ Monitor mock disputes</li>
               <li>✅ Payout management dashboard</li>
               <li>✅ View payout history</li>
-              <li>🛠 Manually assign roles to users (coming soon)</li>
+              <li>
+                🛠 Manually assign roles to users (coming soon)
+                <br />
+                <button className="mt-1 px-3 py-1 bg-gray-100 border rounded text-sm text-gray-600 cursor-not-allowed" disabled>
+                  Launch Role Manager
+                </button>
+              </li>
               <li>🛠 Suspend or reinstate user accounts (coming soon)</li>
               <li>🛠 View all transactions (coming soon)</li>
             </ul>
@@ -312,7 +322,12 @@ const AdminDashboard = () => {
               {(sellerApps ?? []).length > 0 ? (
                 (sellerApps ?? []).map((app) => (
                   <li key={app?.id} className="mb-4">
-                    <div className="font-semibold">{app?.brand_name ?? ''}</div>
+                    <div className="font-semibold flex items-center gap-2">
+                      {app?.brand_name ?? ''}
+                      <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
+                        {app?.status ?? 'Pending'}
+                      </span>
+                    </div>
                     <div>{app?.email ?? ''} ({app?.city ?? ''})</div>
                     <div className="mt-2 flex gap-2">
                       <button onClick={() => handleUpdateStatus(app?.id, 'seller', 'approved')} className="px-4 py-2 bg-green-600 text-white rounded">
@@ -338,7 +353,12 @@ const AdminDashboard = () => {
               {(stylistApps ?? []).length > 0 ? (
                 (stylistApps ?? []).map((app) => (
                   <li key={app?.id} className="mb-4">
-                    <div className="font-semibold">{app?.name ?? ''}</div>
+                    <div className="font-semibold flex items-center gap-2">
+                      {app?.name ?? ''}
+                      <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
+                        {app?.status ?? 'Pending'}
+                      </span>
+                    </div>
                     <div>{app?.email ?? ''} ({app?.city ?? ''})</div>
                     <div className="mt-2 flex gap-2">
                       <button onClick={() => handleUpdateStatus(app?.id, 'stylist', 'approved')} className="px-4 py-2 bg-green-600 text-white rounded">

@@ -23,14 +23,18 @@ const OnboardingPage = () => {
 
       const userId = session.user.id;
 
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ role })
-        .eq('id', userId);
+      const email = session.user.email ?? ""; // ensure string
 
-      if (updateError) {
-        alert('Failed to update role');
-        console.error(updateError.message);
+      const { error: upsertError } = await supabase
+        .from('users')
+        .upsert(
+          { id: userId, email, role },
+          { onConflict: 'id' }
+        );
+
+      if (upsertError) {
+        alert('Failed to set role');
+        console.error(upsertError.message);
         return;
       }
 

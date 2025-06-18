@@ -23,31 +23,67 @@ export default function SellerApplicationPage() {
     e.preventDefault();
     setError('');
 
-    const { error: insertError } = await supabase
-      .from('seller_applications' as any)
-      .insert([{ ...formData, full_name: formData.contactName }]);
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (!session || sessionError) {
+      setError('User authentication failed.');
+      return;
+    }
+
+    const user = session.user;
+
+    // Check if seller already exists
+    const { data: existingSellers, error: fetchError } = await supabase
+      .from('sellers')
+      .select('id')
+      .eq('user_id', user.id);
+
+    if (fetchError) {
+      setError('Unable to check existing records. Try again later.');
+      return;
+    }
+
+    if (existingSellers && existingSellers.length > 0) {
+      setError('You have already submitted an application.');
+      return;
+    }
+
+    // Insert seller row
+    const { error: insertError } = await supabase.from('sellers').insert([
+      {
+        user_id: user.id,
+        store_name: formData.brandName,
+        full_name: formData.contactName,
+        email: formData.email,
+        instagram: formData.instagram,
+        city: formData.city,
+        phone: formData.phone,
+        website: formData.website,
+        status: 'approved',
+      },
+    ]);
 
     if (insertError) {
       setError('Submission failed. Please try again.');
       return;
     }
 
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
+    // Update user role only if not already seller
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ role: 'seller', full_name: formData.contactName })
+      .eq('id', user.id);
 
-    if (user && !userError) {
-      await supabase
-        .from('users')
-        .update({ role: 'seller', full_name: formData.contactName })
-        .eq('id', user.id);
-
-      setSubmitted(true);
-      window.location.href = '/seller/dashboard';
-    } else {
-      setError('User authentication failed.');
+    if (updateError) {
+      setError('Failed to update user role.');
+      return;
     }
+
+    setSubmitted(true);
+    window.location.href = '/seller/dashboard';
   };
 
   if (submitted) {
