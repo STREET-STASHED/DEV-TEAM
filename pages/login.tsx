@@ -20,15 +20,20 @@ export default function AuthPage() {
     try {
       let authRes;
       if (isSignUp) {
-        // Attempt sign-up with metadata
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { role } }
+          options: {
+            emailRedirectTo: `${window.location.origin}/welcome`,
+            data: { role }
+          }
         });
+
         if (signUpError) {
-          // If user already registered, fall back to login
-          if (signUpError.status === 400 && signUpError.message.includes('already registered')) {
+          if (
+            signUpError.status === 400 &&
+            signUpError.message.toLowerCase().includes('already registered')
+          ) {
             const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
             if (loginError) throw loginError;
             authRes = { data: { user: loginData.user }, error: null };
@@ -36,7 +41,6 @@ export default function AuthPage() {
             throw signUpError;
           }
         } else {
-          console.log('Supabase returned user_metadata:', signUpData.user?.user_metadata);
           authRes = { data: { user: signUpData.user }, error: null };
         }
       } else {
@@ -44,10 +48,13 @@ export default function AuthPage() {
         if (authRes.error) throw authRes.error;
       }
 
+      const userId = authRes.data.user?.id;
+      if (!userId) throw new Error('User ID missing after auth');
+
       const res = await fetch('/api/get-role', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: authRes.data.user?.id, email }),
+        body: JSON.stringify({ id: userId, email }),
       });
 
       if (!res.ok) {
@@ -67,12 +74,6 @@ export default function AuthPage() {
       if (!userRole) {
         console.error('Role missing in response:', data);
         throw new Error('No role assigned to this user');
-      }
-
-      const userId = authRes.data.user?.id;
-
-      if (!userId) {
-        throw new Error('User ID missing after login');
       }
 
       switch (userRole) {

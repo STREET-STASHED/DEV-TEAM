@@ -6,29 +6,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, id } = req.body;
-  if (!email && !id) {
-    return res.status(400).json({ error: 'Email or user ID is required' });
+  const { id } = req.body;
+  if (!id) {
+    return res.status(400).json({ error: 'User ID is required' });
   }
 
-  // Query the users table for the role by email or id
-  const { data: user, error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('users')
     .select('role')
-    .match(email ? { email } : { id: id as string })
+    .eq('id', id)
     .maybeSingle();
 
-  if (error) {
-    return res.status(500).json({ error: error.message });
-  }
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
+  if (error || !data) {
+    return res.status(404).json({ error: 'User not found or role not set' });
   }
 
-  const role = (user as { role?: string })?.role;
-  if (!role) {
-    return res.status(404).json({ error: 'User role not found' });
-  }
-
-  return res.status(200).json({ role });
+  return res.status(200).json({ role: data.role });
 }

@@ -18,19 +18,15 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
         const userId = sessionData.session.user.id;
 
-        const { data: userData, error: userError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', userId)
-          .single();
-
-        if (userError || !userData) {
-          console.error('Error fetching user role:', userError?.message);
+        const roleResponse = await fetch(`/api/get-role?id=${userId}`);
+        if (!roleResponse.ok) {
+          console.error('Error fetching user role:', await roleResponse.text());
           return router.push('/error');
         }
 
-        if (userData.role !== role) {
-          console.warn(`Role mismatch. Expected: ${role}, Got: ${userData.role}`);
+        const roleData = await roleResponse.json();
+        if (roleData.role !== role) {
+          console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);
           return router.push('/not-authorized');
         }
 
