@@ -20,7 +20,7 @@ export default function AuthPage() {
     try {
       let authRes;
       if (isSignUp) {
-        // Sign up and include role in user_metadata
+        // Attempt sign-up with metadata
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -28,10 +28,19 @@ export default function AuthPage() {
             data: { role }
           }
         });
-        if (signUpError) throw signUpError;
-        console.log('Supabase returned user_metadata:', signUpData.user?.user_metadata);
-        // For testing flows, treat sign-up as immediate sign-in
-        authRes = { data: { user: signUpData.user }, error: null };
+        if (signUpError) {
+          // If user already registered, fall back to login
+          if (signUpError.status === 400 && signUpError.message.includes('already registered')) {
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+            if (loginError) throw loginError;
+            authRes = { data: { user: loginData.user }, error: null };
+          } else {
+            throw signUpError;
+          }
+        } else {
+          console.log('Supabase returned user_metadata:', signUpData.user?.user_metadata);
+          authRes = { data: { user: signUpData.user }, error: null };
+        }
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
         if (authRes.error) throw authRes.error;
