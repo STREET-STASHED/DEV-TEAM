@@ -5,3 +5,4 @@ node_modules
 .DS_Store
 # Ignore local environment variables
 .env
+public/sw.js.map
