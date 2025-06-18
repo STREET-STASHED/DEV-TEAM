@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
-import { GetServerSidePropsContext } from 'next';
 
 interface SellerDashboardProps {
   userId: string;
@@ -418,7 +417,7 @@ export default function SellerDashboardPage(props: { userId: string }) {
   return <SellerDashboard userId={props.userId} />;
 }
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
+export async function getServerSideProps(context: any) {
   const supabase = require('../../lib/supabaseClient').default;
   const {
     data: { session },
