@@ -17,7 +17,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .eq('id', id)
     .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
+    console.error('Supabase error fetching role:', error.message);
+    return res.status(500).json({ error: 'Failed to fetch user role from database' });
+  }
+
+  if (!data) {
     return res.status(404).json({ error: 'User not found or role not set' });
   }
 
