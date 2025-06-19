@@ -201,7 +201,6 @@ const AdminDashboard = () => {
       // Update application status
       // Only update 'status' if it exists in the table schema
       if (table === 'sellers' || table === 'stylist_applications') {
-        // @ts-expect-error: 'status' may exist in the dynamic table schema
                 await supabase.from(table).update({ status }).eq('id', id);
       }
 
