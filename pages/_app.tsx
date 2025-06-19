@@ -17,9 +17,11 @@ const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & { pageProps: { session: Session | null } }) {
   const router = useRouter();
   const isBuyerFacing =
-    !router.pathname.includes('/seller') &&
-    !router.pathname.includes('/stylist') &&
-    !router.pathname.includes('/driver');
+    router.pathname === '/' ||
+    router.pathname === '/welcome' ||
+    router.pathname === '/buyer/marketplace' ||
+    router.pathname.startsWith('/buyer') ||
+    router.pathname.startsWith('/stores');
 
   // Dynamic import CartDrawer client-side for SSR safety
   const CartDrawer = typeof window !== "undefined"

@@ -148,8 +148,8 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: 'seller' }, { onConflict: 'id' });
-      router.replace(getRedirectPath('seller'));
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      router.replace(getRedirectPath(role));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram, booking_link } = data;
       if (!specialty || !bio || !instagram || !booking_link) {
@@ -170,8 +170,8 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: 'stylist' }, { onConflict: 'id' });
-      router.replace(getRedirectPath('stylist'));
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      router.replace(getRedirectPath(role));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
       if (!vehicle_type || !license_number || !delivery_radius) {
@@ -192,8 +192,8 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: 'driver' }, { onConflict: 'id' });
-      router.replace(getRedirectPath('driver'));
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      router.replace(getRedirectPath(role));
     }
   };
 
