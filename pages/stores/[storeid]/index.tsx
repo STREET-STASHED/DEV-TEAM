@@ -1,45 +1,78 @@
 // pages/stores/[store_id]/index.tsx
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useRouter } from 'next/router'
-import supabase from '../../../lib/supabaseClient'
 import { useCart } from '../../../context/CartContext'
 
-interface ProductRecord {
-  id: string
-  name: string
-  price: number
-  image_url: string
-}
+const demoStores = [
+  {
+    id: '1',
+    slug: 'drip-district',
+    name: 'Drip District',
+    description: 'Premium streetwear & clothing.',
+    category: 'Clothing',
+  },
+  {
+    id: '2',
+    slug: 'flex-kicks',
+    name: 'Flex Kicks',
+    description: 'Exclusive sneaker releases.',
+    category: 'Shoes',
+  },
+  {
+    id: '3',
+    slug: 'iceworks',
+    name: 'Iceworks',
+    description: 'High-end jewelry and accessories.',
+    category: 'Jewelry',
+  },
+  {
+    id: '4',
+    slug: 'styled-by-mya',
+    name: 'Styled by Mya',
+    description: 'Stylist bundles and personal shopping.',
+    category: 'Stylist',
+  },
+]
+
+const demoProducts = [
+  // Drip District
+  { id: '101', store_slug: 'drip-district', name: 'Classic Street Hoodie', price: 68, image_url: '/demo/hoodie.jpg' },
+  { id: '102', store_slug: 'drip-district', name: 'Retro Logo Tee', price: 32, image_url: '/demo/tshirt.jpg' },
+  // Flex Kicks
+  { id: '201', store_slug: 'flex-kicks', name: 'Air Hustle Sneakers', price: 125, image_url: '/demo/sneaker1.jpg' },
+  { id: '202', store_slug: 'flex-kicks', name: 'Gold Runner Highs', price: 185, image_url: '/demo/sneaker2.jpg' },
+  // Iceworks
+  { id: '301', store_slug: 'iceworks', name: 'Diamond Cuban Chain', price: 2100, image_url: '/demo/chain.jpg' },
+  { id: '302', store_slug: 'iceworks', name: 'Gold Micro Jesus Piece', price: 650, image_url: '/demo/jesuspiece.jpg' },
+  // Styled by Mya
+  { id: '401', store_slug: 'styled-by-mya', name: 'Birthday Drip Bundle', price: 300, image_url: '/demo/bundle1.jpg' },
+  { id: '402', store_slug: 'styled-by-mya', name: 'Prom Night Flex', price: 425, image_url: '/demo/bundle2.jpg' },
+]
 
 const Storefront: React.FC = () => {
   const router = useRouter()
   const { store_id } = router.query as { store_id?: string }
-  const [store, setStore] = useState<{ name: string; description?: string } | null>(null)
-  const [products, setProducts] = useState<ProductRecord[]>([])
-  const { addItem } = useCart()
+  const { addItem, hasItem } = useCart()
 
-  useEffect(() => {
-    if (!store_id) return
-    ;(async () => {
-      // Fetch store info
-      const { data: s, error: se } = await supabase
-        .from('storefronts')
-        .select('id, name, description')
-        .eq('slug', store_id)
-        .single()
-      if (se || !s) setStore({ name: 'Demo Boutique', description: 'Sample storefront.' })
-      else setStore({ name: s.name, description: s.description ?? undefined })
+  if (!store_id) {
+    return <p style={{ padding: 20 }}>Loading storefront…</p>
+  }
 
-      // Fetch products
-      const { data: items } = await supabase
-        .from('products')
-        .select('id, name, price, image_url')
-        .eq('store_id', s?.id!)
-      setProducts((items as ProductRecord[]) || [])
-    })()
-  }, [store_id])
+  const store = demoStores.find((s) => s.slug === store_id)
 
-  if (!store) return <p style={{ padding: 20 }}>Loading storefront…</p>
+  if (!store) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h1>Store Not Found</h1>
+        <p>The store you are looking for does not exist.</p>
+        <p style={{ marginTop: 20 }}>
+          <a href="/stores">← Back to all stores</a>
+        </p>
+      </div>
+    )
+  }
+
+  const products = demoProducts.filter((p) => p.store_slug === store_id)
 
   return (
     <div style={{ padding: 20 }}>
@@ -58,20 +91,21 @@ const Storefront: React.FC = () => {
             <p><strong>${item.price.toFixed(2)}</strong></p>
             <button
               onClick={() =>
-                addItem({ id: item.id, name: item.name, price: item.price, image: item.image_url })
+                addItem({ id: item.id, name: item.name, price: item.price, image: item.image_url, quantity: 1 })
               }
+              disabled={hasItem && hasItem(item.id)}
               style={{
                 marginTop: 8,
                 padding: '8px 12px',
-                background: '#000',
+                background: hasItem && hasItem(item.id) ? '#aaa' : '#000',
                 color: '#fff',
                 border: 'none',
                 borderRadius: 4,
-                cursor: 'pointer',
+                cursor: hasItem && hasItem(item.id) ? 'not-allowed' : 'pointer',
                 width: '100%',
               }}
             >
-              Add to Cart
+              {hasItem && hasItem(item.id) ? 'Added!' : 'Add to Cart'}
             </button>
           </div>
         ))}

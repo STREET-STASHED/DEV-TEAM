@@ -2,19 +2,42 @@
 import React from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
-import { stores, products, Product, Store } from '../../../lib/mockProducts'
-import { useCart } from '../../../context/CartContext'
+import { useCart } from '../../../../context/CartContext'; // <-- add this import
+
+const demoStores = [
+  { slug: 'drip-district', name: 'Drip District' },
+  { slug: 'flex-kicks', name: 'Flex Kicks' },
+  { slug: 'iceworks', name: 'Iceworks' },
+  { slug: 'styled-by-mya', name: 'Styled by Mya' },
+]
+
+const demoProducts = [
+  // Drip District
+  { id: 'classic-street-hoodie', store_slug: 'drip-district', name: 'Classic Street Hoodie', price: 68, image: 'https://picsum.photos/id/1011/400/400' },
+  { id: 'retro-logo-tee', store_slug: 'drip-district', name: 'Retro Logo Tee', price: 32, image: 'https://picsum.photos/id/1012/400/400' },
+  // Flex Kicks
+  { id: 'air-hustle-sneakers', store_slug: 'flex-kicks', name: 'Air Hustle Sneakers', price: 125, image: 'https://picsum.photos/id/1013/400/400' },
+  { id: 'gold-runner-highs', store_slug: 'flex-kicks', name: 'Gold Runner Highs', price: 185, image: 'https://picsum.photos/id/1015/400/400' },
+  // Iceworks
+  { id: 'diamond-cuban-chain', store_slug: 'iceworks', name: 'Diamond Cuban Chain', price: 2100, image: 'https://picsum.photos/id/1016/400/400' },
+  { id: 'gold-micro-jesus-piece', store_slug: 'iceworks', name: 'Gold Micro Jesus Piece', price: 650, image: 'https://picsum.photos/id/1018/400/400' },
+  // Styled by Mya
+  { id: 'birthday-drip-bundle', store_slug: 'styled-by-mya', name: 'Birthday Drip Bundle', price: 300, image: 'https://picsum.photos/id/1020/400/400' },
+  { id: 'prom-night-flex', store_slug: 'styled-by-mya', name: 'Prom Night Flex', price: 425, image: 'https://picsum.photos/id/1022/400/400' },
+]
 
 const ProductDetail: React.FC = () => {
   const { storeid, product_id } = useRouter().query as {
     storeid?: string
     product_id?: string
   }
-  const store = stores.find((s: Store) => s.id === storeid)
-  const product = storeid
-    ? products[storeid]?.find((p: Product) => p.id === product_id)
-    : undefined
-  const { addItem } = useCart()
+
+  const { addItem, hasItem } = useCart(); // <-- use the cart
+
+  const store = demoStores.find((s) => s.slug === storeid)
+  const product = demoProducts.find(
+    (p) => p.store_slug === storeid && p.id === product_id
+  )
 
   if (!store || !product) {
     return (
@@ -31,24 +54,42 @@ const ProductDetail: React.FC = () => {
       <img
         src={product.image}
         alt={product.name}
-        style={{ width: '100%', maxWidth: 400, borderRadius: 12, marginBottom: 16, border: '1px solid #eee' }}
+        style={{
+          width: '100%',
+          maxWidth: 400,
+          borderRadius: 12,
+          marginBottom: 16,
+          border: '1px solid #eee',
+        }}
       />
-      <p style={{ fontSize: 18 }}><strong>Price:</strong> ${product.price.toFixed(2)}</p>
+      <p style={{ fontSize: 18 }}>
+        <strong>Price:</strong> ${product.price.toFixed(2)}
+      </p>
       <button
-        onClick={() => addItem(product)}
+        onClick={() =>
+          addItem({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            store_id: product.store_slug,
+            quantity: 1,
+          })
+        }
+        disabled={hasItem(product.id)}
         style={{
           padding: '10px 18px',
           marginTop: 18,
-          backgroundColor: '#111',
+          backgroundColor: hasItem(product.id) ? '#aaa' : '#111',
           color: '#fff',
           border: 'none',
           borderRadius: 4,
-          cursor: 'pointer',
+          cursor: hasItem(product.id) ? 'not-allowed' : 'pointer',
           fontWeight: 600,
           fontSize: 16,
         }}
       >
-        Add to Cart
+        {hasItem(product.id) ? 'Added!' : 'Add to Cart'}
       </button>
       <div style={{ marginTop: 28 }}>
         <Link href={`/stores/${storeid}`}>← Back to {store.name}</Link>
