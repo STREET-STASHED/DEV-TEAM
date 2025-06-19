@@ -1,6 +1,6 @@
 // hooks/useProfile.ts
 import { useState, useEffect } from 'react';
-import supabaseAdmin from '../lib/supabaseAdmin';
+import supabase from '../lib/supabaseClient';
 
 export interface UserProfile {
   role: string;
@@ -16,10 +16,9 @@ export function useProfile() {
     async function loadProfile() {
       const {
         data: { user },
-      } = await supabaseAdmin.auth.getUser();
+      } = await supabase.auth.getUser();
       if (user) {
-        // use `any` to bypass generated typings for the `profiles` table
-        const resp = await (supabaseAdmin as any)
+        const resp = await supabase
           .from('profiles')
           .select('role, full_name')
           .eq('id', user.id)
