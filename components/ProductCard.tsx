@@ -6,7 +6,6 @@ interface Product {
   name: string;
   price: number;
   image?: string;
-  quantity?: number;
 }
 
 interface ProductCardProps {
@@ -14,15 +13,14 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
 
   const handleAddToCart = () => {
-    addToCart({
+    addItem({
       id: product.id,
       name: product.name,
       price: product.price,
       image: product.image || '',
-      quantity: 1,
     });
   };
 
