@@ -201,7 +201,7 @@ const AdminDashboard = () => {
       // Update application status
       // Only update 'status' if it exists in the table schema
       if (table === 'sellers' || table === 'stylist_applications') {
-                await supabase.from(table).update({ status }).eq('id', id);
+        await supabase.from(table).update({ status }).eq('id', id);
       }
 
       // If approved, insert into the corresponding role table
