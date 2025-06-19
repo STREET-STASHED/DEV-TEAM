@@ -4,8 +4,6 @@ import type { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { CartProvider } from '../context/CartContext';
-import dynamic from 'next/dynamic';
-const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -23,6 +21,11 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & {
     !router.pathname.includes('/stylist') &&
     !router.pathname.includes('/driver');
 
+  // Dynamic import CartDrawer client-side for SSR safety
+  const CartDrawer = typeof window !== "undefined"
+    ? require('next/dynamic')(() => import('../components/CartDrawer'), { ssr: false })
+    : () => null;
+
   return (
     <SessionProvider session={session}>
       <CartProvider>
@@ -35,6 +38,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & {
               <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
                 <Component {...pageProps} />
               </main>
+              {/* Always render CartDrawer client-side inside CartProvider */}
               {isBuyerFacing && <CartDrawer />}
             </div>
           </NoAuthProvider>

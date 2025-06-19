@@ -1,3 +1,4 @@
+"use client";
 // context/CartContext.tsx
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
@@ -75,11 +76,22 @@ export const useCart = () => {
 
 // Minimal CartDrawer component
 
-const CartDrawer: React.FC = () => {
-  const { items, totalCount, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
+interface CartDrawerProps {
+  onClose?: () => void;
+}
+
+const CartDrawer: React.FC<CartDrawerProps> = ({ onClose }) => {
+  let cart;
+  try {
+    cart = useCart();
+  } catch {
+    return null;
+  }
+  const { items, totalCount, totalPrice, updateQuantity, removeItem, clearCart } = cart;
 
   return (
     <div>
+      {onClose && <button onClick={onClose}>Close</button>}
       <h2>Your Cart ({totalCount} items)</h2>
       <ul>
         {items.map(item => (
