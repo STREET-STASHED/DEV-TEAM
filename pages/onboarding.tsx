@@ -25,37 +25,49 @@ const OnboardingPage = () => {
   });
 
   useEffect(() => {
-    async function fetchUser() {
+    async function fetchUserAndResume() {
       const { data, error } = await supabase.auth.getSession();
-      if (error || !data.session?.user) {
-        router.replace('/login');
-        return;
-      }
-      const uid = data.session.user.id;
-      setUserId(uid);
+      if (data.session?.user) {
+        const uid = data.session.user.id;
+        setUserId(uid);
 
-      // Get user role
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', uid)
-        .single();
+        // Get user role
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', uid)
+          .single();
 
-      if (userError) {
-        setError('Error fetching user.');
-        setLoading(false);
-        return;
-      }
+        if (!userError && userData?.role && userData.role !== '') {
+          // Already has a role—redirect straight to dashboard
+          const dash = getRedirectPath(userData.role);
+          router.replace(dash);
+          return;
+        }
 
-      if (userData?.role && userData.role !== '') {
-        // Already has a role—redirect straight to dashboard
-        const dash = getRedirectPath(userData.role);
-        router.replace(dash);
-        return;
+        // Check for onboarding draft in localStorage to resume onboarding
+        if (typeof window !== 'undefined') {
+          const draftStr = localStorage.getItem('onboardingDraft');
+          if (draftStr) {
+            try {
+              const draft = JSON.parse(draftStr);
+              if (draft.role && draft.formData) {
+                setRole(draft.role);
+                setFormData(draft.formData);
+                // Immediately submit onboarding with draft data
+                await submitOnboardingDraft(uid, draft.role, draft.formData);
+                localStorage.removeItem('onboardingDraft');
+                return;
+              }
+            } catch {
+              // Ignore parse errors
+            }
+          }
+        }
       }
       setLoading(false);
     }
-    fetchUser();
+    fetchUserAndResume();
     // eslint-disable-next-line
   }, []);
 
@@ -82,17 +94,23 @@ const OnboardingPage = () => {
       setError('Select a role to continue.');
       return;
     }
-    if (!userId) {
-      setError('User not found.');
-      return;
-    }
     if (selectedRole === 'buyer') {
-      // No onboarding for buyers—just update role and send to marketplace
+      // For buyers: if logged in, update role and redirect; if not, redirect to login and set role after login
       const { data: sessionData } = await supabase.auth.getSession();
       const email = sessionData?.session?.user?.email;
+      const uid = sessionData?.session?.user?.id;
+      if (!uid) {
+        // Not logged in: store buyer intent and redirect to login
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('onboardingDraft', JSON.stringify({ role: 'buyer', formData: {} }));
+        }
+        router.replace('/login');
+        return;
+      }
+      // Logged in: upsert buyer role and redirect
       const { error: upsertErr } = await supabase
         .from('users')
-        .upsert({ id: userId, email: email ?? '', role: 'buyer' }, { onConflict: 'id' });
+        .upsert({ id: uid, email: email ?? '', role: 'buyer' }, { onConflict: 'id' });
       if (upsertErr) {
         setError('Failed to update role.');
         return;
@@ -103,26 +121,21 @@ const OnboardingPage = () => {
     }
   };
 
-  // Onboarding submit handlers
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Helper to submit onboarding draft after login or immediately
+  const submitOnboardingDraft = async (uid: string, role: string, data: any) => {
     setError('');
-    if (!role || !userId) {
-      setError('Invalid session.');
-      return;
-    }
     const { data: sessionData } = await supabase.auth.getSession();
     const email = sessionData?.session?.user?.email;
 
     if (role === 'seller') {
-      const { store_name, store_description, payout_method } = formData;
+      const { store_name, store_description, payout_method } = data;
       if (!store_name || !store_description || !payout_method) {
         setError('All fields required.');
+        setLoading(false);
         return;
       }
-      // Insert or update seller
       const { error: insertError } = await supabase.from('sellers').upsert([{
-        user_id: userId,
+        user_id: uid,
         store_name,
         store_description,
         payout_method,
@@ -132,20 +145,20 @@ const OnboardingPage = () => {
       }], { onConflict: 'user_id' });
       if (insertError) {
         setError('Failed to save seller info.');
+        setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: userId, email: email ?? '', role: 'seller' }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: 'seller' }, { onConflict: 'id' });
       router.replace(getRedirectPath('seller'));
-    }
-
-    if (role === 'stylist') {
-      const { specialty, bio, instagram, booking_link } = formData;
+    } else if (role === 'stylist') {
+      const { specialty, bio, instagram, booking_link } = data;
       if (!specialty || !bio || !instagram || !booking_link) {
         setError('All fields required.');
+        setLoading(false);
         return;
       }
       const { error: insertError } = await supabase.from('stylists').upsert([{
-        user_id: userId,
+        user_id: uid,
         specialty,
         bio,
         instagram,
@@ -154,20 +167,20 @@ const OnboardingPage = () => {
       }], { onConflict: 'user_id' });
       if (insertError) {
         setError('Failed to save stylist info.');
+        setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: userId, email: email ?? '', role: 'stylist' }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: 'stylist' }, { onConflict: 'id' });
       router.replace(getRedirectPath('stylist'));
-    }
-
-    if (role === 'driver') {
-      const { vehicle_type, license_number, delivery_radius } = formData;
+    } else if (role === 'driver') {
+      const { vehicle_type, license_number, delivery_radius } = data;
       if (!vehicle_type || !license_number || !delivery_radius) {
         setError('All fields required.');
+        setLoading(false);
         return;
       }
       const { error: insertError } = await supabase.from('drivers').upsert([{
-        user_id: userId,
+        user_id: uid,
         vehicle_type,
         license_number,
         delivery_radius,
@@ -176,11 +189,34 @@ const OnboardingPage = () => {
       }], { onConflict: 'user_id' });
       if (insertError) {
         setError('Failed to save driver info.');
+        setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: userId, email: email ?? '', role: 'driver' }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: 'driver' }, { onConflict: 'id' });
       router.replace(getRedirectPath('driver'));
     }
+  };
+
+  // Onboarding submit handlers
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const uid = sessionData?.session?.user?.id;
+    if (!role) {
+      setError('Select a role first.');
+      return;
+    }
+    if (!uid) {
+      // Not logged in: save draft and redirect to login
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('onboardingDraft', JSON.stringify({ role, formData }));
+      }
+      router.replace('/login');
+      return;
+    }
+    await submitOnboardingDraft(uid, role, formData);
   };
 
   if (loading) {
