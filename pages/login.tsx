@@ -49,13 +49,31 @@ export default function AuthPage() {
 
         if (!signUpData.user) throw new Error('User creation failed');
 
-        // Insert user into 'users' table after signup
-        const { data: insertData, error: insertError } = await supabase
+        // Only insert if user row does not exist
+        const { data: existingUsers, error: fetchError } = await supabase
           .from('users')
-          .insert([{ id: signUpData.user.id, email: signUpData.user.email, role }]);
-        if (insertError) {
-          console.error('Failed to insert user:', insertError);
-          throw new Error('User database creation failed');
+          .select('id')
+          .eq('id', signUpData.user.id);
+
+        if (fetchError) {
+          console.error('Failed to check user existence:', fetchError);
+          throw new Error('Could not check for existing user.');
+        }
+
+        if (!existingUsers || existingUsers.length === 0) {
+          const { data: insertData, error: insertError } = await supabase
+            .from('users')
+            .insert([{ id: signUpData.user.id, email: signUpData.user.email, role }]);
+          if (insertError) {
+            if (insertError.code === '23505' || insertError.message?.includes('duplicate')) {
+              alert('User already exists. Please log in.');
+              setIsSignUp(false);
+              setLoading(false);
+              return;
+            }
+            console.error('Failed to insert user:', insertError);
+            throw new Error('User database creation failed');
+          }
         }
 
         authRes = { data: { user: signUpData.user }, error: null };
