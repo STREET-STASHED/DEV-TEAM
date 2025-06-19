@@ -49,6 +49,15 @@ export default function AuthPage() {
 
         if (!signUpData.user) throw new Error('User creation failed');
 
+        // Insert user into 'users' table after signup
+        const { data: insertData, error: insertError } = await supabase
+          .from('users')
+          .insert([{ id: signUpData.user.id, email: signUpData.user.email, role }]);
+        if (insertError) {
+          console.error('Failed to insert user:', insertError);
+          throw new Error('User database creation failed');
+        }
+
         authRes = { data: { user: signUpData.user }, error: null };
       } else {
         authRes = await supabase.auth.signInWithPassword({ email, password });
