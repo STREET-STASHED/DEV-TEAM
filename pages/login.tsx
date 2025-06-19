@@ -89,7 +89,12 @@ export default function AuthPage() {
         driver: '/onboarding',
       };
 
-      router.push(`${redirectMap[roleFromMetadata] || '/onboarding'}?userId=${userId}`);
+      // PATCH: If onboardingDraft exists, resume onboarding
+      if (typeof window !== 'undefined' && localStorage.getItem('onboardingDraft')) {
+        router.push('/onboarding');
+      } else {
+        router.push(`${redirectMap[roleFromMetadata] || '/onboarding'}?userId=${userId}`);
+      }
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');
