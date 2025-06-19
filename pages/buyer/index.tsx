@@ -64,6 +64,7 @@ const ProductList = () => {
                   name: product.name,
                   price: product.price,
                   image: product.image_url,
+                  quantity: 1,
                 })
               }
               className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition-colors duration-200 w-full"
