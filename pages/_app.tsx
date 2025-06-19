@@ -25,8 +25,8 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & {
 
   return (
     <SessionProvider session={session}>
-      <Elements stripe={stripePromise}>
-        <CartProvider>
+      <CartProvider>
+        <Elements stripe={stripePromise}>
           <NoAuthProvider>
             <div
               className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
@@ -38,8 +38,8 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & {
               {isBuyerFacing && <CartDrawer />}
             </div>
           </NoAuthProvider>
-        </CartProvider>
-      </Elements>
+        </Elements>
+      </CartProvider>
     </SessionProvider>
   );
 }
