@@ -15,7 +15,7 @@ export default function WelcomePage() {
           Browse Marketplace
         </button>
         <button
-          onClick={() => router.push('/login')}
+          onClick={() => router.push('/onboarding')}
           className="bg-white hover:bg-yellow-200 text-black font-bold py-3 px-8 rounded text-xl"
         >
           Join StreetStashed
