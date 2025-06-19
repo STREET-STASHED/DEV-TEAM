@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/router';
+import { useCart } from '../context/CartContext';
+import type { CartItem } from '../context/CartContext';
 
 interface CheckoutFormProps {
-  items: any[];
+  items: CartItem[];
   name: string;
   email: string;
   totalAmount: number;
@@ -13,6 +16,8 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
+  const { clearCart } = useCart();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,17 +25,22 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
     setError(null);
 
     try {
-      const { data } = await axios.post('/api/checkout', {
-        items,
-        name,
-        email,
-        totalAmount,
-      });
+      const endpoint = mode === 'cart' ? '/api/orders' : '/api/checkout';
+      const payload = mode === 'cart'
+        ? { items, name, email, total: totalAmount }
+        : { items: [{ ...items[0], quantity: 1 }], name, email, totalAmount };
+      const { data } = await axios.post(endpoint, payload);
 
       if (data.success) {
         setSuccess(true);
       } else {
         throw new Error(data.message || 'Payment failed on server');
+      }
+
+      if (mode === 'cart' && data.orderId) {
+        clearCart();
+        router.push(`/order/${data.orderId}`);
+        return;
       }
     } catch (err: any) {
       console.error('Full payment error object:', JSON.stringify(err, null, 2));
@@ -63,8 +73,8 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
         </button>
       ) : (
         <button
-          type="button"
-          onClick={() => alert('Added to cart!')} // Replace with real addToCart handler
+          type="submit"
+          disabled={loading}
           style={{
             width: '100%',
             padding: '0.75rem',
@@ -74,7 +84,7 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
             borderRadius: '4px',
           }}
         >
-          Add to Cart
+          {loading ? 'Placing Order…' : 'Place Order'}
         </button>
       )}
 

@@ -1,0 +1,54 @@
+// pages/stores/[store_id]/products/[product_id].tsx
+import React from 'react'
+import { useRouter } from 'next/router'
+import Link from 'next/link'
+import { stores, products, Product, Store } from '../../../lib/mockProducts'
+import { useCart } from '../../../context/CartContext'
+
+const ProductDetail: React.FC = () => {
+  const { storeid, product_id } = useRouter().query as {
+    storeid?: string
+    product_id?: string
+  }
+  const store = stores.find((s: Store) => s.id === storeid)
+  const product = storeid
+    ? products[storeid]?.find((p: Product) => p.id === product_id)
+    : undefined
+  const { addItem } = useCart()
+
+  if (!store || !product) {
+    return (
+      <div style={{ padding: 20 }}>
+        <h1>Not Found</h1>
+        <Link href="/stores">← Back to Stores</Link>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>{product.name}</h1>
+      <img src={product.image} alt={product.name} style={{ maxWidth: '100%', borderRadius: 8 }} />
+      <p><strong>Price:</strong> ${product.price.toFixed(2)}</p>
+      <button
+        onClick={() => addItem(product)}
+        style={{
+          padding: '10px 16px',
+          marginTop: 12,
+          backgroundColor: '#000',
+          color: '#fff',
+          border: 'none',
+          borderRadius: 4,
+          cursor: 'pointer',
+        }}
+      >
+        Add to Cart
+      </button>
+      <div style={{ marginTop: 24 }}>
+        <Link href={`/stores/${storeid}`}>← Back to {store.name}</Link>
+      </div>
+    </div>
+  )
+}
+
+export default ProductDetail

@@ -1,3 +1,8 @@
+interface ProfileRecord {
+  id: string;
+  role: string;
+  full_name?: string | null;
+}
 import { useRouter } from 'next/router';
 import AuthGuard from '@/components/AuthGuard';
 
@@ -65,7 +70,11 @@ const AdminDashboard = () => {
           .eq('id', user.id)
           .single();
 
-        if (roleError || !profile || profile.role !== 'admin') {
+        if (
+          roleError ||
+          !profile ||
+          (profile as unknown as ProfileRecord).role !== 'admin'
+        ) {
           console.error('Unauthorized or role error:', roleError);
           router.push('/unauthorized');
         }
@@ -110,12 +119,18 @@ const AdminDashboard = () => {
           { count: totalOrders = 0 } = {},
           { count: totalBookings = 0 } = {},
         ] = await Promise.all([
-          supabase.from('users').select('*', { count: 'exact', head: true }),
-          supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'stylist'),
-          supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'seller'),
-          supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'buyer'),
-          supabase.from('orders').select('*', { count: 'exact', head: true }),
-          supabase.from('bookings').select('*', { count: 'exact', head: true }),
+          // Total registered users
+          supabase.from('users').select('id', { count: 'exact', head: true }),
+          // Stylists
+          supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'stylist'),
+          // Sellers
+          supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'seller'),
+          // Buyers
+          supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'buyer'),
+          // Orders
+          supabase.from('orders').select('id', { count: 'exact', head: true }),
+          // Bookings
+          supabase.from('bookings').select('id', { count: 'exact', head: true }),
         ]);
 
         const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM

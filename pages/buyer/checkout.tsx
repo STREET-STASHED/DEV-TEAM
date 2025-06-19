@@ -1,6 +1,4 @@
-import type { CartContextType } from '@/context/CartContext';
-import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/router';
+import { useCart, CartItem } from '@/context/CartContext';
 import { useEffect, useState } from 'react';
 import CheckoutForm from '@/components/CheckoutForm';
 
@@ -8,7 +6,6 @@ const CheckoutPage = () => {
   const [isClient, setIsClient] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true);
@@ -16,23 +13,19 @@ const CheckoutPage = () => {
 
   if (!isClient) return null;
 
-  const context = useCart() as CartContextType;
-  const cart = context?.cart || [];
-
-  const totalQuantity = cart.reduce((sum, item) => sum + (item.quantity || 0), 0);
-  const totalPrice = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+  const { items, totalCount: totalQuantity, totalPrice } = useCart();
 
   return (
     <main className="max-w-2xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Checkout</h1>
 
-      {cart.length === 0 ? (
+      {items.length === 0 ? (
         <p className="text-center text-gray-500">Your cart is empty.</p>
       ) : (
         <>
           <div className="bg-white p-4 rounded-lg shadow mb-6">
             <ul className="space-y-2 mb-4">
-              {cart.map((item, index) => (
+              {items.map((item: CartItem, index: number) => (
                 <li key={index} className="flex justify-between border-b pb-2">
                   <span>{item.name}</span>
                   <span>${item.price?.toFixed(2)} x {item.quantity}</span>
@@ -63,7 +56,7 @@ const CheckoutPage = () => {
               onChange={(e) => setEmail(e.target.value)}
             />
 
-            <CheckoutForm items={cart} name={name} email={email} totalAmount={totalPrice} />
+            <CheckoutForm items={items} name={name} email={email} totalAmount={totalPrice} />
           </div>
         </>
       )}

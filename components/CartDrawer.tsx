@@ -1,84 +1,121 @@
-import React from 'react';
-import { useCart } from '../context/CartContext';
+// components/CartDrawer.tsx
+import React, { useState } from 'react';
+import { useCart, CartItem } from '../context/CartContext';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 
 const CartDrawer: React.FC = () => {
-  const { cartItems, removeFromCart, updateQuantity, clearCart, decreaseQuantity, isCartOpen, toggleCart } = useCart();
+  const { items, totalCount, totalPrice, updateQuantity, removeItem, clearCart } = useCart();
+  const [open, setOpen] = useState(false);
+
   const router = useRouter();
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
 
-  if (!isCartOpen) return null;
-
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const handleCheckout = () => {
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+    if (userRole !== 'buyer') {
+      // Only buyers can checkout
+      alert('Only buyers can access the checkout.');
+      return;
+    }
+    router.push('/checkout');
+  };
 
   return (
-    <div className="fixed top-0 right-0 w-full sm:w-96 h-full bg-black text-yellow-400 shadow-lg z-50">
-      <div className="flex justify-between items-center p-4 border-b border-yellow-400">
-        <h2 className="text-lg font-bold font-graffiti">Your Stash</h2>
-        <button onClick={toggleCart} className="text-red-500 hover:text-red-700">Close</button>
-      </div>
-      <div className="p-4 overflow-y-auto max-h-[calc(100vh-100px)]">
-        {cartItems.length === 0 ? (
-          <p className="text-center italic">Nothing stashed yet.</p>
-        ) : (
-          <div>
-            {cartItems.map((item, index) => (
-              <div key={index} className="rounded-lg border border-yellow-400 p-4 bg-gray-900 mb-4">
-                <p className="font-semibold text-lg text-yellow-200 font-graffiti">{item.name}</p>
-                <p className="text-sm text-yellow-300">Price: ${item.price.toFixed(2)}</p>
-                <p className="text-sm text-yellow-200">Subtotal: ${(item.price * item.quantity).toFixed(2)}</p>
-                <div className="flex items-center mt-2 gap-2">
-                  <button
-                    onClick={() => decreaseQuantity(item.name)}
-                    className="px-2 py-1 bg-yellow-400 text-black text-sm rounded hover:bg-yellow-300"
-                  >
-                    -
-                  </button>
-                  <span className="px-4 font-mono text-yellow-100">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.name, item.quantity + 1)}
-                    className="px-2 py-1 bg-yellow-400 text-black text-sm rounded hover:bg-yellow-300"
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => removeFromCart(item.name)}
-                    className="ml-auto text-red-500 text-sm hover:underline"
-                  >
+    <>
+      {/* Cart Icon/Button */}
+      <button
+        onClick={() => setOpen(true)}
+        style={{
+          position: 'fixed',
+          top: 20,
+          right: 20,
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          fontSize: '1.5rem',
+          color: '#fff',
+        }}
+      >
+        🛒 ({totalCount})
+      </button>
+
+      {/* Drawer */}
+      {open && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            width: 320,
+            height: '100%',
+            backgroundColor: '#fff',
+            color: '#000',
+            padding: 20,
+            boxShadow: '-2px 0 8px rgba(0,0,0,0.2)',
+            overflowY: 'auto',
+            zIndex: 1000,
+          }}
+        >
+          <h2>Your Cart</h2>
+          {items.length === 0 ? (
+            <p>Cart is empty</p>
+          ) : (
+            items.map((item: CartItem) => (
+              <div key={item.id} style={{ marginBottom: 16, borderBottom: '1px solid #ddd', paddingBottom: 8 }}>
+                <h4>{item.name}</h4>
+                <p>${(item.price * item.quantity).toFixed(2)}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <input
+                    type="number"
+                    value={item.quantity}
+                    min={1}
+                    style={{ width: 50 }}
+                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value, 10))}
+                  />
+                  <button onClick={() => removeItem(item.id)} style={{ cursor: 'pointer' }}>
                     Remove
                   </button>
                 </div>
               </div>
-            ))}
-            <div className="mt-4 flex justify-between items-center border-t border-yellow-400 pt-4">
-              <span className="text-yellow-300 font-semibold text-lg">Total</span>
-              <span className="text-yellow-100 font-bold text-xl font-mono">${total.toFixed(2)}</span>
-            </div>
-            <div className="grid grid-cols-1 gap-3 mt-6 sm:grid-cols-2">
+            ))
+          )}
+
+          <hr />
+
+          <p><strong>Total:</strong> ${totalPrice.toFixed(2)}</p>
+
+          {items.length > 0 && (
+            <>
               <button
-                className="bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 font-bold transition disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={cartItems.length === 0}
-                onClick={() => {
-                  if (cartItems.length === 0) {
-                    alert('Cart is empty.');
-                    return;
-                  }
-                  toggleCart(); // close cart drawer
-                  router.push('/buyer/checkout'); // navigate to in-app checkout
-                }}
+                onClick={handleCheckout}
+                style={{ padding: '10px 16px', marginTop: 8, width: '100%', cursor: 'pointer' }}
               >
-                Buy Now
+                Checkout
               </button>
               <button
-                className="bg-yellow-400 text-black py-2 px-4 rounded-md shadow hover:bg-yellow-300 font-bold transition"
-                onClick={toggleCart}
+                onClick={() => clearCart()}
+                style={{ padding: '6px 12px', marginTop: 8, width: '100%', cursor: 'pointer', background: '#f5f5f5' }}
               >
-                Keep Browsing
+                Clear Cart
               </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+            </>
+          )}
+
+          <button
+            onClick={() => setOpen(false)}
+            style={{ marginTop: 16, background: 'none', border: 'none', cursor: 'pointer' }}
+          >
+            Close
+          </button>
+        </div>
+      )}
+    </>
   );
 };
 

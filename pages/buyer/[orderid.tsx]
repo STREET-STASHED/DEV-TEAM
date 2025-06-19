@@ -1,0 +1,105 @@
+
+
+// pages/buyer/[orderid].tsx
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import supabase from '../../lib/supabaseClient';
+import Link from 'next/link';
+
+interface Order {
+  id: number;
+  total: number;
+  status: string;
+  created_at: string;
+  // If you store items, you can add an array here and render them
+  // items?: { id: string; name: string; quantity: number; price: number }[];
+}
+
+const BuyerOrderConfirmation: React.FC = () => {
+  const router = useRouter();
+  const { orderid } = router.query as { orderid?: string };
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!orderid) return;
+    const fetchOrder = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from<Order>('orders')
+        .select('*')
+        .eq('id', orderid)
+        .single();
+      if (error) {
+        console.error('Error fetching order:', error);
+      } else {
+        setOrder(data);
+      }
+      setLoading(false);
+    };
+    fetchOrder();
+  }, [orderid]);
+
+  if (loading) {
+    return <p style={{ padding: '2rem', textAlign: 'center' }}>Loading your order...</p>;
+  }
+
+  if (!order) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h1>Order Not Found</h1>
+        <Link href="/buyer/orders">← Back to Orders</Link>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 600, margin: '2rem auto', padding: '1rem', textAlign: 'center' }}>
+      <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Thank You!</h1>
+      <p style={{ marginBottom: '0.5rem' }}>
+        Your order <strong>#{order.id}</strong> has been placed successfully.
+      </p>
+      <p style={{ marginBottom: '1rem' }}>
+        Total Amount: <strong>${order.total.toFixed(2)}</strong>
+      </p>
+      <p style={{ marginBottom: '2rem' }}>
+        Status: <strong>{order.status || 'Pending'}</strong>
+      </p>
+      <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '2rem' }}>
+        Placed on {new Date(order.created_at).toLocaleString()}
+      </p>
+      <Link href="/buyer/orders">
+        <button
+          style={{
+            padding: '0.75rem 1.5rem',
+            background: '#000',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          View All Orders
+        </button>
+      </Link>
+      {' '}
+      <Link href="/stores">
+        <button
+          style={{
+            padding: '0.75rem 1.5rem',
+            marginLeft: '1rem',
+            background: '#f5f5f5',
+            color: '#000',
+            border: '1px solid #ddd',
+            borderRadius: 4,
+            cursor: 'pointer',
+          }}
+        >
+          Continue Shopping
+        </button>
+      </Link>
+    </div>
+  );
+};
+
+export default BuyerOrderConfirmation;
