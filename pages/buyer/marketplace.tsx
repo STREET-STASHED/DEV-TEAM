@@ -1,169 +1,84 @@
 // pages/buyer/marketplace.tsx
-import React, { useEffect, useState } from 'react';
-import supabase from '../../lib/supabaseClient';
-import Link from 'next/link';
-import { useCart } from '../../context/CartContext';
 
-interface Store {
-  id: string;
-  name: string;
-  description?: string;
-  image_url?: string;
-}
+import React from 'react';
 
-interface ProductWithStore {
-  id: string;
-  name: string;
-  price: number;
-  image_url: string;
-  store_id: string;
-  storefronts: { name: string };
-}
+const demoStores = [
+  {
+    name: "Drip District",
+    category: "Clothing",
+    products: [
+      { name: "Classic Street Hoodie", price: 68, image: "https://picsum.photos/id/1011/200/200", type: "Clothing" },
+      { name: "Retro Logo Tee", price: 32, image: "https://picsum.photos/id/1012/200/200", type: "Clothing" },
+    ],
+  },
+  {
+    name: "Flex Kicks",
+    category: "Shoes",
+    products: [
+      { name: "Air Hustle Sneakers", price: 125, image: "https://picsum.photos/id/1013/200/200", type: "Shoes" },
+      { name: "Gold Runner Highs", price: 185, image: "https://picsum.photos/id/1015/200/200", type: "Shoes" },
+    ],
+  },
+  {
+    name: "Iceworks",
+    category: "Jewelry",
+    products: [
+      { name: "Diamond Cuban Chain", price: 2100, image: "https://picsum.photos/id/1016/200/200", type: "Jewelry" },
+      { name: "Gold Micro Jesus Piece", price: 650, image: "https://picsum.photos/id/1018/200/200", type: "Jewelry" },
+    ],
+  },
+  {
+    name: "Styled by Mya",
+    category: "Stylist",
+    products: [
+      { name: "Birthday Drip Bundle", price: 300, image: "https://picsum.photos/id/1020/200/200", type: "Bundle" },
+      { name: "Prom Night Flex", price: 425, image: "https://picsum.photos/id/1022/200/200", type: "Bundle" },
+    ],
+  },
+];
 
-type FeedItem =
-  | { type: 'store'; data: Store }
-  | { type: 'product'; data: ProductWithStore };
-
-const StoreCard: React.FC<{ store: Store }> = ({ store }) => (
-  <Link href={`/stores/${store.id}`}>
-    <a className="block mb-6 bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
-      {store.image_url ? (
-        <img
-          src={store.image_url}
-          alt={store.name}
-          className="w-full h-40 object-cover"
-        />
-      ) : (
-        <div className="w-full h-40 bg-gray-200 flex items-center justify-center">
-          <span className="text-gray-500">No Image</span>
-        </div>
-      )}
-      <div className="p-4">
-        <h2 className="text-xl font-semibold">{store.name}</h2>
-        {store.description && (
-          <p className="text-gray-600 mt-1 line-clamp-2">
-            {store.description}
-          </p>
-        )}
-      </div>
-    </a>
-  </Link>
-);
-
-const ProductCard: React.FC<{ product: ProductWithStore }> = ({ product }) => {
-  const { addItem } = useCart();
+export default function Marketplace() {
   return (
-    <div className="mb-6 bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
-      {product.image_url && (
-        <img
-          src={product.image_url}
-          alt={product.name}
-          className="w-full h-40 object-cover"
-        />
-      )}
-      <div className="p-4">
-        <Link href={`/stores/${product.store_id}/products/${product.id}`}>
-          <a className="block">
-            <h3 className="text-lg font-semibold">{product.name}</h3>
-          </a>
-        </Link>
-        <p className="text-sm text-gray-500">{product.storefronts.name}</p>
-        <p className="text-lg font-medium mt-1">${product.price.toFixed(2)}</p>
-        <button
-          onClick={() =>
-            addItem({
-              id: product.id,
-              name: product.name,
-              price: product.price,
-              image: product.image_url,
-            })
-          }
-          className="mt-3 w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition"
-        >
-          Add to Cart
-        </button>
+    <div style={{ padding: 32 }}>
+      <h1 style={{ fontWeight: 700, fontSize: 36, marginBottom: 8 }}>StreetStashed Demo Marketplace</h1>
+      <p style={{ marginBottom: 32 }}>Browse featured stores, products, jewelry, kicks, and stylist bundles — no login required.</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32 }}>
+        {demoStores.map((store) => (
+          <div key={store.name} style={{ border: '1px solid #222', borderRadius: 16, padding: 24, width: 300, background: '#fafbfc' }}>
+            <h2 style={{ fontSize: 22, fontWeight: 600 }}>{store.name}</h2>
+            <span style={{ fontSize: 14, color: '#888' }}>{store.category}</span>
+            <div style={{ display: 'flex', gap: 16, marginTop: 18 }}>
+              {store.products.map((prod) => (
+                <div key={prod.name} style={{ textAlign: 'center' }}>
+                  <img
+                    src={prod.image}
+                    alt={prod.name}
+                    style={{ width: 90, height: 90, borderRadius: 8, objectFit: 'cover', marginBottom: 6, border: '1px solid #ddd' }}
+                  />
+                  <div style={{ fontWeight: 500 }}>{prod.name}</div>
+                  <div style={{ color: '#333', fontSize: 14 }}>${prod.price}</div>
+                  <div style={{ fontSize: 12, color: '#AAA', marginTop: 2 }}>{prod.type}</div>
+                  <button
+                    style={{
+                      marginTop: 8,
+                      padding: '6px 16px',
+                      background: '#111',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      fontSize: 14,
+                    }}
+                    disabled
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
-};
-
-const Marketplace: React.FC = () => {
-  const [feed, setFeed] = useState<FeedItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchFeed() {
-      setLoading(true);
-      const respStores = await supabase
-        .from('storefronts')
-        .select('id, name, description, image_url');
-      const storeList: Store[] = (respStores.data ?? []).map((s: any) => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        image_url: s.image_url,
-      }));
-      const storeErr = respStores.error;
-      const respProducts = await supabase
-        .from('products')
-        .select(`
-          id,
-          name,
-          price,
-          image_url,
-          store_id,
-          storefronts ( name )
-        `);
-      const productListRaw = respProducts.data ?? [];
-      const prodErr = respProducts.error;
-
-      // Map productListRaw to ProductWithStore[]
-      const productList: ProductWithStore[] = productListRaw.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        image_url: p.image_url,
-        store_id: p.store_id,
-        storefronts: {
-          name: p.storefronts?.name ?? '',
-        },
-      }));
-
-      if (!storeErr && !prodErr && storeList && productList) {
-        const items: FeedItem[] = [
-          ...storeList.map((s) => ({ type: 'store' as const, data: s })),
-          ...productList.map((p) => ({ type: 'product' as const, data: p })),
-        ];
-        setFeed(items);
-      } else {
-        console.error(storeErr || prodErr);
-      }
-      setLoading(false);
-    }
-    fetchFeed();
-  }, []);
-
-  if (loading) {
-    return <p className="p-4 text-center">Loading marketplace…</p>;
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <main className="max-w-4xl mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6">Marketplace</h1>
-        {feed.map((item, idx) =>
-          item.type === 'store' ? (
-            <StoreCard key={`store-${item.data.id}`} store={item.data} />
-          ) : (
-            <ProductCard
-              key={`prod-${item.data.store_id}-${item.data.id}`}
-              product={item.data}
-            />
-          )
-        )}
-      </main>
-    </div>
-  );
-};
-
-export default Marketplace;
+}

@@ -13,15 +13,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
-  const [role, setRole] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSignUp && !role) {
-      alert('Please select a role.');
-      return;
-    }
 
     setLoading(true);
 
@@ -33,7 +28,7 @@ export default function AuthPage() {
           email,
           password,
           options: {
-            data: { role }, // store role in metadata
+            data: { role: 'buyer' }, // default role to buyer
           },
         });
 
@@ -63,7 +58,7 @@ export default function AuthPage() {
         if (!existingUsers || existingUsers.length === 0) {
           const { data: insertData, error: insertError } = await supabase
             .from('users')
-            .insert([{ id: signUpData.user.id, email: signUpData.user.email, role }]);
+            .insert([{ id: signUpData.user.id, email: signUpData.user.email, role: 'buyer' }]);
           if (insertError) {
             if (insertError.code === '23505' || insertError.message?.includes('duplicate')) {
               alert('User already exists. Please log in.');
@@ -85,8 +80,7 @@ export default function AuthPage() {
       const userId = authRes.data.user?.id;
       if (!userId) throw new Error('Missing user ID');
 
-      const roleFromMetadata = authRes.data.user?.user_metadata?.role;
-      if (!roleFromMetadata) throw new Error('User role not found');
+      const roleFromMetadata = authRes.data.user?.user_metadata?.role || 'buyer';
 
       const redirectMap: Record<string, string> = {
         buyer: '/buyer/marketplace',
@@ -95,7 +89,7 @@ export default function AuthPage() {
         driver: '/onboarding',
       };
 
-      router.push(`${redirectMap[roleFromMetadata] || '/dashboard'}?userId=${userId}`);
+      router.push(`${redirectMap[roleFromMetadata] || '/onboarding'}?userId=${userId}`);
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');
@@ -126,21 +120,6 @@ export default function AuthPage() {
           required
           disabled={loading}
         />
-        {isSignUp && (
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full p-2 mb-4 text-black rounded"
-            required
-            disabled={loading}
-          >
-            <option value="">Select your role</option>
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
-            <option value="stylist">Stylist</option>
-            <option value="driver">Driver</option>
-          </select>
-        )}
         <button
           type="submit"
           className="w-full bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 disabled:opacity-50"

@@ -1,42 +1,75 @@
+// pages/stores/index.tsx
+
 import React from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { stores, products, Product } from '../../lib/mockProducts';
 
-const StorePage: React.FC = () => {
-  const router = useRouter();
-  const { id } = router.query;
-  const store = typeof id === 'string' ? stores.find((s: typeof stores[number]) => s.id === id) : undefined;
-  const items = typeof id === 'string' ? products[id] || [] : [];
+const demoStores = [
+  {
+    id: 'drip-district',
+    name: "Drip District",
+    category: "Clothing",
+    image: "https://picsum.photos/id/1012/250/200",
+    description: "Streetwear essentials and exclusive drops.",
+  },
+  {
+    id: 'flex-kicks',
+    name: "Flex Kicks",
+    category: "Shoes",
+    image: "https://picsum.photos/id/1013/250/200",
+    description: "The latest and rarest sneakers.",
+  },
+  {
+    id: 'iceworks',
+    name: "Iceworks",
+    category: "Jewelry",
+    image: "https://picsum.photos/id/1016/250/200",
+    description: "Custom chains, grillz, and more.",
+  },
+  {
+    id: 'styled-by-mya',
+    name: "Styled by Mya",
+    category: "Stylist",
+    image: "https://picsum.photos/id/1020/250/200",
+    description: "Event bundles, prom, birthdays, and more.",
+  },
+];
 
-  if (!store) {
-    return (
-      <div style={{ padding: '20px' }}>
-        <h1>Store Not Found</h1>
-        <Link href="/stores">Back to all stores</Link>
-      </div>
-    );
-  }
-
+export default function StoresIndex() {
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>{store.name}</h1>
-      <p>Welcome to {store.name}'s storefront demo.</p>
-
-      <h2>Products</h2>
-      <ul>
-        {items.map((product: Product) => (
-          <li key={product.id} style={{ marginBottom: '16px' }}>
-            <img src={product.image} alt={product.name} width={150} height={150} />
-            <p>{product.name}</p>
-            <p>${product.price.toFixed(2)}</p>
-          </li>
+    <div style={{ padding: 32 }}>
+      <h1 style={{ fontWeight: 700, fontSize: 32, marginBottom: 8 }}>All Stores on StreetStashed</h1>
+      <p style={{ marginBottom: 32 }}>Browse our demo stores — click a store for details and products.</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32 }}>
+        {demoStores.map((store) => (
+          <Link key={store.id} href={`/stores/${store.id}`}>
+            <div style={{
+              border: '1px solid #222',
+              borderRadius: 16,
+              padding: 24,
+              width: 260,
+              background: '#fafbfc',
+              cursor: 'pointer',
+              transition: 'box-shadow 0.2s',
+            }}>
+              <img
+                src={store.image}
+                alt={store.name}
+                style={{
+                  width: '100%',
+                  height: 140,
+                  borderRadius: 12,
+                  objectFit: 'cover',
+                  marginBottom: 12,
+                  border: '1px solid #eee',
+                }}
+              />
+              <h2 style={{ fontSize: 20, fontWeight: 600, margin: 0 }}>{store.name}</h2>
+              <div style={{ fontSize: 14, color: '#888', marginBottom: 8 }}>{store.category}</div>
+              <p style={{ fontSize: 15, color: '#333' }}>{store.description}</p>
+            </div>
+          </Link>
         ))}
-      </ul>
-
-      <Link href="/stores">← Back to Stores</Link>
+      </div>
     </div>
   );
-};
-
-export default StorePage;
+}

@@ -1,4 +1,4 @@
-// pages/stores/[store_id]/products/[product_id].tsx
+// pages/stores/[storeid]/products/[product_id].tsx
 import React from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -19,32 +19,38 @@ const ProductDetail: React.FC = () => {
   if (!store || !product) {
     return (
       <div style={{ padding: 20 }}>
-        <h1>Not Found</h1>
+        <h1>Product Not Found</h1>
         <Link href="/stores">← Back to Stores</Link>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>{product.name}</h1>
-      <img src={product.image} alt={product.name} style={{ maxWidth: '100%', borderRadius: 8 }} />
-      <p><strong>Price:</strong> ${product.price.toFixed(2)}</p>
+    <div style={{ padding: 20, maxWidth: 600, margin: '0 auto' }}>
+      <h1 style={{ fontSize: 30 }}>{product.name}</h1>
+      <img
+        src={product.image}
+        alt={product.name}
+        style={{ width: '100%', maxWidth: 400, borderRadius: 12, marginBottom: 16, border: '1px solid #eee' }}
+      />
+      <p style={{ fontSize: 18 }}><strong>Price:</strong> ${product.price.toFixed(2)}</p>
       <button
         onClick={() => addItem(product)}
         style={{
-          padding: '10px 16px',
-          marginTop: 12,
-          backgroundColor: '#000',
+          padding: '10px 18px',
+          marginTop: 18,
+          backgroundColor: '#111',
           color: '#fff',
           border: 'none',
           borderRadius: 4,
           cursor: 'pointer',
+          fontWeight: 600,
+          fontSize: 16,
         }}
       >
         Add to Cart
       </button>
-      <div style={{ marginTop: 24 }}>
+      <div style={{ marginTop: 28 }}>
         <Link href={`/stores/${storeid}`}>← Back to {store.name}</Link>
       </div>
     </div>
