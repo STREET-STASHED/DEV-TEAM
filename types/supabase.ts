@@ -59,21 +59,33 @@ export type Database = {
       }
       deliveries: {
         Row: {
+          destination: string | null
           driver_id: string | null
           id: string
           order_id: string | null
+          pay_estimate: number | null
+          pickup_location: string | null
+          scheduled_time: string | null
           status: string | null
         }
         Insert: {
+          destination?: string | null
           driver_id?: string | null
           id?: string
           order_id?: string | null
+          pay_estimate?: number | null
+          pickup_location?: string | null
+          scheduled_time?: string | null
           status?: string | null
         }
         Update: {
+          destination?: string | null
           driver_id?: string | null
           id?: string
           order_id?: string | null
+          pay_estimate?: number | null
+          pickup_location?: string | null
+          scheduled_time?: string | null
           status?: string | null
         }
         Relationships: [
@@ -181,6 +193,7 @@ export type Database = {
           status: string | null
           support_fee: number | null
           total: number | null
+          total_price: number | null
         }
         Insert: {
           buyer_id?: string | null
@@ -193,6 +206,7 @@ export type Database = {
           status?: string | null
           support_fee?: number | null
           total?: number | null
+          total_price?: number | null
         }
         Update: {
           buyer_id?: string | null
@@ -205,6 +219,7 @@ export type Database = {
           status?: string | null
           support_fee?: number | null
           total?: number | null
+          total_price?: number | null
         }
         Relationships: [
           {
@@ -301,6 +316,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          role?: string
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: []
       }
       sellers: {
         Row: {
@@ -496,7 +532,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_delivery_on_order: {
+        Args: { order_id: number; delivery_address: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

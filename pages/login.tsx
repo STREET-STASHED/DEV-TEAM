@@ -89,10 +89,10 @@ export default function AuthPage() {
       if (!roleFromMetadata) throw new Error('User role not found');
 
       const redirectMap: Record<string, string> = {
-        seller: '/seller/onboarding',
         buyer: '/buyer/marketplace',
-        stylist: '/stylist/onboarding',
-        driver: '/driver/onboarding',
+        seller: '/onboarding',
+        stylist: '/onboarding',
+        driver: '/onboarding',
       };
 
       router.push(`${redirectMap[roleFromMetadata] || '/dashboard'}?userId=${userId}`);
