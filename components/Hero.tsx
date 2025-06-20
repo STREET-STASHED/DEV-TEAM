@@ -7,15 +7,7 @@ const Hero = () => {
   const router = useRouter();
 
   const handleJoin = () => {
-    const user = session?.user as { role?: string } | undefined;
-
-    if (!user) {
-      router.push('/signup');
-    } else if (!user.role) {
-      router.push('/role');
-    } else {
-      router.push('/onboarding');
-    }
+    router.push('/onboarding/details');
   };
 
   return (

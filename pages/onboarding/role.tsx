@@ -20,7 +20,22 @@ export default function RoleSelection() {
 
     if (roleError) return setError(roleError.message);
 
-    router.push('/onboarding/details');
+    switch (selectedRole) {
+      case 'buyer':
+        router.push('/buyers/index');
+        break;
+      case 'seller':
+        router.push('/seller/dashboard');
+        break;
+      case 'stylist':
+        router.push('/stylist/dashboard');
+        break;
+      case 'driver':
+        router.push('/driver/dashboard');
+        break;
+      default:
+        router.push('/');
+    }
   };
 
   return (

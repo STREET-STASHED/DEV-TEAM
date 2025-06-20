@@ -32,7 +32,7 @@ export default function OnboardingDetails() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let updateData: any = { details_complete: true };
+    let updateData: any = { details_complete: true, onboarded: true };
 
     if (role === 'seller') {
       updateData.store_name = storeName;
