@@ -39,10 +39,16 @@ const OnboardingPage = () => {
           .single();
 
         if (!userError && userData?.role && userData.role !== '') {
-          // Already has a role—redirect straight to dashboard
-          const dash = getRedirectPath(userData.role);
-          router.replace(dash);
-          return;
+          // PATCH: Only redirect if there's no onboarding draft
+          if (typeof window !== 'undefined') {
+            const draftStr = localStorage.getItem('onboardingDraft');
+            if (!draftStr) {
+              const dash = getRedirectPath(userData.role);
+              router.replace(dash);
+              return;
+            }
+            // else: let onboarding draft resume run below
+          }
         }
 
         // Check for onboarding draft in localStorage to resume onboarding
