@@ -38,8 +38,12 @@ const OnboardingPage = () => {
           .eq('id', uid)
           .single();
 
-        if (!userError && userData?.role && userData.role !== '') {
-          // PATCH: Only redirect if there's no onboarding draft
+        if (
+          !userError &&
+          userData?.role &&
+          userData.role !== '' &&
+          userData.role !== 'buyer' // Only auto-redirect if role is NOT buyer
+        ) {
           if (typeof window !== 'undefined') {
             const draftStr = localStorage.getItem('onboardingDraft');
             if (!draftStr) {
@@ -156,7 +160,8 @@ const OnboardingPage = () => {
         return;
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
-      // PATCH: Route using the just-submitted role
+      await new Promise(res => setTimeout(res, 100)); // Let DB update
+      console.log('Redirecting after onboarding with role:', role);
       router.replace(getRedirectPath(role));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram, booking_link } = data;
@@ -179,7 +184,8 @@ const OnboardingPage = () => {
         return;
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
-      // PATCH: Route using the just-submitted role
+      await new Promise(res => setTimeout(res, 100)); // Let DB update
+      console.log('Redirecting after onboarding with role:', role);
       router.replace(getRedirectPath(role));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
@@ -202,7 +208,8 @@ const OnboardingPage = () => {
         return;
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
-      // PATCH: Route using the just-submitted role
+      await new Promise(res => setTimeout(res, 100)); // Let DB update
+      console.log('Redirecting after onboarding with role:', role);
       router.replace(getRedirectPath(role));
     }
   };
