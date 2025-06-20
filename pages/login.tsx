@@ -80,7 +80,7 @@ export default function AuthPage() {
       const userId = authRes.data.user?.id;
       if (!userId) throw new Error('Missing user ID');
 
-      // After login, fetch the actual user role from the users table
+      // Fetch the user's role from the users table for robust redirect
       let dbRole = 'buyer';
       try {
         const { data: userRow, error: dbErr } = await supabase
@@ -103,11 +103,16 @@ export default function AuthPage() {
         driver: '/driver/dashboard',
       };
 
-      // PATCH: If onboardingDraft exists, resume onboarding
-      if (typeof window !== 'undefined' && localStorage.getItem('onboardingDraft')) {
-        router.push('/onboarding');
+      // Redirect robustly based on role
+      if (dbRole === 'buyer' || dbRole === 'visitor') {
+        // Buyers and visitors go to the marketplace
+        router.replace('/buyer/marketplace');
+      } else if (redirectMap[dbRole]) {
+        // All other roles go to their dashboard
+        router.replace(redirectMap[dbRole]);
       } else {
-        router.push(`${redirectMap[dbRole] || '/onboarding'}?userId=${userId}`);
+        // If no role found, go to onboarding to finish setup
+        router.replace('/onboarding');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -118,15 +123,20 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <form onSubmit={handleSubmit} className="bg-gray-900 p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-2xl mb-4 font-bold text-center">Login to StreetStashed</h1>
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center"
+      style={{ backgroundImage: 'url(/bg/paint-splatter.jpg)' }} // update path as needed
+    >
+      <form className="bg-black bg-opacity-85 p-8 rounded-2xl shadow-2xl w-full max-w-md border-2 border-yellow-500 flex flex-col items-center space-y-4">
+        {/* Optional: Logo */}
+        <img src="/logo.png" alt="StreetStashed Logo" className="h-14 mb-2" />
+        <h1 className="text-3xl font-extrabold text-yellow-400 mb-4 text-center drop-shadow">Login to StreetStashed</h1>
         <input
           type="email"
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 mb-4 text-black rounded"
+          className="w-full p-3 rounded-lg mb-2 text-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
           required
           disabled={loading}
         />
@@ -135,23 +145,23 @@ export default function AuthPage() {
           placeholder="Enter your password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 mb-4 text-black rounded"
+          className="w-full p-3 rounded-lg mb-2 text-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
           required
           disabled={loading}
         />
         <button
           type="submit"
-          className="w-full bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-yellow-400 disabled:opacity-50"
+          className="w-full bg-yellow-500 text-black font-bold py-3 px-4 rounded-lg hover:bg-yellow-400 transition duration-200 disabled:opacity-50 shadow-lg"
           disabled={loading}
         >
           {loading ? (isSignUp ? 'Signing up...' : 'Logging in...') : (isSignUp ? 'Sign Up' : 'Login')}
         </button>
-        <p className="mt-4 text-center text-sm">
+        <p className="mt-2 text-center text-sm text-white font-medium">
           {isSignUp ? 'Already have an account?' : 'Need an account?'}{' '}
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}
-            className="text-yellow-400 underline"
+            className="text-yellow-400 underline hover:text-yellow-300 transition"
             disabled={loading}
           >
             {isSignUp ? 'Log in' : 'Sign up'}

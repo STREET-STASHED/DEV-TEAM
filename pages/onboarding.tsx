@@ -25,8 +25,8 @@ const OnboardingPage = () => {
   });
 
   useEffect(() => {
-    async function fetchUserAndResume() {
-      const { data, error } = await supabase.auth.getSession();
+    async function fetchUserAndRedirect() {
+      const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
         const uid = data.session.user.id;
         setUserId(uid);
@@ -42,43 +42,18 @@ const OnboardingPage = () => {
           !userError &&
           userData?.role &&
           userData.role !== '' &&
-          userData.role !== 'buyer' // Only auto-redirect if role is NOT buyer
+          userData.role !== 'buyer'
         ) {
-          if (typeof window !== 'undefined') {
-            const draftStr = localStorage.getItem('onboardingDraft');
-            if (!draftStr) {
-              const dash = getRedirectPath(userData.role);
-              router.replace(dash);
-              return;
-            }
-            // else: let onboarding draft resume run below
-          }
+          // If user has a non-buyer role, redirect to their dashboard
+          const dash = getRedirectPath(userData.role);
+          router.replace(dash);
+          return;
         }
-
-        // Check for onboarding draft in localStorage to resume onboarding
-        if (typeof window !== 'undefined') {
-          const draftStr = localStorage.getItem('onboardingDraft');
-          if (draftStr) {
-            try {
-              const draft = JSON.parse(draftStr);
-              if (draft.role && draft.formData) {
-                setRole(draft.role);
-                setFormData(draft.formData);
-                // Immediately submit onboarding with draft data
-                await submitOnboardingDraft(uid, draft.role, draft.formData);
-                localStorage.removeItem('onboardingDraft');
-                // PATCH: Route using draft.role
-                return;
-              }
-            } catch {
-              // Ignore parse errors
-            }
-          }
-        }
+        // If buyer or no role, stay on onboarding
       }
       setLoading(false);
     }
-    fetchUserAndResume();
+    fetchUserAndRedirect();
     // eslint-disable-next-line
   }, []);
 
@@ -106,15 +81,12 @@ const OnboardingPage = () => {
       return;
     }
     if (selectedRole === 'buyer') {
-      // For buyers: if logged in, update role and redirect; if not, redirect to login and set role after login
+      // For buyers: if logged in, update role and redirect; if not, redirect to login
       const { data: sessionData } = await supabase.auth.getSession();
       const email = sessionData?.session?.user?.email;
       const uid = sessionData?.session?.user?.id;
       if (!uid) {
-        // Not logged in: store buyer intent and redirect to login
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('onboardingDraft', JSON.stringify({ role: 'buyer', formData: {} }));
-        }
+        // Not logged in: redirect to login
         router.replace('/login');
         return;
       }
@@ -132,7 +104,7 @@ const OnboardingPage = () => {
     }
   };
 
-  // Helper to submit onboarding draft after login or immediately
+  // Onboarding submit logic for seller, stylist, driver
   const submitOnboardingDraft = async (uid: string, role: string, data: any) => {
     setError('');
     const { data: sessionData } = await supabase.auth.getSession();
@@ -163,13 +135,12 @@ const OnboardingPage = () => {
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      const { data: refreshedUser, error: refreshErr } = await supabase
+      const { data: refreshedUser } = await supabase
         .from('users')
         .select('role')
         .eq('id', uid)
         .single();
       const redirectRole = refreshedUser?.role || role;
-      console.log('Redirecting after onboarding with role:', redirectRole);
       router.replace(getRedirectPath(redirectRole));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram, booking_link } = data;
@@ -195,13 +166,12 @@ const OnboardingPage = () => {
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      const { data: refreshedUser, error: refreshErr } = await supabase
+      const { data: refreshedUser } = await supabase
         .from('users')
         .select('role')
         .eq('id', uid)
         .single();
       const redirectRole = refreshedUser?.role || role;
-      console.log('Redirecting after onboarding with role:', redirectRole);
       router.replace(getRedirectPath(redirectRole));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
@@ -210,22 +180,15 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      console.log('Upserting driver:', {
+      const driverData = {
         user_id: uid,
         vehicle_type,
         license_number,
         delivery_radius: Number(delivery_radius),
         is_online: false,
         created_at: new Date().toISOString(),
-      });
-      const { error: insertError } = await supabase.from('drivers').upsert([{
-        user_id: uid,
-        vehicle_type,
-        license_number,
-        delivery_radius: Number(delivery_radius),
-        is_online: false,
-        created_at: new Date().toISOString(),
-      }], { onConflict: 'user_id' });
+      };
+      const { error: insertError } = await supabase.from('drivers').upsert([driverData], { onConflict: 'user_id' });
       if (insertError) {
         console.error('Driver insert error:', insertError);
         setError(`Failed to save driver info: ${insertError.message || JSON.stringify(insertError)}`);
@@ -234,13 +197,12 @@ const OnboardingPage = () => {
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      const { data: refreshedUser, error: refreshErr } = await supabase
+      const { data: refreshedUser } = await supabase
         .from('users')
         .select('role')
         .eq('id', uid)
         .single();
       const redirectRole = refreshedUser?.role || role;
-      console.log('Redirecting after onboarding with role:', redirectRole);
       router.replace(getRedirectPath(redirectRole));
     }
   };
@@ -257,10 +219,7 @@ const OnboardingPage = () => {
       return;
     }
     if (!uid) {
-      // Not logged in: save draft and redirect to login
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('onboardingDraft', JSON.stringify({ role, formData }));
-      }
+      // Not logged in: redirect to login
       router.replace('/login');
       return;
     }
@@ -269,8 +228,14 @@ const OnboardingPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-yellow-400 font-graffiti bg-black">
-        <p className="text-xl">Loading your dashboard...</p>
+      <div
+        className="min-h-screen flex items-center justify-center bg-cover bg-center"
+        style={{ backgroundImage: 'url(/bg/paint-splatter.jpg)' }}
+      >
+        <div className="bg-black bg-opacity-80 p-8 rounded-2xl shadow-2xl w-full max-w-md flex flex-col items-center border-2 border-yellow-500">
+          <img src="/logo.png" alt="StreetStashed Logo" className="h-12 mb-3" />
+          <p className="text-xl text-yellow-400 font-extrabold">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -278,156 +243,171 @@ const OnboardingPage = () => {
   // Step 1: Show role selection if no role yet
   if (!role) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-black text-yellow-400 font-graffiti">
-        <h1 className="text-3xl mb-6">Select Your Role</h1>
-        {error && <p className="mb-4 text-red-500">{error}</p>}
-        <select
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-          className="mb-6 p-2 text-black rounded w-64"
-        >
-          <option value="">-- Choose a role --</option>
-          <option value="seller">Seller</option>
-          <option value="stylist">Stylist</option>
-          <option value="driver">Driver</option>
-          <option value="buyer">Buyer</option>
-        </select>
-        <button
-          onClick={handleRoleSelect}
-          className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-6 rounded"
-        >
-          Continue
-        </button>
+      <div
+        className="min-h-screen flex items-center justify-center bg-cover bg-center"
+        style={{ backgroundImage: 'url(/bg/paint-splatter.jpg)' }}
+      >
+        <div className="bg-black bg-opacity-80 p-8 rounded-2xl shadow-2xl w-full max-w-md flex flex-col items-center border-2 border-yellow-500">
+          <img src="/logo.png" alt="StreetStashed Logo" className="h-12 mb-3" />
+          <h1 className="text-3xl mb-6 font-extrabold text-yellow-400">Select Your Role</h1>
+          {error && <p className="mb-4 text-red-500">{error}</p>}
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="mb-6 p-3 text-black rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          >
+            <option value="">-- Choose a role --</option>
+            <option value="seller">Seller</option>
+            <option value="stylist">Stylist</option>
+            <option value="driver">Driver</option>
+            <option value="buyer">Buyer</option>
+          </select>
+          <button
+            onClick={handleRoleSelect}
+            className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-lg transition duration-200 w-full shadow-lg"
+          >
+            Continue
+          </button>
+        </div>
       </div>
     );
   }
 
   // Step 2: Onboarding form for seller, stylist, driver
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-yellow-400 font-graffiti px-4">
-      <h1 className="text-3xl mb-6 capitalize">{role} Onboarding</h1>
-      {error && <p className="mb-4 text-red-500">{error}</p>}
-      <form onSubmit={handleSubmit} className="w-full max-w-md">
-        {role === 'seller' && (
-          <>
-            <label className="block mb-2">
-              Store Name
-              <input
-                type="text"
-                required
-                value={formData.store_name}
-                onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-              />
-            </label>
-            <label className="block mb-2">
-              Store Description
-              <textarea
-                required
-                value={formData.store_description}
-                onChange={(e) => setFormData({ ...formData, store_description: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-                rows={4}
-              />
-            </label>
-            <label className="block mb-6">
-              Payout Method
-              <input
-                type="text"
-                required
-                value={formData.payout_method}
-                onChange={(e) => setFormData({ ...formData, payout_method: e.target.value })}
-                className="w-full p-2 text-black rounded"
-              />
-            </label>
-          </>
-        )}
-        {role === 'stylist' && (
-          <>
-            <label className="block mb-2">
-              Specialty
-              <input
-                type="text"
-                required
-                value={formData.specialty}
-                onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-              />
-            </label>
-            <label className="block mb-2">
-              Bio
-              <textarea
-                required
-                value={formData.bio}
-                onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-                rows={4}
-              />
-            </label>
-            <label className="block mb-2">
-              Instagram
-              <input
-                type="text"
-                required
-                value={formData.instagram}
-                onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-              />
-            </label>
-            <label className="block mb-6">
-              Booking Link
-              <input
-                type="url"
-                required
-                value={formData.booking_link}
-                onChange={(e) => setFormData({ ...formData, booking_link: e.target.value })}
-                className="w-full p-2 text-black rounded"
-              />
-            </label>
-          </>
-        )}
-        {role === 'driver' && (
-          <>
-            <label className="block mb-2">
-              Vehicle Type
-              <input
-                type="text"
-                required
-                value={formData.vehicle_type}
-                onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-              />
-            </label>
-            <label className="block mb-2">
-              License Number
-              <input
-                type="text"
-                required
-                value={formData.license_number}
-                onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                className="w-full p-2 mb-4 text-black rounded"
-              />
-            </label>
-            <label className="block mb-6">
-              Delivery Radius (miles)
-              <input
-                type="number"
-                min={0}
-                required
-                value={formData.delivery_radius}
-                onChange={(e) => setFormData({ ...formData, delivery_radius: e.target.value })}
-                className="w-full p-2 text-black rounded"
-              />
-            </label>
-          </>
-        )}
-        <button
-          type="submit"
-          className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-2 px-6 rounded w-full"
-        >
-          Submit
-        </button>
-      </form>
+    <div
+      className="min-h-screen flex items-center justify-center bg-cover bg-center px-4"
+      style={{ backgroundImage: 'url(/bg/paint-splatter.jpg)' }}
+    >
+      <div className="bg-black bg-opacity-80 p-8 rounded-2xl shadow-2xl w-full max-w-md flex flex-col items-center border-2 border-yellow-500">
+        <img src="/logo.png" alt="StreetStashed Logo" className="h-12 mb-3" />
+        <h1 className="text-3xl mb-6 capitalize font-extrabold text-yellow-400">{role} Onboarding</h1>
+        {error && <p className="mb-4 text-red-500">{error}</p>}
+        <form onSubmit={handleSubmit} className="w-full">
+          <div className="space-y-2">
+            {/* all your existing role-specific fields remain here */}
+            {role === 'seller' && (
+              <>
+                <label className="block mb-2">
+                  Store Name
+                  <input
+                    type="text"
+                    required
+                    value={formData.store_name}
+                    onChange={(e) => setFormData({ ...formData, store_name: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+                <label className="block mb-2">
+                  Store Description
+                  <textarea
+                    required
+                    value={formData.store_description}
+                    onChange={(e) => setFormData({ ...formData, store_description: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                    rows={4}
+                  />
+                </label>
+                <label className="block mb-6">
+                  Payout Method
+                  <input
+                    type="text"
+                    required
+                    value={formData.payout_method}
+                    onChange={(e) => setFormData({ ...formData, payout_method: e.target.value })}
+                    className="w-full p-2 text-black rounded"
+                  />
+                </label>
+              </>
+            )}
+            {role === 'stylist' && (
+              <>
+                <label className="block mb-2">
+                  Specialty
+                  <input
+                    type="text"
+                    required
+                    value={formData.specialty}
+                    onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+                <label className="block mb-2">
+                  Bio
+                  <textarea
+                    required
+                    value={formData.bio}
+                    onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                    rows={4}
+                  />
+                </label>
+                <label className="block mb-2">
+                  Instagram
+                  <input
+                    type="text"
+                    required
+                    value={formData.instagram}
+                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+                <label className="block mb-6">
+                  Booking Link
+                  <input
+                    type="url"
+                    required
+                    value={formData.booking_link}
+                    onChange={(e) => setFormData({ ...formData, booking_link: e.target.value })}
+                    className="w-full p-2 text-black rounded"
+                  />
+                </label>
+              </>
+            )}
+            {role === 'driver' && (
+              <>
+                <label className="block mb-2">
+                  Vehicle Type
+                  <input
+                    type="text"
+                    required
+                    value={formData.vehicle_type}
+                    onChange={(e) => setFormData({ ...formData, vehicle_type: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+                <label className="block mb-2">
+                  License Number
+                  <input
+                    type="text"
+                    required
+                    value={formData.license_number}
+                    onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+                <label className="block mb-6">
+                  Delivery Radius (miles)
+                  <input
+                    type="number"
+                    min={0}
+                    required
+                    value={formData.delivery_radius}
+                    onChange={(e) => setFormData({ ...formData, delivery_radius: e.target.value })}
+                    className="w-full p-2 text-black rounded"
+                  />
+                </label>
+              </>
+            )}
+          </div>
+          <button
+            type="submit"
+            className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-6 rounded-lg w-full mt-4 shadow-lg transition"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
