@@ -47,7 +47,7 @@ export default function OnboardingDetails() {
 
     await supabase.from('users').update(updateData).eq('id', user.id);
 
-    // Redirect based on role
+    // Redirect based on role and details_complete flag
     const redirectMap: Record<string, string> = {
       buyer: '/buyer/marketplace',
       seller: '/seller/dashboard',
@@ -60,18 +60,20 @@ export default function OnboardingDetails() {
   if (loading) return <p>Loading...</p>;
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-4 space-y-4">
       {role === 'seller' && (
         <>
-          <h2>Seller Onboarding</h2>
+          <h2 className="text-2xl font-bold mb-2">Seller Onboarding</h2>
           <input
+            className="w-full border p-2 rounded"
             placeholder="Store Name"
             required
             value={storeName}
             onChange={(e) => setStoreName(e.target.value)}
           />
           <input
-            placeholder="Description"
+            className="w-full border p-2 rounded"
+            placeholder="Store Description"
             required
             value={storeDescription}
             onChange={(e) => setStoreDescription(e.target.value)}
@@ -80,14 +82,16 @@ export default function OnboardingDetails() {
       )}
       {role === 'driver' && (
         <>
-          <h2>Driver Onboarding</h2>
+          <h2 className="text-2xl font-bold mb-2">Driver Onboarding</h2>
           <input
+            className="w-full border p-2 rounded"
             placeholder="Vehicle Type"
             required
             value={vehicleType}
             onChange={(e) => setVehicleType(e.target.value)}
           />
           <input
+            className="w-full border p-2 rounded"
             placeholder="Driver’s License Number"
             required
             value={licenseNumber}
@@ -97,14 +101,16 @@ export default function OnboardingDetails() {
       )}
       {role === 'stylist' && (
         <>
-          <h2>Stylist Onboarding</h2>
+          <h2 className="text-2xl font-bold mb-2">Stylist Onboarding</h2>
           <input
+            className="w-full border p-2 rounded"
             placeholder="Specialties"
             required
             value={specialties}
             onChange={(e) => setSpecialties(e.target.value)}
           />
           <input
+            className="w-full border p-2 rounded"
             placeholder="Instagram / Portfolio"
             required
             value={portfolio}
@@ -112,7 +118,12 @@ export default function OnboardingDetails() {
           />
         </>
       )}
-      <button type="submit">Finish Onboarding</button>
+      <button
+        type="submit"
+        className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded"
+      >
+        Finish Onboarding
+      </button>
     </form>
   );
 }

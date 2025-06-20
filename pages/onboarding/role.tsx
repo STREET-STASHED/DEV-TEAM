@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../../lib/supabaseClient';
@@ -26,17 +24,27 @@ export default function RoleSelection() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Select Your Role</h2>
-      <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
-        <option value="">Choose one</option>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-white rounded shadow space-y-4">
+      <h2 className="text-2xl font-semibold mb-4 text-center">Select Your Role</h2>
+      <select
+        value={selectedRole}
+        onChange={(e) => setSelectedRole(e.target.value)}
+        required
+        className="w-full p-3 border border-gray-300 rounded"
+      >
+        <option value="">Choose a role</option>
         <option value="buyer">Buyer</option>
         <option value="seller">Seller</option>
         <option value="stylist">Stylist</option>
         <option value="driver">Driver</option>
       </select>
-      <button type="submit">Continue</button>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <button
+        type="submit"
+        className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded"
+      >
+        Continue to Onboarding
+      </button>
+      {error && <p className="text-red-600 text-sm text-center">{error}</p>}
     </form>
   );
 }

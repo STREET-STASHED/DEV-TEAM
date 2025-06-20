@@ -72,6 +72,7 @@ export default function AuthPage() {
           .single();
 
         if (dbErr || !userRow || !userRow.role) {
+          // Ensure they go through onboarding multi-step flow
           router.replace('/onboarding/details');
         } else {
           const redirectMap: Record<string, string> = {
@@ -80,7 +81,7 @@ export default function AuthPage() {
             stylist: '/stylist/dashboard',
             driver: '/driver/dashboard',
           };
-          router.replace(redirectMap[userRow.role] || '/onboarding');
+          router.replace(redirectMap[userRow.role] || '/onboarding/details');
         }
         setLoading(false);
         return;
