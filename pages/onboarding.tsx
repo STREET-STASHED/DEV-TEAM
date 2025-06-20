@@ -57,6 +57,7 @@ const OnboardingPage = () => {
                 // Immediately submit onboarding with draft data
                 await submitOnboardingDraft(uid, draft.role, draft.formData);
                 localStorage.removeItem('onboardingDraft');
+                // PATCH: Route using draft.role
                 return;
               }
             } catch {
@@ -149,6 +150,7 @@ const OnboardingPage = () => {
         return;
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      // PATCH: Route using the just-submitted role
       router.replace(getRedirectPath(role));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram, booking_link } = data;
@@ -171,6 +173,7 @@ const OnboardingPage = () => {
         return;
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      // PATCH: Route using the just-submitted role
       router.replace(getRedirectPath(role));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
@@ -193,6 +196,7 @@ const OnboardingPage = () => {
         return;
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      // PATCH: Route using the just-submitted role
       router.replace(getRedirectPath(role));
     }
   };
