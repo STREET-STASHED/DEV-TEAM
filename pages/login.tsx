@@ -27,9 +27,7 @@ export default function AuthPage() {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: { role: 'buyer' }, // default role to buyer
-          },
+          options: {},
         });
 
         if (signUpError) {
@@ -58,7 +56,7 @@ export default function AuthPage() {
         if (!existingUsers || existingUsers.length === 0) {
           const { data: insertData, error: insertError } = await supabase
             .from('users')
-            .insert([{ id: signUpData.user.id, email: signUpData.user.email, role: 'buyer' }]);
+            .insert([{ id: signUpData.user.id, email: signUpData.user.email }]);
           if (insertError) {
             if (insertError.code === '23505' || insertError.message?.includes('duplicate')) {
               alert('User already exists. Please log in.');

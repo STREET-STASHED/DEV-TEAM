@@ -106,6 +106,8 @@ const OnboardingPage = () => {
     setError('');
     const { data: sessionData } = await supabase.auth.getSession();
     const email = sessionData?.session?.user?.email;
+    // Always use selectedRole for upsert and redirect
+    const effectiveRole = selectedRole || role;
 
     if (role === 'seller') {
       const { store_name, store_description, payout_method } = data;
@@ -130,18 +132,9 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role, has_completed_onboarding: true }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: selectedRole, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      const { data: refreshedUser } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', uid)
-        .single();
-      if (!refreshedUser?.role) {
-        setError('User role missing. Please try again.');
-        return;
-      }
-      router.replace(getRedirectPath(refreshedUser.role));
+      router.replace(getRedirectPath(selectedRole));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram } = data;
       if (!specialty || !bio || !instagram) {
@@ -163,18 +156,9 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role, has_completed_onboarding: true }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: selectedRole, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      const { data: refreshedUser } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', uid)
-        .single();
-      if (!refreshedUser?.role) {
-        setError('User role missing. Please try again.');
-        return;
-      }
-      router.replace(getRedirectPath(refreshedUser.role));
+      router.replace(getRedirectPath(selectedRole));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
       if (!vehicle_type || !license_number || !delivery_radius) {
@@ -197,18 +181,9 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role, has_completed_onboarding: true }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: selectedRole, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      const { data: refreshedUser } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', uid)
-        .single();
-      if (!refreshedUser?.role) {
-        setError('User role missing. Please try again.');
-        return;
-      }
-      router.replace(getRedirectPath(refreshedUser.role));
+      router.replace(getRedirectPath(selectedRole));
     }
   };
 
