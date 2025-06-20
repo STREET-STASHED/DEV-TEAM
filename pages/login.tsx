@@ -79,7 +79,7 @@ export default function AuthPage() {
       if (!userId) throw new Error('Missing user ID');
 
       // Fetch the user's role from the users table for robust redirect
-      let dbRole = 'buyer';
+      let dbRole;
       try {
         const { data: userRow, error: dbErr } = await supabase
           .from('users')
@@ -87,11 +87,16 @@ export default function AuthPage() {
           .eq('id', userId)
           .single();
 
-        if (dbErr) throw dbErr;
-        if (userRow && userRow.role) dbRole = userRow.role;
+        if (dbErr || !userRow || !userRow.role) {
+          throw new Error('User role not found. Redirecting to onboarding.');
+        }
+
+        dbRole = userRow.role;
+        console.log('Fetched user role from DB:', dbRole);
       } catch (err) {
-        console.warn('Could not fetch role from DB, falling back to metadata:', err);
-        dbRole = authRes.data.user?.user_metadata?.role || 'buyer';
+        console.error('Role fetch error:', err);
+        router.replace('/onboarding');
+        return;
       }
 
       const redirectMap: Record<string, string> = {

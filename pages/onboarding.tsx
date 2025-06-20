@@ -106,8 +106,6 @@ const OnboardingPage = () => {
     setError('');
     const { data: sessionData } = await supabase.auth.getSession();
     const email = sessionData?.session?.user?.email;
-    // Always use selectedRole for upsert and redirect
-    const effectiveRole = selectedRole || role;
 
     if (role === 'seller') {
       const { store_name, store_description, payout_method } = data;
@@ -132,9 +130,9 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: selectedRole, has_completed_onboarding: true }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: role, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      router.replace(getRedirectPath(selectedRole));
+      router.replace(getRedirectPath(role));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram } = data;
       if (!specialty || !bio || !instagram) {
@@ -156,9 +154,9 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: selectedRole, has_completed_onboarding: true }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: role, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      router.replace(getRedirectPath(selectedRole));
+      router.replace(getRedirectPath(role));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
       if (!vehicle_type || !license_number || !delivery_radius) {
@@ -181,9 +179,9 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: selectedRole, has_completed_onboarding: true }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role: role, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      router.replace(getRedirectPath(selectedRole));
+      router.replace(getRedirectPath(role));
     }
   };
 
@@ -194,6 +192,7 @@ const OnboardingPage = () => {
 
     const { data: sessionData } = await supabase.auth.getSession();
     let uid = sessionData?.session?.user?.id;
+    const role = selectedRole;
     if (!role) {
       setError('Select a role first.');
       return;
