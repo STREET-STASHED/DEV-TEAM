@@ -29,6 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'userId or email is required.' });
   }
 
+  if (email) email = email.trim().toLowerCase();
+
   // Attempt to find user
   let lookupCol = userId ? 'id' : 'email';
   let lookupVal = userId ? userId : email;
@@ -55,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { data, error } = await supabase
       .from('users')
-      .upsert(upsertPayload, { onConflict: 'id' })
+      .upsert(upsertPayload, { onConflict: userId && email ? 'id,email' : userId ? 'id' : 'email' })
       .select()
       .single();
 
@@ -64,6 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Upsert role error', details: error.message });
     }
 
+    console.log(`User role set: ${role} for ${userId || email}`);
     return res.status(200).json({ message: 'Role set successfully', data });
   } catch (err: any) {
     console.error('Unexpected error in set-role:', err);

@@ -1,29 +1,27 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import supabaseAdmin from '../../lib/supabaseAdmin';
 
-// Unified handler for both GET and POST methods to fetch user role by ID
+// Unified handler for both GET and POST methods to fetch user role by ID or email
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  let userId: string | undefined = undefined;
+  let userIdOrEmail: string | undefined;
 
-  // Support both GET (query param) and POST (body) for user ID
   if (req.method === 'GET') {
-    userId = typeof req.query.id === 'string' ? req.query.id : undefined;
+    userIdOrEmail = typeof req.query.id === 'string' ? req.query.id.trim().toLowerCase() : undefined;
   } else if (req.method === 'POST') {
-    userId = typeof req.body.id === 'string' ? req.body.id : undefined;
+    userIdOrEmail = typeof req.body.id === 'string' ? req.body.id.trim().toLowerCase() : undefined;
   } else {
     return res.status(405).json({ error: 'Method not allowed. Use GET or POST.' });
   }
 
-  // Validate user ID
-  if (!userId || !userId.trim()) {
-    return res.status(400).json({ error: 'Valid user ID is required as "id".' });
+  if (!userIdOrEmail) {
+    return res.status(400).json({ error: 'Valid user ID or email is required as "id".' });
   }
 
   try {
     const { data, error } = await supabaseAdmin
       .from('users')
       .select('id, role')
-      .eq('id', userId.trim())
+      .or(`id.eq.${userIdOrEmail},email.eq.${userIdOrEmail}`)
       .single();
 
     if (error) {
@@ -32,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!data || !data.role) {
-      return res.status(404).json({ error: `Role not set for user ID: ${userId}` });
+      return res.status(404).json({ error: `Role not set for user identifier: ${userIdOrEmail}` });
     }
 
     return res.status(200).json({ role: data.role });
