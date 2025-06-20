@@ -163,8 +163,14 @@ const OnboardingPage = () => {
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      console.log('Redirecting after onboarding with role:', role);
-      router.replace(getRedirectPath(role));
+      const { data: refreshedUser, error: refreshErr } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', uid)
+        .single();
+      const redirectRole = refreshedUser?.role || role;
+      console.log('Redirecting after onboarding with role:', redirectRole);
+      router.replace(getRedirectPath(redirectRole));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram, booking_link } = data;
       if (!specialty || !bio || !instagram || !booking_link) {
@@ -189,8 +195,14 @@ const OnboardingPage = () => {
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      console.log('Redirecting after onboarding with role:', role);
-      router.replace(getRedirectPath(role));
+      const { data: refreshedUser, error: refreshErr } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', uid)
+        .single();
+      const redirectRole = refreshedUser?.role || role;
+      console.log('Redirecting after onboarding with role:', redirectRole);
+      router.replace(getRedirectPath(redirectRole));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
       if (!vehicle_type || !license_number || !delivery_radius) {
@@ -222,8 +234,14 @@ const OnboardingPage = () => {
       }
       await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
-      console.log('Redirecting after onboarding with role:', role);
-      router.replace(getRedirectPath(role));
+      const { data: refreshedUser, error: refreshErr } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', uid)
+        .single();
+      const redirectRole = refreshedUser?.role || role;
+      console.log('Redirecting after onboarding with role:', redirectRole);
+      router.replace(getRedirectPath(redirectRole));
     }
   };
 

@@ -80,20 +80,34 @@ export default function AuthPage() {
       const userId = authRes.data.user?.id;
       if (!userId) throw new Error('Missing user ID');
 
-      const roleFromMetadata = authRes.data.user?.user_metadata?.role || 'buyer';
+      // After login, fetch the actual user role from the users table
+      let dbRole = 'buyer';
+      try {
+        const { data: userRow, error: dbErr } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (dbErr) throw dbErr;
+        if (userRow && userRow.role) dbRole = userRow.role;
+      } catch (err) {
+        console.warn('Could not fetch role from DB, falling back to metadata:', err);
+        dbRole = authRes.data.user?.user_metadata?.role || 'buyer';
+      }
 
       const redirectMap: Record<string, string> = {
         buyer: '/buyer/marketplace',
-        seller: '/onboarding',
-        stylist: '/onboarding',
-        driver: '/onboarding',
+        seller: '/seller/dashboard',
+        stylist: '/stylist/dashboard',
+        driver: '/driver/dashboard',
       };
 
       // PATCH: If onboardingDraft exists, resume onboarding
       if (typeof window !== 'undefined' && localStorage.getItem('onboardingDraft')) {
         router.push('/onboarding');
       } else {
-        router.push(`${redirectMap[roleFromMetadata] || '/onboarding'}?userId=${userId}`);
+        router.push(`${redirectMap[dbRole] || '/onboarding'}?userId=${userId}`);
       }
     } catch (error: any) {
       console.error('Auth error:', error);
