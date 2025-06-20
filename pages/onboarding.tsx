@@ -145,7 +145,7 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      const { error: insertError } = await supabase.from('sellers').upsert([{
+      const sellerData = {
         user_id: uid,
         store_name,
         store_description,
@@ -153,9 +153,11 @@ const OnboardingPage = () => {
         logo_url: '',
         subscription_tier: 'free',
         created_at: new Date().toISOString(),
-      }], { onConflict: 'user_id' });
+      };
+      const { error: insertError } = await supabase.from('sellers').upsert([sellerData], { onConflict: 'user_id' });
       if (insertError) {
-        setError('Failed to save seller info.');
+        console.error('SELLER insert error:', insertError, 'DATA:', sellerData);
+        setError(`Failed to save seller info: ${insertError.message || JSON.stringify(insertError)}`);
         setLoading(false);
         return;
       }
@@ -170,16 +172,18 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      const { error: insertError } = await supabase.from('stylists').upsert([{
+      const stylistData = {
         user_id: uid,
         specialty,
         bio,
         instagram,
         booking_link,
         created_at: new Date().toISOString(),
-      }], { onConflict: 'user_id' });
+      };
+      const { error: insertError } = await supabase.from('stylists').upsert([stylistData], { onConflict: 'user_id' });
       if (insertError) {
-        setError('Failed to save stylist info.');
+        console.error('STYLIST insert error:', insertError, 'DATA:', stylistData);
+        setError(`Failed to save stylist info: ${insertError.message || JSON.stringify(insertError)}`);
         setLoading(false);
         return;
       }
@@ -194,16 +198,25 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
+      console.log('Upserting driver:', {
+        user_id: uid,
+        vehicle_type,
+        license_number,
+        delivery_radius: Number(delivery_radius),
+        is_online: false,
+        created_at: new Date().toISOString(),
+      });
       const { error: insertError } = await supabase.from('drivers').upsert([{
         user_id: uid,
         vehicle_type,
         license_number,
-        delivery_radius,
+        delivery_radius: Number(delivery_radius),
         is_online: false,
         created_at: new Date().toISOString(),
       }], { onConflict: 'user_id' });
       if (insertError) {
-        setError('Failed to save driver info.');
+        console.error('Driver insert error:', insertError);
+        setError(`Failed to save driver info: ${insertError.message || JSON.stringify(insertError)}`);
         setLoading(false);
         return;
       }
