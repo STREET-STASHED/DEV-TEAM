@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 const Hero = () => {
   return (
     <section className="relative bg-black text-gold py-20 px-6 text-center overflow-hidden">
@@ -12,9 +14,11 @@ const Hero = () => {
           <button className="bg-yellow-500 text-black font-bold py-3 px-6 rounded-full hover:bg-yellow-400 transition">
             Browse Drops
           </button>
-          <button className="border border-yellow-500 text-yellow-500 font-bold py-3 px-6 rounded-full hover:bg-yellow-500 hover:text-black transition">
-            Become a Seller
-          </button>
+          <Link href="/welcome">
+            <button className="border border-yellow-500 text-yellow-500 font-bold py-3 px-6 rounded-full hover:bg-yellow-500 hover:text-black transition">
+              Join Us
+            </button>
+          </Link>
         </div>
       </div>
       <div className="absolute inset-0 bg-[url('/graffiti-bg.png')] bg-cover bg-center opacity-10 z-0" />

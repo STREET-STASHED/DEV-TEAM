@@ -63,9 +63,9 @@ const Header = () => {
               <span className="cursor-pointer hover:text-yellow-400 transition">Track Order</span>
             </Link>
             {/* Become a Seller */}
-            <Link href="/onboarding" passHref>
+            <Link href="/welcome" passHref>
               <span className="ml-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition cursor-pointer">
-                Become a Seller
+                Join Us
               </span>
             </Link>
             {/* Cart Icon */}
@@ -133,7 +133,7 @@ const Header = () => {
               <Link href="/stores" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Stores</Link>
               <Link href="/stylists" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Stylists</Link>
               <Link href="/track-order" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Track Order</Link>
-              <Link href="/onboarding" onClick={() => setMenuOpen(false)} className="mt-2 bg-yellow-400 text-black px-4 py-3 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition text-lg">Become a Seller</Link>
+              <Link href="/welcome" onClick={() => setMenuOpen(false)} className="mt-2 bg-yellow-400 text-black px-4 py-3 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition text-lg">Join Us</Link>
               <span
                 className="relative cursor-pointer text-3xl"
                 onClick={() => { setMenuOpen(false); handleCartOpen(); }}

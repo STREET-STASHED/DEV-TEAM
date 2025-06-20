@@ -62,7 +62,26 @@ export default function AuthPage() {
           if (insertError) throw new Error('User creation failed in DB.');
         }
 
-        router.replace('/onboarding/role');
+        // After signup, redirect based on role if available, otherwise to onboarding/role
+        const userId = signUpData.user.id;
+
+        const { data: userRow, error: dbErr } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', userId)
+          .single();
+
+        if (dbErr || !userRow || !userRow.role) {
+          router.replace('/onboarding/role');
+        } else {
+          const redirectMap: Record<string, string> = {
+            buyer: '/buyer/marketplace',
+            seller: '/seller/dashboard',
+            stylist: '/stylist/dashboard',
+            driver: '/driver/dashboard',
+          };
+          router.replace(redirectMap[userRow.role] || '/onboarding');
+        }
         setLoading(false);
         return;
       } else {

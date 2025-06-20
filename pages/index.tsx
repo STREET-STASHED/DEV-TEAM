@@ -4,7 +4,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      {/* Add other homepage sections below */}
+      {/* Additional homepage content like featured products, testimonials, or how-it-works sections can go here */}
     </>
   );
 }
