@@ -38,13 +38,8 @@ const OnboardingPage = () => {
           .eq('id', uid)
           .single();
 
-        if (
-          !userError &&
-          userData?.role &&
-          userData.role !== '' &&
-          userData.role !== 'buyer'
-        ) {
-          // If user has a non-buyer role, redirect to their dashboard
+        // Redirect if role is already set and not 'buyer'
+        if (userData?.role && userData.role !== 'buyer') {
           const dash = getRedirectPath(userData.role);
           router.replace(dash);
           return;

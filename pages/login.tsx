@@ -127,10 +127,15 @@ export default function AuthPage() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: 'url(/bg/paint-splatter.jpg)' }} // update path as needed
     >
-      <form className="bg-black bg-opacity-85 p-8 rounded-2xl shadow-2xl w-full max-w-md border-2 border-yellow-500 flex flex-col items-center space-y-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-black bg-opacity-85 p-8 rounded-2xl shadow-2xl w-full max-w-md border-2 border-yellow-500 flex flex-col items-center space-y-4"
+      >
         {/* Optional: Logo */}
         <img src="/logo.png" alt="StreetStashed Logo" className="h-14 mb-2" />
-        <h1 className="text-3xl font-extrabold text-yellow-400 mb-4 text-center drop-shadow">Login to StreetStashed</h1>
+        <h1 className="text-3xl font-extrabold text-yellow-400 mb-4 text-center drop-shadow">
+          {isSignUp ? 'Create your StreetStashed account' : 'Login to StreetStashed'}
+        </h1>
         <input
           type="email"
           placeholder="Enter your email"
@@ -154,10 +159,10 @@ export default function AuthPage() {
           className="w-full bg-yellow-500 text-black font-bold py-3 px-4 rounded-lg hover:bg-yellow-400 transition duration-200 disabled:opacity-50 shadow-lg"
           disabled={loading}
         >
-          {loading ? (isSignUp ? 'Signing up...' : 'Logging in...') : (isSignUp ? 'Sign Up' : 'Login')}
+          {loading ? (isSignUp ? 'Creating account...' : 'Logging in...') : (isSignUp ? 'Create Account' : 'Login')}
         </button>
         <p className="mt-2 text-center text-sm text-white font-medium">
-          {isSignUp ? 'Already have an account?' : 'Need an account?'}{' '}
+          {isSignUp ? 'Already have an account?' : 'Don’t have an account?'}{' '}
           <button
             type="button"
             onClick={() => setIsSignUp(!isSignUp)}

@@ -29,8 +29,13 @@ export default NextAuth({
   pages: {
     signIn: "/login",
     error: "/login",
+    newUser: "/onboarding"
   },
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Always redirect to the internal app unless full URL provided
+      return url.startsWith("/") ? `${baseUrl}${url}` : url;
+    },
     async jwt(params) {
       const { token, user } = params;
       if (user && (user as any).role) {
