@@ -137,8 +137,11 @@ const OnboardingPage = () => {
         .select('role')
         .eq('id', uid)
         .single();
-      const redirectRole = refreshedUser?.role || role;
-      router.replace(getRedirectPath(redirectRole));
+      if (!refreshedUser?.role) {
+        setError('User role missing. Please try again.');
+        return;
+      }
+      router.replace(getRedirectPath(refreshedUser.role));
     } else if (role === 'stylist') {
       const { specialty, bio, instagram } = data;
       if (!specialty || !bio || !instagram) {
@@ -167,8 +170,11 @@ const OnboardingPage = () => {
         .select('role')
         .eq('id', uid)
         .single();
-      const redirectRole = refreshedUser?.role || role;
-      router.replace(getRedirectPath(redirectRole));
+      if (!refreshedUser?.role) {
+        setError('User role missing. Please try again.');
+        return;
+      }
+      router.replace(getRedirectPath(refreshedUser.role));
     } else if (role === 'driver') {
       const { vehicle_type, license_number, delivery_radius } = data;
       if (!vehicle_type || !license_number || !delivery_radius) {
@@ -198,8 +204,11 @@ const OnboardingPage = () => {
         .select('role')
         .eq('id', uid)
         .single();
-      const redirectRole = refreshedUser?.role || role;
-      router.replace(getRedirectPath(redirectRole));
+      if (!refreshedUser?.role) {
+        setError('User role missing. Please try again.');
+        return;
+      }
+      router.replace(getRedirectPath(refreshedUser.role));
     }
   };
 
@@ -221,6 +230,7 @@ const OnboardingPage = () => {
         return;
       }
 
+      // Sign up the user
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password
@@ -231,7 +241,13 @@ const OnboardingPage = () => {
         return;
       }
 
-      uid = signUpData.user?.id;
+      // Immediately sign the user in to populate the session
+      await supabase.auth.signInWithPassword({ email, password });
+      // Small delay to give session time to initialize
+      await new Promise(res => setTimeout(res, 150));
+      // Fetch the session again to ensure it's up-to-date
+      const refreshedSession = await supabase.auth.getSession();
+      uid = refreshedSession?.data?.session?.user?.id;
       if (!uid) {
         setError('User signup failed.');
         return;
