@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
+import { useEffect, useState } from 'react';
+import supabase from '../../lib/supabaseClient';
 
 // Hardcoded demo data for public marketplace
 const demoStores = [
@@ -92,6 +94,17 @@ const demoStores = [
 export default function Marketplace() {
   const { addItem, hasItem } = useCart();
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+
+    checkAuth();
+  }, []);
+
   const stores = demoStores;
 
   return (
@@ -118,28 +131,46 @@ export default function Marketplace() {
                   <div style={{ fontWeight: 500 }}>{prod.name}</div>
                   <div style={{ color: '#333', fontSize: 14 }}>${prod.price}</div>
                   <div style={{ fontSize: 12, color: '#AAA', marginTop: 2 }}>{prod.type}</div>
-                  <button
-                    style={{
-                      marginTop: 8,
-                      padding: '6px 16px',
-                      background: hasItem(prod.id) ? '#aaa' : '#111',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: 4,
-                      cursor: hasItem(prod.id) ? 'not-allowed' : 'pointer',
-                      fontSize: 14,
-                    }}
-                    onClick={() => addItem({
-                      id: prod.id,
-                      name: prod.name,
-                      price: prod.price,
-                      image: prod.image,
-                      quantity: 1,
-                    })}
-                    disabled={hasItem(prod.id)}
-                  >
-                    {hasItem(prod.id) ? 'Added!' : 'Add to Cart'}
-                  </button>
+                  {isLoggedIn ? (
+                    <button
+                      style={{
+                        marginTop: 8,
+                        padding: '6px 16px',
+                        background: hasItem(prod.id) ? '#aaa' : '#111',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 4,
+                        cursor: hasItem(prod.id) ? 'not-allowed' : 'pointer',
+                        fontSize: 14,
+                      }}
+                      onClick={() => addItem({
+                        id: prod.id,
+                        name: prod.name,
+                        price: prod.price,
+                        image: prod.image,
+                        quantity: 1,
+                      })}
+                      disabled={hasItem(prod.id)}
+                    >
+                      {hasItem(prod.id) ? 'Added!' : 'Add to Cart'}
+                    </button>
+                  ) : (
+                    <button
+                      style={{
+                        marginTop: 8,
+                        padding: '6px 16px',
+                        background: '#0070f3',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        fontSize: 14,
+                      }}
+                      onClick={() => window.location.href = '/signup'}
+                    >
+                      Sign up to Purchase
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

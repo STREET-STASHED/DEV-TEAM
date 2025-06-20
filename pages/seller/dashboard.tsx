@@ -83,6 +83,16 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
         window.location.href = "/unauthorized";
         return;
       }
+      // Onboarding check
+      const { data: onboardingStatus } = await supabase
+        .from("users")
+        .select("onboarding_complete")
+        .eq("id", currentUser.id)
+        .single();
+      if (!onboardingStatus?.onboarding_complete) {
+        window.location.href = "/onboarding/details";
+        return;
+      }
       // Fetch services
       const { data: prodData } = await supabase
         .from("products")

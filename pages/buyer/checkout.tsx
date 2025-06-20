@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router';
+import supabase from '@/lib/supabaseClient';
 import { useCart, CartItem } from '@/context/CartContext';
 import { useEffect, useState } from 'react';
 import CheckoutForm from '@/components/CheckoutForm';
@@ -6,9 +8,18 @@ const CheckoutPage = () => {
   const [isClient, setIsClient] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
-    setIsClient(true);
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/signup');
+      } else {
+        setIsClient(true);
+      }
+    };
+    checkSession();
   }, []);
 
   if (!isClient) return null;

@@ -12,6 +12,8 @@ const Dashboard: FC = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const router = useRouter();
+
   useEffect(() => {
     const fetchUserData = async () => {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -26,7 +28,7 @@ const Dashboard: FC = () => {
 
       const { data: userData, error: roleError } = await supabase
         .from('users')
-        .select('role')
+        .select('role, has_completed_onboarding')
         .eq('id', user.id)
         .single();
 
@@ -34,6 +36,10 @@ const Dashboard: FC = () => {
         console.error('Error fetching user role:', roleError);
         setRole(null);
       } else {
+        if (!userData?.has_completed_onboarding) {
+          router.push('/onboarding/details');
+          return;
+        }
         setRole(userData?.role || null);
       }
 

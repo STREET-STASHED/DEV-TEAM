@@ -62,6 +62,23 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
     const fetchBookings = async () => {
       if (!userId) return;
 
+      // Check if onboarding is complete
+      const { data: userStatus, error: userError } = await supabase
+        .from('users')
+        .select('has_completed_onboarding')
+        .eq('id', userId)
+        .single();
+
+      if (userError) {
+        console.error('Error checking onboarding status:', userError.message);
+        return;
+      }
+
+      if (!userStatus?.has_completed_onboarding) {
+        window.location.href = '/onboarding/details';
+        return;
+      }
+
       const { data, error } = await supabase
         .from('bookings')
         .select('id, client_name, date, status, event_type, outfit_request')
