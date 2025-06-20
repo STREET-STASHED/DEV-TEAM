@@ -17,11 +17,13 @@ const OnboardingPage = () => {
     specialty: '',
     bio: '',
     instagram: '',
-    booking_link: '',
+    // booking_link removed
     // Driver fields
     vehicle_type: '',
     license_number: '',
     delivery_radius: '',
+    email: '',
+    password: '',
   });
 
   useEffect(() => {
@@ -31,20 +33,20 @@ const OnboardingPage = () => {
         const uid = data.session.user.id;
         setUserId(uid);
 
-        // Get user role
+        // Get user role and onboarding status
         const { data: userData, error: userError } = await supabase
           .from('users')
-          .select('role')
+          .select('role, has_completed_onboarding')
           .eq('id', uid)
           .single();
 
-        // Redirect if role is already set and not 'buyer'
-        if (userData?.role && userData.role !== 'buyer') {
+        // Redirect if role is set and onboarding complete
+        if (userData?.role && userData.has_completed_onboarding) {
           const dash = getRedirectPath(userData.role);
           router.replace(dash);
           return;
         }
-        // If buyer or no role, stay on onboarding
+        // If onboarding not complete or no role, stay on onboarding
       }
       setLoading(false);
     }
@@ -85,10 +87,10 @@ const OnboardingPage = () => {
         router.replace('/login');
         return;
       }
-      // Logged in: upsert buyer role and redirect
+      // Logged in: upsert buyer role and set onboarding complete, then redirect
       const { error: upsertErr } = await supabase
         .from('users')
-        .upsert({ id: uid, email: email ?? '', role: 'buyer' }, { onConflict: 'id' });
+        .upsert({ id: uid, email: email ?? '', role: 'buyer', has_completed_onboarding: true }, { onConflict: 'id' });
       if (upsertErr) {
         setError('Failed to update role.');
         return;
@@ -128,7 +130,7 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
       const { data: refreshedUser } = await supabase
         .from('users')
@@ -138,8 +140,8 @@ const OnboardingPage = () => {
       const redirectRole = refreshedUser?.role || role;
       router.replace(getRedirectPath(redirectRole));
     } else if (role === 'stylist') {
-      const { specialty, bio, instagram, booking_link } = data;
-      if (!specialty || !bio || !instagram || !booking_link) {
+      const { specialty, bio, instagram } = data;
+      if (!specialty || !bio || !instagram) {
         setError('All fields required.');
         setLoading(false);
         return;
@@ -149,7 +151,6 @@ const OnboardingPage = () => {
         specialty,
         bio,
         instagram,
-        booking_link,
         created_at: new Date().toISOString(),
       };
       const { error: insertError } = await supabase.from('stylists').upsert([stylistData], { onConflict: 'user_id' });
@@ -159,7 +160,7 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
       const { data: refreshedUser } = await supabase
         .from('users')
@@ -190,7 +191,7 @@ const OnboardingPage = () => {
         setLoading(false);
         return;
       }
-      await supabase.from('users').upsert({ id: uid, email: email ?? '', role }, { onConflict: 'id' });
+      await supabase.from('users').upsert({ id: uid, email: email ?? '', role, has_completed_onboarding: true }, { onConflict: 'id' });
       await new Promise(res => setTimeout(res, 100)); // Let DB update
       const { data: refreshedUser } = await supabase
         .from('users')
@@ -208,9 +209,35 @@ const OnboardingPage = () => {
     setError('');
 
     const { data: sessionData } = await supabase.auth.getSession();
-    const uid = sessionData?.session?.user?.id;
+    let uid = sessionData?.session?.user?.id;
     if (!role) {
       setError('Select a role first.');
+      return;
+    }
+    if (role !== 'buyer') {
+      const { email, password } = formData;
+      if (!email || !password) {
+        setError('Email and password are required.');
+        return;
+      }
+
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password
+      });
+
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      uid = signUpData.user?.id;
+      if (!uid) {
+        setError('User signup failed.');
+        return;
+      }
+
+      await submitOnboardingDraft(uid, role, formData);
       return;
     }
     if (!uid) {
@@ -218,7 +245,9 @@ const OnboardingPage = () => {
       router.replace('/login');
       return;
     }
-    await submitOnboardingDraft(uid, role, formData);
+    if (role === 'buyer') {
+      await submitOnboardingDraft(uid, role, formData);
+    }
   };
 
   if (loading) {
@@ -280,6 +309,30 @@ const OnboardingPage = () => {
         {error && <p className="mb-4 text-red-500">{error}</p>}
         <form onSubmit={handleSubmit} className="w-full">
           <div className="space-y-2">
+            {role !== 'buyer' && (
+              <>
+                <label className="block mb-2">
+                  Email
+                  <input
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+                <label className="block mb-2">
+                  Password
+                  <input
+                    type="password"
+                    required
+                    value={formData.password}
+                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    className="w-full p-2 mb-4 text-black rounded"
+                  />
+                </label>
+              </>
+            )}
             {/* all your existing role-specific fields remain here */}
             {role === 'seller' && (
               <>
@@ -347,16 +400,7 @@ const OnboardingPage = () => {
                     className="w-full p-2 mb-4 text-black rounded"
                   />
                 </label>
-                <label className="block mb-6">
-                  Booking Link
-                  <input
-                    type="url"
-                    required
-                    value={formData.booking_link}
-                    onChange={(e) => setFormData({ ...formData, booking_link: e.target.value })}
-                    className="w-full p-2 text-black rounded"
-                  />
-                </label>
+                {/* Booking Link field removed */}
               </>
             )}
             {role === 'driver' && (
