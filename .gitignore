@@ -1,8 +1,25 @@
-.vercel
+# Node
 node_modules
+
+# Vercel
+.vercel
+
+# Next.js build
 .next
-.env.local
+
+# System files
 .DS_Store
-# Ignore local environment variables
+
+# Local environment variables
 .env
+.env.local
+
+# Build artifacts
+out/
 public/sw.js.map
+
+# Logs
+*.log
+
+# TypeScript
+*.tsbuildinfo
