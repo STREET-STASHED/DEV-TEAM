@@ -1,6 +1,23 @@
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 const Hero = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleJoin = () => {
+    const user = session?.user as { role?: string } | undefined;
+
+    if (!user) {
+      router.push('/signup');
+    } else if (!user.role) {
+      router.push('/role');
+    } else {
+      router.push('/onboarding');
+    }
+  };
+
   return (
     <section className="relative bg-transparent text-gold py-20 px-6 text-center overflow-hidden">
       <div className="relative z-10">
@@ -14,11 +31,12 @@ const Hero = () => {
           <button className="bg-yellow-500 text-black font-bold py-3 px-6 rounded-full hover:bg-yellow-400 transition">
             Browse Drops
           </button>
-          <Link href="/onboarding">
-            <button className="border border-yellow-500 text-yellow-500 font-bold py-3 px-6 rounded-full hover:bg-yellow-500 hover:text-black transition">
-              Join Us
-            </button>
-          </Link>
+          <button
+            onClick={handleJoin}
+            className="border border-yellow-500 text-yellow-500 font-bold py-3 px-6 rounded-full hover:bg-yellow-500 hover:text-black transition"
+          >
+            Join Us
+          </button>
         </div>
       </div>
       <div className="absolute inset-0 bg-[url('/graffiti-bg.png')] bg-cover bg-center opacity-10 z-0" />
