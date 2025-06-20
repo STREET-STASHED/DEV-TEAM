@@ -2,12 +2,12 @@ import Link from 'next/link';
 
 const Hero = () => {
   return (
-    <section className="relative bg-black text-gold py-20 px-6 text-center overflow-hidden">
+    <section className="relative bg-transparent text-gold py-20 px-6 text-center overflow-hidden">
       <div className="relative z-10">
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-widest uppercase mb-4">
-          Don’t Trip. Catch the Drip.
+          Where Style Moves Like You Do.
         </h1>
-        <p className="text-lg md:text-xl text-yellow-400 max-w-2xl mx-auto mb-8">
+        <p className="text-lg md:text-xl text-yellow-400 max-w-2xl mx-auto mb-8 text-center">
           Fashion delivered on demand. From exclusive drops to everyday heat — all day in every neighborhood.
         </p>
         <div className="flex justify-center gap-4 flex-wrap">

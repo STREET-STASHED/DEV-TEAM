@@ -72,7 +72,7 @@ export default function AuthPage() {
           .single();
 
         if (dbErr || !userRow || !userRow.role) {
-          router.replace('/onboarding/role');
+          router.replace('/onboarding/details');
         } else {
           const redirectMap: Record<string, string> = {
             buyer: '/buyer/marketplace',
