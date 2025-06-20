@@ -6,18 +6,31 @@ import type { CartItem } from '../context/CartContext';
 
 interface CheckoutFormProps {
   items: CartItem[];
-  name: string;
-  email: string;
   totalAmount: number;
   mode?: 'buyNow' | 'cart';
 }
 
-export default function CheckoutForm({ items, name, email, totalAmount, mode = 'buyNow' }: CheckoutFormProps) {
+export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: CheckoutFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { clearCart } = useCart();
+
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    address: '',
+    city: '',
+    state: '',
+    zip: '',
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +40,9 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
     try {
       const endpoint = mode === 'cart' ? '/api/orders' : '/api/checkout';
       const payload = mode === 'cart'
-        ? { items, name, email, total: totalAmount }
-        : { items: [{ ...items[0], quantity: 1 }], name, email, totalAmount };
+        ? { items, ...form, total: totalAmount }
+        : { items: [{ ...items[0], quantity: 1 }], ...form, totalAmount };
+
       const { data } = await axios.post(endpoint, payload);
 
       if (data.success) {
@@ -53,43 +67,48 @@ export default function CheckoutForm({ items, name, email, totalAmount, mode = '
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: '400px', margin: '0 auto', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-      <h2>Checkout</h2>
+    <form onSubmit={handleSubmit} style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', border: '2px solid black', borderRadius: '10px', backgroundColor: '#111', color: '#fff' }}>
+      <h2 style={{ color: '#FFD700' }}>Secure Checkout</h2>
 
-      {mode === 'buyNow' ? (
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#000',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-          }}
-        >
-          {loading ? 'Processing…' : 'Buy Now'}
-        </button>
-      ) : (
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '0.75rem',
-            backgroundColor: '#ffc107',
-            color: '#000',
-            border: 'none',
-            borderRadius: '4px',
-          }}
-        >
-          {loading ? 'Placing Order…' : 'Place Order'}
-        </button>
-      )}
+      <input name="firstName" placeholder="First Name" onChange={handleChange} value={form.firstName} required style={inputStyle} />
+      <input name="lastName" placeholder="Last Name" onChange={handleChange} value={form.lastName} required style={inputStyle} />
+      <input name="email" type="email" placeholder="Email Address" onChange={handleChange} value={form.email} required style={inputStyle} />
+      <input name="address" placeholder="Shipping Address" onChange={handleChange} value={form.address} required style={inputStyle} />
+      <input name="city" placeholder="City" onChange={handleChange} value={form.city} required style={inputStyle} />
+      <input name="state" placeholder="State" onChange={handleChange} value={form.state} required style={inputStyle} />
+      <input name="zip" placeholder="Zip Code" onChange={handleChange} value={form.zip} required style={inputStyle} />
+
+      <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+        <strong>Order Total:</strong> ${totalAmount.toFixed(2)}
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          backgroundColor: '#FFD700',
+          color: '#000',
+          fontWeight: 'bold',
+          border: 'none',
+          borderRadius: '4px',
+        }}
+      >
+        {loading ? 'Processing...' : mode === 'buyNow' ? 'Buy Now' : 'Place Order'}
+      </button>
 
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
       {success && <p style={{ color: 'green', marginTop: '1rem' }}>Payment successful!</p>}
     </form>
   );
 }
+
+const inputStyle = {
+  display: 'block',
+  width: '100%',
+  padding: '0.5rem',
+  marginBottom: '0.75rem',
+  borderRadius: '5px',
+  border: '1px solid #ccc',
+};

@@ -1,8 +1,8 @@
 const Footer = () => {
   return (
-    <footer className="bg-black text-white text-sm py-6 px-4 text-center mt-10 border-t border-gray-800">
-      <p>&copy; {new Date().getFullYear()} StreetStashed. All rights reserved.</p>
-      <p className="text-xs text-gray-500 mt-1">Powered by culture. Built for the streets.</p>
+    <footer className="bg-black text-gold text-sm py-8 px-6 text-center mt-20 border-t border-yellow-600 shadow-inner">
+      <p className="tracking-wide font-semibold">&copy; {new Date().getFullYear()} STREETSTASHED™. All rights reserved.</p>
+      <p className="text-xs text-yellow-500 mt-2 italic">Powered by culture. Built for the streets. Delivered with luxury.</p>
     </footer>
   );
 };

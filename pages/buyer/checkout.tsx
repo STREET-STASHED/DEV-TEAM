@@ -6,8 +6,6 @@ import CheckoutForm from '@/components/CheckoutForm';
 
 const CheckoutPage = () => {
   const [isClient, setIsClient] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -53,21 +51,7 @@ const CheckoutPage = () => {
               </p>
             </div>
 
-            <input
-              className="w-full p-2 mb-2 border rounded"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <input
-              className="w-full p-2 mb-4 border rounded"
-              placeholder="Email Address"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-
-            <CheckoutForm items={items} name={name} email={email} totalAmount={totalPrice} />
+            <CheckoutForm items={items} totalAmount={totalPrice} />
           </div>
         </>
       )}

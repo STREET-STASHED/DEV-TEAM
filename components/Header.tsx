@@ -16,7 +16,7 @@ const Header = () => {
     <>
       <header
         className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b-4 border-yellow-400 shadow-2xl"
-        style={{ minHeight: 70 }}
+        style={{ minHeight: 80 }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-3 relative">
           {/* Logo & Brand */}
@@ -27,17 +27,19 @@ const Header = () => {
                 alt="StreetStashed Logo"
                 width={48}
                 height={48}
-                className="rounded-full border-4 border-yellow-400 shadow-xl bg-white cursor-pointer"
+                className="rounded-full border-4 border-yellow-400 shadow-xl bg-black cursor-pointer"
                 priority
               />
             </Link>
             <span
-              className="text-2xl md:text-3xl font-extrabold tracking-tight select-none"
+              className="text-2xl md:text-3xl font-extrabold tracking-tight tracking-widest select-none"
               style={{
                 color: '#FFD700',
                 letterSpacing: '0.02em',
-                textShadow: '2px 2px 8px #000',
-                fontFamily: '"Bebas Neue", "Oswald", Impact, "Arial Black", sans-serif',
+                textShadow: '3px 3px 10px #000',
+                fontFamily: '"Urbanist", "Bebas Neue", "Oswald", sans-serif',
+                textTransform: 'uppercase',
+                lineHeight: 1,
               }}
             >
               STREETSTASHED
@@ -103,7 +105,7 @@ const Header = () => {
                 👤
               </span>
               {accountOpen && (
-                <div className="absolute right-0 mt-2 w-44 bg-black/95 border-2 border-yellow-400 shadow-xl rounded-xl py-2 z-50 animate-fade-in flex flex-col">
+                <div className="absolute right-0 mt-2 w-44 bg-[#0d0d0d] border-2 border-yellow-400 shadow-xl rounded-xl py-2 z-50 animate-fade-in flex flex-col">
                   <Link href="/profile" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Profile</Link>
                   <Link href="/orders" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Orders</Link>
                   <Link href="/my-store" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">My Store</Link>
@@ -125,7 +127,7 @@ const Header = () => {
           </div>
           {/* Mobile Dropdown Menu */}
           {menuOpen && (
-            <div className="absolute top-[100%] left-0 w-full bg-black/95 border-b-4 border-yellow-400 shadow-2xl z-40 py-6 md:hidden flex flex-col items-center space-y-6 animate-fade-in">
+            <div className="absolute top-[100%] left-0 w-full bg-[#0d0d0d] border-b-4 border-yellow-400 shadow-2xl z-40 py-6 md:hidden flex flex-col items-center space-y-6 animate-fade-in">
               <Link href="/" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Home</Link>
               <Link href="/buyer/marketplace" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Marketplace</Link>
               <Link href="/stores" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Stores</Link>
@@ -151,7 +153,7 @@ const Header = () => {
                 👤
               </span>
               {accountOpen && (
-                <div className="w-full bg-black/95 border-2 border-yellow-400 shadow-xl rounded-xl py-2 flex flex-col items-center z-50">
+                <div className="w-full bg-[#0d0d0d] border-2 border-yellow-400 shadow-xl rounded-xl py-2 flex flex-col items-center z-50">
                   <Link href="/profile" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Profile</Link>
                   <Link href="/orders" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Orders</Link>
                   <Link href="/my-store" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">My Store</Link>

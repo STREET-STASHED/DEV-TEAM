@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        black: '#000000',
+        black: '#0d0d0d',
         gold: {
           light: '#FFEF9F',
           DEFAULT: '#FFD700',
@@ -25,7 +25,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Urbanist', 'Inter', 'sans-serif'],
       },
       screens: {
         'xs': '375px',
@@ -40,6 +40,7 @@ module.exports = {
         'graffiti-2': "url('/images/graffiti-2.jpg')",
         'graffiti-dark': "url('/images/graffiti-dark.jpg')",
         'default-bg': "url('/background.png')",
+        'hero-bg': "url('/images/hero-street.jpg')",
       },
     },
   },

@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+import Hero from '@/components/Hero';
 
-export default function IndexRedirect() {
-  const router = useRouter();
-  useEffect(() => {
-    router.replace('/welcome');
-  }, [router]);
-  return null;
+export default function Home() {
+  return (
+    <>
+      <Hero />
+      {/* Add other homepage sections below */}
+    </>
+  );
 }

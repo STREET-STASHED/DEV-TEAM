@@ -8,8 +8,29 @@ export default function VerifyStep() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleContinue = () => {
-    router.push('/onboarding/details');
+  const handleContinue = async () => {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    // Mark as verified
+    await supabase.from('users').update({ verified: true }).eq('id', user.id);
+
+    // Fetch user role
+    const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
+    if (error || !data?.role) {
+      setLoading(false);
+      return;
+    }
+
+    const redirectMap: Record<string, string> = {
+      buyer: '/buyer/marketplace',
+      seller: '/seller/dashboard',
+      stylist: '/stylist/dashboard',
+      driver: '/driver/dashboard',
+    };
+
+    router.push(redirectMap[data.role] || '/');
   };
 
   return (

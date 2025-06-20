@@ -52,7 +52,13 @@ export default function AuthPage() {
         if (!existingUsers || existingUsers.length === 0) {
           const { error: insertError } = await supabase
             .from('users')
-            .insert([{ id: signUpData.user.id, email: signUpData.user.email }]);
+            .insert([{
+              id: signUpData.user.id,
+              email: signUpData.user.email,
+              role: null,
+              details_complete: false,
+              verified: false
+            }]);
           if (insertError) throw new Error('User creation failed in DB.');
         }
 

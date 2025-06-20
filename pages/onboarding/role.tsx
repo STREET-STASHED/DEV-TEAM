@@ -15,7 +15,9 @@ export default function RoleSelection() {
     if (!user) return setError('No authenticated user.');
 
     const { error: roleError } = await supabase.from('users').update({
-      role: selectedRole
+      role: selectedRole,
+      details_complete: false,
+      verified: false
     }).eq('id', user.id);
 
     if (roleError) return setError(roleError.message);
