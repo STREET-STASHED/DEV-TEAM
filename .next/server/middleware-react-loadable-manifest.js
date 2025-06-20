@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"_app.tsx -> ../components/CartDrawer\":{\"id\":\"_app.tsx -> ../components/CartDrawer\",\"files\":[]}}"

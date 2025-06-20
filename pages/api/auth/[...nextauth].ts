@@ -12,14 +12,20 @@ export default NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // Replace with your Supabase logic or API call
-        if (
-          credentials?.email === "admin@streetstashed.com" &&
-          credentials?.password === "password123"
-        ) {
-          return { id: "1", name: "Admin", email: "admin@streetstashed.com", role: "admin" };
-        }
-        return null;
+        if (!credentials?.email || !credentials?.password) return null;
+
+        // Simulated Supabase call
+        const user = {
+          id: "user-id-123",
+          name: "Phillip",
+          email: credentials.email,
+          role: credentials.email.includes("stylist") ? "stylist"
+               : credentials.email.includes("seller") ? "seller"
+               : credentials.email.includes("driver") ? "driver"
+               : "buyer"
+        };
+
+        return user;
       }
     }),
   ],
@@ -38,7 +44,9 @@ export default NextAuth({
     },
     async jwt(params) {
       const { token, user } = params;
-      if (user && (user as any).role) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
         token.role = (user as any).role;
       }
       return token;
@@ -46,9 +54,10 @@ export default NextAuth({
     async session(params) {
       const { session, token } = params;
       if (session.user) {
-        (session.user as any).role = token.role as string | undefined;
+        (session.user as any).id = token.id;
+        (session.user as any).email = token.email;
+        (session.user as any).role = token.role;
       }
-      // Ensure session.expires exists for TypeScript
       if (!session.expires && (token as any).exp) {
         session.expires = new Date((token as any).exp * 1000).toISOString();
       }
