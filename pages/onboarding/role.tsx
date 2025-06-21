@@ -7,10 +7,34 @@ export default function RoleSelection() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        router.push('/signup');
+      }
+    };
+
+    checkAuth();
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Use mock user_id for onboarding; replace with real logic later
-    const user_id = router.query.user_id || 'test-user-id';
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      router.push('/signup');
+      return;
+    }
+
+    const user_id = user.id;
 
     const { error: roleError } = await supabase.from('users').update({
       role: selectedRole,
@@ -20,17 +44,18 @@ export default function RoleSelection() {
 
     if (roleError) return setError('Something went wrong. Please try again.');
 
-    router.push('/onboarding/details');
+    // After role selection, user is redirected to verification step
+    router.push('/onboarding/verify');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-white rounded shadow space-y-4">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Select Your Role</h2>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-black rounded shadow space-y-4">
+      <h2 className="text-2xl font-semibold mb-4 text-center text-white">Select Your Role</h2>
       <select
         value={selectedRole}
         onChange={(e) => setSelectedRole(e.target.value)}
         required
-        className="w-full p-3 border border-gray-300 rounded"
+        className="w-full p-3 border border-gray-300 rounded text-white bg-black"
       >
         <option value="">Choose a role</option>
         <option value="buyer">Buyer</option>
@@ -44,7 +69,7 @@ export default function RoleSelection() {
       >
         Continue
       </button>
-      {error && <p className="text-red-600 text-sm text-center">{error}</p>}
+      {error && <p className="text-red-500 text-sm text-center bg-black">{error}</p>}
     </form>
   );
 }

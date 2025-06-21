@@ -7,6 +7,19 @@ export default function OnboardingDetails() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push('/signup'); // redirect if not signed in
+      }
+    };
+    checkUser();
+  }, [router]);
+
   // Form fields
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
