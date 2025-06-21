@@ -6,8 +6,9 @@ const Hero = () => {
   const { data: session } = useSession();
   const router = useRouter();
 
+  // Begin multi-step onboarding flow: signup → role → details → verify → dashboard
   const handleJoin = () => {
-    router.push('/onboarding/details');
+    router.push('/signup');
   };
 
   return (

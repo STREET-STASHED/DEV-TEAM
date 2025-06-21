@@ -20,22 +20,7 @@ export default function RoleSelection() {
 
     if (roleError) return setError(roleError.message);
 
-    switch (selectedRole) {
-      case 'buyer':
-        router.push('/buyers/index');
-        break;
-      case 'seller':
-        router.push('/seller/dashboard');
-        break;
-      case 'stylist':
-        router.push('/stylist/dashboard');
-        break;
-      case 'driver':
-        router.push('/driver/dashboard');
-        break;
-      default:
-        router.push('/');
-    }
+    router.push('/onboarding/details');
   };
 
   return (
@@ -57,7 +42,7 @@ export default function RoleSelection() {
         type="submit"
         className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded"
       >
-        Continue to Onboarding
+        Continue
       </button>
       {error && <p className="text-red-600 text-sm text-center">{error}</p>}
     </form>

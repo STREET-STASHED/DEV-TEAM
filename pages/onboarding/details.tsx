@@ -32,7 +32,7 @@ export default function OnboardingDetails() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let updateData: any = { details_complete: true, onboarded: true };
+    let updateData: any = { details_complete: true, onboarded: true, role };
 
     if (role === 'seller') {
       updateData.store_name = storeName;
@@ -45,85 +45,101 @@ export default function OnboardingDetails() {
       updateData.portfolio = portfolio;
     }
 
-    await supabase.from('users').update(updateData).eq('id', user.id);
+    const { error } = await supabase.from('users').update(updateData).eq('id', user.id);
+    if (error) {
+      console.error('Update failed:', error);
+      return;
+    }
 
-    // Redirect based on role and details_complete flag
     const redirectMap: Record<string, string> = {
-      buyer: '/buyer/marketplace',
       seller: '/seller/dashboard',
       stylist: '/stylist/dashboard',
       driver: '/driver/dashboard',
+      buyer: '/buyer/marketplace',
     };
     router.push(redirectMap[role] || '/');
   };
 
   if (loading) return <p>Loading...</p>;
+  if (!role) return <p className="text-center text-red-500">Role not defined. Please restart onboarding.</p>;
+
+  // Section title based on role
+  let sectionTitle = '';
+  if (role === 'seller') sectionTitle = 'Seller Onboarding';
+  else if (role === 'driver') sectionTitle = 'Driver Onboarding';
+  else if (role === 'stylist') sectionTitle = 'Stylist Onboarding';
+  else sectionTitle = 'Onboarding';
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl mx-auto p-4 space-y-4">
-      {role === 'seller' && (
-        <>
-          <h2 className="text-2xl font-bold mb-2">Seller Onboarding</h2>
-          <input
-            className="w-full border p-2 rounded"
-            placeholder="Store Name"
-            required
-            value={storeName}
-            onChange={(e) => setStoreName(e.target.value)}
-          />
-          <input
-            className="w-full border p-2 rounded"
-            placeholder="Store Description"
-            required
-            value={storeDescription}
-            onChange={(e) => setStoreDescription(e.target.value)}
-          />
-        </>
-      )}
-      {role === 'driver' && (
-        <>
-          <h2 className="text-2xl font-bold mb-2">Driver Onboarding</h2>
-          <input
-            className="w-full border p-2 rounded"
-            placeholder="Vehicle Type"
-            required
-            value={vehicleType}
-            onChange={(e) => setVehicleType(e.target.value)}
-          />
-          <input
-            className="w-full border p-2 rounded"
-            placeholder="Driver’s License Number"
-            required
-            value={licenseNumber}
-            onChange={(e) => setLicenseNumber(e.target.value)}
-          />
-        </>
-      )}
-      {role === 'stylist' && (
-        <>
-          <h2 className="text-2xl font-bold mb-2">Stylist Onboarding</h2>
-          <input
-            className="w-full border p-2 rounded"
-            placeholder="Specialties"
-            required
-            value={specialties}
-            onChange={(e) => setSpecialties(e.target.value)}
-          />
-          <input
-            className="w-full border p-2 rounded"
-            placeholder="Instagram / Portfolio"
-            required
-            value={portfolio}
-            onChange={(e) => setPortfolio(e.target.value)}
-          />
-        </>
-      )}
-      <button
-        type="submit"
-        className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded"
-      >
-        Finish Onboarding
-      </button>
-    </form>
+    <div className="max-w-xl mx-auto mt-8">
+      <h1 className="text-3xl font-bold text-center mb-6">{sectionTitle}</h1>
+      <div className="bg-white shadow-lg rounded-lg p-8">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {role === 'seller' && (
+            <>
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Store Name"
+                required
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+              />
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Store Description"
+                required
+                value={storeDescription}
+                onChange={(e) => setStoreDescription(e.target.value)}
+              />
+            </>
+          )}
+          {role === 'driver' && (
+            <>
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Vehicle Type"
+                required
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value)}
+              />
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Driver’s License Number"
+                required
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+              />
+            </>
+          )}
+          {role === 'stylist' && (
+            <>
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Specialties"
+                required
+                value={specialties}
+                onChange={(e) => setSpecialties(e.target.value)}
+              />
+              <input
+                className="w-full border p-2 rounded"
+                placeholder="Instagram / Portfolio"
+                required
+                value={portfolio}
+                onChange={(e) => setPortfolio(e.target.value)}
+              />
+            </>
+          )}
+          <button
+            type="submit"
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded w-full"
+          >
+            {role === 'seller' && 'Start Selling'}
+            {role === 'driver' && 'Start Driving'}
+            {role === 'stylist' && 'Start Styling'}
+            {!['seller', 'driver', 'stylist'].includes(role) && 'Finish Onboarding'}
+          </button>
+        </form>
+      </div>
+    </div>
   );
 }
