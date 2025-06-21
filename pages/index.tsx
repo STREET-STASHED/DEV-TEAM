@@ -15,11 +15,39 @@ export default function Home() {
     const redirectUser = async () => {
       if (!session?.user?.email) return;
 
-      const role = await getUserRole(session.user.email); // Fetch role from Supabase
-      if (role === 'seller') router.push('/seller/dashboard');
-      else if (role === 'stylist') router.push('/stylist/dashboard');
-      else if (role === 'driver') router.push('/driver/dashboard');
-      else router.push('/buyers/marketplace');
+      const { data, error } = await supabase
+        .from('users')
+        .select('role, details_complete')
+        .eq('email', session.user.email)
+        .single();
+
+      if (error || !data) {
+        console.error('User data fetch error or user not found');
+        return;
+      }
+
+      const { role, details_complete } = data;
+
+      if (!details_complete) {
+        router.push('/onboarding/details');
+      } else if (!role) {
+        router.push('/onboarding/role');
+      } else {
+        switch (role) {
+          case 'seller':
+            router.push('/seller/dashboard');
+            break;
+          case 'stylist':
+            router.push('/stylist/dashboard');
+            break;
+          case 'driver':
+            router.push('/driver/dashboard');
+            break;
+          default:
+            router.push('/buyers/marketplace');
+            break;
+        }
+      }
     };
 
     redirectUser();

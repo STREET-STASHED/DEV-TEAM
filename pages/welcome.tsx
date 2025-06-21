@@ -27,7 +27,7 @@ export default function WelcomePage() {
           🔍 Browse Drops
         </button>
         <button
-          onClick={() => router.push('/onboarding/role')}
+          onClick={() => router.push('/signup')}
           className="bg-white hover:bg-yellow-200 text-black font-bold py-3 px-8 rounded-full text-lg transition"
         >
           🚀 Join as Seller, Stylist or Driver

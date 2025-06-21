@@ -69,27 +69,10 @@ export default function AuthPage() {
           if (insertError) throw new Error('User creation failed in DB.');
         }
 
-        // After signup, redirect based on role if available, otherwise to onboarding/role
+        // After signup, begin onboarding step-by-step
         const userId = signUpData.user.id;
 
-        const { data: userRow, error: dbErr } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', userId)
-          .single();
-
-        if (dbErr || !userRow || !userRow.role) {
-          // Ensure they go through onboarding multi-step flow
-          router.replace('/onboarding/details');
-        } else {
-          const redirectMap: Record<string, string> = {
-            buyer: '/buyer/marketplace',
-            seller: '/seller/dashboard',
-            stylist: '/stylist/dashboard',
-            driver: '/driver/dashboard',
-          };
-          router.replace(redirectMap[userRow.role] || '/onboarding/details');
-        }
+        router.replace('/onboarding/details');
         setLoading(false);
         return;
       } else {
@@ -121,24 +104,41 @@ export default function AuthPage() {
         return;
       }
 
-      const redirectMap: Record<string, string> = {
+      const { data: userInfo, error: userErr } = await supabase
+        .from('users')
+        .select('role, details_complete, verified')
+        .eq('id', userId)
+        .single();
+
+      if (userErr || !userInfo) {
+        console.error('User fetch error:', userErr);
+        return router.replace('/onboarding/details');
+      }
+
+      if (!userInfo.details_complete) {
+        return router.replace('/onboarding/details');
+      }
+
+      if (!userInfo.role) {
+        return router.replace('/onboarding/role');
+      }
+
+      if (!userInfo.verified) {
+        return router.replace('/onboarding/verify');
+      }
+
+      const roleRedirectMap: Record<string, string> = {
         buyer: '/buyer/marketplace',
         seller: '/seller/dashboard',
         stylist: '/stylist/dashboard',
         driver: '/driver/dashboard',
       };
 
-      // Redirect robustly based on role
-      if (dbRole === 'buyer' || dbRole === 'visitor') {
-        // Buyers and visitors go to the marketplace
-        router.replace('/buyer/marketplace');
-      } else if (redirectMap[dbRole]) {
-        // All other roles go to their dashboard
-        router.replace(redirectMap[dbRole]);
-      } else {
-        // If no role found, go to onboarding to finish setup
-        router.replace('/onboarding');
+      if (userInfo.role in roleRedirectMap) {
+        return router.replace(roleRedirectMap[userInfo.role]);
       }
+
+      router.replace('/onboarding/details');
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');

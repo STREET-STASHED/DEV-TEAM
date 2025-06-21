@@ -44,7 +44,7 @@ export default function RoleSelection() {
 
     if (roleError) return setError('Something went wrong. Please try again.');
 
-    // After role selection, user is redirected to verification step
+    // After role selection, user is redirected to verify step
     router.push('/onboarding/verify');
   };
 

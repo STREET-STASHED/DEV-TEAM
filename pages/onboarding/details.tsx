@@ -69,13 +69,8 @@ useEffect(() => {
       return;
     }
 
-    const redirectMap: Record<string, string> = {
-      seller: '/seller/dashboard',
-      stylist: '/stylist/dashboard',
-      driver: '/driver/dashboard',
-      buyer: '/buyer/marketplace',
-    };
-    router.push(redirectMap[role] || '/');
+    // After successful update, redirect to the role selection step
+    router.push('/onboarding/role');
   };
 
 if (loading) return <p>Loading...</p>;

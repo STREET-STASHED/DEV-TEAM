@@ -27,14 +27,14 @@ export default function VerifyStep() {
         return;
       }
 
-      const { data: roleData, error: roleError } = await supabase
+      const { data: userData, error: userFetchError } = await supabase
         .from('users')
-        .select('role')
+        .select('role, details_complete')
         .eq('id', user.id)
         .single();
 
-      if (roleError || !roleData?.role) {
-        console.error('Error fetching user role:', roleError);
+      if (userFetchError || !userData?.role || !userData?.details_complete) {
+        console.error('User is missing role or details:', userFetchError);
         setLoading(false);
         return;
       }
@@ -46,7 +46,7 @@ export default function VerifyStep() {
         driver: '/driver/dashboard',
       };
 
-      router.push(redirectMap[roleData.role] || '/');
+      router.push(redirectMap[userData.role] || '/');
     } catch (err) {
       console.error('Unexpected error in verification:', err);
       setLoading(false);
