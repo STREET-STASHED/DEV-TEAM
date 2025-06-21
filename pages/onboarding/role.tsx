@@ -9,16 +9,16 @@ export default function RoleSelection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return setError('No authenticated user.');
+    // Use mock user_id for onboarding; replace with real logic later
+    const user_id = router.query.user_id || 'test-user-id';
 
     const { error: roleError } = await supabase.from('users').update({
       role: selectedRole,
       details_complete: false,
       verified: false
-    }).eq('id', user.id);
+    }).eq('id', user_id);
 
-    if (roleError) return setError(roleError.message);
+    if (roleError) return setError('Something went wrong. Please try again.');
 
     router.push('/onboarding/details');
   };

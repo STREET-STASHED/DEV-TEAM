@@ -16,17 +16,20 @@ export default function OnboardingDetails() {
   const [portfolio, setPortfolio] = useState('');
   const [fullName, setFullName] = useState('');
 
-  useEffect(() => {
-    const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
-        if (data?.role) setRole(data.role);
-      }
-      setLoading(false);
-    };
-    fetchRole();
-  }, []);
+useEffect(() => {
+  const fetchRole = async () => {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (user) {
+      const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
+      if (data?.role) setRole(data.role);
+      else console.warn('Role not found in DB:', error);
+    } else {
+      console.warn('No user found in supabase auth:', userError);
+    }
+    setLoading(false);
+  };
+  fetchRole();
+}, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,8 +65,18 @@ export default function OnboardingDetails() {
     router.push(redirectMap[role] || '/');
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!role) return <p className="text-center text-red-500">Role not defined. Please restart onboarding.</p>;
+if (loading) return <p>Loading...</p>;
+if (!role) return (
+  <div className="text-center text-red-500 mt-10">
+    <p>Role not defined. Please restart onboarding or contact support.</p>
+    <button
+      onClick={() => router.push('/onboarding/role')}
+      className="mt-4 px-4 py-2 bg-yellow-400 text-black rounded"
+    >
+      Choose Role
+    </button>
+  </div>
+);
 
   // Section title based on role
   let sectionTitle = '';
