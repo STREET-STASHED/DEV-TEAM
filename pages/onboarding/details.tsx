@@ -14,6 +14,7 @@ export default function OnboardingDetails() {
   const [licenseNumber, setLicenseNumber] = useState('');
   const [specialties, setSpecialties] = useState('');
   const [portfolio, setPortfolio] = useState('');
+  const [fullName, setFullName] = useState('');
 
   useEffect(() => {
     const fetchRole = async () => {
@@ -33,6 +34,7 @@ export default function OnboardingDetails() {
     if (!user) return;
 
     let updateData: any = { details_complete: true, onboarded: true, role };
+    updateData.full_name = fullName;
 
     if (role === 'seller') {
       updateData.store_name = storeName;
@@ -73,8 +75,15 @@ export default function OnboardingDetails() {
   return (
     <div className="max-w-xl mx-auto mt-8">
       <h1 className="text-3xl font-bold text-center mb-6">{sectionTitle}</h1>
-      <div className="bg-white shadow-lg rounded-lg p-8">
+      <div className="bg-black shadow-lg rounded-lg p-8">
         <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            className="w-full border p-2 rounded"
+            placeholder="Full Name"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
           {role === 'seller' && (
             <>
               <input
@@ -131,7 +140,7 @@ export default function OnboardingDetails() {
           )}
           <button
             type="submit"
-            className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded w-full"
+            className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-lg shadow-md w-full transition duration-200 ease-in-out"
           >
             {role === 'seller' && 'Start Selling'}
             {role === 'driver' && 'Start Driving'}
