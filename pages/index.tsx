@@ -11,7 +11,18 @@ export default function Home() {
   const router = useRouter();
   const { data: session } = useSession();
 
+  if (!session) {
+    return (
+      <>
+        <Hero />
+        {/* Additional homepage content like featured products, testimonials, or how-it-works sections can go here */}
+      </>
+    );
+  }
+
   useEffect(() => {
+    if (!session) return;
+
     const redirectUser = async () => {
       if (!session?.user?.email) return;
 
@@ -53,10 +64,5 @@ export default function Home() {
     redirectUser();
   }, [session]);
 
-  return (
-    <>
-      <Hero />
-      {/* Additional homepage content like featured products, testimonials, or how-it-works sections can go here */}
-    </>
-  );
+  return null;
 }

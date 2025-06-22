@@ -14,9 +14,9 @@ export default NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Simulated Supabase call
+        // Mock user authentication
         const user = {
-          id: "user-id-123",
+          id: "mock-user-id-" + Math.random().toString(36).substring(2, 8),
           name: "Phillip",
           email: credentials.email,
           role: credentials.email.includes("stylist") ? "stylist"
@@ -39,8 +39,19 @@ export default NextAuth({
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Always redirect to the internal app unless full URL provided
-      return url.startsWith("/") ? `${baseUrl}${url}` : url;
+      try {
+        const parsedUrl = new URL(url, baseUrl);
+        const role = parsedUrl.searchParams.get("role");
+
+        if (role === "seller") return `${baseUrl}/seller/dashboard`;
+        if (role === "stylist") return `${baseUrl}/stylist/dashboard`;
+        if (role === "driver") return `${baseUrl}/driver/dashboard`;
+
+        // default to buyer
+        return `${baseUrl}/buyer/hub`;
+      } catch {
+        return baseUrl;
+      }
     },
     async jwt(params) {
       const { token, user } = params;
@@ -54,9 +65,9 @@ export default NextAuth({
     async session(params) {
       const { session, token } = params;
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).email = token.email;
-        (session.user as any).role = token.role;
+        (session.user as any).id = token?.id || null;
+        (session.user as any).email = token?.email || null;
+        (session.user as any).role = token?.role || "buyer";
       }
       if (!session.expires && (token as any).exp) {
         session.expires = new Date((token as any).exp * 1000).toISOString();

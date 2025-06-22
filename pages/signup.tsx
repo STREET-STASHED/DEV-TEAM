@@ -17,7 +17,7 @@ export default function AuthPage() {
 
   // Ensure signup mode is set from query param
   useEffect(() => {
-    if (router.query.isSignUp === 'true') {
+    if (router.query.isSignUp !== 'false') {
       setIsSignUp(true);
     }
   }, [router.query]);
@@ -76,14 +76,45 @@ export default function AuthPage() {
         setLoading(false);
         return;
       } else {
-        authRes = await supabase.auth.signInWithPassword({ email, password });
-        if (authRes.error) throw authRes.error;
+        const { signIn } = await import('next-auth/react');
+        const signInRes = await signIn('credentials', {
+          email,
+          password,
+          callbackUrl: `/auth/callback?role=unknown`
+        });
+        if (!signInRes || signInRes.error) {
+          throw new Error(signInRes?.error || 'Login failed');
+        }
+        const session = await supabase.auth.getSession();
+        const userId = session.data.session?.user.id;
+
+        if (!userId) {
+          throw new Error('Failed to fetch user ID from session.');
+        }
       }
 
-      const userId = authRes.data.user?.id;
-      if (!userId) throw new Error('Missing user ID');
-
       // Fetch the user's role from the users table for robust redirect
+      // Ensure userId is defined for both sign up and login flows
+      let userId: string | undefined;
+      if (isSignUp) {
+        // userId is already set in sign up flow above
+        // (see: const userId = signUpData.user.id;)
+        // But we need to move it to a higher scope
+        // So, move the declaration above
+        // Already handled above, so do nothing here
+        // userId will be set below for login
+      } else {
+        const session = await supabase.auth.getSession();
+        userId = session.data.session?.user.id;
+        if (!userId) {
+          throw new Error('Failed to fetch user ID from session.');
+        }
+      }
+      if (isSignUp) {
+        // userId was set above in sign up flow
+        userId = (await supabase.auth.getSession()).data.session?.user.id;
+      }
+
       let dbRole;
       try {
         const { data: userRow, error: dbErr } = await supabase
@@ -150,7 +181,7 @@ export default function AuthPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: 'url(/bg/paint-splatter.jpg)' }} // update path as needed
+      style={{ backgroundImage: 'url(/graffiti-bg.png)' }}
     >
       <form
         onSubmit={handleSubmit}

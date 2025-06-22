@@ -6,7 +6,16 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const storedRole = localStorage.getItem('role');
-    if (storedRole) {
+    const detailsCompleted = localStorage.getItem('detailsCompleted');
+    const verified = localStorage.getItem('verified');
+
+    if (!detailsCompleted) {
+      router.push('/onboarding/details');
+    } else if (!storedRole) {
+      router.push('/onboarding/role');
+    } else if (!verified) {
+      router.push('/onboarding/verify');
+    } else {
       router.push(`/${storedRole}/dashboard`);
     }
   }, []);
