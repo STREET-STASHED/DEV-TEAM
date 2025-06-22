@@ -23,3 +23,18 @@ public/sw.js.map
 
 # TypeScript
 *.tsbuildinfo
+
+# Next.js PWA artifacts
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+
+# Next.js build caches
+.next/build-manifest.json
+.next/react-loadable-manifest.json
+.next/cache/
+
+# Package manager lockfiles
+package-lock.json
+yarn.lock
