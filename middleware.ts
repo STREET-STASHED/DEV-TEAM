@@ -1,6 +1,3 @@
-
-
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createMiddlewareSupabaseClient } from '@supabase/auth-helpers-nextjs';
@@ -17,8 +14,8 @@ export async function middleware(req: NextRequest) {
     if (
       pathname.startsWith('/login') ||
       pathname.startsWith('/signup') ||
+      (pathname.startsWith('/api') && !pathname.startsWith('/api/auth')) ||
       pathname.startsWith('/_next') ||
-      pathname.startsWith('/api') ||
       pathname === '/' ||
       pathname.includes('.')
     ) {
@@ -46,7 +43,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // If buyer is trying to visit non-buyer pages, redirect to buyer marketplace
-  if (userInfo?.role === 'buyer' && !pathname.startsWith('/buyer')) {
+  if (userInfo?.role === 'buyer' && !pathname.startsWith('/buyer') && !pathname.startsWith('/api/auth')) {
     return NextResponse.redirect(new URL('/buyer/marketplace', req.url));
   }
 
@@ -55,6 +52,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next|favicon.ico|api|public).*)',
+    '/((?!_next|favicon.ico|api/auth|public).*)',
   ],
 };

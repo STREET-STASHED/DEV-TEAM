@@ -72,7 +72,7 @@ export default function AuthPage() {
         // After signup, begin onboarding step-by-step
         const userId = signUpData.user.id;
 
-        router.replace('/onboarding/details');
+        router.replace('/onboarding/role');
         setLoading(false);
         return;
       } else {
