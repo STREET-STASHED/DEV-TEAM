@@ -37,7 +37,7 @@ const Dashboard: FC = () => {
         setRole(null);
       } else {
         if (!userData?.has_completed_onboarding) {
-          router.push('/onboarding/details');
+          router.push('/verify');
           return;
         }
         setRole(userData?.role || null);
