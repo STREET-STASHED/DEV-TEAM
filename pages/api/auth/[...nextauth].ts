@@ -15,7 +15,7 @@ export default NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${credentials.email}`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(credentials.email)}`, {
             headers: {
               apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
               Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
@@ -52,8 +52,8 @@ export default NextAuth({
     strategy: "jwt",
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: "/onboarding",
+    error: "/onboarding",
     newUser: "/onboarding"
   },
   callbacks: {
@@ -67,9 +67,9 @@ export default NextAuth({
         if (role === "driver") return `${baseUrl}/driver/dashboard`;
 
         // default to buyer
-        return `${baseUrl}/buyer/hub`;
+        return `${baseUrl}/marketplace`;
       } catch {
-        return `${baseUrl}/buyer/hub`;
+        return `${baseUrl}/marketplace`;
       }
     },
     async jwt(params) {
@@ -81,16 +81,17 @@ export default NextAuth({
       }
       return token;
     },
-    async session(params) {
-      const { session, token } = params;
-      if (session.user) {
-        (session.user as any).id = token?.id || null;
-        (session.user as any).email = token?.email || null;
-        (session.user as any).role = token?.role || "buyer";
+    async session({ session, token }) {
+      if (session.user && token) {
+        session.user = {
+          name: null,
+          email: token.email ?? null,
+          image: null,
+          id: token.id,
+          role: token.role || 'buyer',
+        } as unknown as Session["user"];
       }
-      if (!session.expires && (token as any).exp) {
-        session.expires = new Date((token as any).exp * 1000).toISOString();
-      }
+      session.expires = typeof token.exp === 'number' ? new Date(token.exp * 1000).toISOString() : session.expires;
       return session;
     },
   },
