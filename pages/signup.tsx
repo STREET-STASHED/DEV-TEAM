@@ -67,7 +67,7 @@ export default function AuthPage() {
         }
 
         // After signup, begin onboarding step-by-step
-        router.replace('/onboarding/role');
+        router.push('/onboarding/role');
         return;
       } else {
         const { signIn } = await import('next-auth/react');
