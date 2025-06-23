@@ -95,7 +95,15 @@ export default function OnboardingDetails() {
     }
 
     setSubmitting(false);
-    router.push('/dashboard');
+    if (role === 'seller') {
+      router.push('/seller/dashboard');
+    } else if (role === 'driver') {
+      router.push('/driver/dashboard');
+    } else if (role === 'stylist') {
+      router.push('/stylist/dashboard');
+    } else {
+      router.push('/dashboard');
+    }
   };
 
   if (loading) return <p>Loading...</p>;
