@@ -110,10 +110,9 @@ export default function AuthPage() {
           throw new Error('Failed to fetch user ID from session.');
         }
       }
-      if (isSignUp) {
-        // userId was set above in sign up flow
-        userId = (await supabase.auth.getSession()).data.session?.user.id;
-      }
+      const session = await supabase.auth.getSession();
+      userId = session.data.session?.user.id;
+      if (!userId) throw new Error('Failed to fetch user ID from session.');
 
       let dbRole;
       try {
@@ -146,12 +145,16 @@ export default function AuthPage() {
         return router.replace('/onboarding/details');
       }
 
-      if (!userInfo.details_complete) {
-        return router.replace('/onboarding/details');
-      }
-
       if (!userInfo.role) {
         return router.replace('/onboarding/role');
+      }
+
+      if (userInfo.role === 'buyer' && userInfo.details_complete) {
+        return router.replace('/buyer/marketplace');
+      }
+
+      if (!userInfo.details_complete) {
+        return router.replace('/onboarding/details');
       }
 
       if (!userInfo.verified) {
@@ -159,7 +162,6 @@ export default function AuthPage() {
       }
 
       const roleRedirectMap: Record<string, string> = {
-        buyer: '/buyer/marketplace',
         seller: '/seller/dashboard',
         stylist: '/stylist/dashboard',
         driver: '/driver/dashboard',

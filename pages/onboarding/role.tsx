@@ -38,14 +38,19 @@ export default function RoleSelection() {
 
     const { error: roleError } = await supabase.from('users').update({
       role: selectedRole,
-      details_complete: false,
+      details_complete: selectedRole === 'buyer',
       verified: false
     }).eq('id', user_id);
 
     if (roleError) return setError('Something went wrong. Please try again.');
 
-    // After role selection, user is redirected to verify step
-    router.push('/onboarding/verify');
+    // Skip details if buyer
+    if (selectedRole === 'buyer') {
+      return router.push('/buyer/marketplace');
+    }
+
+    // After role selection, user is redirected to details step
+    router.push('/onboarding/details');
   };
 
   return (
@@ -58,7 +63,7 @@ export default function RoleSelection() {
         className="w-full p-3 border border-gray-300 rounded text-white bg-black"
       >
         <option value="">Choose a role</option>
-        <option value="buyer">Buyer</option>
+        <option value="buyer">Buyer (I’m just here to shop)</option>
         <option value="seller">Seller</option>
         <option value="stylist">Stylist</option>
         <option value="driver">Driver</option>

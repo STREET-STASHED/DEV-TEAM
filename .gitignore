@@ -1,40 +1,32 @@
-# Node
-node_modules
+# Node modules
+node_modules/
 
-# Vercel
-.vercel
+# Build output
+.next/
+out/
 
-# Next.js build
-.next
+# Vercel config
+.vercel/
 
 # System files
 .DS_Store
 
-# Local environment variables
+# Environment variables
 .env
 .env.local
-
-# Build artifacts
-out/
-public/sw.js.map
 
 # Logs
 *.log
 
-# TypeScript
+# TypeScript build info
 *.tsbuildinfo
 
-# Next.js PWA artifacts
+# PWA and service workers
 public/sw.js
 public/sw.js.map
 public/workbox-*.js
 public/workbox-*.js.map
 
-# Next.js build caches
-.next/build-manifest.json
-.next/react-loadable-manifest.json
-.next/cache/
-
-# Package manager lockfiles
+# Lockfiles
 package-lock.json
 yarn.lock
