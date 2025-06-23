@@ -34,13 +34,16 @@ export default function RoleSelection() {
       return;
     }
 
-    const user_id = user.id;
+    const user_id = user.id || user.user_metadata?.sub;
 
-    const { error: roleError } = await supabase.from('users').update({
-      role: selectedRole,
-      details_complete: selectedRole === 'buyer',
-      verified: false
-    }).eq('uuid', user_id);
+    const { error: roleError } = await supabase
+      .from('users')
+      .update({
+        role: selectedRole,
+        details_complete: selectedRole === 'buyer',
+        verified: false
+      })
+      .eq('uuid', user_id); // ensuring we're matching the correct column
 
     if (roleError) return setError('Something went wrong. Please try again.');
 
