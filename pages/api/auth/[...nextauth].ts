@@ -14,29 +14,37 @@ export default NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Query Supabase for user by email and password (mocked here)
-        const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${credentials.email}`, {
-          headers: {
-            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-            Prefer: 'return=representation'
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${credentials.email}`, {
+            headers: {
+              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+              Prefer: 'return=representation'
+            }
+          });
+
+          if (!res.ok) {
+            console.error("Supabase fetch error:", res.statusText);
+            return null;
           }
-        });
 
-        const users = await res.json();
+          const users = await res.json();
+          const user = users?.[0];
 
-        const user = users?.[0];
+          if (user) {
+            return {
+              id: user.id,
+              name: user.full_name || user.email,
+              email: user.email,
+              role: user.role || 'buyer'
+            };
+          }
 
-        if (user) {
-          return {
-            id: user.id,
-            name: user.full_name || user.email,
-            email: user.email,
-            role: user.role || 'buyer'
-          };
+          return null;
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
         }
-
-        return null;
       }
     }),
   ],
@@ -61,7 +69,7 @@ export default NextAuth({
         // default to buyer
         return `${baseUrl}/buyer/hub`;
       } catch {
-        return baseUrl;
+        return `${baseUrl}/buyer/hub`;
       }
     },
     async jwt(params) {

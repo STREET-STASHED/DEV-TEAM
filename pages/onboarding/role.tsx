@@ -43,7 +43,7 @@ export default function RoleSelection() {
         details_complete: selectedRole === 'buyer',
         verified: false
       })
-      .eq('uuid', user_id); // ensuring we're matching the correct column
+      .eq('id', user_id); // ensuring we're matching the correct column
 
     if (roleError) return setError('Something went wrong. Please try again.');
 
