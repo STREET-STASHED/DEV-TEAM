@@ -66,8 +66,18 @@ export default function AuthPage() {
           if (insertError) throw new Error('User creation failed in DB.');
         }
 
-        // After signup, begin onboarding step-by-step
-        router.push('/onboarding/role');
+        // After signup, wait for session to initialize before redirecting
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
+
+        if (sessionError || !session) {
+          console.warn('Session not ready, redirecting to login as fallback.');
+          router.push('/login');
+        } else {
+          router.push('/onboarding/role');
+        }
         return;
       } else {
         const { signIn } = await import('next-auth/react');
