@@ -40,7 +40,7 @@ export default function RoleSelection() {
       role: selectedRole,
       details_complete: selectedRole === 'buyer',
       verified: false
-    }).eq('id', user_id);
+    }).eq('uuid', user_id);
 
     if (roleError) return setError('Something went wrong. Please try again.');
 

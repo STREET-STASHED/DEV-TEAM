@@ -87,9 +87,20 @@ export default function OnboardingDetails() {
       updateData.bundles = bundles;
     }
 
-    const { error } = await supabase.from('users').update(updateData).eq('id', user.id);
+    const { data: updateResult, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', user.id)
+      .select();
+
     if (error) {
-      console.error('Update failed:', error);
+      console.error('Update failed:', error.message);
+      setSubmitting(false);
+      return;
+    }
+
+    if (!updateResult || updateResult.length === 0) {
+      console.error('Update returned no data. Check if user exists and row-level security (RLS) policies allow updates.');
       setSubmitting(false);
       return;
     }
