@@ -28,8 +28,6 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      let authRes;
-
       if (isSignUp) {
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -41,7 +39,6 @@ export default function AuthPage() {
           if (signUpError.message.includes('already registered')) {
             alert('User already registered. Please log in instead.');
             setIsSignUp(false);
-            setLoading(false);
             return;
           }
           throw signUpError;
@@ -70,10 +67,7 @@ export default function AuthPage() {
         }
 
         // After signup, begin onboarding step-by-step
-        const userId = signUpData.user.id;
-
         router.replace('/onboarding/role');
-        setLoading(false);
         return;
       } else {
         const { signIn } = await import('next-auth/react');
@@ -91,87 +85,67 @@ export default function AuthPage() {
         if (!userId) {
           throw new Error('Failed to fetch user ID from session.');
         }
-      }
 
-      // Fetch the user's role from the users table for robust redirect
-      // Ensure userId is defined for both sign up and login flows
-      let userId: string | undefined;
-      if (isSignUp) {
-        // userId is already set in sign up flow above
-        // (see: const userId = signUpData.user.id;)
-        // But we need to move it to a higher scope
-        // So, move the declaration above
-        // Already handled above, so do nothing here
-        // userId will be set below for login
-      } else {
-        const session = await supabase.auth.getSession();
-        userId = session.data.session?.user.id;
-        if (!userId) {
-          throw new Error('Failed to fetch user ID from session.');
+        // Fetch the user's role from the users table for robust redirect
+        let dbRole;
+        try {
+          const { data: userRow, error: dbErr } = await supabase
+            .from('users')
+            .select('role')
+            .eq('id', userId)
+            .single();
+
+          if (dbErr || !userRow || !userRow.role) {
+            throw new Error('User role not found. Redirecting to onboarding.');
+          }
+
+          dbRole = userRow.role;
+          console.log('Fetched user role from DB:', dbRole);
+        } catch (err) {
+          console.error('Role fetch error:', err);
+          router.replace('/onboarding');
+          return;
         }
-      }
-      const session = await supabase.auth.getSession();
-      userId = session.data.session?.user.id;
-      if (!userId) throw new Error('Failed to fetch user ID from session.');
 
-      let dbRole;
-      try {
-        const { data: userRow, error: dbErr } = await supabase
+        const { data: userInfo, error: userErr } = await supabase
           .from('users')
-          .select('role')
+          .select('role, details_complete, verified')
           .eq('id', userId)
           .single();
 
-        if (dbErr || !userRow || !userRow.role) {
-          throw new Error('User role not found. Redirecting to onboarding.');
+        if (userErr || !userInfo) {
+          console.error('User fetch error:', userErr);
+          return router.replace('/onboarding/details');
         }
 
-        dbRole = userRow.role;
-        console.log('Fetched user role from DB:', dbRole);
-      } catch (err) {
-        console.error('Role fetch error:', err);
-        router.replace('/onboarding');
-        return;
+        if (!userInfo.role) {
+          return router.replace('/onboarding/role');
+        }
+
+        if (userInfo.role === 'buyer' && userInfo.details_complete) {
+          return router.replace('/buyer/marketplace');
+        }
+
+        if (!userInfo.details_complete) {
+          return router.replace('/onboarding/details');
+        }
+
+        if (!userInfo.verified) {
+          return router.replace('/onboarding/verify');
+        }
+
+        const roleRedirectMap: Record<string, string> = {
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+        };
+
+        if (userInfo.role in roleRedirectMap) {
+          return router.replace(roleRedirectMap[userInfo.role]);
+        }
+
+        router.replace('/onboarding/details');
       }
-
-      const { data: userInfo, error: userErr } = await supabase
-        .from('users')
-        .select('role, details_complete, verified')
-        .eq('id', userId)
-        .single();
-
-      if (userErr || !userInfo) {
-        console.error('User fetch error:', userErr);
-        return router.replace('/onboarding/details');
-      }
-
-      if (!userInfo.role) {
-        return router.replace('/onboarding/role');
-      }
-
-      if (userInfo.role === 'buyer' && userInfo.details_complete) {
-        return router.replace('/buyer/marketplace');
-      }
-
-      if (!userInfo.details_complete) {
-        return router.replace('/onboarding/details');
-      }
-
-      if (!userInfo.verified) {
-        return router.replace('/onboarding/verify');
-      }
-
-      const roleRedirectMap: Record<string, string> = {
-        seller: '/seller/dashboard',
-        stylist: '/stylist/dashboard',
-        driver: '/driver/dashboard',
-      };
-
-      if (userInfo.role in roleRedirectMap) {
-        return router.replace(roleRedirectMap[userInfo.role]);
-      }
-
-      router.replace('/onboarding/details');
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');
