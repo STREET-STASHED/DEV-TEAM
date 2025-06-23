@@ -74,7 +74,7 @@ export default function AuthPage() {
 
         if (sessionError || !session) {
           console.warn('Session not ready, redirecting to login as fallback.');
-          router.push('/login');
+          router.push('/onboarding/role');
         } else {
           router.push('/onboarding/role');
         }

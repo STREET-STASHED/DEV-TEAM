@@ -12,9 +12,8 @@ export async function middleware(req: NextRequest) {
   // Allow access to public routes
   if (!session) {
     if (
-      pathname.startsWith('/login') ||
-      pathname.startsWith('/signup') ||
       pathname.startsWith('/onboarding') ||
+      pathname.startsWith('/signup') ||
       pathname.startsWith('/buyer/marketplace') ||
       (pathname.startsWith('/api') && !pathname.startsWith('/api/auth')) ||
       pathname.startsWith('/_next') ||
@@ -25,7 +24,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Redirect unauthenticated users trying to access protected routes
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(new URL('/onboarding', req.url));
   }
 
   const { data: userInfo } = await supabase

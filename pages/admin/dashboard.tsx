@@ -60,7 +60,7 @@ const AdminDashboard = () => {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error || !user) {
           console.error('Auth error or user not found:', error);
-          router.push('/login');
+          router.push('/onboarding');
           return;
         }
 

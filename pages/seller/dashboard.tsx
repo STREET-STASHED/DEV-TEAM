@@ -56,7 +56,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
       if (!localUserId) {
         const session = await supabase.auth.getSession().then((r) => r.data.session);
         if (session?.user) setLocalUserId(session.user.id);
-        else window.location.href = "/login";
+        else window.location.href = "/onboarding";
       }
     }
     fetchUserId();
@@ -71,7 +71,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
       const session = await supabase.auth.getSession().then((r) => r.data.session);
       const currentUser = session?.user;
       if (!currentUser) {
-        window.location.href = "/login";
+        window.location.href = "/onboarding";
         return;
       }
       const { data: user } = await supabase
@@ -578,7 +578,7 @@ export async function getServerSideProps(context: any) {
   if (!session) {
     return {
       redirect: {
-        destination: "/login",
+        destination: "/onboarding",
         permanent: false,
       },
     };

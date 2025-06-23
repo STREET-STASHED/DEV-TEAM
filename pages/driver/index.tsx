@@ -11,7 +11,7 @@ export default function DriverIndex() {
 
     const timeout = setTimeout(() => {
       if (!user) {
-        router.replace('/login');
+        router.replace('/onboarding');
       } else if (user?.role === 'driver') {
         router.replace('/driver/dashboard');
       } else {
