@@ -14,18 +14,29 @@ export default NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        // Mock user authentication
-        const user = {
-          id: "mock-user-id-" + Math.random().toString(36).substring(2, 8),
-          name: "Phillip",
-          email: credentials.email,
-          role: credentials.email.includes("stylist") ? "stylist"
-               : credentials.email.includes("seller") ? "seller"
-               : credentials.email.includes("driver") ? "driver"
-               : "buyer"
-        };
+        // Query Supabase for user by email and password (mocked here)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${credentials.email}`, {
+          headers: {
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+            Prefer: 'return=representation'
+          }
+        });
 
-        return user;
+        const users = await res.json();
+
+        const user = users?.[0];
+
+        if (user) {
+          return {
+            id: user.id,
+            name: user.full_name || user.email,
+            email: user.email,
+            role: user.role || 'buyer'
+          };
+        }
+
+        return null;
       }
     }),
   ],

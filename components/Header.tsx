@@ -1,16 +1,40 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import supabase from '../lib/supabaseClient';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
 
 const Header = () => {
+  const router = useRouter();
   const { totalCount } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
+        setRole(data?.role || null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleCartOpen = () => setCartOpen(true);
+
+  const handleJoinClick = () => {
+    if (!user) return router.push('/signup');
+    if (!role) return router.push('/onboarding/role');
+    if (role === 'buyer') return router.push('/buyer/marketplace');
+    router.push(`/${role}/dashboard`);
+  };
 
   return (
     <>
@@ -63,11 +87,12 @@ const Header = () => {
               <span className="cursor-pointer hover:text-yellow-400 transition">Track Order</span>
             </Link>
             {/* Become a Seller */}
-            <Link href="/welcome" passHref>
-              <span className="ml-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition cursor-pointer">
-                Join Us
-              </span>
-            </Link>
+            <span
+              className="ml-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition cursor-pointer"
+              onClick={handleJoinClick}
+            >
+              Join Us
+            </span>
             {/* Cart Icon */}
             <span
               role="button"
@@ -133,7 +158,12 @@ const Header = () => {
               <Link href="/stores" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Stores</Link>
               <Link href="/stylists" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Stylists</Link>
               <Link href="/track-order" onClick={() => setMenuOpen(false)} className="font-bold text-xl hover:text-yellow-400 transition">Track Order</Link>
-              <Link href="/welcome" onClick={() => setMenuOpen(false)} className="mt-2 bg-yellow-400 text-black px-4 py-3 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition text-lg">Join Us</Link>
+              <span
+                onClick={() => { setMenuOpen(false); handleJoinClick(); }}
+                className="mt-2 bg-yellow-400 text-black px-4 py-3 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition text-lg"
+              >
+                Join Us
+              </span>
               <span
                 className="relative cursor-pointer text-3xl"
                 onClick={() => { setMenuOpen(false); handleCartOpen(); }}
