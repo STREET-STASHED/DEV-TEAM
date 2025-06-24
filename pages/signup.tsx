@@ -53,18 +53,17 @@ export default function AuthPage() {
 
         if (fetchError) throw new Error('Could not check for existing user.');
 
-        if (!existingUsers || existingUsers.length === 0) {
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert([{
-              id: signUpData.user.id,
-              email: signUpData.user.email,
-              role: null,
-              details_complete: false,
-              verified: false
-            }]);
-          if (insertError) throw new Error('User creation failed in DB.');
-        }
+        const { error: upsertError } = await supabase
+          .from('users')
+          .upsert([{
+            id: signUpData.user.id,
+            email: signUpData.user.email,
+            role: null,
+            details_complete: false,
+            verified: false
+          }], { onConflict: 'id' });
+
+        if (upsertError) throw new Error('User creation/upsert failed in DB.');
 
         // After signup, wait for session to initialize before redirecting
         const {

@@ -13,18 +13,31 @@ export default function WelcomePage() {
 
       if (!user) return; // allow guests to stay on welcome page
 
-      const storedRole = localStorage.getItem('role');
-      const detailsCompleted = localStorage.getItem('detailsCompleted');
-      const verified = localStorage.getItem('verified');
+      const { data: userInfo, error } = await supabase
+        .from('users')
+        .select('role, details_complete, verified')
+        .eq('id', user.id)
+        .single();
 
-      if (!storedRole) {
-        router.push('/onboarding/role');
-      } else if (!detailsCompleted) {
+      if (error) {
+        console.error('Error fetching user info:', error);
+        return;
+      }
+
+      if (!userInfo.details_complete) {
         router.push('/onboarding/details');
-      } else if (!verified) {
+      } else if (!userInfo.role) {
+        router.push('/onboarding/role');
+      } else if (!userInfo.verified) {
         router.push('/onboarding/verify');
       } else {
-        router.push(`/${storedRole}/dashboard`);
+        const dashboardMap: Record<string, string> = {
+          buyer: '/buyer/marketplace',
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+        };
+        router.push(dashboardMap[userInfo.role] || '/');
       }
     };
 
