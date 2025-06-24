@@ -3,98 +3,12 @@ import { useCart } from '../../context/CartContext';
 import { useEffect, useState } from 'react';
 import supabase from '../../lib/supabaseClient';
 
-// Hardcoded demo data for public marketplace
-const demoStores = [
-  {
-    id: '1',
-    name: 'Drip District',
-    category: 'Clothing',
-    products: [
-      {
-        id: '1-1',
-        name: 'Classic Street Hoodie',
-        price: 68,
-        image: 'https://images.unsplash.com/photo-1465101162946-4377e57745c3?auto=format&fit=facearea&w=400&h=400',
-        type: 'Clothing',
-      },
-      {
-        id: '1-2',
-        name: 'Retro Logo Tee',
-        price: 32,
-        image: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=facearea&w=400&h=400',
-        type: 'Clothing',
-      },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Flex Kicks',
-    category: 'Shoes',
-    products: [
-      {
-        id: '2-1',
-        name: 'Air Hustle Sneakers',
-        price: 125,
-        image: 'https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=facearea&w=400&h=400',
-        type: 'Shoes',
-      },
-      {
-        id: '2-2',
-        name: 'Gold Runner Highs',
-        price: 185,
-        image: 'https://images.unsplash.com/photo-1465101178521-c1a9136a83b4?auto=format&fit=facearea&w=400&h=400',
-        type: 'Shoes',
-      },
-    ],
-  },
-  {
-    id: '3',
-    name: 'Iceworks',
-    category: 'Jewelry',
-    products: [
-      {
-        id: '3-1',
-        name: 'Diamond Cuban Chain',
-        price: 2100,
-        image: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?auto=format&fit=facearea&w=400&h=400',
-        type: 'Jewelry',
-      },
-      {
-        id: '3-2',
-        name: 'Gold Micro Jesus Piece',
-        price: 650,
-        image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=facearea&w=400&h=400',
-        type: 'Jewelry',
-      },
-    ],
-  },
-  {
-    id: '4',
-    name: 'Styled by Mya',
-    category: 'Stylist',
-    products: [
-      {
-        id: '4-1',
-        name: 'Birthday Drip Bundle',
-        price: 300,
-        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=400&h=400',
-        type: 'Bundle',
-      },
-      {
-        id: '4-2',
-        name: 'Prom Night Flex',
-        price: 425,
-        image: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=facearea&w=400&h=400',
-        type: 'Bundle',
-      },
-    ],
-  },
-];
-
 export default function Marketplace() {
   const { addItem, hasItem } = useCart();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [stores, setStores] = useState<any[]>([]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -105,7 +19,32 @@ export default function Marketplace() {
     checkAuth();
   }, []);
 
-  const stores = demoStores;
+  useEffect(() => {
+    const fetchStoresWithProducts = async () => {
+      const { data, error } = await supabase
+        .from('stores')
+        .select(`
+          id,
+          name,
+          category,
+          products (
+            id,
+            name,
+            price,
+            image_url,
+            type
+          )
+        `);
+
+      if (error) {
+        console.error('Failed to load stores:', error);
+      } else {
+        setStores(data || []);
+      }
+    };
+
+    fetchStoresWithProducts();
+  }, []);
 
   return (
     <div style={{ padding: 32 }}>
@@ -123,7 +62,7 @@ export default function Marketplace() {
                 <div key={prod.id} style={{ textAlign: 'center' }}>
                   <Link href={`/stores/${store.id}/products/${prod.id}`}>
                     <img
-                      src={prod.image}
+                      src={prod.image_url}
                       alt={prod.name}
                       style={{ width: 90, height: 90, borderRadius: 8, objectFit: 'cover', marginBottom: 6, border: '1px solid #ddd', cursor: 'pointer' }}
                     />
@@ -147,7 +86,7 @@ export default function Marketplace() {
                         id: prod.id,
                         name: prod.name,
                         price: prod.price,
-                        image: prod.image,
+                        image: prod.image_url,
                         quantity: 1,
                       })}
                       disabled={hasItem(prod.id)}

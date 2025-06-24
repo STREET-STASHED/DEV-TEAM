@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
@@ -8,17 +8,38 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 import { useRouter } from 'next/router';
 
 export default function UploadProduct() {
+  const [storeId, setStoreId] = useState('');
+  const [storeList, setStoreList] = useState<any[]>([]);
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserAndStores = async () => {
+      const { data: authData } = await supabase.auth.getUser();
+      const currentUser = authData.user;
+      setUser(currentUser);
+
+      if (currentUser) {
+        const { data: stores, error: storeError } = await supabase
+          .from('stores')
+          .select('id, name')
+          .eq('owner_id', currentUser.id);
+
+        if (!storeError) setStoreList(stores || []);
+      }
+    };
+
+    fetchUserAndStores();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = (await supabase.auth.getUser()).data.user;
 
     if (!user) {
       alert('You must be logged in to upload a product.');
@@ -32,10 +53,10 @@ export default function UploadProduct() {
         {
           name,
           price: parseFloat(price),
-          image: imageUrl || null,
+          image_url: imageUrl || null,
           description,
           quantity: parseInt(quantity),
-          seller_id: user.id,
+          store_id: storeId,
         },
       ]);
 
@@ -54,6 +75,22 @@ export default function UploadProduct() {
     <div style={{ padding: '2rem' }}>
       <h1>Upload Product</h1>
       <form onSubmit={handleSubmit}>
+        <label>
+          Select Store:
+          <select
+            value={storeId}
+            onChange={(e) => setStoreId(e.target.value)}
+            required
+          >
+            <option value="">Select a store</option>
+            {storeList.map((store) => (
+              <option key={store.id} value={store.id}>
+                {store.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <br />
         <label>
           Product Name:
           <input

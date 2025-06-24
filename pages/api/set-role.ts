@@ -67,6 +67,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Always upsert (insert or update) the user's role
     const upsertPayload: Record<string, any> = {
       role,
+      details_complete: true,
+      verified: true,
       updated_at: new Date().toISOString(),
     };
     if (userId) upsertPayload.id = userId;
