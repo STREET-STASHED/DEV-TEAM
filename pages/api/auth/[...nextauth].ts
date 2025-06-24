@@ -52,9 +52,9 @@ export default NextAuth({
     strategy: "jwt",
   },
   pages: {
-    signIn: "/onboarding",
+    signIn: "/onboarding/role",
     error: "/onboarding",
-    newUser: "/onboarding"
+    newUser: "/onboarding/role"
   },
   callbacks: {
     async redirect({ url, baseUrl }) {

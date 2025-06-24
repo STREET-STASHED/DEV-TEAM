@@ -37,7 +37,7 @@ const Dashboard: FC = () => {
         setRole(null);
       } else {
         if (!userData?.has_completed_onboarding) {
-          router.push('/verify');
+          router.push('/onboarding/verify');
           return;
         }
         setRole(userData?.role || null);
@@ -52,7 +52,7 @@ const Dashboard: FC = () => {
   if (loading || !userId) return <p>Loading dashboard...</p>;
 
   return (
-    <AuthGuard role="admin">
+    <AuthGuard role={role || ''}>
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
         <p className="text-gray-600">Role: {role}</p>

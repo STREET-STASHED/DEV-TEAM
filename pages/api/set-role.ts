@@ -1,14 +1,31 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const getUserFromRequest = async (req: NextApiRequest, res: NextApiResponse) => {
+  const supabaseServerClient = createServerSupabaseClient({ req, res });
+  const {
+    data: { user },
+    error,
+  } = await supabaseServerClient.auth.getUser();
+  if (error || !user) {
+    res.status(401).json({ error: 'Unauthorized: unable to retrieve user.' });
+    return null;
+  }
+  return user;
+};
+
 const VALID_ROLES = ['buyer', 'seller', 'driver', 'stylist', 'admin'];
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const authUser = await getUserFromRequest(req, res);
+  if (!authUser) return;
+
   // Only allow POST and PUT for role assignment
   if (req.method !== 'POST' && req.method !== 'PUT') {
     return res.status(405).json({ error: 'Method not allowed. Use POST or PUT.' });

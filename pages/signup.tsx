@@ -74,11 +74,43 @@ export default function AuthPage() {
 
         if (sessionError || !session) {
           console.warn('Session not ready, redirecting to login as fallback.');
-          router.push('/onboarding/role');
-        } else {
-          router.push('/onboarding/role');
+          return router.replace('/onboarding/role');
         }
-        return;
+
+        // Fetch user info and redirect based on onboarding state and role
+        const { data: userInfo, error: userErr } = await supabase
+          .from('users')
+          .select('role, details_complete, verified')
+          .eq('id', signUpData.user.id)
+          .single();
+
+        if (userErr || !userInfo) {
+          console.error('User fetch error after sign-up:', userErr);
+          return router.replace('/onboarding/role');
+        }
+
+        if (!userInfo.role) {
+          return router.replace('/onboarding/role');
+        }
+        if (!userInfo.details_complete) {
+          return router.replace('/onboarding/details');
+        }
+        if (!userInfo.verified) {
+          return router.replace('/onboarding/verify');
+        }
+
+        const roleRedirectMap: Record<string, string> = {
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+          buyer: '/buyer/marketplace',
+        };
+
+        if (userInfo.role in roleRedirectMap) {
+          return router.replace(roleRedirectMap[userInfo.role]);
+        }
+
+        return router.replace('/onboarding/details');
       } else {
         const { signIn } = await import('next-auth/react');
         const signInRes = await signIn('credentials', {

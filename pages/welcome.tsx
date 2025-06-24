@@ -1,23 +1,34 @@
 import { useRouter } from 'next/router';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 export default function WelcomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const storedRole = localStorage.getItem('role');
-    const detailsCompleted = localStorage.getItem('detailsCompleted');
-    const verified = localStorage.getItem('verified');
+    const checkUser = async () => {
+      const supabase = createClientComponentClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
 
-    if (!detailsCompleted) {
-      router.push('/onboarding/details');
-    } else if (!storedRole) {
-      router.push('/onboarding/role');
-    } else if (!verified) {
-      router.push('/onboarding/verify');
-    } else {
-      router.push(`/${storedRole}/dashboard`);
-    }
+      if (!user) return; // allow guests to stay on welcome page
+
+      const storedRole = localStorage.getItem('role');
+      const detailsCompleted = localStorage.getItem('detailsCompleted');
+      const verified = localStorage.getItem('verified');
+
+      if (!storedRole) {
+        router.push('/onboarding/role');
+      } else if (!detailsCompleted) {
+        router.push('/onboarding/details');
+      } else if (!verified) {
+        router.push('/onboarding/verify');
+      } else {
+        router.push(`/${storedRole}/dashboard`);
+      }
+    };
+
+    checkUser();
   }, []);
 
   return (

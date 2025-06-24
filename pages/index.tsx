@@ -39,10 +39,10 @@ export default function Home() {
 
       const { role, details_complete } = data;
 
-      if (!details_complete) {
-        router.push('/onboarding/details');
-      } else if (!role) {
+      if (!role) {
         router.push('/onboarding/role');
+      } else if (!details_complete) {
+        router.push('/onboarding/details');
       } else {
         switch (role) {
           case 'seller':
