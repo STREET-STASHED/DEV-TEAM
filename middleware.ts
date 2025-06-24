@@ -43,8 +43,13 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
-  // If buyer is trying to visit non-buyer pages, redirect to buyer marketplace
-  if (userInfo?.role === 'buyer' && !pathname.startsWith('/buyer') && !pathname.startsWith('/api/auth')) {
+  // Only enforce buyer redirect if onboarding is complete
+  if (
+    userInfo?.role === 'buyer' &&
+    userInfo?.details_complete &&
+    !pathname.startsWith('/buyer') &&
+    !pathname.startsWith('/api/auth')
+  ) {
     return NextResponse.redirect(new URL('/buyer/marketplace', req.url));
   }
 

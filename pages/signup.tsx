@@ -89,11 +89,11 @@ export default function AuthPage() {
           return router.replace('/onboarding/role');
         }
 
-        if (!userInfo.role) {
-          return router.replace('/onboarding/role');
-        }
         if (!userInfo.details_complete) {
           return router.replace('/onboarding/details');
+        }
+        if (!userInfo.role) {
+          return router.replace('/onboarding/role');
         }
         if (!userInfo.verified) {
           return router.replace('/onboarding/verify');
@@ -160,18 +160,12 @@ export default function AuthPage() {
           return router.replace('/onboarding/details');
         }
 
-        if (!userInfo.role) {
-          return router.replace('/onboarding/role');
-        }
-
-        if (userInfo.role === 'buyer' && userInfo.details_complete) {
-          return router.replace('/buyer/marketplace');
-        }
-
         if (!userInfo.details_complete) {
           return router.replace('/onboarding/details');
         }
-
+        if (!userInfo.role) {
+          return router.replace('/onboarding/role');
+        }
         if (!userInfo.verified) {
           return router.replace('/onboarding/verify');
         }
@@ -180,6 +174,7 @@ export default function AuthPage() {
           seller: '/seller/dashboard',
           stylist: '/stylist/dashboard',
           driver: '/driver/dashboard',
+          buyer: '/buyer/marketplace',
         };
 
         if (userInfo.role in roleRedirectMap) {

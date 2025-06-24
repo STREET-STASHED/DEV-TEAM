@@ -37,6 +37,11 @@ export default function Home() {
         return;
       }
 
+      if (!data || !data.role) {
+        router.push('/onboarding/role');
+        return;
+      }
+
       const { role, details_complete } = data;
 
       if (!role) {
@@ -54,8 +59,12 @@ export default function Home() {
           case 'driver':
             router.push('/driver/dashboard');
             break;
-          default:
+          case 'buyer':
             router.push('/buyers/marketplace');
+            break;
+          default:
+            console.warn('Unknown role detected:', role);
+            router.push('/onboarding/role');
             break;
         }
       }
