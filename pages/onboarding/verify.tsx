@@ -33,10 +33,22 @@ export default function VerifyStep() {
         .eq('id', user.id)
         .single();
 
-      if (userFetchError || !userData?.role || !userData?.details_complete) {
-        console.error('User is missing role or details:', userFetchError);
-        alert('Please complete your onboarding before proceeding.');
+      if (userFetchError) {
+        console.error('Error fetching user data:', userFetchError);
+        alert('Error retrieving onboarding info.');
         setLoading(false);
+        return;
+      }
+
+      if (!userData?.details_complete) {
+        alert('Please complete your details first.');
+        router.push('/onboarding/details');
+        return;
+      }
+
+      if (!userData?.role) {
+        alert('Please choose a role before continuing.');
+        router.push('/onboarding/role');
         return;
       }
 

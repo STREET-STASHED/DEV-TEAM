@@ -24,7 +24,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Redirect unauthenticated users trying to access protected routes
-    return NextResponse.redirect(new URL('/onboarding', req.url));
+    return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
   const { data: userInfo } = await supabase
@@ -33,14 +33,14 @@ export async function middleware(req: NextRequest) {
     .eq('id', session.user.id)
     .single();
 
-  // If no role, redirect to onboarding role step
-  if (!userInfo?.role && !pathname.startsWith('/onboarding')) {
-    return NextResponse.redirect(new URL('/onboarding/role', req.url));
+  // If details are incomplete, redirect to onboarding details step
+  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/details')) {
+    return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
-  // If role exists but onboarding not complete, redirect to details step
-  if (userInfo?.role && !userInfo.details_complete && !pathname.startsWith('/onboarding/details')) {
-    return NextResponse.redirect(new URL('/onboarding/details', req.url));
+  // If role is missing after details, redirect to onboarding role step
+  if (!userInfo?.role && !pathname.startsWith('/onboarding/role')) {
+    return NextResponse.redirect(new URL('/onboarding/role', req.url));
   }
 
   // Only enforce buyer redirect if onboarding is complete

@@ -13,7 +13,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
         if (sessionError || !sessionData?.session?.user) {
           console.error('Session error or user not found:', sessionError);
-          return router.push('/onboarding/role');
+          return router.push('/onboarding/details');
         }
 
         const userId = sessionData.session.user.id;
