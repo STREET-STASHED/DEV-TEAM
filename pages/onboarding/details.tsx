@@ -106,15 +106,7 @@ export default function OnboardingDetails() {
     }
 
     setSubmitting(false);
-    if (role === 'seller') {
-      router.push('/seller/dashboard');
-    } else if (role === 'driver') {
-      router.push('/driver/dashboard');
-    } else if (role === 'stylist') {
-      router.push('/stylist/dashboard');
-    } else {
-      router.push('/dashboard');
-    }
+    router.push('/onboarding/role');
   };
 
   if (loading) return <p>Loading...</p>;
@@ -142,120 +134,119 @@ export default function OnboardingDetails() {
   else sectionTitle = 'Onboarding';
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="max-w-xl mx-auto mt-8">
-          <h1 className="text-3xl font-bold text-center mb-6">{sectionTitle}</h1>
-          <div className="bg-white shadow-md rounded-lg p-6 sm:p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <input
-                className="w-full border p-3 rounded text-black placeholder-gray-400"
-                placeholder="Full Name"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-              />
-              <input
-                className="w-full border p-3 rounded text-black placeholder-gray-400"
-                placeholder="Phone Number"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-              />
-              {role === 'seller' && (
-                <>
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Store Name"
-                    required
-                    value={storeName}
-                    onChange={(e) => setStoreName(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Store Description"
-                    required
-                    value={storeDescription}
-                    onChange={(e) => setStoreDescription(e.target.value)}
-                  />
-                </>
-              )}
-              {role === 'driver' && (
-                <>
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Vehicle Type"
-                    required
-                    value={vehicleType}
-                    onChange={(e) => setVehicleType(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Driver’s License Number"
-                    required
-                    value={licenseNumber}
-                    onChange={(e) => setLicenseNumber(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Delivery Radius (miles)"
-                    required
-                    value={deliveryRadius}
-                    onChange={(e) => setDeliveryRadius(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Cash App / Bank Info"
-                    required
-                    value={payoutMethod}
-                    onChange={(e) => setPayoutMethod(e.target.value)}
-                  />
-                </>
-              )}
-              {role === 'stylist' && (
-                <>
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Specialties"
-                    required
-                    value={specialties}
-                    onChange={(e) => setSpecialties(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Instagram / Portfolio"
-                    required
-                    value={portfolio}
-                    onChange={(e) => setPortfolio(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Booking Availability"
-                    required
-                    value={booking}
-                    onChange={(e) => setBooking(e.target.value)}
-                  />
-                  <input
-                    className="w-full border p-3 rounded text-black placeholder-gray-400"
-                    placeholder="Bundle Options (Event / Weekly)"
-                    required
-                    value={bundles}
-                    onChange={(e) => setBundles(e.target.value)}
-                  />
-                </>
-              )}
-              <button
-                type="submit"
-                disabled={submitting}
-                className={`bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-lg shadow-md w-full transition duration-200 ease-in-out ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {role === 'seller' && 'Start Selling'}
-                {role === 'driver' && 'Start Driving'}
-                {role === 'stylist' && 'Start Styling'}
-                {!['seller', 'driver', 'stylist'].includes(role) && 'Finish Onboarding'}
-              </button>
-            </form>
-          </div>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-2xl w-full space-y-8">
+        <div className="bg-white shadow-xl rounded-lg p-8">
+          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">{sectionTitle}</h1>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <input
+              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+              placeholder="Full Name"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+            <input
+              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+              placeholder="Phone Number"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+            {role === 'seller' && (
+              <>
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Store Name"
+                  required
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Store Description"
+                  required
+                  value={storeDescription}
+                  onChange={(e) => setStoreDescription(e.target.value)}
+                />
+              </>
+            )}
+            {role === 'driver' && (
+              <>
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Vehicle Type"
+                  required
+                  value={vehicleType}
+                  onChange={(e) => setVehicleType(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Driver’s License Number"
+                  required
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Delivery Radius (miles)"
+                  required
+                  value={deliveryRadius}
+                  onChange={(e) => setDeliveryRadius(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Cash App / Bank Info"
+                  required
+                  value={payoutMethod}
+                  onChange={(e) => setPayoutMethod(e.target.value)}
+                />
+              </>
+            )}
+            {role === 'stylist' && (
+              <>
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Specialties"
+                  required
+                  value={specialties}
+                  onChange={(e) => setSpecialties(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Instagram / Portfolio"
+                  required
+                  value={portfolio}
+                  onChange={(e) => setPortfolio(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Booking Availability"
+                  required
+                  value={booking}
+                  onChange={(e) => setBooking(e.target.value)}
+                />
+                <input
+                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                  placeholder="Bundle Options (Event / Weekly)"
+                  required
+                  value={bundles}
+                  onChange={(e) => setBundles(e.target.value)}
+                />
+              </>
+            )}
+            <button
+              type="submit"
+              disabled={submitting}
+              className={`bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-md w-full transition duration-200 ease-in-out ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {submitting ? 'Submitting...' :
+                role === 'seller' ? 'Start Selling' :
+                role === 'driver' ? 'Start Driving' :
+                role === 'stylist' ? 'Start Styling' :
+                'Finish Onboarding'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

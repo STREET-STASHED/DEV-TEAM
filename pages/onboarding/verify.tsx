@@ -35,6 +35,7 @@ export default function VerifyStep() {
 
       if (userFetchError || !userData?.role || !userData?.details_complete) {
         console.error('User is missing role or details:', userFetchError);
+        alert('Please complete your onboarding before proceeding.');
         setLoading(false);
         return;
       }

@@ -5,6 +5,8 @@ import supabase from '../../lib/supabaseClient';
 export default function RoleSelection() {
   const [selectedRole, setSelectedRole] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -24,6 +26,10 @@ export default function RoleSelection() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedRole || loading) return;
+
+    setLoading(true);
+
     const {
       data: { user },
       error: authError,
@@ -31,6 +37,7 @@ export default function RoleSelection() {
 
     if (authError || !user) {
       router.push('/signup');
+      setLoading(false);
       return;
     }
 
@@ -43,27 +50,28 @@ export default function RoleSelection() {
         details_complete: selectedRole === 'buyer',
         verified: false
       })
-      .eq('id', user_id); // ensuring we're matching the correct column
+      .eq('id', user_id);
 
-    if (roleError) return setError('Something went wrong. Please try again.');
-
-    // Skip details if buyer
-    if (selectedRole === 'buyer') {
-      return router.push('/buyer/marketplace');
+    if (roleError) {
+      setError('Something went wrong. Please try again.');
+      setLoading(false);
+      return;
     }
 
-    // After role selection, user is redirected to details step
-    router.push('/onboarding/details');
+    setSuccess(true);
+    router.push('/verify');
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-black rounded shadow space-y-4">
-      <h2 className="text-2xl font-semibold mb-4 text-center text-white">Select Your Role</h2>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto mt-10 p-8 bg-black/70 backdrop-blur-md rounded-xl shadow-2xl space-y-6 border border-yellow-400 text-white">
+      <h2 className="text-3xl font-bold text-center text-yellow-400">Select Your Role</h2>
+      
       <select
         value={selectedRole}
         onChange={(e) => setSelectedRole(e.target.value)}
         required
-        className="w-full p-3 border border-gray-300 rounded text-white bg-black"
+        aria-label="Select your role"
+        className="w-full p-3 rounded-lg border border-gray-700 bg-black text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
       >
         <option value="">Choose a role</option>
         <option value="buyer">Buyer (I’m just here to shop)</option>
@@ -71,13 +79,22 @@ export default function RoleSelection() {
         <option value="stylist">Stylist</option>
         <option value="driver">Driver</option>
       </select>
+
       <button
         type="submit"
-        className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-2 px-4 rounded"
+        disabled={!selectedRole || loading}
+        aria-label="Continue to role onboarding"
+        className={`w-full font-semibold py-2 px-4 rounded transition-all ${
+          selectedRole && !loading
+            ? 'bg-yellow-400 hover:bg-yellow-500 text-black'
+            : 'bg-gray-400 text-gray-700 cursor-not-allowed'
+        }`}
       >
-        Continue
+        {loading ? 'Loading...' : 'Continue'}
       </button>
-      {error && <p className="text-red-500 text-sm text-center bg-black">{error}</p>}
+
+      {success && <p className="text-green-400 text-center">Redirecting...</p>}
+      {error && <p className="text-red-500 text-sm text-center">{error}</p>}
     </form>
   );
 }

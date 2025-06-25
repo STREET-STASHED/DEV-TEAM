@@ -35,7 +35,7 @@ const Signup = () => {
 
         const userId = authResponse.data?.user?.id;
         if (userId) {
-          router.push('/onboarding/role');
+          router.push('/onboarding/details');
         }
       } else {
         // Sign in existing user
@@ -52,7 +52,7 @@ const Signup = () => {
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id;
         if (userId) {
-          router.push('/onboarding/role');
+          router.push('/onboarding/details');
         }
       }
     } catch (error: any) {
@@ -64,19 +64,19 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+    <div className="min-h-screen flex items-center justify-center text-white px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-[#111] p-6 rounded-lg shadow-lg w-full max-w-sm space-y-4"
+        className="bg-black/70 backdrop-blur-sm p-8 rounded-xl shadow-2xl w-full max-w-md space-y-6 border border-yellow-400"
       >
-        <h1 className="text-2xl font-bold text-center mb-2">
+        <h1 className="text-3xl font-extrabold text-center text-yellow-400">
           {isSignUp ? 'Create Account' : 'Login'}
         </h1>
 
         <input
           type="email"
           placeholder="Email"
-          className="w-full p-2 bg-gray-800 rounded text-white"
+          className="w-full p-3 bg-gray-900 rounded-lg text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -85,7 +85,7 @@ const Signup = () => {
         <input
           type="password"
           placeholder="Password"
-          className="w-full p-2 bg-gray-800 rounded text-white"
+          className="w-full p-3 bg-gray-900 rounded-lg text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-500"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
