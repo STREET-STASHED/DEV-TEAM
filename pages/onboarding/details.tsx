@@ -33,6 +33,8 @@ export default function OnboardingDetails() {
   const [payoutMethod, setPayoutMethod] = useState('');
   const [booking, setBooking] = useState('');
   const [bundles, setBundles] = useState('');
+  const [email, setEmail] = useState('');
+  const [referralCode, setReferralCode] = useState('');
 
   useEffect(() => {
     const fetchRole = async () => {
@@ -69,6 +71,7 @@ export default function OnboardingDetails() {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       setSubmitting(false);
@@ -118,7 +121,7 @@ export default function OnboardingDetails() {
     }
 
     setSubmitting(false);
-    router.push('/onboarding/role');
+    router.push('/onboarding/verify');
   };
 
   if (loading) return <p>Loading...</p>;
@@ -157,6 +160,20 @@ export default function OnboardingDetails() {
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+            />
+            <input
+              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+              placeholder="Email Address"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <input
+              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+              placeholder="Referral Code (Optional)"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
             />
             {role === 'seller' && (
               <>
@@ -245,11 +262,7 @@ export default function OnboardingDetails() {
               disabled={submitting}
               className={`bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-md w-full transition duration-200 ease-in-out ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {submitting ? 'Submitting...' :
-                role === 'seller' ? 'Start Selling' :
-                role === 'driver' ? 'Start Driving' :
-                role === 'stylist' ? 'Start Styling' :
-                'Finish Onboarding'}
+              {submitting ? 'Submitting...' : 'Next: Verify Identity'}
             </button>
           </form>
         </div>
