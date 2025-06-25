@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { createClient } from "@supabase/supabase-js";
 
 import type { User } from "next-auth";
-import type { AuthOptions } from "next-auth";
+import type { AuthOptions } from "next-auth/core/types";
 import type { JWT } from "next-auth/jwt";
 
 const supabase = createClient(
