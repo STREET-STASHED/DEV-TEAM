@@ -61,11 +61,14 @@ export default function RoleSelection() {
 
     const { error: roleError } = await supabase
       .from('users')
-      .update({
+      .upsert({
+        id: user_id,
         role: selectedRole,
-        verified: false
-      })
-      .eq('id', user_id);
+        onboarded: false,
+        details_complete: false,
+        verified: false,
+        updated_at: new Date().toISOString(),
+      });
 
     if (roleError) {
       setError('Something went wrong. Please try again.');

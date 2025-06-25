@@ -144,11 +144,10 @@ export default function OnboardingDetails() {
   else sectionTitle = 'Onboarding';
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl w-full space-y-8">
-        <div className="bg-white shadow-xl rounded-lg p-8">
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">{sectionTitle}</h1>
-          <form onSubmit={handleSubmit} className="space-y-5">
+    <div className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-xl shadow-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{sectionTitle}</h2>
+        <form onSubmit={handleSubmit} className="space-y-5">
             <input
               className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
               placeholder="Full Name"
@@ -263,7 +262,6 @@ export default function OnboardingDetails() {
               {submitting ? 'Submitting...' : 'Next: Verify Your Account'}
             </button>
           </form>
-        </div>
       </div>
     </div>
   );
