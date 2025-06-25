@@ -48,9 +48,9 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/onboarding/role",
-    error: "/onboarding",
-    newUser: "/onboarding/role",
+    signIn: "/onboarding/details",
+    error: "/onboarding/details",
+    newUser: "/onboarding/details",
   },
   callbacks: {
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {

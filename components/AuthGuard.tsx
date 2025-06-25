@@ -38,7 +38,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
         setLoading(false);
       } catch (err) {
         console.error('Unexpected error in auth guard:', err);
-        router.push('/onboarding/role');
+        router.push('/onboarding/details');
       }
     };
 

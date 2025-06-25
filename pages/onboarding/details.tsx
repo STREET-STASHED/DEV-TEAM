@@ -106,7 +106,7 @@ export default function OnboardingDetails() {
     }
 
     setSubmitting(false);
-    router.push('/onboarding/role');
+    router.push('/onboarding/verify');
   };
 
   if (loading) return <p>Loading...</p>;

@@ -53,6 +53,33 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL('/buyer/marketplace', req.url));
   }
 
+  if (
+    userInfo?.role === 'seller' &&
+    userInfo?.details_complete &&
+    !pathname.startsWith('/seller') &&
+    !pathname.startsWith('/api/auth')
+  ) {
+    return NextResponse.redirect(new URL('/seller/dashboard', req.url));
+  }
+
+  if (
+    userInfo?.role === 'stylist' &&
+    userInfo?.details_complete &&
+    !pathname.startsWith('/stylist') &&
+    !pathname.startsWith('/api/auth')
+  ) {
+    return NextResponse.redirect(new URL('/stylist/dashboard', req.url));
+  }
+
+  if (
+    userInfo?.role === 'driver' &&
+    userInfo?.details_complete &&
+    !pathname.startsWith('/driver') &&
+    !pathname.startsWith('/api/auth')
+  ) {
+    return NextResponse.redirect(new URL('/driver/dashboard', req.url));
+  }
+
   return res;
 }
 

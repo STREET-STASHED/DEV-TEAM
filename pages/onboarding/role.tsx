@@ -59,7 +59,7 @@ export default function RoleSelection() {
     }
 
     setSuccess(true);
-    router.push('/verify');
+    router.push('/onboarding/verify');
   };
 
   return (
