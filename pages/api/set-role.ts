@@ -66,8 +66,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const upsertPayload = {
       id: userId,
       role: normalizedRole,
-      details_complete: true,
-      verified: true,
       updated_at: new Date().toISOString(),
     };
 

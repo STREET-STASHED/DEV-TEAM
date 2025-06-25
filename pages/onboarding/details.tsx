@@ -41,6 +41,17 @@ export default function OnboardingDetails() {
         const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
         if (data?.role) {
           setRole(data.role);
+
+          const { data: detailsCheck } = await supabase
+            .from('users')
+            .select('details_complete')
+            .eq('id', user.id)
+            .single();
+
+          if (detailsCheck?.details_complete) {
+            router.push('/onboarding/verify');
+            return;
+          }
         } else {
           console.warn('Role not set for user. Prompting user to choose a role.');
         }

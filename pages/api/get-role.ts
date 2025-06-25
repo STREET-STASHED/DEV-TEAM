@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select('role')
+    .select('role, details_complete, verified')
     .eq('id', userId)
     .single();
 
@@ -26,5 +26,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: 'Failed to retrieve user role.' });
   }
 
-  return res.status(200).json({ role: data.role });
+  return res.status(200).json({
+    role: (data as any).role,
+    details_complete: (data as any).details_complete,
+    verified: (data as any).verified
+  });
 }

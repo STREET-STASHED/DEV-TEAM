@@ -36,7 +36,21 @@ const Signup = () => {
 
         const user = authResponse.data?.user;
         if (user && user.id) {
-          router.push(redirectToDetails);
+          const { data: userData } = await supabase
+            .from('users')
+            .select('details_complete, role, verified')
+            .eq('id', user.id)
+            .single();
+
+          if (!userData?.details_complete) {
+            router.push('/onboarding/details');
+          } else if (!userData?.role) {
+            router.push('/onboarding/role');
+          } else if (!userData?.verified) {
+            router.push('/onboarding/verify');
+          } else {
+            router.push('/buyer'); // default dashboard
+          }
         }
       } else {
         // Sign in existing user
@@ -53,7 +67,21 @@ const Signup = () => {
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id;
         if (userId) {
-          router.push(redirectToDetails);
+          const { data: userData } = await supabase
+            .from('users')
+            .select('details_complete, role, verified')
+            .eq('id', userId)
+            .single();
+
+          if (!userData?.details_complete) {
+            router.push('/onboarding/details');
+          } else if (!userData?.role) {
+            router.push('/onboarding/role');
+          } else if (!userData?.verified) {
+            router.push('/onboarding/verify');
+          } else {
+            router.push('/buyer'); // default dashboard
+          }
         }
       }
     } catch (error: any) {

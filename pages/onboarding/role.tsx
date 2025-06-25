@@ -59,7 +59,11 @@ export default function RoleSelection() {
     }
 
     setSuccess(true);
-    router.push('/onboarding/details');
+    if (selectedRole === 'buyer') {
+      router.push('/onboarding/verify');
+    } else {
+      router.push('/onboarding/details');
+    }
   };
 
   return (

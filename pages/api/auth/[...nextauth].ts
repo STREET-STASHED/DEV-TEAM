@@ -56,7 +56,12 @@ export const authOptions: AuthOptions = {
     async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       try {
         const parsedUrl = new URL(url, baseUrl);
+        const onboarding = parsedUrl.searchParams.get("onboarding");
         const role = parsedUrl.searchParams.get("role");
+
+        if (onboarding === "details") return `${baseUrl}/onboarding/details`;
+        if (onboarding === "role") return `${baseUrl}/onboarding/role`;
+        if (onboarding === "verify") return `${baseUrl}/onboarding/verify`;
 
         if (role === "seller") return `${baseUrl}/seller/dashboard`;
         if (role === "stylist") return `${baseUrl}/stylist/dashboard`;
