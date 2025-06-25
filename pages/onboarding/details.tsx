@@ -125,11 +125,6 @@ export default function OnboardingDetails() {
   };
 
   if (loading) return <p>Loading...</p>;
-  // Removed this block to allow filling details even if role is not set
-  // if (!role) {
-  //   router.push('/onboarding/role');
-  //   return null;
-  // }
   if (role === 'buyer') {
     router.push('/buyer/marketplace');
     return null;
@@ -175,86 +170,90 @@ export default function OnboardingDetails() {
               value={referralCode}
               onChange={(e) => setReferralCode(e.target.value)}
             />
-            {role === 'seller' && (
+            {(role === 'seller' || role === 'driver' || role === 'stylist') && (
               <>
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Store Name"
-                  required
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Store Description"
-                  required
-                  value={storeDescription}
-                  onChange={(e) => setStoreDescription(e.target.value)}
-                />
-              </>
-            )}
-            {role === 'driver' && (
-              <>
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Vehicle Type"
-                  required
-                  value={vehicleType}
-                  onChange={(e) => setVehicleType(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Driver’s License Number"
-                  required
-                  value={licenseNumber}
-                  onChange={(e) => setLicenseNumber(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Delivery Radius (miles)"
-                  required
-                  value={deliveryRadius}
-                  onChange={(e) => setDeliveryRadius(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Cash App / Bank Info"
-                  required
-                  value={payoutMethod}
-                  onChange={(e) => setPayoutMethod(e.target.value)}
-                />
-              </>
-            )}
-            {role === 'stylist' && (
-              <>
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Specialties"
-                  required
-                  value={specialties}
-                  onChange={(e) => setSpecialties(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Instagram / Portfolio"
-                  required
-                  value={portfolio}
-                  onChange={(e) => setPortfolio(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Booking Availability"
-                  required
-                  value={booking}
-                  onChange={(e) => setBooking(e.target.value)}
-                />
-                <input
-                  className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                  placeholder="Bundle Options (Event / Weekly)"
-                  required
-                  value={bundles}
-                  onChange={(e) => setBundles(e.target.value)}
-                />
+                {role === 'seller' && (
+                  <>
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Store Name"
+                      required
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Store Description"
+                      required
+                      value={storeDescription}
+                      onChange={(e) => setStoreDescription(e.target.value)}
+                    />
+                  </>
+                )}
+                {role === 'driver' && (
+                  <>
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Vehicle Type"
+                      required
+                      value={vehicleType}
+                      onChange={(e) => setVehicleType(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Driver’s License Number"
+                      required
+                      value={licenseNumber}
+                      onChange={(e) => setLicenseNumber(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Delivery Radius (miles)"
+                      required
+                      value={deliveryRadius}
+                      onChange={(e) => setDeliveryRadius(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Cash App / Bank Info"
+                      required
+                      value={payoutMethod}
+                      onChange={(e) => setPayoutMethod(e.target.value)}
+                    />
+                  </>
+                )}
+                {role === 'stylist' && (
+                  <>
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Specialties"
+                      required
+                      value={specialties}
+                      onChange={(e) => setSpecialties(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Instagram / Portfolio"
+                      required
+                      value={portfolio}
+                      onChange={(e) => setPortfolio(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Booking Availability"
+                      required
+                      value={booking}
+                      onChange={(e) => setBooking(e.target.value)}
+                    />
+                    <input
+                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
+                      placeholder="Bundle Options (Event / Weekly)"
+                      required
+                      value={bundles}
+                      onChange={(e) => setBundles(e.target.value)}
+                    />
+                  </>
+                )}
               </>
             )}
             <button

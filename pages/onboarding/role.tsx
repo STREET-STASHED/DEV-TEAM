@@ -69,7 +69,18 @@ export default function RoleSelection() {
       return;
     }
 
-    setSuccess(true);
+    const { data: detailsCheck, error: detailsError } = await supabase
+      .from('users')
+      .select('details_complete')
+      .eq('id', user_id)
+      .single();
+
+    if (detailsError || !detailsCheck?.details_complete) {
+      setError('Please complete your details before continuing.');
+      setLoading(false);
+      return;
+    }
+
     router.push('/onboarding/verify');
   };
 

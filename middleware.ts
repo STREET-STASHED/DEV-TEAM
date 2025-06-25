@@ -29,69 +29,63 @@ export async function middleware(req: NextRequest) {
 
   const { data: userInfo } = await supabase
     .from('users')
-    .select('role, details_complete')
+    .select('role, details_complete, verified')
     .eq('id', session.user.id)
     .single();
 
-  // Redirect if details are not complete (details step comes before role selection)
+  // 1. Details Step
   if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/details')) {
     return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
-  // Redirect if role is not set (after details)
+  // 2. Role Step
   if (!userInfo?.role && !pathname.startsWith('/onboarding/role')) {
     return NextResponse.redirect(new URL('/onboarding/role', req.url));
   }
 
-  // Redirect to verify if both details and role are complete but verification not done
+  // 3. Verify Step
   if (
-    userInfo?.role &&
     userInfo?.details_complete &&
-    !pathname.startsWith('/onboarding/verify') &&
-    !pathname.startsWith('/buyer') &&
-    !pathname.startsWith('/seller') &&
-    !pathname.startsWith('/stylist') &&
-    !pathname.startsWith('/driver') &&
-    !pathname.startsWith('/api/auth')
+    userInfo?.role &&
+    !userInfo?.verified &&
+    !pathname.startsWith('/onboarding/verify')
   ) {
     return NextResponse.redirect(new URL('/onboarding/verify', req.url));
   }
 
-  // Only enforce buyer redirect if onboarding is complete
-  if (
-    userInfo?.role === 'buyer' &&
-    userInfo?.details_complete &&
-    !pathname.startsWith('/buyer') &&
-    !pathname.startsWith('/api/auth')
-  ) {
-    return NextResponse.redirect(new URL('/buyer/marketplace', req.url));
-  }
+  // 4. Role-Based Dashboard Redirect (Only after verification)
+  if (userInfo?.verified) {
+    if (
+      userInfo?.role === 'buyer' &&
+      !pathname.startsWith('/buyer') &&
+      !pathname.startsWith('/api/auth')
+    ) {
+      return NextResponse.redirect(new URL('/buyer/marketplace', req.url));
+    }
 
-  if (
-    userInfo?.role === 'seller' &&
-    userInfo?.details_complete &&
-    !pathname.startsWith('/seller') &&
-    !pathname.startsWith('/api/auth')
-  ) {
-    return NextResponse.redirect(new URL('/seller/dashboard', req.url));
-  }
+    if (
+      userInfo?.role === 'seller' &&
+      !pathname.startsWith('/seller') &&
+      !pathname.startsWith('/api/auth')
+    ) {
+      return NextResponse.redirect(new URL('/seller/dashboard', req.url));
+    }
 
-  if (
-    userInfo?.role === 'stylist' &&
-    userInfo?.details_complete &&
-    !pathname.startsWith('/stylist') &&
-    !pathname.startsWith('/api/auth')
-  ) {
-    return NextResponse.redirect(new URL('/stylist/dashboard', req.url));
-  }
+    if (
+      userInfo?.role === 'stylist' &&
+      !pathname.startsWith('/stylist') &&
+      !pathname.startsWith('/api/auth')
+    ) {
+      return NextResponse.redirect(new URL('/stylist/dashboard', req.url));
+    }
 
-  if (
-    userInfo?.role === 'driver' &&
-    userInfo?.details_complete &&
-    !pathname.startsWith('/driver') &&
-    !pathname.startsWith('/api/auth')
-  ) {
-    return NextResponse.redirect(new URL('/driver/dashboard', req.url));
+    if (
+      userInfo?.role === 'driver' &&
+      !pathname.startsWith('/driver') &&
+      !pathname.startsWith('/api/auth')
+    ) {
+      return NextResponse.redirect(new URL('/driver/dashboard', req.url));
+    }
   }
 
   return res;

@@ -67,10 +67,10 @@ const Signup = () => {
             .eq('id', userId)
             .single();
 
-          if (!userData?.role) {
-            router.push('/onboarding/role');
-          } else if (!userData?.details_complete) {
+          if (!userData?.details_complete) {
             router.push('/onboarding/details');
+          } else if (!userData?.role) {
+            router.push('/onboarding/role');
           } else if (!userData?.verified) {
             router.push('/onboarding/verify');
           } else {
