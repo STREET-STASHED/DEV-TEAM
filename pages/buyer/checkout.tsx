@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import supabase from '@/lib/supabaseClient';
+import supabase from '../../lib/supabaseClient';
 import { useCart, CartItem } from '@/context/CartContext';
 import { useEffect, useState } from 'react';
 import CheckoutForm from '@/components/CheckoutForm';
@@ -12,7 +12,7 @@ const CheckoutPage = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        router.push('/signup');
+        setIsClient(true); // Allow guests
       } else {
         setIsClient(true);
       }
@@ -51,7 +51,7 @@ const CheckoutPage = () => {
               </p>
             </div>
 
-            <CheckoutForm items={items} totalAmount={totalPrice} />
+            <CheckoutForm items={items} totalAmount={totalPrice} mode="cart" />
           </div>
         </>
       )}
@@ -59,4 +59,4 @@ const CheckoutPage = () => {
   );
 };
 
-export default CheckoutPage;
+export default CheckoutPage; 

@@ -3,11 +3,12 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useCart } from '../context/CartContext';
 import type { CartItem } from '../context/CartContext';
+import supabase from '../lib/supabaseClient';
 
 interface CheckoutFormProps {
   items: CartItem[];
   totalAmount: number;
-  mode?: 'buyNow' | 'cart';
+  mode?: 'buyNow' | 'cart' | 'buyer';
 }
 
 export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: CheckoutFormProps) {
@@ -38,10 +39,28 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
     setError(null);
 
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+
+      let guestId = null;
+      let buyerId = null;
+      let isGuest = false;
+
+      if (session && session.user) {
+        buyerId = session.user.id;
+      } else {
+        isGuest = true;
+        guestId = localStorage.getItem("guest_id");
+        if (!guestId) {
+          guestId = crypto.randomUUID();
+          localStorage.setItem("guest_id", guestId);
+        }
+      }
+
       const endpoint = mode === 'cart' ? '/api/orders' : '/api/checkout';
-      const payload = mode === 'cart'
-        ? { items, ...form, total: totalAmount }
-        : { items: [{ ...items[0], quantity: 1 }], ...form, totalAmount };
+      const payload = (mode === 'cart' || mode === 'buyer')
+        ? { items, ...form, total: totalAmount, guest_id: guestId, buyer_id: buyerId, is_guest: isGuest }
+        : { items: [{ ...items[0], quantity: 1 }], ...form, totalAmount, guest_id: guestId, buyer_id: buyerId, is_guest: isGuest };
 
       const { data } = await axios.post(endpoint, payload);
 
@@ -95,7 +114,7 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
           borderRadius: '4px',
         }}
       >
-        {loading ? 'Processing...' : mode === 'buyNow' ? 'Buy Now' : 'Place Order'}
+        {loading ? 'Processing...' : mode === 'buyNow' ? 'Buy Now' : mode === 'buyer' ? 'Checkout as Buyer' : 'Place Order'}
       </button>
 
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}

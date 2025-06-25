@@ -8,37 +8,84 @@ const supabase = createClient(
 );
 
 export default function AuthPage() {
-  // This unified component handles both login and sign-up flows depending on isSignUp state
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Ensure signup mode is set from query param
+  // Update isSignUp based on query param reliably
   useEffect(() => {
-    if (router.query.isSignUp !== 'false') {
+    if (router.query.isSignUp === 'true') {
       setIsSignUp(true);
+    } else if (router.query.isSignUp === 'false') {
+      setIsSignUp(false);
     }
-  }, [router.query]);
+  }, [router.query.isSignUp]);
+
+  const handleRedirectAfterLogin = async (userId: string | undefined) => {
+    if (!userId) {
+      router.replace('/onboarding');
+      return;
+    }
+
+    const { data: userInfo, error: userErr } = await supabase
+      .from('users')
+      .select('role, details_complete, verified')
+      .eq('id', userId)
+      .single();
+
+    if (userErr || !userInfo) {
+      console.error('User fetch error:', userErr);
+      router.replace('/onboarding/details');
+      return;
+    }
+
+    if (!userInfo.details_complete) {
+      router.replace('/onboarding/details');
+      return;
+    }
+    if (!userInfo.role) {
+      router.replace('/onboarding/role');
+      return;
+    }
+    if (!userInfo.verified) {
+      router.replace('/onboarding/verify');
+      return;
+    }
+
+    const roleRedirectMap: Record<string, string> = {
+      seller: '/seller/dashboard',
+      stylist: '/stylist/dashboard',
+      driver: '/driver/dashboard',
+      buyer: '/buyer/marketplace',
+    };
+
+    if (userInfo.role in roleRedirectMap) {
+      router.replace(roleRedirectMap[userInfo.role]);
+      return;
+    }
+
+    router.replace('/onboarding/details');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setLoading(true);
 
     try {
       if (isSignUp) {
+        // Sign up user
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {},
         });
 
         if (signUpError) {
           if (signUpError.message.includes('already registered')) {
             alert('User already registered. Please log in instead.');
             setIsSignUp(false);
+            setLoading(false);
             return;
           }
           throw signUpError;
@@ -46,133 +93,49 @@ export default function AuthPage() {
 
         if (!signUpData.user) throw new Error('User creation failed');
 
+        // Insert new user record with default fields
         const { error: insertError } = await supabase
           .from('users')
           .insert([{
+            id: signUpData.user.id,
             email: signUpData.user.email,
             role: null,
             details_complete: false,
-            verified: false
+            verified: false,
           }]);
 
-        if (insertError) throw new Error('User creation failed in DB.');
+        if (insertError) throw new Error('Failed to create user record in DB.');
 
-        // After signup, wait for session to initialize before redirecting
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+        // Wait for session or fallback
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
-        if (sessionError || !session) {
-          console.warn('Session not ready, redirecting to login as fallback.');
-          return router.replace('/onboarding/role');
-        }
-
-        // Fetch user info and redirect based on onboarding state and role
-        const { data: userInfo, error: userErr } = await supabase
-          .from('users')
-          .select('role, details_complete, verified')
-          .eq('id', signUpData.user.id)
-          .single();
-
-        if (userErr || !userInfo) {
-          console.error('User fetch error after sign-up:', userErr);
-          return router.replace('/onboarding/role');
-        }
-
-        if (!userInfo.details_complete) {
-          return router.replace('/onboarding/details');
-        }
-        if (!userInfo.role) {
-          return router.replace('/onboarding/role');
-        }
-        if (!userInfo.verified) {
-          return router.replace('/onboarding/verify');
-        }
-
-        const roleRedirectMap: Record<string, string> = {
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-          buyer: '/buyer/marketplace',
-        };
-
-        if (userInfo.role in roleRedirectMap) {
-          return router.replace(roleRedirectMap[userInfo.role]);
-        }
-
-        return router.replace('/onboarding/details');
-      } else {
-        const { signIn } = await import('next-auth/react');
-        const signInRes = await signIn('credentials', {
-          email,
-          password,
-          callbackUrl: `/auth/callback?role=unknown`
-        });
-        if (!signInRes || signInRes.error) {
-          throw new Error(signInRes?.error || 'Login failed');
-        }
-        const session = await supabase.auth.getSession();
-        const userId = session.data.session?.user.id;
-
-        if (!userId) {
-          throw new Error('Failed to fetch user ID from session.');
-        }
-
-        // Fetch the user's role from the users table for robust redirect
-        let dbRole;
-        try {
-          const { data: userRow, error: dbErr } = await supabase
-            .from('users')
-            .select('role')
-            .eq('id', userId)
-            .single();
-
-          if (dbErr || !userRow || !userRow.role) {
-            throw new Error('User role not found. Redirecting to onboarding.');
-          }
-
-          dbRole = userRow.role;
-          console.log('Fetched user role from DB:', dbRole);
-        } catch (err) {
-          console.error('Role fetch error:', err);
-          router.replace('/onboarding');
+        if (sessionError || !sessionData.session) {
+          console.warn('Session not ready, redirecting to onboarding.');
+          router.replace('/onboarding/role');
           return;
         }
 
-        const { data: userInfo, error: userErr } = await supabase
-          .from('users')
-          .select('role, details_complete, verified')
-          .eq('id', userId)
-          .single();
+        // Redirect based on onboarding
+        await handleRedirectAfterLogin(signUpData.user.id);
 
-        if (userErr || !userInfo) {
-          console.error('User fetch error:', userErr);
-          return router.replace('/onboarding/details');
+      } else {
+        // Login user using next-auth credentials provider
+        const { signIn } = await import('next-auth/react');
+        const signInRes = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        });
+
+        if (!signInRes || signInRes.error) {
+          throw new Error(signInRes?.error || 'Login failed');
         }
 
-        if (!userInfo.details_complete) {
-          return router.replace('/onboarding/details');
-        }
-        if (!userInfo.role) {
-          return router.replace('/onboarding/role');
-        }
-        if (!userInfo.verified) {
-          return router.replace('/onboarding/verify');
-        }
+        // Get session user ID from Supabase
+        const { data: sessionData } = await supabase.auth.getSession();
+        const userId = sessionData.session?.user.id;
 
-        const roleRedirectMap: Record<string, string> = {
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-          buyer: '/buyer/marketplace',
-        };
-
-        if (userInfo.role in roleRedirectMap) {
-          return router.replace(roleRedirectMap[userInfo.role]);
-        }
-
-        router.replace('/onboarding/details');
+        await handleRedirectAfterLogin(userId);
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -191,7 +154,6 @@ export default function AuthPage() {
         onSubmit={handleSubmit}
         className="bg-black bg-opacity-85 p-8 rounded-2xl shadow-2xl w-full max-w-md border-2 border-yellow-500 flex flex-col items-center space-y-4"
       >
-        {/* Optional: Logo */}
         <img src="/logo.png" alt="StreetStashed Logo" className="h-14 mb-2" />
         <h1 className="text-3xl font-extrabold text-yellow-400 mb-4 text-center drop-shadow">
           {isSignUp ? 'Create your StreetStashed account' : 'Login to StreetStashed'}
