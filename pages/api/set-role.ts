@@ -62,10 +62,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    // Prepare upsert payload
+    // Prepare upsert payload with onboarding flags
     const upsertPayload = {
       id: userId,
       role: normalizedRole,
+      onboarded: false,
+      details_complete: false,
+      verified: false,
       updated_at: new Date().toISOString(),
     };
 

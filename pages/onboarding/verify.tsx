@@ -30,6 +30,32 @@ export default function VerifyStep() {
     fetchRole();
   }, []);
 
+  useEffect(() => {
+    const checkVerified = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('verified, role')
+        .eq('id', user.id)
+        .single();
+
+      if (error) return;
+      if (data?.verified) {
+        const redirectMap: Record<string, string> = {
+          buyer: '/buyer/marketplace',
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+        };
+        router.push(redirectMap[data.role] || '/');
+      }
+    };
+
+    checkVerified();
+  }, []);
+
   const handleContinue = async () => {
     try {
       setLoading(true);

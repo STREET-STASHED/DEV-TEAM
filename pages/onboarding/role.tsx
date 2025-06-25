@@ -24,11 +24,11 @@ export default function RoleSelection() {
       // Check if user completed onboarding details
       const { data, error } = await supabase
         .from('users')
-        .select('details_complete')
+        .select('role')
         .eq('id', user.id)
         .single();
 
-      if (error || !data?.details_complete) {
+      if (error || data?.role) {
         router.push('/onboarding/details');
       }
     };

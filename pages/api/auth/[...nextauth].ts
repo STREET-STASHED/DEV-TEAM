@@ -50,7 +50,6 @@ export const authOptions: AuthOptions = {
   pages: {
     signIn: "/signup",
     error: "/signup",
-    newUser: "/onboarding/details",
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
@@ -59,19 +58,26 @@ export const authOptions: AuthOptions = {
         const step = parsedUrl.searchParams.get("onboarding");
         const role = parsedUrl.searchParams.get("role");
 
-        // Handle onboarding steps in order
         if (step === "details") return `${baseUrl}/onboarding/details`;
         if (step === "role") return `${baseUrl}/onboarding/role`;
         if (step === "verify") return `${baseUrl}/onboarding/verify`;
 
-        // Final redirect after onboarding
-        if (role === "seller") return `${baseUrl}/seller/dashboard`;
-        if (role === "stylist") return `${baseUrl}/stylist/dashboard`;
-        if (role === "driver") return `${baseUrl}/driver/dashboard`;
+        if (role) {
+          switch (role) {
+            case "seller":
+              return `${baseUrl}/seller/dashboard`;
+            case "stylist":
+              return `${baseUrl}/stylist/dashboard`;
+            case "driver":
+              return `${baseUrl}/driver/dashboard`;
+            default:
+              return `${baseUrl}/buyer/marketplace`;
+          }
+        }
 
-        return `${baseUrl}/marketplace`;
+        return `${baseUrl}/buyer/marketplace`;
       } catch {
-        return `${baseUrl}/marketplace`;
+        return `${baseUrl}/buyer/marketplace`;
       }
     },
     async jwt({ token, user }: { token: JWT; user?: any }) {
@@ -79,6 +85,7 @@ export const authOptions: AuthOptions = {
         token.id = user.id;
         token.email = user.email ?? null;
         token.role = user.role ?? "buyer";
+        token.name = user.name;
       }
       return token;
     },
@@ -87,6 +94,7 @@ export const authOptions: AuthOptions = {
         session.user.id = token.id ?? "";
         session.user.email = token.email ?? null;
         session.user.role = token.role ?? "buyer";
+        session.user.name = token.name;
       }
       return session;
     },

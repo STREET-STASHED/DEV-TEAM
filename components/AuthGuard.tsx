@@ -13,7 +13,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
         if (sessionError || !sessionData?.session?.user) {
           console.error('Session error or user not found:', sessionError);
-          return router.push('/onboarding/details');
+          return router.push('/onboarding/role');
         }
 
         const userId = sessionData.session.user.id;
@@ -26,12 +26,12 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
         const roleData = await roleResponse.json();
 
-        if (!roleData.details_complete) {
-          return router.push('/onboarding/details');
-        }
-
         if (!roleData.role) {
           return router.push('/onboarding/role');
+        }
+
+        if (!roleData.details_complete) {
+          return router.push('/onboarding/details');
         }
 
         if (!roleData.verification_complete) {
@@ -43,21 +43,10 @@ export default function AuthGuard({ role, children }: { role: string, children: 
           return router.push('/not-authorized');
         }
 
-        if (
-          roleData.details_complete &&
-          roleData.role &&
-          roleData.verification_complete &&
-          roleData.role === role
-        ) {
-          // All checks passed, let the user proceed
-          setLoading(false);
-        } else {
-          console.warn("Unhandled onboarding state");
-          router.push('/onboarding/details');
-        }
+        setLoading(false);
       } catch (err) {
         console.error('Unexpected error in auth guard:', err);
-        router.push('/onboarding/details');
+        return router.push('/onboarding/role');
       }
     };
 

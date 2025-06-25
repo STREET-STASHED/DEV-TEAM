@@ -28,7 +28,7 @@ export default function Home() {
 
       const { data, error } = await supabase
         .from('users')
-        .select('role, details_complete')
+        .select('role, details_complete, verified')
         .eq('email', session.user.email)
         .single();
 
@@ -42,12 +42,14 @@ export default function Home() {
         return;
       }
 
-      const { role, details_complete } = data;
+      const { role, details_complete, verified } = data;
 
       if (!role) {
         router.push('/onboarding/role');
       } else if (!details_complete) {
         router.push('/onboarding/details');
+      } else if (!verified) {
+        router.push('/onboarding/verify');
       } else {
         switch (role) {
           case 'seller':

@@ -43,8 +43,8 @@ const Signup = () => {
             details_complete: false,
             verified: false,
           });
-          // After signup, go directly to details onboarding
-          router.push('/onboarding/details');
+          // After signup, go directly to role onboarding
+          router.push('/onboarding/role');
         }
       } else {
         // Sign in existing user
@@ -67,10 +67,10 @@ const Signup = () => {
             .eq('id', userId)
             .single();
 
-          if (!userData?.details_complete) {
-            router.push('/onboarding/details');
-          } else if (!userData?.role) {
+          if (!userData?.role) {
             router.push('/onboarding/role');
+          } else if (!userData?.details_complete) {
+            router.push('/onboarding/details');
           } else if (!userData?.verified) {
             router.push('/onboarding/verify');
           } else {
@@ -133,4 +133,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default Signup; 

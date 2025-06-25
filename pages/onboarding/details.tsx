@@ -33,7 +33,6 @@ export default function OnboardingDetails() {
   const [payoutMethod, setPayoutMethod] = useState('');
   const [booking, setBooking] = useState('');
   const [bundles, setBundles] = useState('');
-  const [email, setEmail] = useState('');
   const [referralCode, setReferralCode] = useState('');
 
   useEffect(() => {
@@ -66,6 +65,12 @@ export default function OnboardingDetails() {
     };
     fetchRole();
   }, []);
+
+  useEffect(() => {
+    if (role === 'buyer') {
+      router.push('/buyer/marketplace');
+    }
+  }, [role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,10 +130,6 @@ export default function OnboardingDetails() {
   };
 
   if (loading) return <p>Loading...</p>;
-  if (role === 'buyer') {
-    router.push('/buyer/marketplace');
-    return null;
-  }
 
   let sectionTitle = '';
   if (role === 'seller') sectionTitle = 'Seller Onboarding';
@@ -155,14 +156,6 @@ export default function OnboardingDetails() {
               required
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-            />
-            <input
-              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-              placeholder="Email Address"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
             />
             <input
               className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
@@ -261,7 +254,7 @@ export default function OnboardingDetails() {
               disabled={submitting}
               className={`bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-md w-full transition duration-200 ease-in-out ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              {submitting ? 'Submitting...' : 'Next: Verify Identity'}
+              {submitting ? 'Submitting...' : 'Next: Verify Your Account'}
             </button>
           </form>
         </div>

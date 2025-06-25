@@ -9,7 +9,7 @@ const Hero = () => {
   // Begin multi-step onboarding flow: signup → role → details → verify → dashboard
   const handleJoin = () => {
     if (session) {
-      router.push('/onboarding/details');
+      router.push('/onboarding/role');
     } else {
       router.push('/signup');
     }
