@@ -31,6 +31,24 @@ export default function VerifyStep() {
   }, []);
 
   useEffect(() => {
+    const checkDetailsComplete = async () => {
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('details_complete')
+        .eq('id', userId)
+        .single();
+
+      if (error || !data?.details_complete) {
+        router.push('/onboarding/details');
+      }
+    };
+
+    checkDetailsComplete();
+  }, [userId]);
+
+  useEffect(() => {
     const checkVerified = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -125,7 +143,7 @@ export default function VerifyStep() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-6 bg-black text-white shadow rounded-lg">
+    <div className="max-w-3xl mx-auto p-6 space-y-6 bg-black text-white shadow rounded-lg">
       <h2 className="text-3xl font-bold">Final Verification</h2>
 
       {['driver', 'seller', 'stylist'].includes(role) ? (

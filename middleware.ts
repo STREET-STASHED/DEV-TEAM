@@ -33,14 +33,14 @@ export async function middleware(req: NextRequest) {
     .eq('id', session.user.id)
     .single();
 
-  // 1. Details Step
-  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/details')) {
-    return NextResponse.redirect(new URL('/onboarding/details', req.url));
-  }
-
-  // 2. Role Step
+  // 1. Role Step
   if (!userInfo?.role && !pathname.startsWith('/onboarding/role')) {
     return NextResponse.redirect(new URL('/onboarding/role', req.url));
+  }
+
+  // 2. Details Step
+  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/details')) {
+    return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
   // 3. Verify Step

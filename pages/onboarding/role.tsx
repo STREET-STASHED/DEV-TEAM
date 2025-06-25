@@ -28,7 +28,11 @@ export default function RoleSelection() {
         .eq('id', user.id)
         .single();
 
-      if (error || data?.role) {
+      if (error) {
+        console.error('Failed to fetch user role:', error);
+        return;
+      }
+      if (data?.role) {
         router.push('/onboarding/details');
       }
     };
@@ -69,19 +73,7 @@ export default function RoleSelection() {
       return;
     }
 
-    const { data: detailsCheck, error: detailsError } = await supabase
-      .from('users')
-      .select('details_complete')
-      .eq('id', user_id)
-      .single();
-
-    if (detailsError || !detailsCheck?.details_complete) {
-      setError('Please complete your details before continuing.');
-      setLoading(false);
-      return;
-    }
-
-    router.push('/onboarding/verify');
+    router.push('/onboarding/details');
   };
 
   return (

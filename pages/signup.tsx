@@ -9,7 +9,6 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true); // Toggle for signup/login
   const router = useRouter();
-  const redirectToDetails = '/onboarding/details';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +35,7 @@ const Signup = () => {
 
         const user = authResponse.data?.user;
         if (user && user.id) {
-          await supabase.from('users').insert({
+          await supabase.from('users').upsert({
             id: user.id,
             email: user.email,
             role: null,
@@ -74,7 +73,19 @@ const Signup = () => {
           } else if (!userData?.verified) {
             router.push('/onboarding/verify');
           } else {
-            router.push('/buyer'); // default dashboard
+            switch (userData.role) {
+              case 'seller':
+                router.push('/seller/dashboard');
+                break;
+              case 'stylist':
+                router.push('/stylist/dashboard');
+                break;
+              case 'driver':
+                router.push('/driver/dashboard');
+                break;
+              default:
+                router.push('/buyer/marketplace');
+            }
           }
         }
       }
