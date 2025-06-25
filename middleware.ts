@@ -33,14 +33,28 @@ export async function middleware(req: NextRequest) {
     .eq('id', session.user.id)
     .single();
 
-  // If details are incomplete, redirect to onboarding details step
-  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/details')) {
+  // Redirect if role is not set (i.e., user hasn't completed onboarding/details)
+  if (!userInfo?.role && !pathname.startsWith('/onboarding/details')) {
     return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
-  // If role is missing after details, redirect to onboarding role step
-  if (!userInfo?.role && !pathname.startsWith('/onboarding/role')) {
+  // Redirect if details are not complete (after role is selected)
+  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/role')) {
     return NextResponse.redirect(new URL('/onboarding/role', req.url));
+  }
+
+  // Redirect to verify if both role and details_complete are present but verification not done
+  if (
+    userInfo?.role &&
+    userInfo?.details_complete &&
+    !pathname.startsWith('/onboarding/verify') &&
+    !pathname.startsWith('/buyer') &&
+    !pathname.startsWith('/seller') &&
+    !pathname.startsWith('/stylist') &&
+    !pathname.startsWith('/driver') &&
+    !pathname.startsWith('/api/auth')
+  ) {
+    return NextResponse.redirect(new URL('/onboarding/verify', req.url));
   }
 
   // Only enforce buyer redirect if onboarding is complete

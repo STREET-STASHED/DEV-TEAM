@@ -36,21 +36,15 @@ const Signup = () => {
 
         const user = authResponse.data?.user;
         if (user && user.id) {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('details_complete, role, verified')
-            .eq('id', user.id)
-            .single();
-
-          if (!userData?.details_complete) {
-            router.push('/onboarding/details');
-          } else if (!userData?.role) {
-            router.push('/onboarding/role');
-          } else if (!userData?.verified) {
-            router.push('/onboarding/verify');
-          } else {
-            router.push('/buyer'); // default dashboard
-          }
+          await supabase.from('users').insert({
+            id: user.id,
+            email: user.email,
+            role: null,
+            details_complete: false,
+            verified: false,
+          });
+          // After signup, go directly to role selection first
+          router.push('/onboarding/role');
         }
       } else {
         // Sign in existing user
@@ -73,10 +67,10 @@ const Signup = () => {
             .eq('id', userId)
             .single();
 
-          if (!userData?.details_complete) {
-            router.push('/onboarding/details');
-          } else if (!userData?.role) {
+          if (!userData?.role) {
             router.push('/onboarding/role');
+          } else if (!userData?.details_complete) {
+            router.push('/onboarding/details');
           } else if (!userData?.verified) {
             router.push('/onboarding/verify');
           } else {

@@ -121,30 +121,14 @@ export default function OnboardingDetails() {
   };
 
   if (loading) return <p>Loading...</p>;
-  if (!role) return (
-    <div className="text-center text-red-500 mt-10">
-      <p>Role not defined. Please restart onboarding or contact support.</p>
-      <button
-        onClick={() => router.push('/onboarding/role')}
-        className="mt-4 px-4 py-2 bg-yellow-400 text-black rounded"
-      >
-        Choose Role
-      </button>
-    </div>
-  );
-
-  if (role === 'buyer') {
-    return (
-      <div className="text-center text-red-500 mt-10">
-        <p>Buyers do not require onboarding. Redirecting...</p>
-      </div>
-    );
+  if (!role) {
+    router.push('/onboarding/role');
+    return null;
   }
-  useEffect(() => {
-    if (role === 'buyer') {
-      router.push('/buyer/marketplace');
-    }
-  }, [role]);
+  if (role === 'buyer') {
+    router.push('/buyer/marketplace');
+    return null;
+  }
 
   let sectionTitle = '';
   if (role === 'seller') sectionTitle = 'Seller Onboarding';

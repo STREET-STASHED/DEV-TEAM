@@ -30,6 +30,14 @@ export default function AuthGuard({ role, children }: { role: string, children: 
           return router.push('/onboarding/details');
         }
 
+        if (!roleData.role) {
+          return router.push('/onboarding/role');
+        }
+
+        if (!roleData.verification_complete) {
+          return router.push('/onboarding/verify');
+        }
+
         if (roleData.role !== role) {
           console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);
           return router.push('/not-authorized');
