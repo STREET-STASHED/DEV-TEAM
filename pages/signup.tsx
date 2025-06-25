@@ -9,6 +9,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true); // Toggle for signup/login
   const router = useRouter();
+  const redirectToDetails = '/onboarding/details';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,9 +34,9 @@ const Signup = () => {
           throw authResponse.error;
         }
 
-        const userId = authResponse.data?.user?.id;
-        if (userId) {
-          router.push('/onboarding/details');
+        const user = authResponse.data?.user;
+        if (user && user.id) {
+          router.push(redirectToDetails);
         }
       } else {
         // Sign in existing user
@@ -52,7 +53,7 @@ const Signup = () => {
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData?.session?.user?.id;
         if (userId) {
-          router.push('/onboarding/details');
+          router.push(redirectToDetails);
         }
       }
     } catch (error: any) {

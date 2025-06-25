@@ -42,7 +42,7 @@ export default function OnboardingDetails() {
         if (data?.role) {
           setRole(data.role);
         } else {
-          router.push('/onboarding/role');
+          console.warn('Role not set for user. Prompting user to choose a role.');
         }
       } else {
         console.warn('No user found in supabase auth:', userError);
@@ -123,9 +123,17 @@ export default function OnboardingDetails() {
   );
 
   if (role === 'buyer') {
-    router.push('/buyer/marketplace');
-    return null;
+    return (
+      <div className="text-center text-red-500 mt-10">
+        <p>Buyers do not require onboarding. Redirecting...</p>
+      </div>
+    );
   }
+  useEffect(() => {
+    if (role === 'buyer') {
+      router.push('/buyer/marketplace');
+    }
+  }, [role]);
 
   let sectionTitle = '';
   if (role === 'seller') sectionTitle = 'Seller Onboarding';
