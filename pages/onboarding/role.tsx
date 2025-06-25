@@ -18,6 +18,18 @@ export default function RoleSelection() {
 
       if (authError || !user) {
         router.push('/signup');
+        return;
+      }
+
+      // Check if user completed onboarding details
+      const { data, error } = await supabase
+        .from('users')
+        .select('details_complete')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !data?.details_complete) {
+        router.push('/onboarding/details');
       }
     };
 
@@ -47,7 +59,6 @@ export default function RoleSelection() {
       .from('users')
       .update({
         role: selectedRole,
-        details_complete: selectedRole === 'buyer',
         verified: false
       })
       .eq('id', user_id);
@@ -59,7 +70,7 @@ export default function RoleSelection() {
     }
 
     setSuccess(true);
-    router.push('/onboarding/details');
+    router.push('/onboarding/verify');
   };
 
   return (

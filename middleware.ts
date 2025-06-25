@@ -33,17 +33,17 @@ export async function middleware(req: NextRequest) {
     .eq('id', session.user.id)
     .single();
 
-  // Redirect if role is not set (i.e., user hasn't completed onboarding/details)
-  if (!userInfo?.role && !pathname.startsWith('/onboarding/details')) {
+  // Redirect if details are not complete (details step comes before role selection)
+  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/details')) {
     return NextResponse.redirect(new URL('/onboarding/details', req.url));
   }
 
-  // Redirect if details are not complete (after role is selected)
-  if (!userInfo?.details_complete && !pathname.startsWith('/onboarding/role')) {
+  // Redirect if role is not set (after details)
+  if (!userInfo?.role && !pathname.startsWith('/onboarding/role')) {
     return NextResponse.redirect(new URL('/onboarding/role', req.url));
   }
 
-  // Redirect to verify if both role and details_complete are present but verification not done
+  // Redirect to verify if both details and role are complete but verification not done
   if (
     userInfo?.role &&
     userInfo?.details_complete &&

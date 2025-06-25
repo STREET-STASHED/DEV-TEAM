@@ -43,7 +43,18 @@ export default function AuthGuard({ role, children }: { role: string, children: 
           return router.push('/not-authorized');
         }
 
-        setLoading(false);
+        if (
+          roleData.details_complete &&
+          roleData.role &&
+          roleData.verification_complete &&
+          roleData.role === role
+        ) {
+          // All checks passed, let the user proceed
+          setLoading(false);
+        } else {
+          console.warn("Unhandled onboarding state");
+          router.push('/onboarding/details');
+        }
       } catch (err) {
         console.error('Unexpected error in auth guard:', err);
         router.push('/onboarding/details');
@@ -53,6 +64,12 @@ export default function AuthGuard({ role, children }: { role: string, children: 
     checkAuth();
   }, [role, router]);
 
-  if (loading) return <p className="p-6">Checking auth...</p>
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-lg text-gray-600">Checking authorization...</p>
+      </div>
+    );
+  }
   return <>{children}</>
 }

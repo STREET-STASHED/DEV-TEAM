@@ -48,10 +48,11 @@ export default function OnboardingDetails() {
             .eq('id', user.id)
             .single();
 
-          if (detailsCheck?.details_complete) {
-            router.push('/onboarding/verify');
-            return;
-          }
+          // Removed redirect to onboarding/verify to avoid skipping role step
+          // if (detailsCheck?.details_complete) {
+          //   router.push('/onboarding/verify');
+          //   return;
+          // }
         } else {
           console.warn('Role not set for user. Prompting user to choose a role.');
         }
@@ -117,14 +118,15 @@ export default function OnboardingDetails() {
     }
 
     setSubmitting(false);
-    router.push('/onboarding/verify');
+    router.push('/onboarding/role');
   };
 
   if (loading) return <p>Loading...</p>;
-  if (!role) {
-    router.push('/onboarding/role');
-    return null;
-  }
+  // Removed this block to allow filling details even if role is not set
+  // if (!role) {
+  //   router.push('/onboarding/role');
+  //   return null;
+  // }
   if (role === 'buyer') {
     router.push('/buyer/marketplace');
     return null;

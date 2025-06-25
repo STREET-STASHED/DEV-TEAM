@@ -43,8 +43,8 @@ const Signup = () => {
             details_complete: false,
             verified: false,
           });
-          // After signup, go directly to role selection first
-          router.push('/onboarding/role');
+          // After signup, go directly to details onboarding
+          router.push('/onboarding/details');
         }
       } else {
         // Sign in existing user

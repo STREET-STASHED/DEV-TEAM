@@ -48,21 +48,23 @@ export const authOptions: AuthOptions = {
     strategy: "jwt",
   },
   pages: {
-    signIn: "/onboarding/details",
-    error: "/onboarding/details",
+    signIn: "/signup",
+    error: "/signup",
     newUser: "/onboarding/details",
   },
   callbacks: {
-    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
+    async redirect({ url, baseUrl }) {
       try {
         const parsedUrl = new URL(url, baseUrl);
-        const onboarding = parsedUrl.searchParams.get("onboarding");
+        const step = parsedUrl.searchParams.get("onboarding");
         const role = parsedUrl.searchParams.get("role");
 
-        if (onboarding === "details") return `${baseUrl}/onboarding/details`;
-        if (onboarding === "role") return `${baseUrl}/onboarding/role`;
-        if (onboarding === "verify") return `${baseUrl}/onboarding/verify`;
+        // Handle onboarding steps in order
+        if (step === "details") return `${baseUrl}/onboarding/details`;
+        if (step === "role") return `${baseUrl}/onboarding/role`;
+        if (step === "verify") return `${baseUrl}/onboarding/verify`;
 
+        // Final redirect after onboarding
         if (role === "seller") return `${baseUrl}/seller/dashboard`;
         if (role === "stylist") return `${baseUrl}/stylist/dashboard`;
         if (role === "driver") return `${baseUrl}/driver/dashboard`;
