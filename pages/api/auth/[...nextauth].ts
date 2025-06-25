@@ -1,51 +1,49 @@
 import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
-import type { Session, User } from "next-auth";
+import { createClient } from "@supabase/supabase-js";
+
+import type { User } from "next-auth";
+import type { AuthOptions } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 
-export default NextAuth({
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
+export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email", placeholder: "jsmith@example.com" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?email=eq.${encodeURIComponent(credentials.email)}`, {
-            headers: {
-              apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
-              Prefer: 'return=representation'
-            }
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email: credentials.email,
+            password: credentials.password,
           });
 
-          if (!res.ok) {
-            console.error("Supabase fetch error:", res.statusText);
+          if (error || !data.user) {
+            console.error("Error signing in with Supabase:", error);
             return null;
           }
 
-          const users = await res.json();
-          const user = users?.[0];
-
-          if (user) {
-            return {
-              id: user.id,
-              name: user.full_name || user.email,
-              email: user.email,
-              role: user.role || 'buyer'
-            };
-          }
-
-          return null;
+          return {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata.full_name || data.user.email,
+            role: data.user.user_metadata.role || "buyer",
+          };
         } catch (error) {
           console.error("Auth error:", error);
           return null;
         }
-      }
+      },
     }),
   ],
   session: {
@@ -54,10 +52,10 @@ export default NextAuth({
   pages: {
     signIn: "/onboarding/role",
     error: "/onboarding",
-    newUser: "/onboarding/role"
+    newUser: "/onboarding/role",
   },
   callbacks: {
-    async redirect({ url, baseUrl }) {
+    async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
       try {
         const parsedUrl = new URL(url, baseUrl);
         const role = parsedUrl.searchParams.get("role");
@@ -66,34 +64,29 @@ export default NextAuth({
         if (role === "stylist") return `${baseUrl}/stylist/dashboard`;
         if (role === "driver") return `${baseUrl}/driver/dashboard`;
 
-        // default to buyer
         return `${baseUrl}/marketplace`;
       } catch {
         return `${baseUrl}/marketplace`;
       }
     },
-    async jwt(params) {
-      const { token, user } = params;
+    async jwt({ token, user }: { token: JWT; user?: any }) {
       if (user) {
         token.id = user.id;
-        token.email = user.email;
-        token.role = (user as any).role;
+        token.email = user.email ?? null;
+        token.role = user.role ?? "buyer";
       }
       return token;
     },
-    async session({ session, token }) {
-      if (session.user && token) {
-        session.user = {
-          name: null,
-          email: token.email ?? null,
-          image: null,
-          id: token.id,
-          role: token.role || 'buyer',
-        } as unknown as Session["user"];
+    async session({ session, token }: { session: any; token: JWT }) {
+      if (session.user) {
+        session.user.id = token.id ?? "";
+        session.user.email = token.email ?? null;
+        session.user.role = token.role ?? "buyer";
       }
-      session.expires = typeof token.exp === 'number' ? new Date(token.exp * 1000).toISOString() : session.expires;
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET || "streetstashed-super-secret",
-});
+};
+
+export default NextAuth(authOptions);

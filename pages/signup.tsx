@@ -14,13 +14,9 @@ export default function AuthPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Update isSignUp based on query param reliably
   useEffect(() => {
-    if (router.query.isSignUp === 'true') {
-      setIsSignUp(true);
-    } else if (router.query.isSignUp === 'false') {
-      setIsSignUp(false);
-    }
+    if (router.query.isSignUp === 'true') setIsSignUp(true);
+    else if (router.query.isSignUp === 'false') setIsSignUp(false);
   }, [router.query.isSignUp]);
 
   const handleRedirectAfterLogin = async (userId: string | undefined) => {
@@ -41,18 +37,9 @@ export default function AuthPage() {
       return;
     }
 
-    if (!userInfo.details_complete) {
-      router.replace('/onboarding/details');
-      return;
-    }
-    if (!userInfo.role) {
-      router.replace('/onboarding/role');
-      return;
-    }
-    if (!userInfo.verified) {
-      router.replace('/onboarding/verify');
-      return;
-    }
+    if (!userInfo.details_complete) return router.replace('/onboarding/details');
+    if (!userInfo.role) return router.replace('/onboarding/role');
+    if (!userInfo.verified) return router.replace('/onboarding/verify');
 
     const roleRedirectMap: Record<string, string> = {
       seller: '/seller/dashboard',
@@ -61,12 +48,7 @@ export default function AuthPage() {
       buyer: '/buyer/marketplace',
     };
 
-    if (userInfo.role in roleRedirectMap) {
-      router.replace(roleRedirectMap[userInfo.role]);
-      return;
-    }
-
-    router.replace('/onboarding/details');
+    return router.replace(roleRedirectMap[userInfo.role] || '/onboarding/details');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,69 +56,21 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      if (isSignUp) {
-        // Sign up user
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-        });
+      const { signIn } = await import('next-auth/react');
+      const signInRes = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
 
-        if (signUpError) {
-          if (signUpError.message.includes('already registered')) {
-            alert('User already registered. Please log in instead.');
-            setIsSignUp(false);
-            setLoading(false);
-            return;
-          }
-          throw signUpError;
-        }
-
-        if (!signUpData.user) throw new Error('User creation failed');
-
-        // Insert new user record with default fields
-        const { error: insertError } = await supabase
-          .from('users')
-          .insert([{
-            id: signUpData.user.id,
-            email: signUpData.user.email,
-            role: null,
-            details_complete: false,
-            verified: false,
-          }]);
-
-        if (insertError) throw new Error('Failed to create user record in DB.');
-
-        // Wait for session or fallback
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !sessionData.session) {
-          console.warn('Session not ready, redirecting to onboarding.');
-          router.replace('/onboarding/role');
-          return;
-        }
-
-        // Redirect based on onboarding
-        await handleRedirectAfterLogin(signUpData.user.id);
-
-      } else {
-        // Login user using next-auth credentials provider
-        const { signIn } = await import('next-auth/react');
-        const signInRes = await signIn('credentials', {
-          redirect: false,
-          email,
-          password,
-        });
-
-        if (!signInRes || signInRes.error) {
-          throw new Error(signInRes?.error || 'Login failed');
-        }
-
-        // Get session user ID from Supabase
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData.session?.user.id;
-
-        await handleRedirectAfterLogin(userId);
+      if (!signInRes || signInRes.error) {
+        throw new Error(signInRes?.error || 'Authentication failed');
       }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData?.session?.user?.id;
+
+      await handleRedirectAfterLogin(userId);
     } catch (error: any) {
       console.error('Auth error:', error);
       alert(error.message || 'There was an issue. Please try again.');
@@ -158,6 +92,7 @@ export default function AuthPage() {
         <h1 className="text-3xl font-extrabold text-yellow-400 mb-4 text-center drop-shadow">
           {isSignUp ? 'Create your StreetStashed account' : 'Login to StreetStashed'}
         </h1>
+
         <input
           type="email"
           placeholder="Enter your email"
@@ -176,6 +111,7 @@ export default function AuthPage() {
           required
           disabled={loading}
         />
+
         <button
           type="submit"
           className="w-full bg-yellow-500 text-black font-bold py-3 px-4 rounded-lg hover:bg-yellow-400 transition duration-200 disabled:opacity-50 shadow-lg"
@@ -183,6 +119,7 @@ export default function AuthPage() {
         >
           {loading ? (isSignUp ? 'Creating account...' : 'Logging in...') : (isSignUp ? 'Create Account' : 'Login')}
         </button>
+
         <p className="mt-2 text-center text-sm text-white font-medium">
           {isSignUp ? 'Already have an account?' : 'Don’t have an account?'}{' '}
           <button

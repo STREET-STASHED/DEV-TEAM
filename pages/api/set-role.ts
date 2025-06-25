@@ -31,35 +31,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const authUser = await getUserFromRequest(req, res);
   if (!authUser) return;
 
-  let { email, userId, role } = req.body;
+  const { role } = req.body;
+  const userId = authUser.id;
 
   // Validate role
   if (!role) {
     return res.status(400).json({ error: 'Role is required.' });
   }
 
-  role = String(role).trim().toLowerCase();
-  if (!VALID_ROLES.includes(role)) {
+  const normalizedRole = String(role).trim().toLowerCase();
+  if (!VALID_ROLES.includes(normalizedRole)) {
     return res.status(400).json({
-      error: `Invalid role "${role}". Must be one of: ${VALID_ROLES.join(', ')}.`
+      error: `Invalid role "${normalizedRole}". Must be one of: ${VALID_ROLES.join(', ')}.`
     });
   }
-
-  if (!userId && !email) {
-    return res.status(400).json({ error: 'userId or email is required.' });
-  }
-
-  if (email) email = email.trim().toLowerCase();
-
-  const lookupCol = userId ? 'id' : 'email';
-  const lookupVal = userId || email;
 
   try {
     // Attempt to find existing user
     const { data: existingUser, error: fetchError } = await supabase
       .from('users')
       .select('*')
-      .eq(lookupCol, lookupVal)
+      .eq('id', userId)
       .single();
 
     if (fetchError && fetchError.code !== 'PGRST116') {
@@ -71,21 +63,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Prepare upsert payload
-    const upsertPayload: Record<string, any> = {
-      role,
+    const upsertPayload = {
+      id: userId,
+      role: normalizedRole,
       details_complete: true,
       verified: true,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     };
-
-    if (userId) upsertPayload.id = userId;
-    if (email) upsertPayload.email = email;
-
-    const conflictTarget = userId && email ? 'id,email' : userId ? 'id' : 'email';
 
     const { data, error: upsertError } = await supabase
       .from('users')
-      .upsert(upsertPayload, { onConflict: conflictTarget })
+      .upsert(upsertPayload, { onConflict: 'id' })
       .select()
       .single();
 
@@ -97,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    console.log(`✅ Role "${role}" set for: ${userId || email}`);
+    console.log(`✅ Role "${normalizedRole}" set for user ID: ${userId}`);
     return res.status(200).json({ message: 'Role set successfully', data });
   } catch (err: any) {
     console.error('❌ Unexpected error in set-role:', err);
