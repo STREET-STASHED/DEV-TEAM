@@ -1,6 +1,6 @@
 // hooks/useProfile.ts
 import { useState, useEffect } from 'react';
-import supabase from '../lib/supabaseClient';
+import supabase from '../lib/supabaseBrowserClient';
 
 export interface UserProfile {
   role: string;

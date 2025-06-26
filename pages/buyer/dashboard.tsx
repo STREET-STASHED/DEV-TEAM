@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react'
-import supabase from '../../lib/supabaseClient'
+import supabase from '../../lib/supabaseBrowserClient'
 import OrderProgressBar from '@/components/OrderProgressBar';
 
 interface BuyerDashboardProps {

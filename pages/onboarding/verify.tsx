@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../../lib/supabaseClient';
+import supabase from '@/lib/supabaseBrowserClient';
 
 export default function VerifyStep() {
   const [loading, setLoading] = useState(false);
@@ -90,23 +90,33 @@ export default function VerifyStep() {
           return;
         }
 
+        // 1) Upload to storage
         const fileExt = documentFile.name.split('.').pop();
         const filePath = `${role}-docs/${userId}.${fileExt}`;
+        const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? 'verification-docs';
 
-        const { error: uploadError } = await supabase.storage
-          .from('verification-docs')
-          .upload(filePath, documentFile, {
-            cacheControl: '3600',
-            upsert: true,
-          });
+        // upload
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from(bucketName)
+          .upload(filePath, documentFile, { cacheControl: '3600', upsert: true });
 
         if (uploadError) {
-          alert('Failed to upload document.');
-          console.error(uploadError);
+          console.error('Upload error:', uploadError);
+          alert(`Upload failed: ${uploadError.message}`);
           setLoading(false);
           return;
         }
 
+        // 2) Create a signed URL (valid for 24 hours)
+        const { data: urlData, error: urlError } = await supabase.storage
+          .from(bucketName)
+          .createSignedUrl(uploadData.path, 60 * 60 * 24);
+
+        if (urlError) {
+          console.warn('Signed URL error:', urlError);
+        }
+
+        // 3) Save verification info on user
         const { error: updateError } = await supabase
           .from('users')
           .update({
@@ -114,13 +124,14 @@ export default function VerifyStep() {
             full_name: fullName,
             dob,
             license_number: license,
-            verification_file: filePath,
+            verification_file: uploadData.path,
+            verification_url: urlData?.signedUrl ?? null,
           })
           .eq('id', userId);
 
         if (updateError) {
-          console.error(updateError);
-          alert('Verification failed.');
+          console.error('User update error:', updateError);
+          alert(`Verification failed: ${updateError.message}`);
           setLoading(false);
           return;
         }
@@ -177,6 +188,15 @@ export default function VerifyStep() {
             onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
             className="block w-full mb-4 text-white"
           />
+          {documentFile && (
+            <div className="mb-4">
+              <img
+                src={URL.createObjectURL(documentFile)}
+                alt="Document preview"
+                className="max-h-48 object-contain rounded border border-gray-300"
+              />
+            </div>
+          )}
 
           <label className="block text-sm mb-1">License or Registration Number</label>
           <input
@@ -214,4 +234,4 @@ export default function VerifyStep() {
       </button>
     </div>
   );
-}
+} 

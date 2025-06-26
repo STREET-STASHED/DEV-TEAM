@@ -1,98 +1,44 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 
+// Initialize Supabase client without SSR
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const VALID_ROLES = ['buyer', 'seller', 'driver', 'stylist', 'admin'];
-
-const getUserFromRequest = async (req: NextApiRequest, res: NextApiResponse) => {
-  const supabaseServerClient = createServerSupabaseClient({ req, res });
-  const {
-    data: { user },
-    error,
-  } = await supabaseServerClient.auth.getUser();
-
-  if (error || !user) {
-    res.status(401).json({ error: 'Unauthorized: unable to retrieve user.' });
-    return null;
-  }
-  return user;
-};
-
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST' && req.method !== 'PUT') {
-    return res.status(405).json({ error: 'Method not allowed. Use POST or PUT.' });
-  }
-
-  const authUser = await getUserFromRequest(req, res);
-  if (!authUser) return;
-
-  const { role } = req.body;
-  const userId = authUser.id;
-
-  // Validate role
-  if (!role) {
-    return res.status(400).json({ error: 'Role is required.' });
-  }
-
-  const normalizedRole = String(role).trim().toLowerCase();
-  if (!VALID_ROLES.includes(normalizedRole)) {
-    return res.status(400).json({
-      error: `Invalid role "${normalizedRole}". Must be one of: ${VALID_ROLES.join(', ')}.`
-    });
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    // Attempt to find existing user
-    const { data: existingUser, error: fetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
-
-    if (fetchError && fetchError.code !== 'PGRST116') {
-      console.error('❌ Database fetch error:', fetchError);
-      return res.status(500).json({
-        error: 'Database fetch error',
-        details: fetchError.message
-      });
+    const accessToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+    if (!accessToken) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Prepare upsert payload with onboarding flags
-    const upsertPayload = {
-      id: userId,
-      role: normalizedRole,
-      onboarded: false,
-      details_complete: false,
-      verified: false,
-      updated_at: new Date().toISOString(),
-    };
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
 
-    const { data, error: upsertError } = await supabase
-      .from('users')
-      .upsert(upsertPayload, { onConflict: 'id' })
-      .select()
-      .single();
-
-    if (upsertError) {
-      console.error('❌ Upsert role error:', upsertError);
-      return res.status(500).json({
-        error: 'Upsert role error',
-        details: upsertError.message
-      });
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log(`✅ Role "${normalizedRole}" set for user ID: ${userId}`);
-    return res.status(200).json({ message: 'Role set successfully', data });
-  } catch (err: any) {
-    console.error('❌ Unexpected error in set-role:', err);
-    return res.status(500).json({
-      error: 'Unexpected server error',
-      details: err.message
-    });
+    const { role } = await req.json();
+    if (!role) {
+      return NextResponse.json({ error: 'Role not provided' }, { status: 400 });
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ role })
+      .eq('id', user.id);
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

@@ -1,35 +1,28 @@
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../pages/api/auth/[...nextauth]';
-import supabaseAdmin from './supabaseAdmin';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import supabase from './supabaseBrowserClient';
 
-export default async function getUserRole(req: NextApiRequest, res: NextApiResponse): Promise<{
+export async function getUserRoleById(id: string): Promise<{
   role: string | null;
   details_complete: boolean;
   verified: boolean;
-} | null> {
-  const session = await getServerSession(req, res, authOptions) as { user?: { id?: string } } | null;
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    console.error('No authenticated user found.');
-    return null;
-  }
-
-  const { data, error } = await supabaseAdmin
+}> {
+  const { data, error } = await supabase
     .from('users')
-    .select('role, details_complete, verified')
-    .eq('id', userId)
-    .single<{ role: string | null; details_complete: boolean; verified: boolean }>();
+    .select('role, is_details_complete, verified')
+    .eq('id', id)
+    .maybeSingle();
 
-  if (error || !data) {
+  if (error) {
     console.error('Error fetching user info:', error);
-    return null;
+    throw error;
   }
-
+  if (!data) {
+    console.warn(`No user found with id: ${id}`);
+  }
   return {
-    role: data.role || null,
-    details_complete: data.details_complete || false,
-    verified: data.verified || false,
+    role: data?.role ?? null,
+    details_complete: data?.is_details_complete ?? false,
+    verified: data?.verified ?? false,
   };
 }
+
+export { getUserRoleById as getUserRole };

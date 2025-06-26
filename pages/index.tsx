@@ -1,79 +1,65 @@
-import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useSession } from 'next-auth/react';
-import Hero from '@/components/Hero';
-// import the Supabase client
-import supabase from '@/lib/supabaseClient';
-// import a function to get the user role
-import getUserRole from '../lib/getUserRole';
+import { useEffect, useState } from 'react';
+import type { User } from '@supabase/supabase-js';
+import { getUserRole } from '@/lib/getUserRole';
+import supabase from "@/lib/supabaseBrowserClient";
 
-export default function Home() {
+export default function IndexPage() {
   const router = useRouter();
-  const { data: session } = useSession();
-
-  if (!session) {
-    return (
-      <>
-        <Hero />
-        {/* Additional homepage content like featured products, testimonials, or how-it-works sections can go here */}
-      </>
-    );
-  }
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    if (!session) return;
+    if (!router.isReady) return;
 
-    const redirectUser = async () => {
-      if (!session?.user?.email) return;
+    const fetchUserAndRedirect = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('role, details_complete, verified')
-        .eq('email', session.user.email)
-        .single();
+      if (!user) return;
 
-      if (error || !data) {
-        console.error('User data fetch error or user not found');
-        return;
-      }
+      setUser(user);
 
-      if (!data || !data.role) {
+      const email = user.email;
+      if (!email) return;
+      const roleData = await getUserRole(email);
+
+      if (!roleData || !roleData.role) {
         router.push('/onboarding/role');
         return;
       }
 
-      const { role, details_complete, verified } = data;
-
-      if (!role) {
-        router.push('/onboarding/role');
-      } else if (!details_complete) {
+      if (!roleData.details_complete) {
         router.push('/onboarding/details');
-      } else if (!verified) {
+        return;
+      }
+
+      if (!roleData.verified) {
         router.push('/onboarding/verify');
-      } else {
-        switch (role) {
-          case 'seller':
-            router.push('/seller/dashboard');
-            break;
-          case 'stylist':
-            router.push('/stylist/dashboard');
-            break;
-          case 'driver':
-            router.push('/driver/dashboard');
-            break;
-          case 'buyer':
-            router.push('/buyers/marketplace');
-            break;
-          default:
-            console.warn('Unknown role detected:', role);
-            router.push('/onboarding/role');
-            break;
-        }
+        return;
+      }
+
+      switch (roleData.role) {
+        case 'seller':
+          router.push('/seller/dashboard');
+          break;
+        case 'stylist':
+          router.push('/stylist/dashboard');
+          break;
+        case 'driver':
+          router.push('/driver/dashboard');
+          break;
+        default:
+          router.push('/buyer/marketplace');
       }
     };
 
-    redirectUser();
-  }, [session]);
+    fetchUserAndRedirect();
+  }, [router]);
 
-  return null;
+  return (
+    <div className="min-h-screen flex items-center justify-center text-lg font-medium">
+      Redirecting...
+    </div>
+  );
 }

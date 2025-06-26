@@ -1,48 +1,61 @@
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useEffect, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import supabaseBrowserClient from '@/lib/supabaseBrowserClient';
+import { cookies } from 'next/headers';
 
 export default function WelcomePage() {
   const router = useRouter();
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
+    const supabase = supabaseBrowserClient;
+    const getSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setSession(session);
+    };
+    getSession();
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user.id) return;
+
     const checkUser = async () => {
-      const supabase = createClientComponentClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
+      if (!session?.user.id) {
+        console.error("User ID not available.");
+        return;
+      }
 
-      if (!user) return; // allow guests to stay on welcome page
-
+      const supabase = supabaseBrowserClient;
       const { data: userInfo, error } = await supabase
         .from('users')
         .select('role, details_complete, verified')
-        .eq('id', user.id)
-        .single();
+        .eq('id', session.user.id)
+        .maybeSingle();
 
-      if (error) {
+      if (error || !userInfo) {
         console.error('Error fetching user info:', error);
         return;
       }
 
-      if (!userInfo.details_complete) {
-        router.push('/onboarding/details');
-      } else if (!userInfo.role) {
-        router.push('/onboarding/role');
-      } else if (!userInfo.verified) {
-        router.push('/onboarding/verify');
-      } else {
-        const dashboardMap: Record<string, string> = {
-          buyer: '/buyer/marketplace',
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-        };
-        router.push(dashboardMap[userInfo.role] || '/');
-      }
+      if (!userInfo.role) return router.push('/onboarding/role');
+      if (!userInfo.details_complete) return router.push('/onboarding/details');
+      if (!userInfo.verified) return router.push('/onboarding/verify');
+
+      const dashboardMap: Record<string, string> = {
+        buyer: '/buyer/marketplace',
+        seller: '/seller/dashboard',
+        stylist: '/stylist/dashboard',
+        driver: '/driver/dashboard',
+      };
+
+      router.push(dashboardMap[userInfo.role] || '/');
     };
 
     checkUser();
-  }, []);
+  }, [session, router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-yellow-400 font-graffiti px-4 text-center">

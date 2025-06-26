@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../lib/supabaseClient';
-import { signIn } from 'next-auth/react';
+import supabase from '@/lib/supabaseBrowserClient';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true); // Toggle for signup/login
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -15,16 +15,14 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      let authResponse;
-
       if (isSignUp) {
-        // Sign up new user
-        authResponse = await supabase.auth.signUp({
+        const authResponse = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: {
               created_from: 'web',
+              email_confirmed_at: new Date().toISOString(),
             },
           },
         });
@@ -33,65 +31,86 @@ const Signup = () => {
           throw authResponse.error;
         }
 
-        const user = authResponse.data?.user;
-        if (user && user.id) {
-          await supabase.from('users').upsert({
-            id: user.id,
-            email: user.email,
-            role: null,
-            details_complete: false,
-            verified: false,
-          });
-          // After signup, go directly to role onboarding
-          router.push('/onboarding/role');
+        const user = authResponse.data?.user ?? authResponse.data?.session?.user;
+        if (!user?.id) {
+          console.error('Signup succeeded but no user ID returned');
+          setErrorMessage('Signup issue. Please try again.');
+          setLoading(false);
+          return;
         }
-      } else {
-        // Sign in existing user
-        const signInRes = await signIn('credentials', {
-          redirect: false,
+
+        await supabase.from('users').upsert({
+          id: user.id,
+          email: user.email,
+          role: null,
+          is_details_complete: false,
+          is_verified: false,
+        });
+
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
-        if (!signInRes || signInRes.error) {
-          throw new Error(signInRes?.error || 'Authentication failed');
+        if (signInError || !signInData.session) {
+          setErrorMessage(signInError?.message || 'Authentication failed');
+          setLoading(false);
+          return;
         }
 
-        const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData?.session?.user?.id;
-        if (userId) {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('details_complete, role, verified')
-            .eq('id', userId)
-            .single();
+        router.push('/onboarding/role');
+      } else {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-          if (!userData?.role) {
-            router.push('/onboarding/role');
-          } else if (!userData?.details_complete) {
-            router.push('/onboarding/details');
-          } else if (!userData?.verified) {
-            router.push('/onboarding/verify');
-          } else {
-            switch (userData.role) {
-              case 'seller':
-                router.push('/seller/dashboard');
-                break;
-              case 'stylist':
-                router.push('/stylist/dashboard');
-                break;
-              case 'driver':
-                router.push('/driver/dashboard');
-                break;
-              default:
-                router.push('/buyer/marketplace');
-            }
+        if (signInError || !signInData.session) {
+          setErrorMessage(signInError?.message || 'Authentication failed');
+          setLoading(false);
+          return;
+        }
+
+        const userId = signInData.session.user.id;
+
+        const { data: userData } = await supabase
+          .from('users')
+          .select('is_details_complete, role, is_verified')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!userData) {
+          router.push('/onboarding/role');
+          setLoading(false);
+          return;
+        }
+
+        if (!userData?.role) {
+          router.push('/onboarding/role');
+        } else if (!userData?.is_details_complete) {
+          router.push('/onboarding/details');
+        } else if (!userData?.is_verified) {
+          router.push('/onboarding/verify');
+        } else {
+          switch (userData.role) {
+            case 'seller':
+              router.push('/seller/dashboard');
+              break;
+            case 'stylist':
+              router.push('/stylist/dashboard');
+              break;
+            case 'driver':
+              router.push('/driver/dashboard');
+              break;
+            default:
+              router.push('/buyer/marketplace');
           }
         }
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      alert(error.message || 'There was an issue. Please try again.');
+      setLoading(false);
+      setErrorMessage(error.message || 'There was an issue. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -125,6 +144,10 @@ const Signup = () => {
           required
         />
 
+        {errorMessage && (
+          <p className="text-red-500 text-sm text-center">{errorMessage}</p>
+        )}
+
         <button
           type="submit"
           className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded"
@@ -144,4 +167,4 @@ const Signup = () => {
   );
 };
 
-export default Signup; 
+export default Signup;

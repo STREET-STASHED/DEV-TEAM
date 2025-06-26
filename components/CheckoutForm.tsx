@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useCart } from '../context/CartContext';
 import type { CartItem } from '../context/CartContext';
-import supabase from '../lib/supabaseClient';
+import supabase from '../lib/supabaseBrowserClient';
 
 interface CheckoutFormProps {
   items: CartItem[];

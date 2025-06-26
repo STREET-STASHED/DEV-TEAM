@@ -1,101 +1,89 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../../lib/supabaseClient';
+import { createBrowserClient } from '@supabase/ssr';
+import supabase from '@/lib/supabaseBrowserClient';
 
-export default function OnboardingDetails() {
-  const [role, setRole] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+export default function Details() {
   const router = useRouter();
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [role, setRole] = useState<string>('');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [referralCode, setReferralCode] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        router.push('/signup');
-      }
-    };
-    checkUser();
-  }, [router]);
-
+  // Seller fields
   const [storeName, setStoreName] = useState('');
   const [storeDescription, setStoreDescription] = useState('');
+
+  // Driver fields
   const [vehicleType, setVehicleType] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
-  const [specialties, setSpecialties] = useState('');
-  const [portfolio, setPortfolio] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [deliveryRadius, setDeliveryRadius] = useState('');
   const [payoutMethod, setPayoutMethod] = useState('');
-  const [booking, setBooking] = useState('');
+
+  // Stylist fields
+  const [specialties, setSpecialties] = useState('');
+  const [portfolioUrl, setPortfolioUrl] = useState('');
   const [bundles, setBundles] = useState('');
-  const [referralCode, setReferralCode] = useState('');
 
   useEffect(() => {
-    const fetchRole = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (user) {
-        const { data, error } = await supabase.from('users').select('role').eq('id', user.id).single();
-        if (data?.role) {
-          setRole(data.role);
-
-          const { data: detailsCheck } = await supabase
-            .from('users')
-            .select('details_complete')
-            .eq('id', user.id)
-            .single();
-
-          // Removed redirect to onboarding/verify to avoid skipping role step
-          // if (detailsCheck?.details_complete) {
-          //   router.push('/onboarding/verify');
-          //   return;
-          // }
-        } else {
-          console.warn('Role not set for user. Prompting user to choose a role.');
-        }
-      } else {
-        console.warn('No user found in supabase auth:', userError);
-        router.push('/onboarding/role');
+    const init = async () => {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (sessionError || !user) {
+        console.error('No active session:', sessionError);
+        router.push('/signup');
+        return;
       }
-      setLoading(false);
+
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching role:', error);
+        return;
+      }
+      if (!data?.role) {
+        return router.push('/onboarding/role');
+      }
+      if (data.role === 'buyer') {
+        // Buyers skip details and go straight to marketplace
+        return router.replace('/buyer/marketplace');
+      }
+      setRole(data.role);
+      setInitialLoading(false);
     };
-    fetchRole();
-  }, []);
+    init();
+  }, [router, supabase]);
 
-  useEffect(() => {
-    if (!role) {
-      router.push('/onboarding/role');
-    }
-  }, [role]);
-
-  useEffect(() => {
-    if (role === 'buyer') {
-      router.push('/buyer/marketplace');
-    }
-  }, [role]);
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-700">Loading your onboarding step…</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return;
-    setSubmitting(true);
+    setLoading(true);
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      setSubmitting(false);
-      return;
+    const { data: { session }, error: submitError } = await supabase.auth.getSession();
+    const user = session?.user;
+    if (submitError || !user) {
+      alert('Session expired. Please log in again.');
+      return router.push('/signup');
     }
 
-    let updateData: any = {
-      details_complete: true,
-      onboarded: true,
-      role,
+    // Build update payload
+    const updateData: any = {
       full_name: fullName,
-      phone,
-      verified: false,
+      phone_number: phoneNumber,
+      referral_code: referralCode,
+      details_complete: true,
     };
 
     if (role === 'seller') {
@@ -104,164 +92,158 @@ export default function OnboardingDetails() {
     } else if (role === 'driver') {
       updateData.vehicle_type = vehicleType;
       updateData.license_number = licenseNumber;
-      updateData.delivery_radius = deliveryRadius;
       updateData.payout_method = payoutMethod;
     } else if (role === 'stylist') {
-      updateData.specialties = specialties;
-      updateData.portfolio = portfolio;
-      updateData.booking = booking;
-      updateData.bundles = bundles;
+      // Stylists handled in a separate table
+      const { error: stylistError } = await supabase
+        .from('stylist_applications')
+        .upsert({
+          id: user.id,
+          full_name: fullName,
+          email: user.email,
+          specialties,
+          portfolio_url: portfolioUrl,
+          bundles,
+          created_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+      if (stylistError) {
+        console.error('Stylist application error:', stylistError.message);
+        alert('Failed to save stylist details. Please try again.');
+        setLoading(false);
+        return;
+      }
     }
 
-    const { data: updateResult, error } = await supabase
+    // Update users table for seller and driver, and mark details_complete for all roles
+    const { error: updateError } = await supabase
       .from('users')
       .update(updateData)
-      .eq('id', user.id)
-      .select();
-
-    if (error) {
-      console.error('Update failed:', error.message);
-      setSubmitting(false);
+      .eq('id', user.id);
+    if (updateError) {
+      console.error('User update error:', updateError.message);
+      alert('Failed to save details. Please try again.');
+      setLoading(false);
       return;
     }
 
-    if (!updateResult || updateResult.length === 0) {
-      console.error('Update returned no data. Check if user exists and row-level security (RLS) policies allow updates.');
-      setSubmitting(false);
-      return;
-    }
-
-    setSubmitting(false);
+    setLoading(false);
     router.push('/onboarding/verify');
   };
 
-  if (loading) return <p>Loading...</p>;
-
-  let sectionTitle = '';
-  if (role === 'seller') sectionTitle = 'Seller Onboarding';
-  else if (role === 'driver') sectionTitle = 'Driver Onboarding';
-  else if (role === 'stylist') sectionTitle = 'Stylist Onboarding';
-  else sectionTitle = 'Onboarding';
-
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-6 bg-white p-8 rounded-xl shadow-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">{sectionTitle}</h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-            <input
-              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-              placeholder="Full Name"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-            />
-            <input
-              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-              placeholder="Phone Number"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <input
-              className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-              placeholder="Referral Code (Optional)"
-              value={referralCode}
-              onChange={(e) => setReferralCode(e.target.value)}
-            />
-            {(role === 'seller' || role === 'driver' || role === 'stylist') && (
-              <>
-                {role === 'seller' && (
-                  <>
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Store Name"
-                      required
-                      value={storeName}
-                      onChange={(e) => setStoreName(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Store Description"
-                      required
-                      value={storeDescription}
-                      onChange={(e) => setStoreDescription(e.target.value)}
-                    />
-                  </>
-                )}
-                {role === 'driver' && (
-                  <>
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Vehicle Type"
-                      required
-                      value={vehicleType}
-                      onChange={(e) => setVehicleType(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Driver’s License Number"
-                      required
-                      value={licenseNumber}
-                      onChange={(e) => setLicenseNumber(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Delivery Radius (miles)"
-                      required
-                      value={deliveryRadius}
-                      onChange={(e) => setDeliveryRadius(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Cash App / Bank Info"
-                      required
-                      value={payoutMethod}
-                      onChange={(e) => setPayoutMethod(e.target.value)}
-                    />
-                  </>
-                )}
-                {role === 'stylist' && (
-                  <>
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Specialties"
-                      required
-                      value={specialties}
-                      onChange={(e) => setSpecialties(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Instagram / Portfolio"
-                      required
-                      value={portfolio}
-                      onChange={(e) => setPortfolio(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Booking Availability"
-                      required
-                      value={booking}
-                      onChange={(e) => setBooking(e.target.value)}
-                    />
-                    <input
-                      className="w-full border border-gray-300 p-3 rounded-md text-black placeholder-gray-500"
-                      placeholder="Bundle Options (Event / Weekly)"
-                      required
-                      value={bundles}
-                      onChange={(e) => setBundles(e.target.value)}
-                    />
-                  </>
-                )}
-              </>
-            )}
-            <button
-              type="submit"
-              disabled={submitting}
-              className={`bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded-md w-full transition duration-200 ease-in-out ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {submitting ? 'Submitting...' : 'Next: Verify Your Account'}
-            </button>
-          </form>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md space-y-6">
+        <h1 className="text-2xl font-bold text-center">Complete Your Details</h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Full Name"
+            required
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full border border-gray-300 p-3 rounded-md"
+          />
+          <input
+            type="tel"
+            placeholder="Phone Number"
+            required
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="w-full border border-gray-300 p-3 rounded-md"
+          />
+          <input
+            type="text"
+            placeholder="Referral Code (optional)"
+            value={referralCode}
+            onChange={(e) => setReferralCode(e.target.value)}
+            className="w-full border border-gray-300 p-3 rounded-md"
+          />
+
+          {(role === 'seller') && (
+            <>
+              <input
+                type="text"
+                placeholder="Store Name"
+                required
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+              <textarea
+                placeholder="Store Description"
+                required
+                value={storeDescription}
+                onChange={(e) => setStoreDescription(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+            </>
+          )}
+
+          {(role === 'driver') && (
+            <>
+              <input
+                type="text"
+                placeholder="Vehicle Type"
+                required
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="Driver's License Number"
+                required
+                value={licenseNumber}
+                onChange={(e) => setLicenseNumber(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+              <input
+                type="text"
+                placeholder="Payout Method"
+                required
+                value={payoutMethod}
+                onChange={(e) => setPayoutMethod(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+            </>
+          )}
+
+          {(role === 'stylist') && (
+            <>
+              <input
+                type="text"
+                placeholder="Specialties"
+                required
+                value={specialties}
+                onChange={(e) => setSpecialties(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+              <input
+                type="url"
+                placeholder="Portfolio URL"
+                required
+                value={portfolioUrl}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+              <textarea
+                placeholder="Bundle Options"
+                required
+                value={bundles}
+                onChange={(e) => setBundles(e.target.value)}
+                className="w-full border border-gray-300 p-3 rounded-md"
+              />
+            </>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white p-3 rounded-md"
+          >
+            {loading ? 'Submitting...' : 'Continue'}
+          </button>
+        </form>
       </div>
     </div>
   );

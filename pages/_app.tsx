@@ -1,7 +1,6 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import type { Session } from 'next-auth';
-import { SessionProvider } from 'next-auth/react';
+import supabase from '../lib/supabaseBrowserClient';
 import { useRouter } from 'next/router';
 import { CartProvider } from '../context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
@@ -16,7 +15,7 @@ const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & { pageProps: { session: Session | null } }) {
+function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const isBuyerFacing =
     router.pathname === '/' ||
@@ -31,29 +30,27 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps & {
     : () => null;
 
   return (
-    <SessionProvider session={session}>
-      <CartProvider>
-        <Elements stripe={stripePromise}>
-          <NoAuthProvider>
-            <div
-              className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
-              style={{ backgroundImage: "url('/background.png')" }}
-            >
-              {/* Premium header always visible */}
-              <Header />
-              {/* Prevent content being hidden by fixed header */}
-              <div style={{ paddingTop: 80 }}>
-                <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-                  <Component {...pageProps} />
-                </main>
-              </div>
-              {/* CartDrawer only for buyer/visitor-facing pages */}
-              {isBuyerFacing && <CartDrawer />}
+    <CartProvider>
+      <Elements stripe={stripePromise}>
+        <NoAuthProvider>
+          <div
+            className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
+            style={{ backgroundImage: "url('/background.png')" }}
+          >
+            {/* Premium header always visible */}
+            <Header />
+            {/* Prevent content being hidden by fixed header */}
+            <div style={{ paddingTop: 80 }}>
+              <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+                <Component {...pageProps} />
+              </main>
             </div>
-          </NoAuthProvider>
-        </Elements>
-      </CartProvider>
-    </SessionProvider>
+            {/* CartDrawer only for buyer/visitor-facing pages */}
+            {isBuyerFacing && <CartDrawer />}
+          </div>
+        </NoAuthProvider>
+      </Elements>
+    </CartProvider>
   );
 }
 

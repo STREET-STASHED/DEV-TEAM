@@ -7,7 +7,7 @@ interface Booking {
   service_name?: string;
 }
 import React, { useEffect, useState } from "react";
-import supabase from "../../lib/supabaseClient";
+import supabase from "../../lib/supabaseBrowserClient";
 import AuthGuard from "@/components/AuthGuard";
 
 interface SellerDashboardProps {

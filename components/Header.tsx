@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../lib/supabaseClient';
+import supabase from '@/lib/supabaseBrowserClient';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
 
@@ -17,11 +17,18 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
-        const { data } = await supabase.from('users').select('role').eq('id', user.id).single();
-        setRole(data?.role || null);
+      const { data, error } = await supabase.auth.getUser();
+      const currentUser = data?.user;
+      if (currentUser) {
+        setUser(currentUser);
+        const { data: roleData } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', currentUser.id)
+          .single();
+        setRole(roleData?.role || null);
+      } else {
+        console.warn('No user found or Supabase error:', error);
       }
     };
     fetchUser();

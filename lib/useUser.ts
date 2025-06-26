@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import supabase from './supabaseClient';
+import supabase from './supabaseBrowserClient';
 
 interface AppUser {
   id: string;
@@ -32,10 +32,15 @@ export function useUser() {
         .single();
 
       if (userError || !userData) {
-        console.error('Error fetching user data:', userError);
+        console.error('Failed to fetch user profile from `users` table:', userError?.message || userError);
         setUser(null);
       } else {
-        setUser({ ...authUser, ...userData } as AppUser);
+        setUser({
+          id: authUser.id,
+          email: authUser.email,
+          role: userData.role,
+          ...userData,
+        });
       }
     } catch (error) {
       console.error('Unexpected error fetching user:', error);
@@ -58,5 +63,5 @@ export function useUser() {
     };
   }, []);
 
-  return { user, loading };
+  return { user, loading, hasSession: !!user };
 }

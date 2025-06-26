@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import supabase from '@/lib/supabaseClient';
+import supabase from '@/lib/supabaseBrowserClient';
 import { GetServerSideProps } from 'next';
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import AuthGuard from '@/components/AuthGuard';

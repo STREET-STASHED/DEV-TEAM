@@ -1,10 +1,21 @@
+import type { Session } from '@supabase/supabase-js';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+import supabase from '@/lib/supabaseBrowserClient';
 import { useRouter } from 'next/router';
 
 const Hero = () => {
-  const { data: session } = useSession();
   const router = useRouter();
+
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(
+      ({ data }: { data: { session: Session | null } }) => {
+        setSession(data.session);
+      }
+    );
+  }, []);
 
   // Begin multi-step onboarding flow: signup → role → details → verify → dashboard
   const handleJoin = () => {

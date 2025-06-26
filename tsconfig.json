@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -8,6 +8,7 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "moduleResolution": "node",
     "resolveJsonModule": true,
@@ -19,18 +20,10 @@
       "@/*": ["./*"],
       "@lib/*": ["lib/*"],
       "@supabaseClient": ["lib/supabaseClient"],
-      "@context": ["./context"],
-      "@context/*": ["./context/*"],
-      "@components/*": ["./components/*"],
-      "@pages/*": ["./pages/*"]
-    }
+      "@components/*": ["./components/*"]
+    },
+    "typeRoots": ["./types"]
   },
-  "include": [
-    "next-env.d.ts",
-    "next-auth.d.ts",
-    "types/next-auth.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "types/**/*.d.ts"],
   "exclude": ["node_modules"]
 }
