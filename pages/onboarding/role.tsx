@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
-import { createBrowserClient } from '@supabase/ssr';
-import supabase from '@/lib/supabaseBrowserClient'; // or your custom client path
+import supabase from '@/lib/supabaseBrowserClient';
 
 export default function RolePage() {
   const router = useRouter();

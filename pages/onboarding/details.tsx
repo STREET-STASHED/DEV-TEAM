@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { createBrowserClient } from '@supabase/ssr';
 import supabase from '@/lib/supabaseBrowserClient';
 
 export default function Details() {

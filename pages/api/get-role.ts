@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import supabaseAdmin from '../../lib/supabaseAdmin';
-import { createClient } from '@supabase/supabase-js';
+import supabase from '@/lib/supabaseBrowserClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -13,22 +13,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized: no token.' });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
+  await supabase.auth.setSession({ access_token: token, refresh_token: '' });
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
   if (userError || !user) {
     return res.status(401).json({ error: 'Unauthorized: failed to get user.' });

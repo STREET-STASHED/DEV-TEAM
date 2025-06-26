@@ -9,27 +9,15 @@ export default function WelcomePage() {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    const supabase = supabaseBrowserClient;
-    const getSession = async () => {
+    const init = async () => {
       const {
         data: { session },
-      } = await supabase.auth.getSession();
+      } = await supabaseBrowserClient.auth.getSession();
       setSession(session);
-    };
-    getSession();
-  }, []);
 
-  useEffect(() => {
-    if (!session?.user.id) return;
+      if (!session?.user.id) return;
 
-    const checkUser = async () => {
-      if (!session?.user.id) {
-        console.error("User ID not available.");
-        return;
-      }
-
-      const supabase = supabaseBrowserClient;
-      const { data: userInfo, error } = await supabase
+      const { data: userInfo, error } = await supabaseBrowserClient
         .from('users')
         .select('role, details_complete, verified')
         .eq('id', session.user.id)
@@ -54,8 +42,8 @@ export default function WelcomePage() {
       router.push(dashboardMap[userInfo.role] || '/');
     };
 
-    checkUser();
-  }, [session, router]);
+    init();
+  }, [router]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-yellow-400 font-graffiti px-4 text-center">

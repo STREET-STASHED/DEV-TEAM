@@ -27,6 +27,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
         }
 
         const roleData = await roleResponse.json();
+        console.log('User role loaded:', roleData);
 
         if (!roleData || typeof roleData !== 'object') {
           console.error('Malformed role response:', roleData);
@@ -35,16 +36,19 @@ export default function AuthGuard({ role, children }: { role: string, children: 
         }
 
         if (!roleData.role) {
+          console.log('Redirecting: missing role');
           await router.replace('/onboarding/role');
           return;
         }
 
         if (!roleData.details_complete) {
+          console.log('Redirecting: details incomplete');
           await router.replace('/onboarding/details');
           return;
         }
 
         if (!roleData.verified) {
+          console.log('Redirecting: not verified');
           await router.replace('/onboarding/verify');
           return;
         }
@@ -55,6 +59,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
           return;
         }
 
+        console.log('Authorized, loading finished');
         setLoading(false);
       } catch (err) {
         console.error('Unexpected error in auth guard:', err);
@@ -62,7 +67,14 @@ export default function AuthGuard({ role, children }: { role: string, children: 
       }
     };
 
+    const timeout = setTimeout(() => {
+      console.warn('AuthGuard timeout reached — ending loading state as fallback.');
+      setLoading(false);
+    }, 10000); // 10s fallback
+
     checkAuth();
+
+    return () => clearTimeout(timeout);
   }, [role, router]);
 
   if (loading) {

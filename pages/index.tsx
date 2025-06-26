@@ -22,7 +22,13 @@ export default function IndexPage() {
 
       const email = user.email;
       if (!email) return;
-      const roleData = await getUserRole(email);
+      let roleData;
+      try {
+        roleData = await getUserRole(email);
+      } catch (error) {
+        console.error('Error fetching user role:', error);
+        return;
+      }
 
       if (!roleData || !roleData.role) {
         router.push('/onboarding/role');
@@ -58,8 +64,11 @@ export default function IndexPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-lg font-medium">
-      Redirecting...
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto mb-4"></div>
+        <p className="text-lg font-medium">Redirecting...</p>
+      </div>
     </div>
   );
 }

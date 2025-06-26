@@ -8,6 +8,8 @@ import { loadStripe } from '@stripe/stripe-js';
 import Header from '../components/Header';
 import dynamic from 'next/dynamic';
 
+const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
+
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
@@ -24,10 +26,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     router.pathname.startsWith('/buyer') ||
     router.pathname.startsWith('/stores');
 
-  // Dynamic import CartDrawer client-side for SSR safety
-  const CartDrawer = typeof window !== "undefined"
-    ? require('next/dynamic')(() => import('../components/CartDrawer'), { ssr: false })
-    : () => null;
 
   return (
     <CartProvider>
