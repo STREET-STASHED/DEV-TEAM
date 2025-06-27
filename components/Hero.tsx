@@ -1,7 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import supabase from '@/lib/supabaseBrowserClient';
+import supabase from '@/lib/supabaseClient';
 import { useRouter } from 'next/router';
 import styles from './Hero.module.css';
 
@@ -17,11 +17,6 @@ const Hero = () => {
       }
     );
   }, []);
-
-  // Begin multi-step onboarding flow: signup → role → details → verify → dashboard
-  const handleJoin = () => {
-    router.push('/signup');
-  };
 
   return (
     <section className={styles.heroSection}>
