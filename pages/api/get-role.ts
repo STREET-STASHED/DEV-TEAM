@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select('role, is_details_complete, is_verified')
+    .select('role, details_complete, verified')
     .eq('id', userId)
     .maybeSingle();
 

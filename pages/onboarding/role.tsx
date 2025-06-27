@@ -52,10 +52,11 @@ export default function RolePage() {
       setLoading(false);
       return;
     }
-    // Upsert role on users table
+    // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .upsert({ id: user.id, role: selectedRole, onboarded: true }, { onConflict: 'id' });
+      .update({ role: selectedRole, onboarded: true })
+      .eq('id', user.id);
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
       alert('Unable to save role. Try again.');

@@ -43,6 +43,11 @@ const Header = () => {
     router.push(`/${role}/dashboard`);
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
   return (
     <>
       <header
@@ -142,7 +147,7 @@ const Header = () => {
                   <Link href="/orders" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Orders</Link>
                   <Link href="/my-store" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">My Store</Link>
                   <Link href="/settings" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Settings</Link>
-                  <button className="w-full text-left px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Logout</button>
+                  <button onClick={handleLogout} className="w-full text-left px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Logout</button>
                 </div>
               )}
             </div>
@@ -195,7 +200,7 @@ const Header = () => {
                   <Link href="/orders" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Orders</Link>
                   <Link href="/my-store" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">My Store</Link>
                   <Link href="/settings" className="px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Settings</Link>
-                  <button className="w-full text-left px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Logout</button>
+                  <button onClick={handleLogout} className="w-full text-left px-5 py-2 hover:bg-yellow-400 hover:text-black rounded-xl transition">Logout</button>
                 </div>
               )}
             </div>

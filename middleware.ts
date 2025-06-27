@@ -1,24 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createBrowserClient } from '@supabase/ssr';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  const supabase = createServerClient(
+  const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (key: string) => req.cookies.get(key)?.value,
-        set: (key: string, value: string, options: any) => {
-          res.cookies.set(key, value, options);
-        },
-        remove: (key: string, options: any) => {
-          res.cookies.set(key, '', { ...options, maxAge: -1 });
-        },
-      },
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
   const {
@@ -27,27 +16,24 @@ export async function middleware(req: NextRequest) {
 
   const pathname = req.nextUrl.pathname;
 
-  // Redirect users with a valid session from "/" to appropriate dashboard based on role
   if (session && pathname === '/') {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
     const role = user?.user_metadata?.role;
+    const detailsComplete = user?.user_metadata?.details_complete;
+    const verified = user?.user_metadata?.verified;
 
-    if (role === 'buyer') {
-      return NextResponse.redirect(new URL('/buyer/dashboard', req.url));
-    } else if (role === 'seller') {
-      return NextResponse.redirect(new URL('/seller/dashboard', req.url));
-    } else if (role === 'stylist') {
-      return NextResponse.redirect(new URL('/stylist/dashboard', req.url));
-    } else if (role === 'driver') {
-      return NextResponse.redirect(new URL('/driver/dashboard', req.url));
-    } else if (role === 'admin') {
-      return NextResponse.redirect(new URL('/admin/dashboard', req.url));
-    } else {
-      return NextResponse.redirect(new URL('/onboarding/role', req.url));
-    }
+    if (!role) return NextResponse.redirect(new URL('/onboarding/role', req.url));
+    if (!detailsComplete) return NextResponse.redirect(new URL('/onboarding/details', req.url));
+    if (!verified) return NextResponse.redirect(new URL('/onboarding/verify', req.url));
+
+    if (role === 'buyer') return NextResponse.redirect(new URL('/buyer/dashboard', req.url));
+    if (role === 'seller') return NextResponse.redirect(new URL('/seller/dashboard', req.url));
+    if (role === 'stylist') return NextResponse.redirect(new URL('/stylist/dashboard', req.url));
+    if (role === 'driver') return NextResponse.redirect(new URL('/driver/dashboard', req.url));
+    if (role === 'admin') return NextResponse.redirect(new URL('/admin/dashboard', req.url));
   }
 
   const isAuthRoute = pathname.startsWith('/onboarding') ||
@@ -58,8 +44,7 @@ export async function middleware(req: NextRequest) {
                       pathname.startsWith('/admin');
 
   if (!session && isAuthRoute) {
-    const loginUrl = new URL('/signup', req.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/signup', req.url));
   }
 
   return res;

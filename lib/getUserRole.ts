@@ -7,7 +7,7 @@ export async function getUserRoleById(id: string): Promise<{
 }> {
   const { data, error } = await supabase
     .from('users')
-    .select('role, is_details_complete, verified')
+    .select('role, details_complete, verified')
     .eq('id', id)
     .maybeSingle();
 
@@ -20,7 +20,7 @@ export async function getUserRoleById(id: string): Promise<{
   }
   return {
     role: data?.role ?? null,
-    details_complete: data?.is_details_complete ?? false,
+    details_complete: data?.details_complete ?? false,
     verified: data?.verified ?? false,
   };
 }

@@ -40,12 +40,12 @@ export default function IndexPage() {
           return;
         }
 
-        if (!roleData.details_complete) {
+        if (roleData.details_complete === false) {
           router.push('/onboarding/details');
           return;
         }
 
-        if (!roleData.verified) {
+        if (roleData.verified === false) {
           router.push('/onboarding/verify');
           return;
         }

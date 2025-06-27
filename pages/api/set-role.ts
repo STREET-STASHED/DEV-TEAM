@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import supabase from "@/lib/supabaseBrowserClient";
+import { createClient } from '@supabase/supabase-js';
 
-// const supabase = createClient(
-//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-//   process.env.SUPABASE_SERVICE_ROLE_KEY!
-// );
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,7 +29,11 @@ export async function POST(req: NextRequest) {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ role })
+      .update({
+        role,
+        email: user.email,
+        updated_at: new Date().toISOString(),
+      })
       .eq('id', user.id);
 
     if (updateError) {

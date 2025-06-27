@@ -10,12 +10,16 @@ export default function WelcomePage() {
 
   useEffect(() => {
     const init = async () => {
+      console.log('Welcome page loaded');
       const {
         data: { session },
       } = await supabaseBrowserClient.auth.getSession();
       setSession(session);
 
-      if (!session?.user.id) return;
+      if (!session?.user.id) {
+        console.log('No user session found');
+        return;
+      }
 
       const { data: userInfo, error } = await supabaseBrowserClient
         .from('users')
@@ -28,9 +32,20 @@ export default function WelcomePage() {
         return;
       }
 
-      if (!userInfo.role) return router.push('/onboarding/role');
-      if (!userInfo.details_complete) return router.push('/onboarding/details');
-      if (!userInfo.verified) return router.push('/onboarding/verify');
+      if (!userInfo.role) {
+        console.log('Redirecting to role selection');
+        return router.push('/onboarding/role');
+      }
+
+      if (!userInfo.details_complete) {
+        console.log('Redirecting to details form');
+        return router.push('/onboarding/details');
+      }
+
+      if (!userInfo.verified) {
+        console.log('Redirecting to verification step');
+        return router.push('/onboarding/verify');
+      }
 
       const dashboardMap: Record<string, string> = {
         buyer: '/buyer/marketplace',
@@ -39,6 +54,7 @@ export default function WelcomePage() {
         driver: '/driver/dashboard',
       };
 
+      console.log(`Redirecting to ${dashboardMap[userInfo.role] || '/'}`);
       router.push(dashboardMap[userInfo.role] || '/');
     };
 

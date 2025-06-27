@@ -36,7 +36,10 @@ const Hero = () => {
           Fashion delivered on demand. From exclusive drops to everyday heat — all day in every neighborhood.
         </p>
         <div className="flex justify-center gap-4 flex-wrap">
-          <button className="bg-yellow-500 text-black font-bold py-3 px-6 rounded-full hover:bg-yellow-400 transition">
+          <button
+            className="bg-yellow-500 text-black font-bold py-3 px-6 rounded-full hover:bg-yellow-400 transition"
+            onClick={() => router.push('/marketplace')}
+          >
             Browse Drops
           </button>
           <button

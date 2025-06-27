@@ -43,8 +43,13 @@ const Signup = () => {
           id: user.id,
           email: user.email,
           role: null,
-          is_details_complete: false,
-          is_verified: false,
+          details_complete: false,
+          verified: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          is_active: true,
+          is_anonymous: false,
+          onboarded: false
         });
 
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
