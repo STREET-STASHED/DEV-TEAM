@@ -7,61 +7,52 @@ export default function RolePage() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const autoSelectRole = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) return;
-
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (!userData?.role) {
-        await supabase
-          .from('users')
-          .update({ role: 'seller', onboarded: true })
-          .eq('id', user.id);
-        router.push('/onboarding/details');
-      }
-    };
-
-    autoSelectRole();
-  }, []);
+  const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkRoleAndRedirect = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      try {
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
-      if (error || !session?.user) {
-        router.push('/login');
-        return;
-      }
+        if (error || !session?.user) {
+          router.push('/login');
+          return;
+        }
 
-      const { data, error: roleError } = await supabase
-        .from('users')
-        .select('role, onboarded')
-        .eq('id', session.user.id)
-        .maybeSingle();
+        const { data, error: roleError } = await supabase
+          .from('users')
+          .select('role, onboarded')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-      if (roleError) {
-        console.error('Role fetch error:', roleError);
-        return;
-      }
+        if (roleError) {
+          console.error('Role fetch error:', roleError);
+          setInitError('Error fetching your role. Please refresh or try again later.');
+          return;
+        }
 
-      if (data?.role && data?.onboarded) {
-        router.replace('/onboarding/details');
+        if (data?.role && data?.onboarded) {
+          router.replace('/onboarding/details');
+        }
+      } catch (e) {
+        console.error('Unhandled error during role check:', e);
+        setInitError('An unexpected error occurred. Please try again.');
       }
     };
 
     checkRoleAndRedirect();
   }, []);
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-red-600 font-semibold">{initError}</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

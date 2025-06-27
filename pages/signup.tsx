@@ -2,64 +2,111 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseClient';
 
-const AuthPage = () => {
+const AuthScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(true); // Toggle for signup/login
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [initError, setInitError] = useState<string | null>(null);
   const router = useRouter();
+
+  const handleRedirect = (userData: any) => {
+    if (!userData?.role) {
+      router.push('/onboarding/role');
+    } else if (!userData.details_complete) {
+      router.push('/onboarding/details');
+    } else if (!userData.onboarded) {
+      router.push('/onboarding/verify');
+    } else {
+      switch (userData.role) {
+        case 'seller':
+          router.push('/seller/dashboard');
+          break;
+        case 'stylist':
+          router.push('/stylist/dashboard');
+          break;
+        case 'driver':
+          router.push('/driver/dashboard');
+          break;
+        default:
+          router.push('/buyer/marketplace');
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
+    if (!email.includes('@') || email.length < 5) {
+      setErrorMessage('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isSignUp) {
-        const authResponse = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        const { user, session } = authResponse.data;
-        const error = authResponse.error;
-
-        if (error) {
-          console.error('Signup error:', error.message);
-          setErrorMessage('Signup failed. Please try again.');
-          setLoading(false);
-          return;
-        }
-
-        if (!user) {
-          console.warn("Signup succeeded but no user returned — possibly due to email confirmation being required.");
-          setErrorMessage("Check your email to confirm your account.");
-          setLoading(false);
-          return;
-        }
-
-        const { error: upsertError } = await supabase
-          .from('users')
-          .upsert({
-            id: user.id,
-            email: user.email,
-            role: null,
-            details_complete: false,
-            verified: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            is_active: true,
-            onboarded: false,
+        try {
+          const authResponse = await supabase.auth.signUp({
+            email,
+            password,
           });
 
-        if (upsertError) {
-          console.error("Upsert error:", upsertError);
-          setErrorMessage('There was an issue saving your information. Please try again.');
+          const { user, session } = authResponse.data;
+          const error = authResponse.error;
+
+          if (error) {
+            console.error('Signup error:', error.message);
+            setErrorMessage('Signup failed. Please try again.');
+            setInitError('Something went wrong during signup. Please refresh and try again.');
+            setLoading(false);
+            return;
+          }
+
+          if (!user) {
+            console.warn("Signup succeeded but no user returned — possibly due to email confirmation being required.");
+            setErrorMessage("Check your email to confirm your account.");
+            setLoading(false);
+            return;
+          }
+
+          try {
+            const { error: upsertError } = await supabase
+              .from('users')
+              .upsert({
+                id: user.id,
+                email: user.email,
+                role: null,
+                details_complete: false,
+                verified: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                is_active: true,
+                onboarded: false,
+              });
+
+            if (upsertError) {
+              console.error("Upsert error:", upsertError);
+              setErrorMessage('There was an issue saving your information. Please try again.');
+              setInitError('Something went wrong during signup. Please refresh and try again.');
+              setLoading(false);
+              return;
+            }
+          } catch (upsertCatchError) {
+            console.error("Upsert exception:", upsertCatchError);
+            setInitError('Something went wrong during signup. Please refresh and try again.');
+            setLoading(false);
+            return;
+          }
+
+          router.replace('/onboarding/role');
+        } catch (signUpCatchError) {
+          console.error("Signup exception:", signUpCatchError);
+          setInitError('Something went wrong during signup. Please refresh and try again.');
           setLoading(false);
           return;
         }
-
-        router.replace('/onboarding/role');
       } else {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -74,36 +121,22 @@ const AuthPage = () => {
 
         const userId = signInData.session.user.id;
 
-        const { data: userData } = await supabase
-          .from('users')
-          .select('details_complete, role, verified, onboarded')
-          .eq('id', userId)
-          .maybeSingle();
+        try {
+          const { data: userData, error: fetchError } = await supabase
+            .from('users')
+            .select('details_complete, role, verified, onboarded')
+            .eq('id', userId)
+            .maybeSingle();
 
-        if (!userData?.role) {
-          router.push('/onboarding/role');
-          return;
+          if (fetchError) throw fetchError;
+
+          handleRedirect(userData);
+        } catch (err) {
+          console.error('Error fetching user data:', err);
+          setErrorMessage('Could not load user profile. Please try again.');
         }
 
-        if (!userData.details_complete) {
-          router.push('/onboarding/details');
-        } else if (!userData.onboarded) {
-          router.push('/onboarding/verify');
-        } else {
-          switch (userData.role) {
-            case 'seller':
-              router.push('/seller/dashboard');
-              break;
-            case 'stylist':
-              router.push('/stylist/dashboard');
-              break;
-            case 'driver':
-              router.push('/driver/dashboard');
-              break;
-            default:
-              router.push('/buyer/marketplace');
-          }
-        }
+        setLoading(false);
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -113,6 +146,14 @@ const AuthPage = () => {
       setLoading(false);
     }
   };
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-red-600 font-semibold">{initError}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center text-white px-4">
@@ -165,4 +206,4 @@ const AuthPage = () => {
   );
 };
 
-export default AuthPage;
+export default AuthScreen;

@@ -10,6 +10,7 @@ export default function Details() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
 
   // Seller fields
   const [storeName, setStoreName] = useState('');
@@ -27,46 +28,55 @@ export default function Details() {
 
   useEffect(() => {
     const init = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (sessionError || !user) {
-        console.error('No active session:', sessionError);
-        router.push('/signup');
-        return;
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const user = session?.user;
+        if (sessionError || !user) {
+          console.error('Session fetch error or no user:', sessionError);
+          router.push('/signup');
+          return;
+        }
+
+        console.log('User ID:', user.id);
+
+        const { data, error } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching role:', error);
+          return;
+        }
+
+        if (!data?.role || ['buyer', null].includes(data.role)) {
+          console.warn('No valid role set yet. Redirecting to role selection.');
+          router.push('/onboarding/role');
+          return;
+        }
+
+        setRole(data.role);
+        console.log("Loaded role:", data.role);
+        // demo defaults
+        setFullName('Test User');
+        setPhoneNumber('4125551234');
+        setReferralCode('');
+        setStoreName('StreetStyles');
+        setStoreDescription('Trendy fashion and streetwear.');
+        setVehicleType('Sedan');
+        setLicenseNumber('D12345678');
+        setPayoutMethod('Cash App: $streetuser');
+        setSpecialties('Urban fashion, event styling');
+        setPortfolioUrl('https://portfolio.testuser.com');
+        setBundles('Weekend Fits, Event Ready Packages');
+
+        setInitialLoading(false);
+      } catch (e) {
+        console.error('Unhandled error in init():', e);
+        setInitError('An unexpected error occurred while loading your details. Please try refreshing the page.');
+        setInitialLoading(false);
       }
-
-      console.log('User ID:', user.id);
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching role:', error);
-        return;
-      }
-      if (!data?.role || ['buyer', null].includes(data.role)) {
-        // Force all users to select a valid role before continuing
-        return router.push('/onboarding/role');
-      }
-      setRole(data.role);
-      console.log("Loaded role:", data.role);
-
-      setFullName('Test User');
-      setPhoneNumber('4125551234');
-      setReferralCode('');
-      setStoreName('StreetStyles');
-      setStoreDescription('Trendy fashion and streetwear.');
-      setVehicleType('Sedan');
-      setLicenseNumber('D12345678');
-      setPayoutMethod('Cash App: $streetuser');
-      setSpecialties('Urban fashion, event styling');
-      setPortfolioUrl('https://portfolio.testuser.com');
-      setBundles('Weekend Fits, Event Ready Packages');
-
-      setInitialLoading(false);
     };
     init();
   }, [router]);
@@ -75,6 +85,14 @@ export default function Details() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-700">Loading your onboarding step…</p>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-600 font-semibold">{initError}</p>
       </div>
     );
   }
