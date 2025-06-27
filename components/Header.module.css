@@ -1,0 +1,29 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #000; /* black */
+  color: #FFD700; /* gold */
+  font-weight: bold;
+  z-index: 1000;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navLinks a {
+  color: #FFD700;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.navLinks a:hover {
+  text-decoration: underline;
+}
+
+.cartIcon {
+  cursor: pointer;
+}
