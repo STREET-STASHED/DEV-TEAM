@@ -10,7 +10,6 @@ export default function VerifyStep() {
   const router = useRouter();
 
   const [fullName, setFullName] = useState('');
-  const [dob, setDob] = useState('');
   const [license, setLicense] = useState('');
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [agreed, setAgreed] = useState(false);
@@ -59,7 +58,6 @@ export default function VerifyStep() {
 
   useEffect(() => {
     setFullName('Test User');
-    setDob('1990-01-01');
     setLicense('TEST123456');
     setAgreed(true);
   }, []);
@@ -77,7 +75,6 @@ export default function VerifyStep() {
       if (['driver', 'seller', 'stylist'].includes(role)) {
         if (
           !fullName.trim() ||
-          !dob ||
           !license.trim() ||
           !agreed
         ) {
@@ -125,7 +122,6 @@ export default function VerifyStep() {
             .update({
               verified: true,
               full_name: fullName.trim(),
-              dob,
               license_number: license.trim(),
               verification_file: uploadData.path,
               verification_url: urlData?.signedUrl ?? null,
@@ -148,7 +144,6 @@ export default function VerifyStep() {
             .update({
               verified: true,
               full_name: fullName.trim(),
-              dob,
               license_number: license.trim(),
               verification_file: null,
               verification_url: null,
@@ -199,15 +194,6 @@ export default function VerifyStep() {
             className="block w-full px-4 py-2 mb-4 text-black rounded"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            autoComplete="off"
-          />
-
-          <label className="block text-sm mb-1">Date of Birth</label>
-          <input
-            type="date"
-            className="block w-full px-4 py-2 mb-4 text-black rounded"
-            value={dob}
-            onChange={(e) => setDob(e.target.value)}
             autoComplete="off"
           />
 
