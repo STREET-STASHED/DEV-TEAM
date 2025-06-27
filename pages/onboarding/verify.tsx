@@ -107,7 +107,8 @@ export default function VerifyStep() {
           // 1) Upload to storage
           const fileExt = documentFile.name.split('.').pop();
           const filePath = `${role}-docs/${userId}.${fileExt}`;
-          const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? 'verification-docs';
+          const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'verification-docs';
+          console.log('Uploading to bucket:', bucketName);
 
           // upload
           const { data: uploadData, error: uploadError } = await supabase.storage
