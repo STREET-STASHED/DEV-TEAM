@@ -5,7 +5,6 @@ import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseClient';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
-import styles from './Header.module.css';
 
 const Header = () => {
   const router = useRouter();
@@ -52,7 +51,7 @@ const Header = () => {
   return (
     <>
       <header
-        className={`${styles.header} fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b-4 border-yellow-400 shadow-2xl`}
+        className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b-4 border-yellow-400 shadow-2xl"
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-3 relative">
           {/* Logo & Brand */}
@@ -68,7 +67,7 @@ const Header = () => {
               />
             </Link>
             <span
-              className={styles.brandText}
+              className="text-white font-extrabold text-xl sm:text-2xl md:text-3xl tracking-widest"
             >
               STREETSTASHED
             </span>
@@ -103,7 +102,7 @@ const Header = () => {
               tabIndex={0}
               aria-label="Open cart"
               title="Open cart"
-              className={`${styles.cartIcon} relative ml-2 cursor-pointer`}
+              className="relative ml-2 cursor-pointer text-2xl"
               onClick={handleCartOpen}
               onKeyPress={(e) => { if (e.key === 'Enter') handleCartOpen(); }}
               style={{
@@ -197,7 +196,7 @@ const Header = () => {
           )}
         </div>
       </header>
-      <div className={styles.pushContent} /> {/* Push content below the fixed header */}
+      <div className="h-20" /> {/* Push content below the fixed header */}
       <CartDrawer />
     </>
   );
