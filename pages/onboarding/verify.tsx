@@ -66,6 +66,20 @@ export default function VerifyStep() {
     if (loading) return;
     try {
       setLoading(true);
+
+      // Ensure Supabase session is available before any protected operation
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        console.error('No Supabase session found. User must be logged in.');
+        alert('You must be logged in to verify.');
+        setLoading(false);
+        return;
+      }
+
       if (!userId || !role) {
         alert('User information is incomplete.');
         setLoading(false);
