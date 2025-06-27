@@ -30,9 +30,6 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Force proper sequence of onboarding
-  const onboardingSteps = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
-
   if (pathname === '/onboarding/details') {
     const role = req.cookies.get('user-role')?.value;
     if (!role) {
@@ -43,9 +40,12 @@ export async function middleware(req: NextRequest) {
   }
 
   if (pathname === '/onboarding/verify') {
-    const url = req.nextUrl.clone();
-    url.pathname = '/onboarding/details';
-    return NextResponse.redirect(url);
+    const role = req.cookies.get('user-role')?.value;
+    if (!role) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/onboarding/role';
+      return NextResponse.redirect(url);
+    }
   }
 
   if (pathname === '/onboarding' || pathname === '/onboarding/') {

@@ -265,7 +265,11 @@ export default function VerifyStep() {
         disabled={loading}
         className="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-6 rounded w-full"
       >
-        {loading ? 'Verifying...' : 'Go to Dashboard'}
+        {loading
+          ? 'Verifying...'
+          : role
+          ? `Finish Verification & Launch ${role.charAt(0).toUpperCase() + role.slice(1)} Dashboard`
+          : 'Finish Verification'}
       </button>
     </div>
   );

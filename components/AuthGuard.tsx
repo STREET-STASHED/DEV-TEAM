@@ -46,26 +46,31 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
         if (!roleData?.role) {
           if (router.pathname !== '/onboarding/role') {
-            return router.replace('/onboarding/role');
+            await router.replace('/onboarding/role');
+            return;
           }
         }
         if (roleData?.role && !roleData.details_complete) {
           if (router.pathname !== '/onboarding/details') {
-            return router.replace('/onboarding/details');
+            await router.replace('/onboarding/details');
+            return;
           }
         }
         if (roleData?.details_complete && !roleData.verified) {
           if (router.pathname !== '/onboarding/verify') {
-            return router.replace('/onboarding/verify');
+            await router.replace('/onboarding/verify');
+            return;
           }
         }
 
-        if (roleData.role !== role) {
-          console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);
-          if (router.pathname !== '/not-authorized') {
-            await router.replace('/not-authorized');
+        if (roleData.details_complete && roleData.verified) {
+          if (roleData.role !== role) {
+            console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);
+            if (router.pathname !== '/not-authorized') {
+              await router.replace('/not-authorized');
+              return;
+            }
           }
-          return;
         }
 
         console.log('Authorized, loading finished');
@@ -73,6 +78,7 @@ export default function AuthGuard({ role, children }: { role: string, children: 
       } catch (err) {
         console.error('Unexpected error in auth guard:', err);
         await router.replace('/welcome');
+        return;
       }
     };
 
