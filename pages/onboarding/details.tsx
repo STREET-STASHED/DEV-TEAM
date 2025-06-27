@@ -35,6 +35,8 @@ export default function Details() {
         return;
       }
 
+      console.log('User ID:', user.id);
+
       const { data, error } = await supabase
         .from('users')
         .select('role')
@@ -45,14 +47,24 @@ export default function Details() {
         console.error('Error fetching role:', error);
         return;
       }
-      if (!data?.role) {
+      if (!data?.role || ['buyer', null].includes(data.role)) {
+        // Force all users to select a valid role before continuing
         return router.push('/onboarding/role');
       }
-      if (data.role === 'buyer') {
-        // Buyers skip details and go straight to marketplace
-        return router.replace('/buyer/marketplace');
-      }
       setRole(data.role);
+
+      setFullName('Test User');
+      setPhoneNumber('4125551234');
+      setReferralCode('TEST123');
+      setStoreName('StreetStyles');
+      setStoreDescription('Trendy fashion and streetwear.');
+      setVehicleType('Sedan');
+      setLicenseNumber('D12345678');
+      setPayoutMethod('Cash App: $streetuser');
+      setSpecialties('Urban fashion, event styling');
+      setPortfolioUrl('https://portfolio.testuser.com');
+      setBundles('Weekend Fits, Event Ready Packages');
+
       setInitialLoading(false);
     };
     init();

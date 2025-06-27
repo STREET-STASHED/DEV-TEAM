@@ -52,9 +52,8 @@ const Dashboard: FC = () => {
     fetchUserData();
   }, []);
 
-  if (loading) return <p>Loading dashboard...</p>;
+  if (loading || !userId || !role) return <p>Loading dashboard...</p>;
   if (error) return <div className="text-red-600 p-4">{error}</div>;
-  if (!userId) return <p>Loading dashboard...</p>;
 
   return (
     <AuthGuard role={role || ''}>

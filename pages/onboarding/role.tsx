@@ -9,6 +9,30 @@ export default function RolePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const autoSelectRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) return;
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!userData?.role) {
+        await supabase
+          .from('users')
+          .update({ role: 'seller', onboarded: true })
+          .eq('id', user.id);
+        router.push('/onboarding/details');
+      }
+    };
+
+    autoSelectRole();
+  }, []);
+
+  useEffect(() => {
     const checkRoleAndRedirect = async () => {
       const {
         data: { session },
@@ -22,7 +46,7 @@ export default function RolePage() {
 
       const { data, error: roleError } = await supabase
         .from('users')
-        .select('role')
+        .select('role, onboarded')
         .eq('id', session.user.id)
         .maybeSingle();
 
@@ -31,7 +55,7 @@ export default function RolePage() {
         return;
       }
 
-      if (data?.role) {
+      if (data?.role && data?.onboarded) {
         router.replace('/onboarding/details');
       }
     };

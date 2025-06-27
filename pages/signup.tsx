@@ -27,15 +27,9 @@ const AuthPage = () => {
           },
         });
 
-        if (authResponse.error) {
-          setErrorMessage(authResponse.error.message || 'Signup failed. Please try again.');
-          setLoading(false);
-          return;
-        }
-
-        const user = authResponse.data?.user ?? authResponse.data?.session?.user;
-        if (!user?.id) {
-          console.error('Signup succeeded but no user ID returned');
+        const user = authResponse.data?.user;
+        if (!user || !user.id) {
+          console.error('Signup succeeded but no valid user returned:', authResponse.data);
           setErrorMessage('Signup issue. Please try again.');
           setLoading(false);
           return;

@@ -26,11 +26,19 @@ export default function VerifyStep() {
         .eq('id', user.id)
         .single();
 
-      if (userData?.role) setRole(userData.role);
+      if (!userData?.role) {
+        router.push('/onboarding/role');
+        return;
+      }
 
-      if (!userData?.details_complete) {
+      setRole(userData.role);
+
+      if (!userData.details_complete) {
         router.push('/onboarding/details');
-      } else if (userData?.verified) {
+        return;
+      }
+
+      if (userData.verified) {
         const redirectMap: Record<string, string> = {
           buyer: '/buyer/marketplace',
           seller: '/seller/dashboard',
@@ -38,10 +46,18 @@ export default function VerifyStep() {
           driver: '/driver/dashboard',
         };
         router.push(redirectMap[userData.role] || '/');
+        return;
       }
     };
 
     fetchUserAndDetails();
+  }, []);
+
+  useEffect(() => {
+    setFullName('Test User');
+    setDob('1990-01-01');
+    setLicense('TEST123456');
+    setAgreed(true);
   }, []);
 
   const handleContinue = async () => {
@@ -54,56 +70,78 @@ export default function VerifyStep() {
       }
 
       if (['driver', 'seller', 'stylist'].includes(role)) {
-        if (!fullName || !dob || !license || !documentFile || !agreed) {
+        if (!fullName || !dob || !license || !agreed) {
           alert('Please fill in all verification fields and agree to the terms.');
           setLoading(false);
           return;
         }
 
-        // 1) Upload to storage
-        const fileExt = documentFile.name.split('.').pop();
-        const filePath = `${role}-docs/${userId}.${fileExt}`;
-        const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? 'verification-docs';
+        if (documentFile) {
+          // 1) Upload to storage
+          const fileExt = documentFile.name.split('.').pop();
+          const filePath = `${role}-docs/${userId}.${fileExt}`;
+          const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET ?? 'verification-docs';
 
-        // upload
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from(bucketName)
-          .upload(filePath, documentFile, { cacheControl: '3600', upsert: true });
+          // upload
+          const { data: uploadData, error: uploadError } = await supabase.storage
+            .from(bucketName)
+            .upload(filePath, documentFile, { cacheControl: '3600', upsert: true });
 
-        if (uploadError) {
-          console.error('Upload error:', uploadError);
-          alert(`Upload failed: ${uploadError.message}`);
-          setLoading(false);
-          return;
-        }
+          if (uploadError) {
+            console.error('Upload error:', uploadError);
+            alert(`Upload failed: ${uploadError.message}`);
+            setLoading(false);
+            return;
+          }
 
-        // 2) Create a signed URL (valid for 24 hours)
-        const { data: urlData, error: urlError } = await supabase.storage
-          .from(bucketName)
-          .createSignedUrl(uploadData.path, 60 * 60 * 24);
+          // 2) Create a signed URL (valid for 24 hours)
+          const { data: urlData, error: urlError } = await supabase.storage
+            .from(bucketName)
+            .createSignedUrl(uploadData.path, 60 * 60 * 24);
 
-        if (urlError) {
-          console.warn('Signed URL error:', urlError);
-        }
+          if (urlError) {
+            console.warn('Signed URL error:', urlError);
+          }
 
-        // 3) Save verification info on user
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            verified: true,
-            full_name: fullName,
-            dob,
-            license_number: license,
-            verification_file: uploadData.path,
-            verification_url: urlData?.signedUrl ?? null,
-          })
-          .eq('id', userId);
+          // 3) Save verification info on user
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              verified: true,
+              full_name: fullName,
+              dob,
+              license_number: license,
+              verification_file: uploadData.path,
+              verification_url: urlData?.signedUrl ?? null,
+            })
+            .eq('id', userId);
 
-        if (updateError) {
-          console.error('User update error:', updateError);
-          alert(`Verification failed: ${updateError.message}`);
-          setLoading(false);
-          return;
+          if (updateError) {
+            console.error('User update error:', updateError);
+            alert(`Verification failed: ${updateError.message}`);
+            setLoading(false);
+            return;
+          }
+        } else {
+          // Skip file upload, just update user info and mark verified
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              verified: true,
+              full_name: fullName,
+              dob,
+              license_number: license,
+              verification_file: null,
+              verification_url: null,
+            })
+            .eq('id', userId);
+
+          if (updateError) {
+            console.error('User update error:', updateError);
+            alert(`Verification failed: ${updateError.message}`);
+            setLoading(false);
+            return;
+          }
         }
       }
 
