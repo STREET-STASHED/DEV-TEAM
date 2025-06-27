@@ -28,6 +28,14 @@ const Signup = () => {
         });
 
         if (authResponse.error) {
+          if (authResponse.error.message?.includes('User already registered')) {
+            setErrorMessage('Account already exists. Redirecting to login...');
+            setTimeout(() => {
+              setIsSignUp(false); // Switch to login mode
+            }, 1500);
+            setLoading(false);
+            return;
+          }
           throw authResponse.error;
         }
 

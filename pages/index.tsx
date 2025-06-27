@@ -14,25 +14,26 @@ export default function IndexPage() {
     const fetchUserAndRedirect = async () => {
       try {
         const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          // Not signed in – let them see the landing page or redirect if needed
+          return;
+        }
+
+        const {
           data: { user },
         } = await supabase.auth.getUser();
 
-        console.log("Fetched user:", user);
-
-        if (!user) {
+        if (!user || !user.email) {
           router.push('/welcome');
           return;
         }
 
         setUser(user);
 
-        const email = user.email;
-        if (!email) {
-          router.push('/welcome');
-          return;
-        }
-
-        const roleData = await getUserRole(email);
+        const roleData = await getUserRole(user.email);
         console.log("Role data:", roleData);
 
         if (!roleData || !roleData.role) {
@@ -66,7 +67,6 @@ export default function IndexPage() {
         }
       } catch (error) {
         console.error('Error in fetchUserAndRedirect:', error);
-        router.push('/welcome');
       }
     };
 

@@ -39,7 +39,7 @@ const Dashboard: FC = () => {
         setError('Error fetching user role.');
         setRole(null);
       } else {
-        if (!userData?.has_completed_onboarding) {
+        if (userData && userData.has_completed_onboarding === false) {
           router.push('/onboarding/verify');
           return;
         }
