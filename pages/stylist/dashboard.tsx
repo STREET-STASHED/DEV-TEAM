@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import supabase from '@/lib/supabaseBrowserClient';
 import { GetServerSideProps } from 'next';
-import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import AuthGuard from '@/components/AuthGuard';
 
 interface StylistDashboardProps {
@@ -127,21 +127,29 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 
   return (
     <AuthGuard role="stylist">
-      <div>
-        <h1>Stylist Dashboard</h1>
+      <main style={{ padding: '2rem' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Stylist Dashboard</h1>
         {bookings.length === 0 ? (
           <p>No bookings found.</p>
         ) : (
-          <ul>
+          <div>
             {bookings.map((booking) => (
-              <li key={booking.id} style={{ marginBottom: '1.5rem' }}>
+              <section
+                key={booking.id}
+                style={{
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  marginBottom: '1.5rem',
+                }}
+              >
                 <p><strong>Client:</strong> {booking.client_name}</p>
                 <p><strong>Date:</strong> {formatDate(booking.date)}</p>
                 <p><strong>Event:</strong> {booking.event_type}</p>
                 <p><strong>Request:</strong> {booking.outfit_request}</p>
                 <p><strong>Status:</strong> {booking.status}</p>
                 {booking.status === 'pending' && (
-                  <>
+                  <div style={{ marginTop: '0.5rem' }}>
                     <button
                       onClick={() => updateStatus(booking.id, 'accepted')}
                       aria-label={`Accept booking for ${booking.client_name}`}
@@ -155,13 +163,13 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
                     >
                       Decline
                     </button>
-                  </>
+                  </div>
                 )}
-              </li>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
-      </div>
+      </main>
     </AuthGuard>
   );
 };
@@ -169,7 +177,22 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 export default StylistDashboard;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const supabase = createServerSupabaseClient(ctx);
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (key: string) => ctx.req.cookies[key],
+        set: (key, value, options) => {
+          ctx.res.setHeader('Set-Cookie', `${key}=${value}`);
+        },
+        remove: (key, options) => {
+          ctx.res.setHeader('Set-Cookie', `${key}=; Max-Age=0`);
+        },
+      },
+    }
+  );
+
   const {
     data: { session },
   } = await supabase.auth.getSession();

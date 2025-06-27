@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react'
-import supabase from '../../lib/supabaseBrowserClient'
+import supabase from '@/lib/supabaseBrowserClient';
 import OrderProgressBar from '@/components/OrderProgressBar';
 
 interface BuyerDashboardProps {
@@ -14,25 +14,29 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
     const fetchOrders = async () => {
       if (!userId) return;
 
-      const { data, error } = await supabase
-        .from('orders')
-        .select('id, status, total_price, created_at')
-        .eq('buyer_id', userId)
-        .returns<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>();
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('id, status, total_price, created_at')
+          .eq('buyer_id', userId);
 
-      if (error) {
-        console.error('Error fetching orders:', error.message);
-        return;
+        if (error) throw error;
+
+        setOrders(
+          (data || []).map(order => ({
+            id: order.id,
+            status: order.status ?? undefined,
+            total_price: order.total_price,
+            created_at: order.created_at,
+          }))
+        );
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error('Error fetching orders:', err.message);
+        } else {
+          console.error('Unknown error fetching orders:', err);
+        }
       }
-
-      setOrders(
-        (data || []).map(order => ({
-          id: order.id,
-          status: order.status === null ? undefined : order.status,
-          total_price: order.total_price,
-          created_at: order.created_at,
-        }))
-      );
     };
 
     fetchOrders();

@@ -11,6 +11,7 @@ const Dashboard: FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -20,6 +21,7 @@ const Dashboard: FC = () => {
 
       if (authError || !user?.id) {
         console.error('Error retrieving authenticated user:', authError);
+        setError('Error retrieving authenticated user.');
         setLoading(false);
         return;
       }
@@ -34,6 +36,7 @@ const Dashboard: FC = () => {
 
       if (roleError) {
         console.error('Error fetching user role:', roleError);
+        setError('Error fetching user role.');
         setRole(null);
       } else {
         if (!userData?.has_completed_onboarding) {
@@ -49,7 +52,9 @@ const Dashboard: FC = () => {
     fetchUserData();
   }, []);
 
-  if (loading || !userId) return <p>Loading dashboard...</p>;
+  if (loading) return <p>Loading dashboard...</p>;
+  if (error) return <div className="text-red-600 p-4">{error}</div>;
+  if (!userId) return <p>Loading dashboard...</p>;
 
   return (
     <AuthGuard role={role || ''}>

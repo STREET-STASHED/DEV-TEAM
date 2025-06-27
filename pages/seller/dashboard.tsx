@@ -7,7 +7,40 @@ interface Booking {
   service_name?: string;
 }
 import React, { useEffect, useState } from "react";
-import supabase from "../../lib/supabaseBrowserClient";
+import supabase from "@/lib/supabaseBrowserClient";
+// Helper to get the current user session
+async function getCurrentUser() {
+  const session = await supabase.auth.getSession().then((r) => r.data.session);
+  return session?.user;
+}
+
+// Helper to check seller role
+async function checkSellerRole(userId: string) {
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", userId)
+    .single();
+  if (error) {
+    console.error("Error fetching user role:", error);
+    return false;
+  }
+  return user?.role === "seller";
+}
+
+// Helper to check onboarding status
+async function checkOnboardingComplete(userId: string) {
+  const { data: onboardingStatus, error } = await supabase
+    .from("users")
+    .select("onboarding_complete")
+    .eq("id", userId)
+    .single();
+  if (error) {
+    console.error("Error fetching onboarding status:", error);
+    return false;
+  }
+  return onboardingStatus?.onboarding_complete;
+}
 import AuthGuard from "@/components/AuthGuard";
 
 interface SellerDashboardProps {
@@ -54,9 +87,14 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
   useEffect(() => {
     async function fetchUserId() {
       if (!localUserId) {
-        const session = await supabase.auth.getSession().then((r) => r.data.session);
-        if (session?.user) setLocalUserId(session.user.id);
-        else window.location.href = "/onboarding";
+        try {
+          const currentUser = await getCurrentUser();
+          if (currentUser) setLocalUserId(currentUser.id);
+          else window.location.href = "/onboarding";
+        } catch (err) {
+          console.error("Failed to get user session", err);
+          window.location.href = "/onboarding";
+        }
       }
     }
     fetchUserId();
@@ -67,114 +105,113 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
     if (!localUserId) return;
     let cleanup: (() => void) | undefined;
     const fetchAll = async () => {
-      // Role check
-      const session = await supabase.auth.getSession().then((r) => r.data.session);
-      const currentUser = session?.user;
-      if (!currentUser) {
-        window.location.href = "/onboarding";
-        return;
-      }
-      const { data: user } = await supabase
-        .from("users")
-        .select("role")
-        .eq("id", currentUser.id)
-        .single();
-      if (user?.role !== "seller") {
-        window.location.href = "/unauthorized";
-        return;
-      }
-      // Onboarding check
-      const { data: onboardingStatus } = await supabase
-        .from("users")
-        .select("onboarding_complete")
-        .eq("id", currentUser.id)
-        .single();
-      if (!onboardingStatus?.onboarding_complete) {
-        window.location.href = "/onboarding/details";
-        return;
-      }
-      // Fetch services
-      const { data: prodData } = await supabase
-        .from("products")
-        .select("*")
-        .eq("seller_id", localUserId);
-      setServices(prodData || []);
-      setAnalytics((prev) => ({
-        ...prev,
-        totalServices: (prodData || []).length,
-      }));
-      // Fetch bookings
-      const { data: bookData, error: bookError } = await supabase
-        .from('bookings')
-        .select('id, status, created_at')
-        .eq('seller_id', localUserId)
-        .order('created_at', { ascending: false });
-
-      if (bookError) {
-        console.error('Failed to fetch bookings:', bookError.message);
-        setBookings([]);
-      } else if (bookData) {
-        // Fetch product names for each booking
-        const bookingsWithProductNames: Booking[] = await Promise.all(
-          (bookData as Booking[]).map(async (booking: Booking) => {
-            if (booking.service_id) {
-              const { data: productData, error: productError } = await supabase
-                .from('products')
-                .select('name')
-                .eq('id', booking.service_id)
-                .single();
-
-              if (!productError && productData) {
-                return { ...booking, product_name: productData.name };
-              }
-            }
-            return { ...booking, product_name: 'Unknown Product' };
-          })
-        );
-
-        setBookings(bookingsWithProductNames);
-        // Analytics update
-        const statusCounts = {
-          pending: 0,
-          packed: 0,
-          ready_for_pickup: 0,
-          picked_up: 0,
-          delivered: 0,
-        };
-        (bookData as Booking[]).forEach((b: Booking) => {
-          const s = b.status;
-          if (s && statusCounts.hasOwnProperty(s)) {
-            statusCounts[s as keyof typeof statusCounts]++;
-          }
-        });
+      try {
+        const currentUser = await getCurrentUser();
+        if (!currentUser) {
+          window.location.href = "/onboarding";
+          return;
+        }
+        // Role check
+        const isSeller = await checkSellerRole(currentUser.id);
+        if (!isSeller) {
+          window.location.href = "/unauthorized";
+          return;
+        }
+        // Onboarding check
+        const onboarded = await checkOnboardingComplete(currentUser.id);
+        if (!onboarded) {
+          window.location.href = "/onboarding/details";
+          return;
+        }
+        // Fetch services
+        const { data: prodData, error: prodError } = await supabase
+          .from("products")
+          .select("*")
+          .eq("seller_id", localUserId);
+        if (prodError) {
+          console.error("Failed to fetch products:", prodError.message);
+        }
+        setServices(prodData || []);
         setAnalytics((prev) => ({
           ...prev,
-          totalBookings: bookData.length,
-          statusCounts,
+          totalServices: (prodData || []).length,
         }));
+        // Fetch bookings
+        const { data: bookData, error: bookError } = await supabase
+          .from('bookings')
+          .select('id, status, created_at, service_id')
+          .eq('seller_id', localUserId)
+          .order('created_at', { ascending: false });
+
+        if (bookError) {
+          console.error('Failed to fetch bookings:', bookError.message);
+          setBookings([]);
+        } else if (bookData) {
+          // Fetch product names for each booking
+          const bookingsWithProductNames: Booking[] = await Promise.all(
+            (bookData as Booking[]).map(async (booking: Booking) => {
+              if (booking.service_id) {
+                const { data: productData, error: productError } = await supabase
+                  .from('products')
+                  .select('name')
+                  .eq('id', booking.service_id)
+                  .single();
+
+                if (!productError && productData) {
+                  return { ...booking, product_name: productData.name };
+                }
+              }
+              return { ...booking, product_name: 'Unknown Product' };
+            })
+          );
+
+          setBookings(bookingsWithProductNames);
+          // Analytics update
+          const statusCounts = {
+            pending: 0,
+            packed: 0,
+            ready_for_pickup: 0,
+            picked_up: 0,
+            delivered: 0,
+          };
+          (bookData as Booking[]).forEach((b: Booking) => {
+            const s = b.status;
+            if (s && statusCounts.hasOwnProperty(s)) {
+              statusCounts[s as keyof typeof statusCounts]++;
+            }
+          });
+          setAnalytics((prev) => ({
+            ...prev,
+            totalBookings: bookData.length,
+            statusCounts,
+          }));
+        }
+        setLoading(false);
+        // Subscriptions
+        const prodSub = supabase
+          .channel("products_changes")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "products", filter: `seller_id=eq.${localUserId}` },
+            () => fetchAll()
+          )
+          .subscribe();
+        const bookSub = supabase
+          .channel("bookings_changes")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "bookings", filter: `seller_id=eq.${localUserId}` },
+            () => fetchAll()
+          )
+          .subscribe();
+        cleanup = () => {
+          supabase.removeChannel(prodSub);
+          supabase.removeChannel(bookSub);
+        };
+      } catch (err) {
+        console.error("Error in dashboard data load", err);
+        setLoading(false);
       }
-      setLoading(false);
-      // Subscriptions
-      const prodSub = supabase
-        .channel("products_changes")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "products", filter: `seller_id=eq.${localUserId}` },
-          () => fetchAll()
-        )
-        .subscribe();
-      const bookSub = supabase
-        .channel("bookings_changes")
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "bookings", filter: `seller_id=eq.${localUserId}` },
-          () => fetchAll()
-        )
-        .subscribe();
-      cleanup = () => {
-        supabase.removeChannel(prodSub);
-        supabase.removeChannel(bookSub);
-      };
     };
     fetchAll();
     return () => {
@@ -250,10 +287,8 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
             const file = fileInput.files?.[0];
             if (!file) return;
             try {
-              const session = await supabase.auth
-                .getSession()
-                .then((r) => r.data.session);
-              const currentUserId = session?.user.id;
+              const currentUser = await getCurrentUser();
+              const currentUserId = currentUser?.id;
               if (!currentUserId) {
                 alert("User not found. Please log in again.");
                 return;
@@ -278,7 +313,8 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
               } else {
                 alert("Failed to upload image.");
               }
-            } catch (err: any) {
+            } catch (err) {
+              console.error("Error uploading profile image:", err);
               alert("Error uploading profile image. Please try again later.");
             }
           }}
@@ -571,11 +607,26 @@ export default function SellerDashboardPage(props: { userId: string }) {
 }
 
 export async function getServerSideProps(context: any) {
-  const supabase = require("../../lib/supabaseClient").default;
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) {
+  // Use browser client import for consistency, but SSR is not recommended for Supabase browser SDK.
+  // This SSR logic is for initial prop population only.
+  let userId = null;
+  try {
+    const supabase = (await import("@/lib/supabaseBrowserClient")).default;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) {
+      return {
+        redirect: {
+          destination: "/onboarding",
+          permanent: false,
+        },
+      };
+    }
+    userId = session.user.id;
+  } catch (err) {
+    // Log error but do not leak details to user
+    console.error("Error in getServerSideProps:", err);
     return {
       redirect: {
         destination: "/onboarding",
@@ -585,7 +636,7 @@ export async function getServerSideProps(context: any) {
   }
   return {
     props: {
-      userId: session.user.id,
+      userId,
     },
   };
 }

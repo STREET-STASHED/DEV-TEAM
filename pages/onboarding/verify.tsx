@@ -169,6 +169,7 @@ export default function VerifyStep() {
             className="block w-full px-4 py-2 mb-4 text-black rounded"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
+            autoComplete="off"
           />
 
           <label className="block text-sm mb-1">Date of Birth</label>
@@ -177,6 +178,7 @@ export default function VerifyStep() {
             className="block w-full px-4 py-2 mb-4 text-black rounded"
             value={dob}
             onChange={(e) => setDob(e.target.value)}
+            autoComplete="off"
           />
 
           <label className="block text-sm mb-1">
@@ -187,6 +189,7 @@ export default function VerifyStep() {
             accept=".png,.jpg,.jpeg,.pdf"
             onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
             className="block w-full mb-4 text-white"
+            autoComplete="off"
           />
           {documentFile && (
             <div className="mb-4">
@@ -205,6 +208,7 @@ export default function VerifyStep() {
             value={license}
             onChange={(e) => setLicense(e.target.value)}
             placeholder="DL# / EIN / Reg#"
+            autoComplete="off"
           />
 
           <label className="inline-flex items-center mb-4">
@@ -213,6 +217,7 @@ export default function VerifyStep() {
               className="mr-2"
               checked={agreed}
               onChange={(e) => setAgreed(e.target.checked)}
+              autoComplete="off"
             />
             <span className="text-sm">
               I agree to the <a href="#" className="underline">verification terms</a>.
@@ -234,4 +239,4 @@ export default function VerifyStep() {
       </button>
     </div>
   );
-} 
+}

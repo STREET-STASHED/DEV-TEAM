@@ -56,7 +56,7 @@ export default function Details() {
       setInitialLoading(false);
     };
     init();
-  }, [router, supabase]);
+  }, [router]);
 
   if (initialLoading) {
     return (
@@ -74,7 +74,8 @@ export default function Details() {
     const user = session?.user;
     if (submitError || !user) {
       alert('Session expired. Please log in again.');
-      return router.push('/signup');
+      router.push('/signup');
+      return;
     }
 
     // Build update payload
@@ -94,6 +95,16 @@ export default function Details() {
       updateData.payout_method = payoutMethod;
     } else if (role === 'stylist') {
       // Stylists handled in a separate table
+      try {
+        // Validate portfolio URL format
+        if (portfolioUrl) {
+          new URL(portfolioUrl);
+        }
+      } catch {
+        alert('Portfolio URL is not valid. Please enter a valid URL.');
+        setLoading(false);
+        return;
+      }
       const { error: stylistError } = await supabase
         .from('stylist_applications')
         .upsert({
@@ -137,16 +148,18 @@ export default function Details() {
           <input
             type="text"
             placeholder="Full Name"
-            required
+            required={true}
             value={fullName}
+            autoComplete="off"
             onChange={(e) => setFullName(e.target.value)}
             className="w-full border border-gray-300 p-3 rounded-md"
           />
           <input
             type="tel"
             placeholder="Phone Number"
-            required
+            required={true}
             value={phoneNumber}
+            autoComplete="off"
             onChange={(e) => setPhoneNumber(e.target.value)}
             className="w-full border border-gray-300 p-3 rounded-md"
           />
@@ -154,6 +167,7 @@ export default function Details() {
             type="text"
             placeholder="Referral Code (optional)"
             value={referralCode}
+            autoComplete="off"
             onChange={(e) => setReferralCode(e.target.value)}
             className="w-full border border-gray-300 p-3 rounded-md"
           />
@@ -163,15 +177,17 @@ export default function Details() {
               <input
                 type="text"
                 placeholder="Store Name"
-                required
+                required={role === 'seller'}
                 value={storeName}
+                autoComplete="off"
                 onChange={(e) => setStoreName(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
               <textarea
                 placeholder="Store Description"
-                required
+                required={role === 'seller'}
                 value={storeDescription}
+                autoComplete="off"
                 onChange={(e) => setStoreDescription(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
@@ -183,24 +199,27 @@ export default function Details() {
               <input
                 type="text"
                 placeholder="Vehicle Type"
-                required
+                required={role === 'driver'}
                 value={vehicleType}
+                autoComplete="off"
                 onChange={(e) => setVehicleType(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
               <input
                 type="text"
                 placeholder="Driver's License Number"
-                required
+                required={role === 'driver'}
                 value={licenseNumber}
+                autoComplete="off"
                 onChange={(e) => setLicenseNumber(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
               <input
                 type="text"
                 placeholder="Payout Method"
-                required
+                required={role === 'driver'}
                 value={payoutMethod}
+                autoComplete="off"
                 onChange={(e) => setPayoutMethod(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
@@ -212,23 +231,26 @@ export default function Details() {
               <input
                 type="text"
                 placeholder="Specialties"
-                required
+                required={role === 'stylist'}
                 value={specialties}
+                autoComplete="off"
                 onChange={(e) => setSpecialties(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
               <input
                 type="url"
                 placeholder="Portfolio URL"
-                required
+                required={role === 'stylist'}
                 value={portfolioUrl}
+                autoComplete="off"
                 onChange={(e) => setPortfolioUrl(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />
               <textarea
                 placeholder="Bundle Options"
-                required
+                required={role === 'stylist'}
                 value={bundles}
+                autoComplete="off"
                 onChange={(e) => setBundles(e.target.value)}
                 className="w-full border border-gray-300 p-3 rounded-md"
               />

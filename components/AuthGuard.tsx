@@ -26,32 +26,17 @@ export default function AuthGuard({ role, children }: { role: string, children: 
           return;
         }
 
-        const roleData = await roleResponse.json();
-        console.log('User role loaded:', roleData);
-
-        if (!roleData || typeof roleData !== 'object') {
-          console.error('Malformed role response:', roleData);
-          await router.replace('/welcome');
-          return;
+        interface RoleData {
+          role: string;
+          details_complete: boolean;
+          verified: boolean;
         }
 
-        if (!roleData.role) {
-          console.log('Redirecting: missing role');
-          await router.replace('/onboarding/role');
-          return;
-        }
+        const roleData: RoleData = await roleResponse.json();
 
-        if (!roleData.details_complete) {
-          console.log('Redirecting: details incomplete');
-          await router.replace('/onboarding/details');
-          return;
-        }
-
-        if (!roleData.verified) {
-          console.log('Redirecting: not verified');
-          await router.replace('/onboarding/verify');
-          return;
-        }
+        if (!roleData?.role) return router.replace('/onboarding/role');
+        if (!roleData.details_complete) return router.replace('/onboarding/details');
+        if (!roleData.verified) return router.replace('/onboarding/verify');
 
         if (roleData.role !== role) {
           console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);

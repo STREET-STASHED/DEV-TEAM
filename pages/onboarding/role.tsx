@@ -32,7 +32,7 @@ export default function RolePage() {
       }
 
       if (data?.role) {
-        router.replace('/');
+        router.replace('/onboarding/details');
       }
     };
 
