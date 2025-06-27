@@ -27,6 +27,29 @@ export async function middleware(req: NextRequest) {
 
   const pathname = req.nextUrl.pathname;
 
+  // Redirect users with a valid session from "/" to appropriate dashboard based on role
+  if (session && pathname === '/') {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const role = user?.user_metadata?.role;
+
+    if (role === 'buyer') {
+      return NextResponse.redirect(new URL('/buyer/dashboard', req.url));
+    } else if (role === 'seller') {
+      return NextResponse.redirect(new URL('/seller/dashboard', req.url));
+    } else if (role === 'stylist') {
+      return NextResponse.redirect(new URL('/stylist/dashboard', req.url));
+    } else if (role === 'driver') {
+      return NextResponse.redirect(new URL('/driver/dashboard', req.url));
+    } else if (role === 'admin') {
+      return NextResponse.redirect(new URL('/admin/dashboard', req.url));
+    } else {
+      return NextResponse.redirect(new URL('/onboarding/role', req.url));
+    }
+  }
+
   const isAuthRoute = pathname.startsWith('/onboarding') ||
                       pathname.startsWith('/buyer') ||
                       pathname.startsWith('/seller') ||
