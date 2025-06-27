@@ -13,10 +13,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized: no token.' });
   }
 
-  await supabase.auth.setSession({ access_token: token, refresh_token: '' });
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError
+  } = await supabaseAdmin.auth.getUser(token);
 
-  if (userError || !user) {
+  if (authError || !user) {
     return res.status(401).json({ error: 'Unauthorized: failed to get user.' });
   }
 

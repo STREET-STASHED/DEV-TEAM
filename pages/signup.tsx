@@ -47,25 +47,27 @@ const AuthPage = () => {
           return;
         }
 
-        const upsertResponse = await supabase.from('users').upsert({
-          id: user.id,
-          email: user.email,
-          role: null,
-          details_complete: false,
-          verified: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          is_active: true,
-          onboarded: false
-        });
+        const { data: upsertData, error: upsertError } = await supabase
+          .from('users')
+          .upsert({
+            id: user.id,
+            email: user.email,
+            role: null,
+            details_complete: false,
+            verified: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            is_active: true,
+            onboarded: false,
+          })
+          .select()
+          .single();
 
-        console.log("User ID after signup:", user?.id);
-        console.log("Upsert response:", upsertResponse);
-        if (!upsertResponse.error) {
-          router.replace('/onboarding/role');
-        } else {
-          console.error("Upsert error:", upsertResponse.error);
+        if (upsertError) {
+          console.error("Upsert error:", upsertError);
           setErrorMessage('There was an issue saving your information. Please try again.');
+        } else {
+          router.replace('/onboarding/role');
         }
       } else {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
