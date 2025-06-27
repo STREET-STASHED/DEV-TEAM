@@ -129,6 +129,8 @@ export default function VerifyStep() {
               license_number: license.trim(),
               verification_file: uploadData.path,
               verification_url: urlData?.signedUrl ?? null,
+              // TODO: Replace '' with actual phone state variable when available
+              phone: '',
             })
             .eq('id', userId);
 
@@ -150,6 +152,8 @@ export default function VerifyStep() {
               license_number: license.trim(),
               verification_file: null,
               verification_url: null,
+              // TODO: Replace '' with actual phone state variable when available
+              phone: '',
             })
             .eq('id', userId);
 
