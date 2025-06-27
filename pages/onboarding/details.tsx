@@ -127,7 +127,7 @@ export default function Details() {
     // Build update payload
     const updateData: any = {
       full_name: fullName.trim(),
-      phone_number: phoneNumber.trim(),
+      phone: phoneNumber.trim(),
       referral_code: referralCode.trim(),
       details_complete: true,
     };

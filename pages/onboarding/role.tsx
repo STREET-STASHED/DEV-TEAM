@@ -35,8 +35,11 @@ export default function RolePage() {
           return;
         }
 
+        if (data?.role && !data?.onboarded) {
+          return;
+        }
         if (data?.role && data?.onboarded) {
-          router.replace('/onboarding/details');
+          router.replace(`/${data.role}/dashboard`);
         }
       } catch (e) {
         console.error('Unhandled error during role check:', e);
@@ -72,7 +75,7 @@ export default function RolePage() {
     // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .update({ role: selectedRole })
+      .update({ role: selectedRole, onboarded: false })
       .eq('id', user.id);
     Cookies.set('user-role', selectedRole, { expires: 7 });
     if (upsertError) {
