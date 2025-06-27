@@ -5,6 +5,12 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
+  if (pathname === '/onboarding') {
+    const url = req.nextUrl.clone();
+    url.pathname = '/onboarding/role';
+    return NextResponse.redirect(url);
+  }
+
   const isProtectedRoute = pathname.startsWith('/onboarding') ||
                            pathname.startsWith('/buyer') ||
                            pathname.startsWith('/seller') ||
