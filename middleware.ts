@@ -7,6 +7,13 @@ export async function middleware(req: NextRequest) {
 
   const onboardingSteps = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
   if (onboardingSteps.includes(pathname)) {
+    // Temporary gatekeeping logic placeholder
+    // Assume role must be completed before accessing details or verify
+    if ((pathname === '/onboarding/details' || pathname === '/onboarding/verify')) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/onboarding/role';
+      return NextResponse.redirect(url);
+    }
     return res;
   }
 

@@ -82,7 +82,10 @@ const AuthPage = () => {
 
         if (!userData?.role) {
           router.push('/onboarding/role');
-        } else if (!userData.details_complete) {
+          return;
+        }
+
+        if (!userData.details_complete) {
           router.push('/onboarding/details');
         } else if (!userData.onboarded) {
           router.push('/onboarding/verify');

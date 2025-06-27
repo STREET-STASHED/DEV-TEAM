@@ -14,13 +14,13 @@ export default function WelcomePage() {
       <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 z-50 relative">
         <button
           onClick={() => router.push('/buyer/marketplace')}
-          className="bg-black text-white font-semibold py-3 px-6 rounded hover:bg-gray-900 transition w-full sm:w-auto"
+          className="bg-black text-white font-semibold py-3 px-6 rounded hover:bg-gray-900 transition w-full sm:w-auto hover:scale-105 transition-transform"
         >
           🔍 Browse Drops
         </button>
         <button
           onClick={() => router.push('/signup')}
-          className="bg-white text-black border border-black font-semibold py-3 px-6 rounded hover:bg-gray-100 transition w-full sm:w-auto"
+          className="bg-white text-black border border-black font-semibold py-3 px-6 rounded hover:bg-gray-100 transition w-full sm:w-auto hover:scale-105 transition-transform"
         >
           🚀 Join as Seller, Stylist or Driver
         </button>
