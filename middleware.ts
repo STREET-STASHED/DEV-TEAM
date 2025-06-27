@@ -52,7 +52,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/',
     '/signup',
     '/onboarding/:path*',
     '/buyer/:path*',

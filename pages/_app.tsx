@@ -1,6 +1,5 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import supabase from '../lib/supabaseBrowserClient';
 import { useRouter } from 'next/router';
 import { CartProvider } from '../context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';

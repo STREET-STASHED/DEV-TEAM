@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseBrowserClient';
 
-const Signup = () => {
+const AuthPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -88,21 +88,15 @@ const Signup = () => {
 
         const { data: userData } = await supabase
           .from('users')
-          .select('is_details_complete, role, is_verified')
+          .select('details_complete, role, verified')
           .eq('id', userId)
           .maybeSingle();
 
-        if (!userData) {
+        if (!userData || !userData.role) {
           router.push('/onboarding/role');
-          setLoading(false);
-          return;
-        }
-
-        if (!userData?.role) {
-          router.push('/onboarding/role');
-        } else if (!userData?.is_details_complete) {
+        } else if (!userData.details_complete) {
           router.push('/onboarding/details');
-        } else if (!userData?.is_verified) {
+        } else if (!userData.verified) {
           router.push('/onboarding/verify');
         } else {
           switch (userData.role) {
@@ -180,4 +174,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default AuthPage;

@@ -8,6 +8,11 @@ export default function AuthGuard({ role, children }: { role: string, children: 
   // supabase is already initialized from the import
 
   useEffect(() => {
+    if (router.pathname === '/' || router.pathname === '/welcome') {
+      setLoading(false);
+      return;
+    }
+
     const checkAuth = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
