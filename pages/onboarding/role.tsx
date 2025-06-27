@@ -83,12 +83,12 @@ export default function RolePage() {
     }
     console.log("Selected Role:", selectedRole);
     // Redirect based on role
-    await router.push('/onboarding/details');
+    router.replace('/onboarding/details');
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
         className="bg-white p-8 rounded shadow-md space-y-6 w-full max-w-md"

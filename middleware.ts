@@ -34,9 +34,12 @@ export async function middleware(req: NextRequest) {
   const onboardingSteps = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
 
   if (pathname === '/onboarding/details') {
-    const url = req.nextUrl.clone();
-    url.pathname = '/onboarding/role';
-    return NextResponse.redirect(url);
+    const role = req.cookies.get('user-role')?.value;
+    if (!role) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/onboarding/role';
+      return NextResponse.redirect(url);
+    }
   }
 
   if (pathname === '/onboarding/verify') {

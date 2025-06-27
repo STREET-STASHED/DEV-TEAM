@@ -188,131 +188,133 @@ export default function Details() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md space-y-6">
-        <h1 className="text-2xl font-bold text-center">Complete Your Details</h1>
-        <form onSubmit={handleSubmit} className="space-y-4" data-testid="details-form">
-          <input
-            type="text"
-            placeholder="Full Name"
-            required={true}
-            value={fullName}
-            autoComplete="off"
-            onChange={(e) => setFullName(e.target.value)}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
-          <input
-            type="tel"
-            placeholder="Phone Number"
-            required={true}
-            value={phoneNumber}
-            autoComplete="off"
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
-          <input
-            type="text"
-            placeholder="Referral Code (optional)"
-            value={referralCode}
-            autoComplete="off"
-            onChange={(e) => setReferralCode(e.target.value)}
-            className="w-full border border-gray-300 p-3 rounded-md"
-          />
+    <div className="min-h-screen flex flex-col items-center justify-center px-4">
+      <h1 className="text-2xl font-bold text-center text-black mb-6">Complete Your Details</h1>
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md flex flex-col gap-4"
+        data-testid="details-form"
+      >
+        <input
+          type="text"
+          placeholder="Full Name"
+          required
+          value={fullName}
+          autoComplete="off"
+          onChange={(e) => setFullName(e.target.value)}
+          className="w-full border border-gray-300 p-3 rounded-md text-black"
+        />
+        <input
+          type="tel"
+          placeholder="Phone Number"
+          required
+          value={phoneNumber}
+          autoComplete="off"
+          onChange={(e) => setPhoneNumber(e.target.value)}
+          className="w-full border border-gray-300 p-3 rounded-md text-black"
+        />
+        <input
+          type="text"
+          placeholder="Referral Code (optional)"
+          value={referralCode}
+          autoComplete="off"
+          onChange={(e) => setReferralCode(e.target.value)}
+          className="w-full border border-gray-300 p-3 rounded-md text-black"
+        />
 
-          {(role === 'seller') && (
-            <>
-              <input
-                type="text"
-                placeholder="Store Name"
-                required={role === 'seller'}
-                value={storeName}
-                autoComplete="off"
-                onChange={(e) => setStoreName(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-              <textarea
-                placeholder="Store Description"
-                required={role === 'seller'}
-                value={storeDescription}
-                autoComplete="off"
-                onChange={(e) => setStoreDescription(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-            </>
-          )}
+        {(role === 'seller') && (
+          <>
+            <input
+              type="text"
+              placeholder="Store Name"
+              required={role === 'seller'}
+              value={storeName}
+              autoComplete="off"
+              onChange={(e) => setStoreName(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+            <textarea
+              placeholder="Store Description"
+              required={role === 'seller'}
+              value={storeDescription}
+              autoComplete="off"
+              onChange={(e) => setStoreDescription(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+          </>
+        )}
 
-          {(role === 'driver') && (
-            <>
-              <input
-                type="text"
-                placeholder="Vehicle Type"
-                required={role === 'driver'}
-                value={vehicleType}
-                autoComplete="off"
-                onChange={(e) => setVehicleType(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-              <input
-                type="text"
-                placeholder="Driver's License Number"
-                required={role === 'driver'}
-                value={licenseNumber}
-                autoComplete="off"
-                onChange={(e) => setLicenseNumber(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-              <input
-                type="text"
-                placeholder="Payout Method"
-                required={role === 'driver'}
-                value={payoutMethod}
-                autoComplete="off"
-                onChange={(e) => setPayoutMethod(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-            </>
-          )}
+        {(role === 'driver') && (
+          <>
+            <input
+              type="text"
+              placeholder="Vehicle Type"
+              required={role === 'driver'}
+              value={vehicleType}
+              autoComplete="off"
+              onChange={(e) => setVehicleType(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+            <input
+              type="text"
+              placeholder="Driver's License Number"
+              required={role === 'driver'}
+              value={licenseNumber}
+              autoComplete="off"
+              onChange={(e) => setLicenseNumber(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+            <input
+              type="text"
+              placeholder="Payout Method"
+              required={role === 'driver'}
+              value={payoutMethod}
+              autoComplete="off"
+              onChange={(e) => setPayoutMethod(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+          </>
+        )}
 
-          {(role === 'stylist') && (
-            <>
-              <input
-                type="text"
-                placeholder="Specialties"
-                required={role === 'stylist'}
-                value={specialties}
-                autoComplete="off"
-                onChange={(e) => setSpecialties(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-              <input
-                type="url"
-                placeholder="Portfolio URL"
-                required={role === 'stylist'}
-                value={portfolioUrl}
-                autoComplete="off"
-                onChange={(e) => setPortfolioUrl(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-              <textarea
-                placeholder="Bundle Options"
-                required={role === 'stylist'}
-                value={bundles}
-                autoComplete="off"
-                onChange={(e) => setBundles(e.target.value)}
-                className="w-full border border-gray-300 p-3 rounded-md"
-              />
-            </>
-          )}
+        {(role === 'stylist') && (
+          <>
+            <input
+              type="text"
+              placeholder="Specialties"
+              required={role === 'stylist'}
+              value={specialties}
+              autoComplete="off"
+              onChange={(e) => setSpecialties(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+            <input
+              type="url"
+              placeholder="Portfolio URL"
+              required={role === 'stylist'}
+              value={portfolioUrl}
+              autoComplete="off"
+              onChange={(e) => setPortfolioUrl(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+            <textarea
+              placeholder="Bundle Options"
+              required={role === 'stylist'}
+              value={bundles}
+              autoComplete="off"
+              onChange={(e) => setBundles(e.target.value)}
+              className="w-full border border-gray-300 p-3 rounded-md text-black"
+            />
+          </>
+        )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white p-3 rounded-md"
-          >
-            {loading ? 'Submitting...' : 'Continue'}
-          </button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white p-3 rounded-md"
+        >
+          {loading ? 'Submitting...' : 'Continue'}
+        </button>
+      </form>
     </div>
   );
 }
