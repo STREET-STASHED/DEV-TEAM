@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import supabase from '@/lib/supabaseBrowserClient';
 import { useRouter } from 'next/router';
+import styles from './Hero.module.css';
 
 const Hero = () => {
   const router = useRouter();
@@ -23,30 +24,30 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative bg-transparent text-gold py-20 px-6 text-center overflow-hidden">
-      <div className="relative z-10">
-        <h1 className="text-4xl md:text-6xl font-extrabold tracking-widest uppercase mb-4">
+    <section className={styles.heroSection}>
+      <div className={styles.contentWrapper}>
+        <h1 className={styles.heading}>
           Where Style Moves Like You Do.
         </h1>
-        <p className="text-lg md:text-xl text-yellow-400 max-w-2xl mx-auto mb-8 leading-relaxed">
+        <p className={styles.subheading}>
           Fashion delivered on demand. From exclusive drops to everyday heat — all day in every neighborhood.
         </p>
-        <div className="flex justify-center gap-4 flex-wrap">
+        <div className={styles.buttonGroup}>
           <button
-            className="bg-yellow-500 text-black font-bold py-3 px-6 rounded-full hover:bg-yellow-400 transition"
+            className={styles.browseButton}
             onClick={() => router.push('/marketplace')}
           >
             Browse Drops
           </button>
           <button
             onClick={handleJoin}
-            className="border border-yellow-500 text-yellow-500 font-bold py-3 px-6 rounded-full hover:bg-yellow-500 hover:text-black transition"
+            className={styles.joinButton}
           >
             Join Us
           </button>
         </div>
       </div>
-      <div className="absolute inset-0 bg-[url('/graffiti-bg.png')] bg-cover bg-center opacity-10 z-0" />
+      <div className={styles.backgroundImage} />
     </section>
   );
 };

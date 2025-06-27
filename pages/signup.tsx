@@ -60,17 +60,6 @@ const AuthPage = () => {
           onboarded: false
         });
 
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (signInError || !signInData.session) {
-          setErrorMessage(signInError?.message || 'Authentication failed');
-          setLoading(false);
-          return;
-        }
-
         router.push('/onboarding/role');
       } else {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({

@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseBrowserClient';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
+import styles from './Header.module.css';
 
 const Header = () => {
   const router = useRouter();
@@ -51,8 +52,7 @@ const Header = () => {
   return (
     <>
       <header
-        className="fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b-4 border-yellow-400 shadow-2xl"
-        style={{ minHeight: 80 }}
+        className={`${styles.header} fixed top-0 left-0 w-full z-50 bg-black/90 backdrop-blur-lg border-b-4 border-yellow-400 shadow-2xl`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-3 relative">
           {/* Logo & Brand */}
@@ -68,15 +68,7 @@ const Header = () => {
               />
             </Link>
             <span
-              className="text-2xl md:text-3xl font-extrabold tracking-tight tracking-widest select-none"
-              style={{
-                color: '#FFD700',
-                letterSpacing: '0.02em',
-                textShadow: '3px 3px 10px #000',
-                fontFamily: '"Urbanist", "Bebas Neue", "Oswald", sans-serif',
-                textTransform: 'uppercase',
-                lineHeight: 1,
-              }}
+              className={styles.brandText}
             >
               STREETSTASHED
             </span>
@@ -111,12 +103,10 @@ const Header = () => {
               tabIndex={0}
               aria-label="Open cart"
               title="Open cart"
-              className="relative ml-2 cursor-pointer"
+              className={`${styles.cartIcon} relative ml-2 cursor-pointer`}
               onClick={handleCartOpen}
               onKeyPress={(e) => { if (e.key === 'Enter') handleCartOpen(); }}
               style={{
-                fontSize: 32,
-                color: '#FFD700',
                 filter: totalCount > 0 ? 'drop-shadow(0 0 8px #FFD700)' : 'none',
                 transition: 'filter 0.2s',
               }}
@@ -207,33 +197,8 @@ const Header = () => {
           )}
         </div>
       </header>
-      <div style={{ paddingTop: 84 }} /> {/* Push content below the fixed header */}
+      <div className={styles.pushContent} /> {/* Push content below the fixed header */}
       <CartDrawer />
-
-      <style jsx>{`
-        @media (max-width: 600px) {
-          .nav-links {
-            font-size: 1rem;
-            gap: 0.5rem;
-          }
-        }
-        @media (max-width: 400px) {
-          .nav-links {
-            font-size: 0.92rem;
-            gap: 0.25rem;
-          }
-          span[style*="text-2xl"] {
-            font-size: 1.1rem !important;
-          }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.18s ease;
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-16px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-      `}</style>
     </>
   );
 };

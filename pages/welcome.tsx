@@ -2,30 +2,30 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import supabaseBrowserClient from '@/lib/supabaseBrowserClient';
-import { cookies } from 'next/headers';
+import styles from '../styles/welcome.module.css';
 
 export default function WelcomePage() {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-yellow-400 font-graffiti px-4 text-center">
-      <h1 className="text-5xl font-extrabold tracking-widest uppercase mb-6 drop-shadow-lg">
+    <div className={styles.container}>
+      <h1 className={styles.heroTitle}>
         Welcome to STREETSTASHED
       </h1>
-      <p className="mb-10 text-lg text-yellow-300 max-w-xl">
+      <p className={styles.heroSubtitle}>
         The future of fashion delivery. Tap in to browse the culture or become part of the movement.
       </p>
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className={styles.ctaGroup}>
         <button
           onClick={() => router.push('/buyer/marketplace')}
-          className="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3 px-8 rounded-full text-lg transition"
+          className={styles.ctaButtonPrimary}
         >
           🔍 Browse Drops
         </button>
         <button
           onClick={() => router.push('/signup')}
-          className="bg-white hover:bg-yellow-200 text-black font-bold py-3 px-8 rounded-full text-lg transition"
+          className={styles.ctaButtonSecondary}
         >
           🚀 Join as Seller, Stylist or Driver
         </button>
