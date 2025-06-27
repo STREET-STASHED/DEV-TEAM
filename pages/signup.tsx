@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseClient';
+import Cookies from 'js-cookie';
 
 const AuthScreen = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +13,9 @@ const AuthScreen = () => {
   const router = useRouter();
 
   const handleRedirect = (userData: any) => {
+    if (userData?.role) {
+      Cookies.set('user-role', userData.role, { expires: 7 });
+    }
     if (!userData?.role) {
       router.push('/onboarding/role');
     } else if (!userData.details_complete) {
@@ -131,6 +135,10 @@ const AuthScreen = () => {
           if (fetchError) throw fetchError;
 
           handleRedirect(userData);
+
+          if (userData?.role) {
+            Cookies.set('user-role', userData.role, { expires: 7 });
+          }
         } catch (err) {
           console.error('Error fetching user data:', err);
           setErrorMessage('Could not load user profile. Please try again.');

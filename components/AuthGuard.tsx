@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import supabase from "@/lib/supabaseClient";
+import Cookies from 'js-cookie';
 
 export default function AuthGuard({ role, children }: { role: string, children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
@@ -38,6 +39,10 @@ export default function AuthGuard({ role, children }: { role: string, children: 
         }
 
         const roleData: RoleData = await roleResponse.json();
+
+        if (roleData?.role) {
+          Cookies.set('user-role', roleData.role, { expires: 7 });
+        }
 
         if (!roleData?.role) {
           if (router.pathname !== '/onboarding/role') {

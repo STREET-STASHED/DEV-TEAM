@@ -1,4 +1,5 @@
-import supabase from './ssupabaseClient';
+import supabase from './supabaseClient';
+import Cookies from 'js-cookie';
 
 export async function getUserRoleById(id: string): Promise<{
   role: string | null;
@@ -17,6 +18,9 @@ export async function getUserRoleById(id: string): Promise<{
   }
   if (!data) {
     console.warn(`No user found with id: ${id}`);
+  }
+  if (data?.role) {
+    Cookies.set('user-role', data.role, { expires: 7 });
   }
   return {
     role: data?.role ?? null,

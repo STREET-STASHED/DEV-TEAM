@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseClient';
+import Cookies from 'js-cookie';
 
 export default function VerifyStep() {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,10 @@ export default function VerifyStep() {
         return;
       }
 
-      setRole(userData.role);
+      if (userData?.role) {
+        setRole(userData.role);
+        Cookies.set('user-role', userData.role, { expires: 7 });
+      }
 
       if (!userData.details_complete) {
         router.push('/onboarding/details');
@@ -61,6 +65,7 @@ export default function VerifyStep() {
   }, []);
 
   const handleContinue = async () => {
+    if (loading) return;
     try {
       setLoading(true);
       if (!userId || !role) {
@@ -70,8 +75,19 @@ export default function VerifyStep() {
       }
 
       if (['driver', 'seller', 'stylist'].includes(role)) {
-        if (!fullName || !dob || !license || !agreed) {
+        if (
+          !fullName.trim() ||
+          !dob ||
+          !license.trim() ||
+          !agreed
+        ) {
           alert('Please fill in all verification fields and agree to the terms.');
+          setLoading(false);
+          return;
+        }
+
+        if (documentFile && documentFile.size > 5 * 1024 * 1024) {
+          alert('File size must be under 5MB.');
           setLoading(false);
           return;
         }
@@ -108,9 +124,9 @@ export default function VerifyStep() {
             .from('users')
             .update({
               verified: true,
-              full_name: fullName,
+              full_name: fullName.trim(),
               dob,
-              license_number: license,
+              license_number: license.trim(),
               verification_file: uploadData.path,
               verification_url: urlData?.signedUrl ?? null,
             })
@@ -122,15 +138,16 @@ export default function VerifyStep() {
             setLoading(false);
             return;
           }
+          Cookies.set('user-role', role, { expires: 7 });
         } else {
           // Skip file upload, just update user info and mark verified
           const { error: updateError } = await supabase
             .from('users')
             .update({
               verified: true,
-              full_name: fullName,
+              full_name: fullName.trim(),
               dob,
-              license_number: license,
+              license_number: license.trim(),
               verification_file: null,
               verification_url: null,
             })
@@ -142,6 +159,7 @@ export default function VerifyStep() {
             setLoading(false);
             return;
           }
+          Cookies.set('user-role', role, { expires: 7 });
         }
       }
 

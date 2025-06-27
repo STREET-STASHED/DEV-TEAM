@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
 import supabase from '@/lib/supabaseClient';
+import Cookies from 'js-cookie';
 
 export default function RolePage() {
   const router = useRouter();
@@ -61,23 +62,26 @@ export default function RolePage() {
       data: { session: supaSession },
       error: sessionError,
     } = await supabase.auth.getSession();
-    const user = supaSession?.user;
-    if (!user) {
-      alert('Please log in to continue');
+    if (!supaSession || !supaSession.user) {
+      alert('User session missing. Please log in again.');
       setLoading(false);
       return;
     }
+    const user = supaSession.user;
+    console.log("Saving role to Supabase for user:", user.id, "Role:", selectedRole);
     // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .update({ role: selectedRole, onboarded: true })
+      .update({ role: selectedRole })
       .eq('id', user.id);
+    Cookies.set('user-role', selectedRole, { expires: 7 });
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
       alert('Unable to save role. Try again.');
       setLoading(false);
       return;
     }
+    console.log("Selected Role:", selectedRole);
     // Redirect based on role
     await router.push('/onboarding/details');
     setLoading(false);
@@ -91,7 +95,7 @@ export default function RolePage() {
       >
         <h1 className="text-2xl font-bold text-center text-black">Select Your Role</h1>
         {['buyer', 'seller', 'driver', 'stylist'].map((role) => (
-          <label htmlFor={role} key={role} className="flex items-center space-x-3">
+          <label htmlFor={role} key={role} className="flex items-center space-x-3 cursor-pointer">
             <input
               id={role}
               type="radio"
@@ -105,10 +109,13 @@ export default function RolePage() {
             <span className="capitalize text-black">{role}</span>
           </label>
         ))}
+        {!selectedRole && (
+          <p className="text-sm text-red-600">Please select a role to continue.</p>
+        )}
         <button
           type="submit"
           disabled={!selectedRole || loading}
-          className="w-full bg-blue-600 text-white p-3 rounded-md"
+          className={`w-full ${loading ? 'bg-gray-400' : 'bg-blue-600'} text-white p-3 rounded-md`}
         >
           {loading ? 'Submitting...' : 'Continue'}
         </button>

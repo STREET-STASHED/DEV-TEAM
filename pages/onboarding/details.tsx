@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseClient';
 
@@ -56,7 +57,10 @@ export default function Details() {
           return;
         }
 
-        setRole(data.role);
+        if (data?.role) {
+          setRole(data.role);
+          Cookies.set('user-role', data.role, { expires: 7 });
+        }
         console.log("Loaded role:", data.role);
         // demo defaults
         setFullName('Test User');
@@ -101,6 +105,12 @@ export default function Details() {
     e.preventDefault();
     setLoading(true);
 
+    if (!/^\d{10}$/.test(phoneNumber)) {
+      alert('Please enter a valid 10-digit phone number.');
+      setLoading(false);
+      return;
+    }
+
     const { data: { session }, error: submitError } = await supabase.auth.getSession();
     const user = session?.user;
     if (submitError || !user) {
@@ -110,11 +120,15 @@ export default function Details() {
       return;
     }
 
+    if (role) {
+      Cookies.set('user-role', role, { expires: 7 });
+    }
+
     // Build update payload
     const updateData: any = {
-      full_name: fullName,
-      phone_number: phoneNumber,
-      referral_code: referralCode,
+      full_name: fullName.trim(),
+      phone_number: phoneNumber.trim(),
+      referral_code: referralCode.trim(),
       details_complete: true,
     };
 

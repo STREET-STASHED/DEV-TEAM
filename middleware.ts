@@ -5,16 +5,44 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
-  const onboardingSteps = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
-  if (onboardingSteps.includes(pathname)) {
-    // Temporary gatekeeping logic placeholder
-    // Assume role must be completed before accessing details or verify
-    if ((pathname === '/onboarding/details' || pathname === '/onboarding/verify')) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/onboarding/role';
+  if (pathname === '/login') {
+    const url = req.nextUrl.clone();
+    const supabaseSession = req.cookies.get('sb-access-token')?.value;
+
+    if (supabaseSession) {
+      const role = req.cookies.get('user-role')?.value;
+
+      if (role === 'buyer') {
+        url.pathname = '/buyer';
+      } else if (role === 'seller') {
+        url.pathname = '/seller/dashboard';
+      } else if (role === 'stylist') {
+        url.pathname = '/stylist/dashboard';
+      } else if (role === 'driver') {
+        url.pathname = '/driver';
+      } else if (role === 'admin') {
+        url.pathname = '/admin/dashboard';
+      } else {
+        url.pathname = '/dashboard'; // fallback if role is missing or unrecognized
+      }
+
       return NextResponse.redirect(url);
     }
-    return res;
+  }
+
+  // Force proper sequence of onboarding
+  const onboardingSteps = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
+
+  if (pathname === '/onboarding/details') {
+    const url = req.nextUrl.clone();
+    url.pathname = '/onboarding/role';
+    return NextResponse.redirect(url);
+  }
+
+  if (pathname === '/onboarding/verify') {
+    const url = req.nextUrl.clone();
+    url.pathname = '/onboarding/details';
+    return NextResponse.redirect(url);
   }
 
   if (pathname === '/onboarding' || pathname === '/onboarding/') {
@@ -29,9 +57,6 @@ export async function middleware(req: NextRequest) {
                            pathname.startsWith('/stylist') ||
                            pathname.startsWith('/driver') ||
                            pathname.startsWith('/admin');
-
-  // Without Supabase client in middleware, session check is removed or needs custom implementation
-  // For now, we skip session-based redirects in middleware
 
   return res;
 }
