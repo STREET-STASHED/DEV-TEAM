@@ -47,7 +47,7 @@ const AuthPage = () => {
           return;
         }
 
-        await supabase.from('users').upsert({
+        const upsertResponse = await supabase.from('users').upsert({
           id: user.id,
           email: user.email,
           role: null,
@@ -60,7 +60,14 @@ const AuthPage = () => {
           onboarded: false
         });
 
-        router.push('/onboarding/role');
+        console.log("User ID after signup:", user?.id);
+        console.log("Upsert response:", upsertResponse);
+        if (!upsertResponse.error) {
+          router.replace('/onboarding/role');
+        } else {
+          console.error("Upsert error:", upsertResponse.error);
+          setErrorMessage('There was an issue saving your information. Please try again.');
+        }
       } else {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
