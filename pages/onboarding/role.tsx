@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
-import supabase from '@/lib/supabaseBrowserClient';
+import supabase from '@/lib/supabaseClient';
 
 export default function RolePage() {
   const router = useRouter();

@@ -1,4 +1,4 @@
-import supabase from './supabaseBrowserClient';
+import supabase from './ssupabaseClient';
 
 export async function getUserRoleById(id: string): Promise<{
   role: string | null;

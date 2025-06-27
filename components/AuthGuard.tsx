@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import supabase from "@/lib/supabaseBrowserClient";
+import supabase from "@/lib/supabaseClient";
 
 export default function AuthGuard({ role, children }: { role: string, children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)

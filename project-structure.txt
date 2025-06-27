@@ -24,7 +24,7 @@
 │   ├── mockProducts.ts
 │   ├── stripe.ts
 │   ├── supabaseAdmin.ts
-│   ├── supabaseBrowserClient.ts
+│   ├── ssupabaseClient.ts
 │   ├── useUser.ts
 │   └── utils.ts
 ├── middleware.ts

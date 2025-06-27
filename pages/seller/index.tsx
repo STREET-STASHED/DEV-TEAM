@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import supabase from '../../lib/supabaseBrowserClient';
+import supabase from '../../lib/ssupabaseClient';
 
 export default function SellerOnboarding() {
   const [form, setForm] = useState({ name: '', storeName: '', email: '', phone: '', storeAddress: '' });

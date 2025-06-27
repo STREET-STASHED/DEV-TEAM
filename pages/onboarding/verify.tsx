@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '@/lib/supabaseBrowserClient';
+import supabase from '@/lib/supabaseClient';
 
 export default function VerifyStep() {
   const [loading, setLoading] = useState(false);
@@ -15,63 +15,33 @@ export default function VerifyStep() {
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
-    const fetchRole = async () => {
+    const fetchUserAndDetails = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserId(user.id);
 
-      const { data, error } = await supabase
+      const { data: userData, error } = await supabase
         .from('users')
-        .select('role')
+        .select('role, details_complete, verified')
         .eq('id', user.id)
         .single();
-      if (!error && data?.role) setRole(data.role);
-    };
-    fetchRole();
-  }, []);
 
-  useEffect(() => {
-    const checkDetailsComplete = async () => {
-      if (!userId) return;
+      if (userData?.role) setRole(userData.role);
 
-      const { data, error } = await supabase
-        .from('users')
-        .select('details_complete')
-        .eq('id', userId)
-        .single();
-
-      if (error || !data?.details_complete) {
+      if (!userData?.details_complete) {
         router.push('/onboarding/details');
-      }
-    };
-
-    checkDetailsComplete();
-  }, [userId]);
-
-  useEffect(() => {
-    const checkVerified = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('verified, role')
-        .eq('id', user.id)
-        .single();
-
-      if (error) return;
-      if (data?.verified) {
+      } else if (userData?.verified) {
         const redirectMap: Record<string, string> = {
           buyer: '/buyer/marketplace',
           seller: '/seller/dashboard',
           stylist: '/stylist/dashboard',
           driver: '/driver/dashboard',
         };
-        router.push(redirectMap[data.role] || '/');
+        router.push(redirectMap[userData.role] || '/');
       }
     };
 
-    checkVerified();
+    fetchUserAndDetails();
   }, []);
 
   const handleContinue = async () => {

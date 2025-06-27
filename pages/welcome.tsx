@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import supabaseBrowserClient from '@/lib/supabaseBrowserClient';
+import ssupabaseClient from '@/lib/ssupabaseClient';
 import styles from '../styles/welcome.module.css';
 
 export default function WelcomePage() {

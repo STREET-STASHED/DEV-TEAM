@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import supabase from "@/lib/supabaseBrowserClient";
+import supabase from "@/lib/ssupabaseClient";
 
 export default function IndexPage() {
   return (

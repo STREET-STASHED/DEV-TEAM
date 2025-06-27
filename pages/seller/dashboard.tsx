@@ -7,7 +7,7 @@ interface Booking {
   service_name?: string;
 }
 import React, { useEffect, useState } from "react";
-import supabase from "@/lib/supabaseBrowserClient";
+import supabase from "@/lib/ssupabaseClient";
 // Helper to get the current user session
 async function getCurrentUser() {
   const session = await supabase.auth.getSession().then((r) => r.data.session);
@@ -611,7 +611,7 @@ export async function getServerSideProps(context: any) {
   // This SSR logic is for initial prop population only.
   let userId = null;
   try {
-    const supabase = (await import("@/lib/supabaseBrowserClient")).default;
+    const supabase = (await import("@/lib/ssupabaseClient")).default;
     const {
       data: { session },
     } = await supabase.auth.getSession();

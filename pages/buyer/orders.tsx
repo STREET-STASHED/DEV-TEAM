@@ -1,6 +1,6 @@
 // pages/buyer/orders.tsx
 import React, { useEffect, useState } from 'react';
-import supabase from '../../lib/supabaseBrowserClient';
+import supabase from '../../lib/ssupabaseClient';
 import Link from 'next/link';
 
 interface Order {
