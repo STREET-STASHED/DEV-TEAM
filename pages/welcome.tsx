@@ -21,34 +21,19 @@ export default function WelcomePage() {
           alignItems: 'center',
           gap: '1rem',
           marginTop: '2rem',
-          zIndex: 10,
+          zIndex: 999,
+          position: 'relative',
         }}
       >
         <button
           onClick={() => router.push('/buyer/marketplace')}
-          className={styles.ctaButtonPrimary}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            backgroundColor: '#FFD700',
-            color: '#000',
-            borderRadius: '0.5rem',
-            border: 'none',
-          }}
+          className={`${styles.ctaButtonPrimary} ${styles.ctaButton}`}
         >
           🔍 Browse Drops
         </button>
         <button
           onClick={() => router.push('/signup')}
-          className={styles.ctaButtonSecondary}
-          style={{
-            padding: '0.75rem 1.5rem',
-            fontSize: '1rem',
-            backgroundColor: 'transparent',
-            color: '#FFD700',
-            border: '2px solid #FFD700',
-            borderRadius: '0.5rem',
-          }}
+          className={`${styles.ctaButtonSecondary} ${styles.ctaButton}`}
         >
           🚀 Join as Seller, Stylist or Driver
         </button>

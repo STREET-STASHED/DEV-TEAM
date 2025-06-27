@@ -47,3 +47,16 @@
   justify-content: center;
   margin-top: 2rem;
 }
+
+
+.ctaButtonPrimary {
+  background-color: #FFD700;
+  color: #000;
+  border: none;
+}
+
+.ctaButtonSecondary {
+  background-color: transparent;
+  color: #FFD700;
+  border: 2px solid #FFD700;
+}

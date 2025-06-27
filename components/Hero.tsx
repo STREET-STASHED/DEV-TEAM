@@ -32,7 +32,7 @@ const Hero = () => {
         <p className={styles.subheading}>
           The future of fashion delivery. Tap in to browse the culture or become a seller, stylist or driver.
         </p>
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', zIndex: 2, position: 'relative' }}>
           <Link href="/signup">
             <button style={{ padding: '0.75rem 1.5rem', backgroundColor: '#FFD700', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
               Join Now
