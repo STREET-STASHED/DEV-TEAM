@@ -11,16 +11,16 @@ export default function WelcomePage() {
       <p className="text-lg md:text-xl text-gray-700 max-w-xl">
         The future of fashion delivery. Tap in to browse the culture or become part of the movement.
       </p>
-      <div className="flex flex-col items-center gap-4 mt-8 z-50 relative">
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8 z-50 relative">
         <button
           onClick={() => router.push('/buyer/marketplace')}
-          className="bg-black text-white font-semibold py-3 px-6 rounded hover:bg-gray-900 transition"
+          className="bg-black text-white font-semibold py-3 px-6 rounded hover:bg-gray-900 transition w-full sm:w-auto"
         >
           🔍 Browse Drops
         </button>
         <button
           onClick={() => router.push('/signup')}
-          className="bg-white text-black border border-black font-semibold py-3 px-6 rounded hover:bg-gray-100 transition"
+          className="bg-white text-black border border-black font-semibold py-3 px-6 rounded hover:bg-gray-100 transition w-full sm:w-auto"
         >
           🚀 Join as Seller, Stylist or Driver
         </button>

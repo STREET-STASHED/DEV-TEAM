@@ -19,18 +19,21 @@ const AuthPage = () => {
         const authResponse = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              created_from: 'web',
-              email_confirmed_at: new Date().toISOString(),
-            },
-          },
         });
 
-        const user = authResponse.data?.user;
-        if (!user || !user.id) {
-          console.error('Signup succeeded but no valid user returned:', authResponse.data);
-          setErrorMessage('Signup issue. Please try again.');
+        const { user, session } = authResponse.data;
+        const error = authResponse.error;
+
+        if (error) {
+          console.error('Signup error:', error.message);
+          setErrorMessage('Signup failed. Please try again.');
+          setLoading(false);
+          return;
+        }
+
+        if (!user) {
+          console.warn("Signup succeeded but no user returned — possibly due to email confirmation being required.");
+          setErrorMessage("Check your email to confirm your account.");
           setLoading(false);
           return;
         }
