@@ -1,12 +1,9 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
 import supabaseBrowserClient from '@/lib/supabaseBrowserClient';
 import styles from '../styles/welcome.module.css';
 
 export default function WelcomePage() {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
 
   return (
     <div className={styles.container}>

@@ -28,15 +28,9 @@ const AuthPage = () => {
         });
 
         if (authResponse.error) {
-          if (authResponse.error.message?.includes('User already registered')) {
-            setErrorMessage('Account already exists. Redirecting to login...');
-            setTimeout(() => {
-              setIsSignUp(false); // Switch to login mode
-            }, 1500);
-            setLoading(false);
-            return;
-          }
-          throw authResponse.error;
+          setErrorMessage(authResponse.error.message || 'Signup failed. Please try again.');
+          setLoading(false);
+          return;
         }
 
         const user = authResponse.data?.user ?? authResponse.data?.session?.user;
@@ -47,7 +41,7 @@ const AuthPage = () => {
           return;
         }
 
-        const { data: upsertData, error: upsertError } = await supabase
+        const { error: upsertError } = await supabase
           .from('users')
           .upsert({
             id: user.id,
@@ -59,16 +53,16 @@ const AuthPage = () => {
             updated_at: new Date().toISOString(),
             is_active: true,
             onboarded: false,
-          })
-          .select()
-          .single();
+          });
 
         if (upsertError) {
           console.error("Upsert error:", upsertError);
           setErrorMessage('There was an issue saving your information. Please try again.');
-        } else {
-          router.replace('/onboarding/role');
+          setLoading(false);
+          return;
         }
+
+        router.replace('/onboarding/role');
       } else {
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -85,15 +79,15 @@ const AuthPage = () => {
 
         const { data: userData } = await supabase
           .from('users')
-          .select('details_complete, role, verified')
+          .select('details_complete, role, verified, onboarded')
           .eq('id', userId)
           .maybeSingle();
 
-        if (!userData || !userData.role) {
+        if (!userData?.role) {
           router.push('/onboarding/role');
         } else if (!userData.details_complete) {
           router.push('/onboarding/details');
-        } else if (!userData.verified) {
+        } else if (!userData.onboarded) {
           router.push('/onboarding/verify');
         } else {
           switch (userData.role) {

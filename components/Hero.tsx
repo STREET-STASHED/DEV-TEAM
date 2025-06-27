@@ -27,24 +27,18 @@ const Hero = () => {
     <section className={styles.heroSection}>
       <div className={styles.contentWrapper}>
         <h1 className={styles.heading}>
-          Where Style Moves Like You Do.
+          Welcome to StreetStashed
         </h1>
         <p className={styles.subheading}>
-          Fashion delivered on demand. From exclusive drops to everyday heat — all day in every neighborhood.
+          The future of fashion delivery. Tap in to browse the culture or become a seller, stylist or driver.
         </p>
         <div className={styles.buttonGroup}>
-          <button
-            className={styles.browseButton}
-            onClick={() => router.push('/marketplace')}
-          >
-            Browse Drops
-          </button>
-          <button
-            onClick={handleJoin}
-            className={styles.joinButton}
-          >
-            Join Us
-          </button>
+          <Link href="/signup">
+            <button className={styles.joinButton}>Join Now</button>
+          </Link>
+          <Link href="/marketplace">
+            <button className={styles.browseButton}>Browse Marketplace</button>
+          </Link>
         </div>
       </div>
       <div className={styles.backgroundImage} />
