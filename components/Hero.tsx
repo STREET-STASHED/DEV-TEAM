@@ -32,12 +32,16 @@ const Hero = () => {
         <p className={styles.subheading}>
           The future of fashion delivery. Tap in to browse the culture or become a seller, stylist or driver.
         </p>
-        <div className={styles.buttonGroup}>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
           <Link href="/signup">
-            <button className={styles.joinButton}>Join Now</button>
+            <button style={{ padding: '0.75rem 1.5rem', backgroundColor: '#FFD700', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>
+              Join Now
+            </button>
           </Link>
           <Link href="/marketplace">
-            <button className={styles.browseButton}>Browse Marketplace</button>
+            <button style={{ padding: '0.75rem 1.5rem', backgroundColor: '#000', color: '#FFF', fontWeight: 'bold', border: '2px solid #FFD700', borderRadius: '8px', cursor: 'pointer' }}>
+              Browse Marketplace
+            </button>
           </Link>
         </div>
       </div>

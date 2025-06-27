@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const accessToken = req.headers.get('Authorization')?.replace('Bearer ', '');
     if (!accessToken) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Missing or invalid access token' }, { status: 401 });
     }
 
     const {
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser(accessToken);
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: 'Unable to fetch user' }, { status: 401 });
     }
 
     const { role } = await req.json();
@@ -31,17 +31,16 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({
         role,
-        email: user.email,
         updated_at: new Date().toISOString(),
       })
       .eq('id', user.id);
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      return NextResponse.json({ error: `Failed to update role: ${updateError.message}` }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

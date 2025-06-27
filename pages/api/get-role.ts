@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import supabaseAdmin from '../../lib/supabaseAdmin';
-import supabase from '@/lib/supabaseBrowserClient';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -22,13 +21,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'Unauthorized: failed to get user.' });
   }
 
-  const userId = user.id;
-
   const { data, error } = await supabaseAdmin
     .from('users')
     .select('role, details_complete, verified')
-    .eq('id', userId)
-    .maybeSingle();
+    .eq('id', user.id)
+    .maybeSingle<{ role: string; details_complete: boolean; verified: boolean }>();
 
   if (error) {
     console.error('Error fetching user role:', error.message);
@@ -36,13 +33,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (!data) {
-    console.warn('No user record found for ID:', userId);
+    console.warn('No user record found for ID:', user.id);
     return res.status(404).json({ error: 'User not found.' });
   }
 
-  const role = (data && 'role' in data) ? data.role : null;
-  const is_details_complete = (data && 'details_complete' in data) ? data.details_complete : false;
-  const is_verified = (data && 'verified' in data) ? data.verified : false;
+  const { role, details_complete, verified } = data;
 
-  return res.status(200).json({ role, details_complete: is_details_complete, verified: is_verified });
+  return res.status(200).json({ role, details_complete, verified });
 }
