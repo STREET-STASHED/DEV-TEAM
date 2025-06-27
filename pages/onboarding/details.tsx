@@ -52,10 +52,11 @@ export default function Details() {
         return router.push('/onboarding/role');
       }
       setRole(data.role);
+      console.log("Loaded role:", data.role);
 
       setFullName('Test User');
       setPhoneNumber('4125551234');
-      setReferralCode('TEST123');
+      setReferralCode('');
       setStoreName('StreetStyles');
       setStoreDescription('Trendy fashion and streetwear.');
       setVehicleType('Sedan');
@@ -86,6 +87,7 @@ export default function Details() {
     const user = session?.user;
     if (submitError || !user) {
       alert('Session expired. Please log in again.');
+      setLoading(false);
       router.push('/signup');
       return;
     }
@@ -149,6 +151,7 @@ export default function Details() {
     }
 
     setLoading(false);
+    console.log('Details form submitted');
     router.push('/onboarding/verify');
   };
 
@@ -156,7 +159,7 @@ export default function Details() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md space-y-6">
         <h1 className="text-2xl font-bold text-center">Complete Your Details</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" data-testid="details-form">
           <input
             type="text"
             placeholder="Full Name"

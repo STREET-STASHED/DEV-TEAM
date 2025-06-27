@@ -5,7 +5,12 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
-  if (pathname === '/onboarding') {
+  const onboardingSteps = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
+  if (onboardingSteps.includes(pathname)) {
+    return res;
+  }
+
+  if (pathname === '/onboarding' || pathname === '/onboarding/') {
     const url = req.nextUrl.clone();
     url.pathname = '/onboarding/role';
     return NextResponse.redirect(url);

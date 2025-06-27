@@ -39,13 +39,27 @@ export default function AuthGuard({ role, children }: { role: string, children: 
 
         const roleData: RoleData = await roleResponse.json();
 
-        if (!roleData?.role) return router.replace('/onboarding/role');
-        if (!roleData.details_complete) return router.replace('/onboarding/details');
-        if (!roleData.verified) return router.replace('/onboarding/verify');
+        if (!roleData?.role) {
+          if (router.pathname !== '/onboarding/role') {
+            return router.replace('/onboarding/role');
+          }
+        }
+        if (roleData?.role && !roleData.details_complete) {
+          if (router.pathname !== '/onboarding/details') {
+            return router.replace('/onboarding/details');
+          }
+        }
+        if (roleData?.details_complete && !roleData.verified) {
+          if (router.pathname !== '/onboarding/verify') {
+            return router.replace('/onboarding/verify');
+          }
+        }
 
         if (roleData.role !== role) {
           console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);
-          await router.replace('/not-authorized');
+          if (router.pathname !== '/not-authorized') {
+            await router.replace('/not-authorized');
+          }
           return;
         }
 
