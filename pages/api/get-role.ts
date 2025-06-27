@@ -39,8 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const role = (data && 'role' in data) ? data.role : null;
-  const is_details_complete = (data && 'is_details_complete' in data) ? data.is_details_complete : false;
-  const is_verified = (data && 'is_verified' in data) ? data.is_verified : false;
+  const is_details_complete = (data && 'details_complete' in data) ? data.details_complete : false;
+  const is_verified = (data && 'verified' in data) ? data.verified : false;
 
   return res.status(200).json({ role, details_complete: is_details_complete, verified: is_verified });
 }
