@@ -182,9 +182,15 @@ export default function Details() {
       return;
     }
 
-    setLoading(false);
-    console.log('Details form submitted');
-    router.push('/onboarding/verify');
+    try {
+      console.log('Details form submitted');
+      console.log('Attempting to redirect to /onboarding/verify');
+      await router.push('/onboarding/verify');
+    } catch (redirectErr) {
+      console.error('Redirection to /onboarding/verify failed:', redirectErr);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
