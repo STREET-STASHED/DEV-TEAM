@@ -1,6 +1,6 @@
 import { useEffect, useState, type FC } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../../lib/ssupabaseClient';
+import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
 import SellerDashboard from '../seller/dashboard';
 import BuyerDashboard from '../buyer/dashboard';
