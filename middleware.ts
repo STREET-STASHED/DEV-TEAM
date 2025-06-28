@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
+  const supabase = createMiddlewareClient({ req, res });
+  const { data: { session } } = await supabase.auth.getSession();
 
   if (pathname === '/login') {
     const url = req.nextUrl.clone();
@@ -45,18 +48,36 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const role = req.cookies.get('user-role')?.value;
+  if (session?.user) {
+    const { data: userProfile } = await supabase
+      .from('users')
+      .select('role, verified')
+      .eq('id', session.user.id)
+      .single();
 
-  if (
-    (pathname.startsWith('/buyer') && role !== 'buyer') ||
-    (pathname.startsWith('/seller') && role !== 'seller') ||
-    (pathname.startsWith('/stylist') && role !== 'stylist') ||
-    (pathname.startsWith('/driver') && role !== 'driver') ||
-    (pathname.startsWith('/admin') && role !== 'admin')
-  ) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/onboarding/role';
-    return NextResponse.redirect(url);
+    if (
+      (pathname.startsWith('/buyer') && userProfile?.role !== 'buyer') ||
+      (pathname.startsWith('/seller') && userProfile?.role !== 'seller') ||
+      (pathname.startsWith('/stylist') && userProfile?.role !== 'stylist') ||
+      (pathname.startsWith('/driver') && userProfile?.role !== 'driver') ||
+      (pathname.startsWith('/admin') && userProfile?.role !== 'admin')
+    ) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/onboarding/role';
+      return NextResponse.redirect(url);
+    }
+
+    if (!userProfile?.verified && (
+      pathname.startsWith('/buyer') ||
+      pathname.startsWith('/seller') ||
+      pathname.startsWith('/stylist') ||
+      pathname.startsWith('/driver') ||
+      pathname.startsWith('/admin')
+    )) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/onboarding/verify';
+      return NextResponse.redirect(url);
+    }
   }
 
   return res;

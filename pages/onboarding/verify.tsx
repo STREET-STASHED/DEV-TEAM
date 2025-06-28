@@ -27,15 +27,14 @@ export default function VerifyStep() {
         .single();
 
       if (!userData || !userData.role) {
-        console.warn('Missing user data or role, redirecting to role selection');
-        router.push('/onboarding/role');
-        return;
+        console.warn('Missing user data or role.');
+        return; // Don't redirect if already on verify
       }
       // Set role and cookie before any redirect check to avoid race conditions
       setRole(userData.role);
       Cookies.set('user-role', userData.role, { expires: 7 });
 
-      if (!userData.details_complete) {
+      if (!userData.details_complete && !userData.verified) {
         router.push('/onboarding/details');
         return;
       }
@@ -176,10 +175,11 @@ export default function VerifyStep() {
       }
 
       const redirectMap: Record<string, string> = {
-        buyer: '/buyer/marketplace',
+        buyer: '/buyer',
         seller: '/seller/dashboard',
         stylist: '/stylist/dashboard',
-        driver: '/driver/dashboard',
+        driver: '/driver',
+        admin: '/admin/dashboard',
       };
 
       await router.push(redirectMap[role] || '/');
