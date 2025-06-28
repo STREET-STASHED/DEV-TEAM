@@ -40,30 +40,9 @@ export async function middleware(req: NextRequest) {
   }
 
   if (session?.user) {
-    if (pathname === '/onboarding/verify') {
-      const { data: userProfile } = await supabase
-        .from('users')
-        .select('role, verified')
-        .eq('id', session.user.id)
-        .single();
-
-      if (userProfile?.verified) {
-        const redirectMap: Record<string, string> = {
-          buyer: '/buyer/marketplace',
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver',
-          admin: '/admin/dashboard',
-        };
-        const url = req.nextUrl.clone();
-        url.pathname = redirectMap[userProfile.role] || '/dashboard';
-        return NextResponse.redirect(url);
-      }
-    }
-
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, verified, details_complete')
+      .select('role, verification_complete, details_complete')
       .eq('id', session.user.id)
       .single();
 
@@ -82,7 +61,7 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
 
-    if (!userProfile?.verified && (
+    if (!userProfile?.verification_complete && (
       pathname.startsWith('/buyer') ||
       pathname.startsWith('/seller') ||
       pathname.startsWith('/stylist') ||
@@ -108,7 +87,7 @@ export async function middleware(req: NextRequest) {
 
     if (
       pathname.startsWith('/onboarding') &&
-      userProfile?.verified &&
+      userProfile?.verification_complete &&
       userProfile?.role &&
       userProfile?.details_complete &&
       pathname !== '/onboarding/verify' &&

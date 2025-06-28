@@ -5,7 +5,7 @@ import Cookies from 'js-cookie';
 
 export default function VerifyPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>({});
+  const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -13,12 +13,9 @@ export default function VerifyPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError) {
-        console.error('Auth fetch error:', authError.message);
-        return;
-      }
-      if (!user) {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError || !authUser) {
+        console.error('Auth error:', authError);
         router.push('/login');
         return;
       }
@@ -26,7 +23,7 @@ export default function VerifyPage() {
       const { data, error } = await supabase
         .from('users')
         .select('id, role, verified, details_complete')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single();
 
       if (error || !data) {
@@ -36,21 +33,17 @@ export default function VerifyPage() {
 
       setUser(data);
 
-      if (!data.details_complete || !data.verified) {
-        // Stay on the page to finish verification
-        return;
-      }
+      if (data.details_complete && data.verified) {
+        const redirectMap: Record<string, string> = {
+          buyer: '/buyer/marketplace',
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+          admin: '/admin/dashboard',
+        };
 
-      const redirectMap: Record<string, string> = {
-        buyer: '/buyer/marketplace',
-        seller: '/seller/dashboard',
-        stylist: '/stylist/dashboard',
-        driver: '/driver/dashboard',
-        admin: '/admin/dashboard',
-      };
-
-      if (data.role && redirectMap[data.role]) {
-        router.replace(redirectMap[data.role]);
+        const rolePath = redirectMap[data.role] || '/';
+        router.replace(rolePath);
       }
     };
 
@@ -58,14 +51,13 @@ export default function VerifyPage() {
   }, [router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files?.length) {
       setFile(e.target.files[0]);
     }
   };
 
   const handleContinue = async () => {
     if (!user || uploading) return;
-
     setUploading(true);
 
     let uploadedPath: string | null = null;
@@ -77,7 +69,7 @@ export default function VerifyPage() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
-        alert('Failed to upload verification document. Please try again.');
+        alert('Document upload failed.');
         setUploading(false);
         return;
       }
@@ -89,7 +81,6 @@ export default function VerifyPage() {
       .from('users')
       .update({
         verified: true,
-        verification_complete: true,
         details_complete: true,
         verification_url: uploadedPath,
         full_name: fullName,
@@ -99,8 +90,8 @@ export default function VerifyPage() {
       .select();
 
     if (updateError || !updateData) {
-      console.error('User update error:', updateError, updateData);
-      alert('Failed to update your profile. Please try again.');
+      console.error('User update error:', updateError);
+      alert('Profile update failed.');
       setUploading(false);
       return;
     }
@@ -118,15 +109,8 @@ export default function VerifyPage() {
       admin: '/admin/dashboard',
     };
 
-    if (updatedUser.role && redirectMap[updatedUser.role]) {
-      if (router.asPath !== redirectMap[updatedUser.role]) {
-        router.replace(redirectMap[updatedUser.role]);
-      }
-    } else {
-      if (router.asPath !== '/') {
-        router.replace('/');
-      }
-    }
+    const dashboardPath = redirectMap[updatedUser.role] || '/';
+    router.replace(dashboardPath);
   };
 
   return (
@@ -143,7 +127,6 @@ export default function VerifyPage() {
           <label className="block text-left mb-1 font-medium">Full Name</label>
           <input
             type="text"
-            placeholder="Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="w-full border border-gray-300 px-4 py-2 rounded bg-white text-black"
@@ -154,7 +137,6 @@ export default function VerifyPage() {
           <label className="block text-left mb-1 font-medium">License Number</label>
           <input
             type="text"
-            placeholder="License Number"
             value={licenseNumber}
             onChange={(e) => setLicenseNumber(e.target.value)}
             className="w-full border border-gray-300 px-4 py-2 rounded bg-white text-black"
