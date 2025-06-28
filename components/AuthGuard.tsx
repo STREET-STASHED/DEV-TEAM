@@ -51,7 +51,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
       const dashboardPath = redirectMap[role] || '/';
 
       // If missing role, send to role onboarding
-      if (!role && !(details_complete && verified) && !currentPath.includes('/onboarding/role')) {
+      if (!role && !currentPath.includes('/onboarding/role')) {
         router.push('/onboarding/role');
         return;
       }
@@ -74,9 +74,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
         details_complete &&
         verified &&
         (
-          currentPath.includes('/onboarding/role') ||
-          currentPath.includes('/onboarding/details') ||
-          currentPath.includes('/onboarding/verify')
+          currentPath.startsWith('/onboarding/')
         )
       ) {
         router.push(dashboardPath);

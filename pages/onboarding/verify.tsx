@@ -33,7 +33,7 @@ export default function VerifyPage() {
 
       setUser(data);
 
-      if (data.details_complete && data.verified) {
+      if (data.details_complete && data.verified && router.pathname !== '/onboarding/verify') {
         const redirectMap: Record<string, string> = {
           buyer: '/buyer/marketplace',
           seller: '/seller/dashboard',
