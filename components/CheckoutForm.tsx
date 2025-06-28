@@ -86,48 +86,31 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: '500px', margin: '0 auto', padding: '2rem', border: '2px solid black', borderRadius: '10px', backgroundColor: '#111', color: '#fff' }}>
-      <h2 style={{ color: '#FFD700' }}>Secure Checkout</h2>
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-8 border-2 border-black rounded-lg bg-black text-white">
+      <h2 className="text-yellow-400 text-2xl font-bold mb-4">Secure Checkout</h2>
 
-      <input name="firstName" placeholder="First Name" onChange={handleChange} value={form.firstName} required style={inputStyle} />
-      <input name="lastName" placeholder="Last Name" onChange={handleChange} value={form.lastName} required style={inputStyle} />
-      <input name="email" type="email" placeholder="Email Address" onChange={handleChange} value={form.email} required style={inputStyle} />
-      <input name="address" placeholder="Shipping Address" onChange={handleChange} value={form.address} required style={inputStyle} />
-      <input name="city" placeholder="City" onChange={handleChange} value={form.city} required style={inputStyle} />
-      <input name="state" placeholder="State" onChange={handleChange} value={form.state} required style={inputStyle} />
-      <input name="zip" placeholder="Zip Code" onChange={handleChange} value={form.zip} required style={inputStyle} />
+      <input name="firstName" placeholder="First Name" onChange={handleChange} value={form.firstName} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
+      <input name="lastName" placeholder="Last Name" onChange={handleChange} value={form.lastName} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
+      <input name="email" type="email" placeholder="Email Address" onChange={handleChange} value={form.email} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
+      <input name="address" placeholder="Shipping Address" onChange={handleChange} value={form.address} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
+      <input name="city" placeholder="City" onChange={handleChange} value={form.city} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
+      <input name="state" placeholder="State" onChange={handleChange} value={form.state} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
+      <input name="zip" placeholder="Zip Code" onChange={handleChange} value={form.zip} required className="block w-full p-2 mb-3 rounded border border-gray-300" />
 
-      <div style={{ marginTop: '1rem', marginBottom: '1rem' }}>
+      <div className="my-4">
         <strong>Order Total:</strong> ${totalAmount.toFixed(2)}
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          backgroundColor: '#FFD700',
-          color: '#000',
-          fontWeight: 'bold',
-          border: 'none',
-          borderRadius: '4px',
-        }}
+        className="w-full py-3 bg-yellow-400 text-black font-bold rounded disabled:opacity-60"
       >
         {loading ? 'Processing...' : mode === 'buyNow' ? 'Buy Now' : mode === 'buyer' ? 'Checkout as Buyer' : 'Place Order'}
       </button>
 
-      {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
-      {success && <p style={{ color: 'green', marginTop: '1rem' }}>Payment successful!</p>}
+      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {success && <p className="text-green-500 mt-4">Payment successful!</p>}
     </form>
   );
 }
-
-const inputStyle = {
-  display: 'block',
-  width: '100%',
-  padding: '0.5rem',
-  marginBottom: '0.75rem',
-  borderRadius: '5px',
-  border: '1px solid #ccc',
-};

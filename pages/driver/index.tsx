@@ -13,11 +13,15 @@ export default function DriverIndex() {
       if (!user) {
         router.replace('/onboarding');
       } else if (user?.role === 'driver') {
-        router.replace('/driver/dashboard');
+        if (user?.onboarding_complete) {
+          router.replace('/driver/dashboard');
+        } else {
+          router.replace('/verify');
+        }
       } else {
         router.replace('/unauthorized');
       }
-    }, 100); // slight delay to ensure auth loads properly
+    }, 100);
 
     return () => clearTimeout(timeout);
   }, [user, loading]);

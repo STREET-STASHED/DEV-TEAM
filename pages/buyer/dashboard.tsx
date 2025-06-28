@@ -59,7 +59,7 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
               <p className="text-sm sm:text-base font-semibold">
                 Order ID: <span className="font-normal">{order.id}</span>
               </p>
-              <p className="text-sm sm:text-base text-gray-600 italic">
+              <p className={`text-sm sm:text-base font-medium italic ${order.status === 'delivered' ? 'text-green-600' : 'text-yellow-600'}`}>
                 Status: {order.status}
               </p>
               <p className="text-sm sm:text-base text-gray-700">
@@ -68,7 +68,7 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
               <p className="text-sm sm:text-base text-gray-500">
                 Ordered At: {order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}
               </p>
-              <div className="mt-2">
+              <div className="mt-4">
                 <OrderProgressBar status={(order?.status ?? 'pending').toLowerCase().replace(/ /g, '_')} />
               </div>
             </div>

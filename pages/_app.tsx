@@ -30,10 +30,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <CartProvider>
       <Elements stripe={stripePromise}>
         <NoAuthProvider>
-          <div
-            className="min-h-screen text-white font-urbanist bg-black bg-cover bg-center bg-fixed"
-            style={{ backgroundImage: "url('/background.png')" }}
-          >
+          <div className="min-h-screen text-white font-urbanist bg-black bg-[url('/background.png')] bg-cover bg-center bg-fixed">
             {/* Premium header always visible */}
             <Header />
             {/* Prevent content being hidden by fixed header */}
@@ -51,4 +48,4 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
 }
 
-export default MyApp;
+export default MyApp;``

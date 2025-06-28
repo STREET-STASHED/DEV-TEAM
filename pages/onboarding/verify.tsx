@@ -105,7 +105,11 @@ export default function VerifyPage() {
       admin: '/admin/dashboard',
     };
 
-    router.push(redirectMap[user.role] || '/');
+    if (user.role && redirectMap[user.role]) {
+      router.replace(redirectMap[user.role]);
+    } else {
+      router.replace('/');
+    }
   };
 
   return (

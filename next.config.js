@@ -36,18 +36,25 @@ const nextConfig = {
     ];
   },
   async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' https://js.stripe.com 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src * blob: data:",
+      "frame-src https://js.stripe.com",
+      "connect-src *"
+    ].join("; ");
+
     return [
       {
         source: "/(.*)",
-        headers: process.env.NODE_ENV === "development"
-          ? [
-              {
-                key: "Content-Security-Policy",
-                value:
-                  "default-src 'self'; script-src 'self' https://js.stripe.com 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src * blob: data:; frame-src https://js.stripe.com; connect-src *;",
-              },
-            ]
-          : [],
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: csp,
+          },
+        ],
       },
     ];
   },

@@ -19,8 +19,7 @@ const Hero = () => {
 
   return (
     <section
-      className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-20 bg-cover bg-center"
-      style={{ backgroundImage: 'url(/your-background.jpg)' }}
+      className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-20 bg-cover bg-center bg-[url('/your-background.jpg')]"
     >
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       <div className="relative z-10">

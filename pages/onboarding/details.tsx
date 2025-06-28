@@ -184,13 +184,10 @@ export default function Details() {
 
     console.log('Details form submitted — redirecting to verification step...');
     if (role) {
-      Cookies.set('user-role', role, { expires: 7 });
+      Cookies.set('user-role', role, { expires: 7, path: '/' });
     }
-    router.push('/onboarding/verify').catch((redirectErr) => {
-      console.error('Redirection to /onboarding/verify failed:', redirectErr);
-    }).finally(() => {
-      setLoading(false);
-    });
+    await router.push('/onboarding/verify');
+    setLoading(false);
   };
 
   return (

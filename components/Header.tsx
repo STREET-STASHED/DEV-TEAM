@@ -102,13 +102,9 @@ const Header = () => {
               tabIndex={0}
               aria-label="Open cart"
               title="Open cart"
-              className="relative ml-2 cursor-pointer text-2xl"
+              className={`relative ml-2 cursor-pointer text-2xl transition ${totalCount > 0 ? 'drop-shadow-[0_0_8px_#FFD700]' : ''}`}
               onClick={handleCartOpen}
               onKeyPress={(e) => { if (e.key === 'Enter') handleCartOpen(); }}
-              style={{
-                filter: totalCount > 0 ? 'drop-shadow(0 0 8px #FFD700)' : 'none',
-                transition: 'filter 0.2s',
-              }}
             >
               🛒
               {totalCount > 0 && (
@@ -166,7 +162,7 @@ const Header = () => {
                 Join Us
               </span>
               <span
-                className="relative cursor-pointer text-3xl"
+                className={`relative cursor-pointer text-3xl ${totalCount > 0 ? 'drop-shadow-[0_0_8px_#FFD700]' : ''}`}
                 onClick={() => { setMenuOpen(false); handleCartOpen(); }}
               >
                 🛒

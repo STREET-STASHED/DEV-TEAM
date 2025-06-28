@@ -16,13 +16,13 @@ export default function IndexPage() {
             className="px-6 py-2 bg-black text-white rounded hover:bg-gray-800"
             onClick={() => router.push('/signup')}
           >
-            Sign Up
+            Join Us
           </button>
           <button
             className="px-6 py-2 bg-white text-black border border-black rounded hover:bg-gray-100"
-            onClick={() => router.push('/login')}
+            onClick={() => router.push('/start')}
           >
-            Log In
+            Browse Marketplace
           </button>
         </div>
       </div>

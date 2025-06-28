@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '@/lib/supabaseClient';
+import supabase from '../lib/supabaseClient';
 import Cookies from 'js-cookie';
 
 const AuthScreen = () => {
@@ -17,24 +17,24 @@ const AuthScreen = () => {
       Cookies.set('user-role', userData.role, { expires: 7 });
     }
     if (!userData?.role) {
-      router.push('/onboarding/role');
+      router.replace('/onboarding/role');
     } else if (!userData.details_complete) {
-      router.push('/onboarding/details');
+      router.replace('/onboarding/details');
     } else if (!userData.onboarded) {
-      router.push('/onboarding/verify');
+      router.replace('/onboarding/verify');
     } else {
       switch (userData.role) {
         case 'seller':
-          router.push('/seller/dashboard');
+          router.replace('/seller/dashboard');
           break;
         case 'stylist':
-          router.push('/stylist/dashboard');
+          router.replace('/stylist/dashboard');
           break;
         case 'driver':
-          router.push('/driver/dashboard');
+          router.replace('/driver/dashboard');
           break;
         default:
-          router.push('/buyer/marketplace');
+          router.replace('/buyer/marketplace');
       }
     }
   };

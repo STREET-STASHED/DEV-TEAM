@@ -42,7 +42,7 @@ const ProductList = () => {
   }
 
   return (
-    <div className="p-6 bg-black min-h-screen text-gold">
+    <div className="p-4 sm:p-6 bg-black min-h-screen text-gold">
       <h2 className="text-4xl font-extrabold mb-8 text-center uppercase tracking-wide graffiti-text">
         Explore the Drip
       </h2>
@@ -58,8 +58,8 @@ const ProductList = () => {
               className="w-full h-52 object-cover"
             />
             <div className="p-4">
-              <h3 className="text-xl font-semibold mb-2 text-gold">{product.name}</h3>
-              <p className="text-md text-gold-light mb-4">${product.price}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-gold">{product.name}</h3>
+              <p className="text-sm sm:text-md text-gold-light mb-4">${product.price}</p>
               <button
                 onClick={() =>
                   addItem({
@@ -70,7 +70,7 @@ const ProductList = () => {
                     quantity: 1,
                   })
                 }
-                className="bg-gold text-black font-bold py-2 px-4 rounded-full hover:bg-yellow-400 w-full transition"
+                className="bg-gold text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-400 w-full transition shadow-md"
               >
                 Add to Cart
               </button>

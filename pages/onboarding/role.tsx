@@ -82,18 +82,17 @@ export default function RolePage() {
       .from('users')
       .update({ role: selectedRole, onboarded: false })
       .eq('id', user.id);
-    if (!upsertError) {
-      Cookies.set('user-role', selectedRole, { expires: 7 });
-    }
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
       alert('Unable to save role. Try again.');
       setLoading(false);
       return;
     }
+    // Always set cookie before redirect for consistent middleware checks
+    Cookies.set('user-role', selectedRole, { expires: 7 });
     console.log("Selected Role:", selectedRole);
     // Redirect based on role
-    router.replace('/onboarding/details');
+    router.push('/onboarding/details');
     setLoading(false);
   };
 

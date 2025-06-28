@@ -13,29 +13,32 @@ const Dashboard: FC = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      try {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-      if (authError || !user?.id) {
-        console.error('Error retrieving authenticated user:', authError);
-        setError('Error retrieving authenticated user.');
-        setLoading(false);
-        return;
-      }
+        if (authError || !user?.id) {
+          console.error('Error retrieving authenticated user:', authError);
+          setError('Authentication error. Please try logging in again.');
+          setLoading(false);
+          return;
+        }
 
-      setUserId(user.id);
+        setUserId(user.id);
 
-      const { data: userData, error: roleError } = await supabase
-        .from('users')
-        .select('role, has_completed_onboarding')
-        .eq('id', user.id)
-        .single();
+        const { data: userData, error: roleError } = await supabase
+          .from('users')
+          .select('role, has_completed_onboarding')
+          .eq('id', user.id)
+          .single();
 
-      if (roleError) {
-        console.error('Error fetching user role:', roleError);
-        setError('Error fetching user role.');
-        setRole(null);
-      } else {
-        if (userData && userData.has_completed_onboarding === false) {
+        if (roleError || !userData) {
+          console.error('Error fetching user data:', roleError);
+          setError('Unable to retrieve user data.');
+          setLoading(false);
+          return;
+        }
+
+        if (userData.has_completed_onboarding === false) {
           router.push('/onboarding/verify');
           return;
         }
@@ -47,25 +50,28 @@ const Dashboard: FC = () => {
           driver: '/driver/dashboard',
         };
 
-        if (userData?.role && roleRedirectMap[userData.role]) {
+        if (userData.role && roleRedirectMap[userData.role]) {
           router.push(roleRedirectMap[userData.role]);
-          return;
+        } else {
+          setError('Unrecognized user role. Please contact support.');
         }
 
-        setRole(userData?.role || null);
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        setError('Unexpected error occurred. Please try again.');
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchUserData();
-  }, []);
+  }, [router]);
 
-  if (loading || !userId || !role) return <p>Loading dashboard...</p>;
+  if (loading) return <p>Loading dashboard...</p>;
   if (error) return <div className="text-red-600 p-4">{error}</div>;
 
   return (
-    <AuthGuard role={role || ''}>
+    <AuthGuard>
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
         <p className="text-gray-600">Role: {role}</p>

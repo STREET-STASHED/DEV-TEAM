@@ -9,10 +9,10 @@ export default function WelcomePage() {
         STREETSTASHED
       </h1>
       <p className="text-lg md:text-xl text-gray-700 max-w-xl">
-        Your all-access pass to streetwear, stylists, and exclusive drops — delivered 24/7.
+        The plug for streetwear, stylists, kicks, and culture — delivered 24/7.
       </p>
       <p className="text-md text-gray-600 mt-4">
-        Tap in to shop the culture or join the squad to sell, style, or drive.
+        Browse the drip or tap in to sell, style, or deliver.
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10 z-50 relative">
         <button

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useEffect, useState } from 'react';
-import supabase from '../../lib/ssupabaseClient';
+import supabase from '../../lib/supabaseClient';
 
 export default function Marketplace() {
   const { addItem, hasItem } = useCart();
@@ -47,41 +47,32 @@ export default function Marketplace() {
   }, []);
 
   return (
-    <div style={{ padding: 32 }}>
-      <h1 style={{ fontWeight: 700, fontSize: 36, marginBottom: 8 }}>StreetStashed Marketplace</h1>
-      <p style={{ marginBottom: 32 }}>Browse stores, products, jewelry, kicks, and stylist bundles — no login required.</p>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32 }}>
+    <div className="p-8">
+      <h1 className="font-bold text-4xl mb-2">StreetStashed Marketplace</h1>
+      <p className="mb-8">Browse stores, products, jewelry, kicks, and stylist bundles — no login required.</p>
+      <div className="flex flex-wrap gap-8">
         {stores.map((store) => (
-          <div key={store.id} style={{ border: '1px solid #222', borderRadius: 16, padding: 24, width: 300, background: '#fafbfc' }}>
+          <div key={store.id} className="border border-gray-800 rounded-2xl p-6 w-[300px] bg-[#fafbfc]">
             <Link href={`/stores/${store.id}`}>
-              <h2 style={{ fontSize: 22, fontWeight: 600, cursor: 'pointer', color: '#0070f3' }}>{store.name}</h2>
+              <h2 className="text-lg font-semibold text-blue-500 cursor-pointer">{store.name}</h2>
             </Link>
-            <span style={{ fontSize: 14, color: '#888' }}>{store.category}</span>
-            <div style={{ display: 'flex', gap: 16, marginTop: 18 }}>
+            <span className="text-sm text-gray-500">{store.category}</span>
+            <div className="flex gap-4 mt-4">
               {store.products && store.products.map((prod: any) => (
-                <div key={prod.id} style={{ textAlign: 'center' }}>
+                <div key={prod.id} className="text-center">
                   <Link href={`/stores/${store.id}/products/${prod.id}`}>
                     <img
                       src={prod.image_url}
                       alt={prod.name}
-                      style={{ width: 90, height: 90, borderRadius: 8, objectFit: 'cover', marginBottom: 6, border: '1px solid #ddd', cursor: 'pointer' }}
+                      className="w-[90px] h-[90px] rounded-lg object-cover mb-1.5 border border-gray-300 cursor-pointer"
                     />
                   </Link>
-                  <div style={{ fontWeight: 500 }}>{prod.name}</div>
-                  <div style={{ color: '#333', fontSize: 14 }}>${prod.price}</div>
-                  <div style={{ fontSize: 12, color: '#AAA', marginTop: 2 }}>{prod.type}</div>
+                  <div className="font-medium">{prod.name}</div>
+                  <div className="text-sm text-gray-800">${prod.price}</div>
+                  <div className="text-xs text-gray-400 mt-0.5">{prod.type}</div>
                   {isLoggedIn ? (
                     <button
-                      style={{
-                        marginTop: 8,
-                        padding: '6px 16px',
-                        background: hasItem(prod.id) ? '#aaa' : '#111',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                        cursor: hasItem(prod.id) ? 'not-allowed' : 'pointer',
-                        fontSize: 14,
-                      }}
+                      className={`mt-2 px-4 py-1.5 rounded text-sm text-white ${hasItem(prod.id) ? 'bg-gray-400 cursor-not-allowed' : 'bg-black cursor-pointer'}`}
                       onClick={() => addItem({
                         id: prod.id,
                         name: prod.name,
@@ -95,16 +86,7 @@ export default function Marketplace() {
                     </button>
                   ) : (
                     <button
-                      style={{
-                        marginTop: 8,
-                        padding: '6px 16px',
-                        background: '#0070f3',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                        cursor: 'pointer',
-                        fontSize: 14,
-                      }}
+                      className="mt-2 px-4 py-1.5 bg-blue-500 text-white rounded text-sm cursor-pointer"
                       onClick={() => window.location.href = '/signup'}
                     >
                       Sign up to Purchase

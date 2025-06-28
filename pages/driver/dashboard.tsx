@@ -28,7 +28,7 @@ const DriverDashboard = ({ userId }: { userId: string }) => {
         .eq('id', user.id)
         .single();
 
-      if (!userData?.has_completed_onboarding) {
+      if (userData?.has_completed_onboarding === false) {
         window.location.href = '/onboarding/details';
         return;
       }
