@@ -42,7 +42,7 @@ export async function middleware(req: NextRequest) {
   if (session?.user) {
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, verified')
+      .select('role, verified, details_complete')
       .eq('id', session.user.id)
       .single();
 
@@ -67,6 +67,18 @@ export async function middleware(req: NextRequest) {
     )) {
       const url = req.nextUrl.clone();
       url.pathname = '/onboarding/verify';
+      return NextResponse.redirect(url);
+    }
+
+    if (!userProfile?.details_complete && (
+      pathname.startsWith('/buyer') ||
+      pathname.startsWith('/seller') ||
+      pathname.startsWith('/stylist') ||
+      pathname.startsWith('/driver') ||
+      pathname.startsWith('/admin')
+    )) {
+      const url = req.nextUrl.clone();
+      url.pathname = '/onboarding/details';
       return NextResponse.redirect(url);
     }
 
