@@ -82,7 +82,9 @@ export default function RolePage() {
       .from('users')
       .update({ role: selectedRole, onboarded: false })
       .eq('id', user.id);
-    Cookies.set('user-role', selectedRole, { expires: 7 });
+    if (!upsertError) {
+      Cookies.set('user-role', selectedRole, { expires: 7 });
+    }
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
       alert('Unable to save role. Try again.');

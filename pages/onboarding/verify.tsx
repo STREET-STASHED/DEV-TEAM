@@ -176,10 +176,10 @@ export default function VerifyStep() {
       }
 
       const redirectMap: Record<string, string> = {
-        buyer: '/buyer',
+        buyer: '/buyer/marketplace',
         seller: '/seller/dashboard',
         stylist: '/stylist/dashboard',
-        driver: '/driver',
+        driver: '/driver/dashboard',
         admin: '/admin/dashboard',
       };
 
