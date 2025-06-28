@@ -1,123 +1,74 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-  const pathname = req.nextUrl.pathname;
-  const supabase = createMiddlewareClient({ req, res });
-  const { data: { session } } = await supabase.auth.getSession();
+export async function middleware(request: NextRequest) {
+  const url = request.nextUrl.clone();
+  const token = request.cookies.get('sb-access-token')?.value;
 
-  if (pathname === '/login') {
-    const url = req.nextUrl.clone();
-    const supabaseSession = req.cookies.get('sb-access-token')?.value;
+  const pathname = url.pathname;
 
-    if (supabaseSession) {
-      const role = req.cookies.get('user-role')?.value;
+  const protectedPaths = ['/dashboard', '/onboarding', '/buyer', '/seller', '/driver', '/stylist'];
+  const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
 
-      if (role === 'buyer') {
-        url.pathname = '/buyer';
-      } else if (role === 'seller') {
-        url.pathname = '/seller/dashboard';
-      } else if (role === 'stylist') {
-        url.pathname = '/stylist/dashboard';
-      } else if (role === 'driver') {
-        url.pathname = '/driver';
-      } else if (role === 'admin') {
-        url.pathname = '/admin/dashboard';
-      } else {
-        url.pathname = '/dashboard'; // fallback if role is missing or unrecognized
-      }
-
-      return NextResponse.redirect(url);
-    }
-  }
-
-  if (pathname === '/onboarding' || pathname === '/onboarding/') {
-    const url = req.nextUrl.clone();
-    url.pathname = '/onboarding/role';
+  if (!token && isProtected) {
+    url.pathname = '/signup';
     return NextResponse.redirect(url);
   }
 
-  if (session?.user) {
+  const supabase = createServerComponentClient({ cookies });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session) {
     const { data: userProfile } = await supabase
       .from('users')
-      .select('role, verification_complete, details_complete')
+      .select('role, details_complete, verification_complete')
       .eq('id', session.user.id)
       .single();
 
-    if (
-      !userProfile?.role &&
-      (
-        pathname.startsWith('/buyer') ||
-        pathname.startsWith('/seller') ||
-        pathname.startsWith('/stylist') ||
-        pathname.startsWith('/driver') ||
-        pathname.startsWith('/admin')
-      )
-    ) {
-      const url = req.nextUrl.clone();
+    const needsRole = !userProfile?.role;
+    const needsDetails = userProfile?.role && !userProfile?.details_complete;
+    const needsVerify = userProfile?.role && userProfile?.details_complete && !userProfile?.verification_complete;
+
+    const onboardingIncomplete = needsRole || needsDetails || needsVerify;
+
+    if (pathname.startsWith('/onboarding') && onboardingIncomplete) {
+      if (needsRole) {
+        url.pathname = '/onboarding/role';
+        return NextResponse.redirect(url);
+      }
+
+      if (needsDetails) {
+        url.pathname = '/onboarding/details';
+        return NextResponse.redirect(url);
+      }
+
+      if (needsVerify) {
+        url.pathname = '/onboarding/verify';
+        return NextResponse.redirect(url);
+      }
+    }
+
+    if (pathname === '/signup') {
       url.pathname = '/onboarding/role';
-      return NextResponse.redirect(url);
-    }
-
-    if (!userProfile?.verification_complete && (
-      pathname.startsWith('/buyer') ||
-      pathname.startsWith('/seller') ||
-      pathname.startsWith('/stylist') ||
-      pathname.startsWith('/driver') ||
-      pathname.startsWith('/admin')
-    )) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/onboarding/verify';
-      return NextResponse.redirect(url);
-    }
-
-    if (!userProfile?.details_complete && (
-      pathname.startsWith('/buyer') ||
-      pathname.startsWith('/seller') ||
-      pathname.startsWith('/stylist') ||
-      pathname.startsWith('/driver') ||
-      pathname.startsWith('/admin')
-    )) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/onboarding/details';
-      return NextResponse.redirect(url);
-    }
-
-    if (
-      pathname.startsWith('/onboarding') &&
-      userProfile?.verification_complete &&
-      userProfile?.role &&
-      userProfile?.details_complete &&
-      pathname !== '/onboarding/verify' &&
-      pathname !== '/onboarding/details' &&
-      pathname !== '/onboarding/role'
-    ) {
-      const redirectMap: Record<string, string> = {
-        buyer: '/buyer/marketplace',
-        seller: '/seller/dashboard',
-        stylist: '/stylist/dashboard',
-        driver: '/driver',
-        admin: '/admin/dashboard',
-      };
-      const url = req.nextUrl.clone();
-      url.pathname = redirectMap[userProfile.role] || '/dashboard';
       return NextResponse.redirect(url);
     }
   }
 
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    '/signup',
+    '/dashboard/:path*',
     '/onboarding/:path*',
     '/buyer/:path*',
     '/seller/:path*',
-    '/stylist/:path*',
     '/driver/:path*',
-    '/admin/:path*',
+    '/stylist/:path*',
+    '/signup',
   ],
 };

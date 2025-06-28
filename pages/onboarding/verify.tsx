@@ -110,6 +110,7 @@ export default function VerifyPage() {
     };
 
     const dashboardPath = redirectMap[updatedUser.role] || '/';
+    await supabase.auth.refreshSession();
     router.replace(dashboardPath);
   };
 

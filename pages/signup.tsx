@@ -13,9 +13,6 @@ const AuthScreen = () => {
   const router = useRouter();
 
   const handleRedirect = (userData: any) => {
-    if (userData?.role) {
-      Cookies.set('user-role', userData.role, { expires: 7 });
-    }
     if (!userData?.role) {
       router.replace('/onboarding/role');
     } else if (!userData.details_complete) {
@@ -104,6 +101,8 @@ const AuthScreen = () => {
             return;
           }
 
+          await supabase.auth.refreshSession();
+
           router.replace('/onboarding/role');
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
@@ -126,6 +125,8 @@ const AuthScreen = () => {
         const userId = signInData.session.user.id;
 
         try {
+          await supabase.auth.refreshSession();
+
           const { data: userData, error: fetchError } = await supabase
             .from('users')
             .select('details_complete, role, verified, onboarded')
@@ -136,9 +137,6 @@ const AuthScreen = () => {
 
           handleRedirect(userData);
 
-          if (userData?.role) {
-            Cookies.set('user-role', userData.role, { expires: 7 });
-          }
         } catch (err) {
           console.error('Error fetching user data:', err);
           setErrorMessage('Could not load user profile. Please try again.');

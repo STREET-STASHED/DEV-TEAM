@@ -79,7 +79,7 @@ export default function RolePage() {
     // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .update({ role: selectedRole, onboarded: true })
+      .update({ role: selectedRole })
       .eq('id', user.id);
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
