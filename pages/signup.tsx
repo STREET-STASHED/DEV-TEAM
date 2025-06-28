@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../lib/supabaseClient';
-import Cookies from 'js-cookie';
 
 const AuthScreen = () => {
   const [email, setEmail] = useState('');
@@ -13,6 +12,12 @@ const AuthScreen = () => {
   const router = useRouter();
 
   const handleRedirect = async (userData: any) => {
+    console.log("User data during redirect:", userData);
+    if (!userData) {
+      console.log("Redirecting to fallback onboarding/role due to empty userData");
+      router.replace('/onboarding/role');
+      return;
+    }
     if (!userData?.role) {
       console.log("Redirecting to: /onboarding/role");
       router.replace('/onboarding/role');
@@ -123,6 +128,7 @@ const AuthScreen = () => {
             return;
           }
 
+          console.log("Calling handleRedirect with:", userData);
           await handleRedirect(userData);
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
