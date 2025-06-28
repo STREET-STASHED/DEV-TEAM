@@ -37,11 +37,6 @@ export async function middleware(request: NextRequest) {
     const onboardingIncomplete = needsRole || needsDetails || needsVerify;
 
     if (onboardingIncomplete) {
-      if (!pathname.startsWith('/onboarding')) {
-        url.pathname = '/onboarding/role';
-        return NextResponse.redirect(url);
-      }
-
       if (needsRole && pathname !== '/onboarding/role') {
         url.pathname = '/onboarding/role';
         return NextResponse.redirect(url);
@@ -56,6 +51,8 @@ export async function middleware(request: NextRequest) {
         url.pathname = '/onboarding/verify';
         return NextResponse.redirect(url);
       }
+
+      // Already on the correct onboarding step — do nothing and proceed
     } else {
       // Fully onboarded user
       if (pathname.startsWith('/onboarding') || pathname === '/signup') {
