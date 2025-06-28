@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../lib/supabaseClient';
@@ -36,35 +34,48 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 
       const { role, verified, details_complete } = profile;
 
-      // Set cookie as plain string
+      // Set cookie for role
       Cookies.set('user-role', role, { expires: 7 });
 
       const currentPath = router.pathname;
 
+      // Define dashboard path for the role
+      const redirectMap: Record<string, string> = {
+        buyer: '/buyer/marketplace',
+        seller: '/seller/dashboard',
+        stylist: '/stylist/dashboard',
+        driver: '/driver/dashboard',
+        admin: '/admin/dashboard',
+      };
+
+      const dashboardPath = redirectMap[role] || '/';
+
+      // If missing role, send to role onboarding
       if (!role && !currentPath.includes('/onboarding/role')) {
         router.push('/onboarding/role');
         return;
       }
 
+      // If role exists but no details
       if (role && !details_complete && !currentPath.includes('/onboarding/details')) {
         router.push('/onboarding/details');
         return;
       }
 
+      // If role + details, but not verified
       if (role && details_complete && !verified && !currentPath.includes('/onboarding/verify')) {
         router.push('/onboarding/verify');
         return;
       }
 
-      if (role && details_complete && verified && currentPath.includes('/onboarding')) {
-        const redirectMap: Record<string, string> = {
-          buyer: '/buyer/marketplace',
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-          admin: '/admin/dashboard',
-        };
-        router.push(redirectMap[role] || '/');
+      // If fully onboarded and still stuck in onboarding flow, send to dashboard
+      if (
+        role &&
+        details_complete &&
+        verified &&
+        currentPath.startsWith('/onboarding')
+      ) {
+        router.push(dashboardPath);
         return;
       }
 

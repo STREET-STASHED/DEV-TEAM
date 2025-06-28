@@ -35,11 +35,10 @@ export default function RolePage() {
           return;
         }
 
-        if (data?.role && !data?.onboarded) {
-          return;
-        }
         if (data?.role && data?.onboarded) {
           router.replace(`/${data.role}/dashboard`);
+        } else if (data?.role && !data?.onboarded) {
+          router.replace('/onboarding/details');
         }
       } catch (e) {
         console.error('Unhandled error during role check:', e);
@@ -80,7 +79,7 @@ export default function RolePage() {
     // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .update({ role: selectedRole, onboarded: false })
+      .update({ role: selectedRole, onboarded: true })
       .eq('id', user.id);
     if (upsertError) {
       console.error('Role upsert error:', upsertError);

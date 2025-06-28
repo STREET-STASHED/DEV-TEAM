@@ -5,15 +5,19 @@ import Cookies from 'js-cookie';
 
 export default function VerifyPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>({});
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState('');
-  const [govId, setGovId] = useState('');
+  const [licenseNumber, setLicenseNumber] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth fetch error:', authError.message);
+        return;
+      }
       if (!user) {
         router.push('/login');
         return;
@@ -32,21 +36,12 @@ export default function VerifyPage() {
 
       setUser(data);
 
-      if (!data.details_complete) {
+      if (!data.details_complete && !data.verified) {
         router.push('/onboarding/details');
         return;
       }
 
-      if (data.verified && data.role) {
-        const redirectMap: Record<string, string> = {
-          buyer: '/buyer/marketplace',
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-          admin: '/admin/dashboard',
-        };
-        router.push(redirectMap[data.role] || '/');
-      }
+      // If user is already verified, we let the middleware handle redirection
     };
 
     fetchUser();
@@ -72,6 +67,7 @@ export default function VerifyPage() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
+        alert('Failed to upload verification document. Please try again.');
         setUploading(false);
         return;
       }
@@ -79,23 +75,30 @@ export default function VerifyPage() {
       uploadedPath = uploadData?.path || null;
     }
 
-    const { error: updateError } = await supabase
+    const { data: updateData, error: updateError } = await supabase
       .from('users')
       .update({
         verified: true,
-        verification_file: uploadedPath,
+        verification_complete: true,
+        details_complete: true,
+        verification_url: uploadedPath,
         full_name: fullName,
-        government_id: govId,
+        license_number: licenseNumber,
       })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select();
 
-    if (updateError) {
-      console.error('User update error:', updateError);
+    if (updateError || !updateData) {
+      console.error('User update error:', updateError, updateData);
+      alert('Failed to update your profile. Please try again.');
       setUploading(false);
       return;
     }
 
-    Cookies.set('user-role', user.role, { expires: 7 });
+    const updatedUser = updateData[0];
+    if (updatedUser.role) {
+      Cookies.set('user-role', updatedUser.role, { expires: 7 });
+    }
 
     const redirectMap: Record<string, string> = {
       buyer: '/buyer/marketplace',
@@ -105,10 +108,14 @@ export default function VerifyPage() {
       admin: '/admin/dashboard',
     };
 
-    if (user.role && redirectMap[user.role]) {
-      router.replace(redirectMap[user.role]);
+    if (updatedUser.role && redirectMap[updatedUser.role]) {
+      if (router.asPath !== redirectMap[updatedUser.role]) {
+        router.replace(redirectMap[updatedUser.role]);
+      }
     } else {
-      router.replace('/');
+      if (router.asPath !== '/') {
+        router.replace('/');
+      }
     }
   };
 
@@ -129,18 +136,18 @@ export default function VerifyPage() {
             placeholder="Full Name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-2 rounded"
+            className="w-full border border-gray-300 px-4 py-2 rounded bg-white text-black"
             required
           />
         </div>
         <div>
-          <label className="block text-left mb-1 font-medium">Government ID Number</label>
+          <label className="block text-left mb-1 font-medium">License Number</label>
           <input
             type="text"
-            placeholder="Government ID Number"
-            value={govId}
-            onChange={(e) => setGovId(e.target.value)}
-            className="w-full border border-gray-300 px-4 py-2 rounded"
+            placeholder="License Number"
+            value={licenseNumber}
+            onChange={(e) => setLicenseNumber(e.target.value)}
+            className="w-full border border-gray-300 px-4 py-2 rounded bg-white text-black"
             required
           />
         </div>
@@ -148,8 +155,9 @@ export default function VerifyPage() {
           <label className="block text-left mb-1 font-medium">Upload Document</label>
           <input
             type="file"
+            accept="image/*,.pdf"
             onChange={handleFileChange}
-            className="w-full"
+            className="w-full bg-white text-black"
             required
           />
         </div>

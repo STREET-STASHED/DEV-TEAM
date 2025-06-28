@@ -40,6 +40,27 @@ export async function middleware(req: NextRequest) {
   }
 
   if (session?.user) {
+    if (pathname === '/onboarding/verify') {
+      const { data: userProfile } = await supabase
+        .from('users')
+        .select('role, verified')
+        .eq('id', session.user.id)
+        .single();
+
+      if (userProfile?.verified) {
+        const redirectMap: Record<string, string> = {
+          buyer: '/buyer/marketplace',
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver',
+          admin: '/admin/dashboard',
+        };
+        const url = req.nextUrl.clone();
+        url.pathname = redirectMap[userProfile.role] || '/dashboard';
+        return NextResponse.redirect(url);
+      }
+    }
+
     const { data: userProfile } = await supabase
       .from('users')
       .select('role, verified, details_complete')
@@ -84,26 +105,20 @@ export async function middleware(req: NextRequest) {
 
     if (
       pathname.startsWith('/onboarding') &&
-      !['/onboarding/role', '/onboarding/verify'].includes(pathname)
+      userProfile?.verified &&
+      userProfile?.role &&
+      userProfile?.details_complete
     ) {
-      if (!userProfile?.role) {
-        const url = req.nextUrl.clone();
-        url.pathname = '/onboarding/role';
-        return NextResponse.redirect(url);
-      }
-
-      if (userProfile?.verified && userProfile?.role) {
-        const redirectMap: Record<string, string> = {
-          buyer: '/buyer/marketplace',
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver',
-          admin: '/admin/dashboard',
-        };
-        const url = req.nextUrl.clone();
-        url.pathname = redirectMap[userProfile.role] || '/dashboard';
-        return NextResponse.redirect(url);
-      }
+      const redirectMap: Record<string, string> = {
+        buyer: '/buyer/marketplace',
+        seller: '/seller/dashboard',
+        stylist: '/stylist/dashboard',
+        driver: '/driver',
+        admin: '/admin/dashboard',
+      };
+      const url = req.nextUrl.clone();
+      url.pathname = redirectMap[userProfile.role] || '/dashboard';
+      return NextResponse.redirect(url);
     }
   }
 
