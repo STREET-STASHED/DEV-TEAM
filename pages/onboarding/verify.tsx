@@ -26,15 +26,14 @@ export default function VerifyStep() {
         .eq('id', user.id)
         .single();
 
-      if (!userData?.role) {
+      if (!userData || !userData.role) {
+        console.warn('Missing user data or role, redirecting to role selection');
         router.push('/onboarding/role');
         return;
       }
-
-      if (userData?.role) {
-        setRole(userData.role);
-        Cookies.set('user-role', userData.role, { expires: 7 });
-      }
+      // Set role and cookie before any redirect check to avoid race conditions
+      setRole(userData.role);
+      Cookies.set('user-role', userData.role, { expires: 7 });
 
       if (!userData.details_complete) {
         router.push('/onboarding/details');
@@ -48,7 +47,7 @@ export default function VerifyStep() {
           stylist: '/stylist/dashboard',
           driver: '/driver/dashboard',
         };
-        router.push(redirectMap[userData.role] || '/');
+        await router.push(redirectMap[userData.role] || '/');
         return;
       }
     };
@@ -183,7 +182,7 @@ export default function VerifyStep() {
         driver: '/driver/dashboard',
       };
 
-      router.push(redirectMap[role] || '/');
+      await router.push(redirectMap[role] || '/');
     } catch (err) {
       console.error('Unexpected error in verification:', err);
       alert('Something went wrong.');

@@ -45,6 +45,20 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  const role = req.cookies.get('user-role')?.value;
+
+  if (
+    (pathname.startsWith('/buyer') && role !== 'buyer') ||
+    (pathname.startsWith('/seller') && role !== 'seller') ||
+    (pathname.startsWith('/stylist') && role !== 'stylist') ||
+    (pathname.startsWith('/driver') && role !== 'driver') ||
+    (pathname.startsWith('/admin') && role !== 'admin')
+  ) {
+    const url = req.nextUrl.clone();
+    url.pathname = '/onboarding/role';
+    return NextResponse.redirect(url);
+  }
+
   return res;
 }
 
