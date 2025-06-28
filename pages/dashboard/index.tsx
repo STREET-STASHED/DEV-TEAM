@@ -2,10 +2,6 @@ import { useEffect, useState, type FC } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../../lib/supabaseClient';
 import AuthGuard from '@/components/AuthGuard';
-import SellerDashboard from '../seller/dashboard';
-import BuyerDashboard from '../buyer/dashboard';
-import StylistDashboard from '../stylist/dashboard';
-import DriverDashboard from '../driver/dashboard';
 
 const Dashboard: FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -43,6 +39,19 @@ const Dashboard: FC = () => {
           router.push('/onboarding/verify');
           return;
         }
+
+        const roleRedirectMap: Record<string, string> = {
+          seller: '/seller/dashboard',
+          buyer: '/buyer/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+        };
+
+        if (userData?.role && roleRedirectMap[userData.role]) {
+          router.push(roleRedirectMap[userData.role]);
+          return;
+        }
+
         setRole(userData?.role || null);
       }
 
@@ -60,25 +69,6 @@ const Dashboard: FC = () => {
       <div className="p-6 space-y-4">
         <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
         <p className="text-gray-600">Role: {role}</p>
-
-        {(() => {
-          switch (role) {
-            case 'seller':
-              return <SellerDashboard userId={userId} />;
-            case 'buyer':
-              return <BuyerDashboard userId={userId} />;
-            case 'stylist':
-              return <StylistDashboard userId={userId} />;
-            case 'driver':
-              return <DriverDashboard userId={userId} />;
-            default:
-              return (
-                <div className="bg-red-100 p-4 rounded text-red-800">
-                  Your role is not recognized. Please contact support.
-                </div>
-              );
-          }
-        })()}
       </div>
     </AuthGuard>
   );

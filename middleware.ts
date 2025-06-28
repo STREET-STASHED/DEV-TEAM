@@ -30,16 +30,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname === '/onboarding/details') {
-    const role = req.cookies.get('user-role')?.value;
-    if (!role) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/onboarding/role';
-      return NextResponse.redirect(url);
-    }
-  }
-
-  if (pathname === '/onboarding/verify') {
+  if (pathname.startsWith('/onboarding') && pathname !== '/onboarding/role') {
     const role = req.cookies.get('user-role')?.value;
     if (!role) {
       const url = req.nextUrl.clone();
@@ -53,13 +44,6 @@ export async function middleware(req: NextRequest) {
     url.pathname = '/onboarding/role';
     return NextResponse.redirect(url);
   }
-
-  const isProtectedRoute = pathname.startsWith('/onboarding') ||
-                           pathname.startsWith('/buyer') ||
-                           pathname.startsWith('/seller') ||
-                           pathname.startsWith('/stylist') ||
-                           pathname.startsWith('/driver') ||
-                           pathname.startsWith('/admin');
 
   return res;
 }

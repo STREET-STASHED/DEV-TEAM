@@ -103,17 +103,16 @@ export default function VerifyStep() {
           return;
         }
 
-        if (documentFile) {
-          // 1) Upload to storage
-          const fileExt = documentFile.name.split('.').pop();
-          const filePath = `${role}-docs/${userId}.${fileExt}`;
-          const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'verification-docs';
-          console.log('Uploading to bucket:', bucketName);
+          if (documentFile) {
+            // 1) Upload to storage
+            const filePath = `${userId}/${role}-docs/${documentFile.name}`;
+            const bucketName = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || 'verification-docs';
+            console.log('Uploading to bucket:', bucketName);
 
-          // upload
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from(bucketName)
-            .upload(filePath, documentFile, { cacheControl: '3600', upsert: true });
+            // upload
+            const { data: uploadData, error: uploadError } = await supabase.storage
+              .from(bucketName)
+              .upload(filePath, documentFile, { cacheControl: '3600', upsert: true });
 
           if (uploadError) {
             console.error('Upload error:', uploadError);
@@ -138,7 +137,7 @@ export default function VerifyStep() {
               verified: true,
               full_name: fullName.trim(),
               license_number: license.trim(),
-              verification_file: uploadData.path,
+              // removed: verification_file
               verification_url: urlData?.signedUrl ?? null,
               // TODO: Replace '' with actual phone state variable when available
               phone: '',
@@ -160,7 +159,7 @@ export default function VerifyStep() {
               verified: true,
               full_name: fullName.trim(),
               license_number: license.trim(),
-              verification_file: null,
+              // removed: verification_file
               verification_url: null,
               // TODO: Replace '' with actual phone state variable when available
               phone: '',

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import supabase from '../../lib/ssupabaseClient';
+import supabase from '../../lib/supabaseClient';
 
 interface Delivery {
   id: string;

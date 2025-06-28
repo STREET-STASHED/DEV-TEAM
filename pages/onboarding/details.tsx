@@ -8,7 +8,7 @@ export default function Details() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [role, setRole] = useState<string>('');
   const [fullName, setFullName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phone, setPhone] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function Details() {
         console.log("Loaded role:", data.role);
         // demo defaults
         setFullName('Test User');
-        setPhoneNumber('4125551234');
+        setPhone('4125551234');
         setReferralCode('');
         setStoreName('StreetStyles');
         setStoreDescription('Trendy fashion and streetwear.');
@@ -105,7 +105,7 @@ export default function Details() {
     e.preventDefault();
     setLoading(true);
 
-    if (!/^\d{10}$/.test(phoneNumber)) {
+    if (!/^\d{10}$/.test(phone)) {
       alert('Please enter a valid 10-digit phone number.');
       setLoading(false);
       return;
@@ -127,7 +127,7 @@ export default function Details() {
     // Build update payload
     const updateData: any = {
       full_name: fullName.trim(),
-      phone: phoneNumber.trim(),
+      phone: phone.trim(),
       referral_code: referralCode.trim(),
       details_complete: true,
     };
@@ -211,9 +211,9 @@ export default function Details() {
           type="tel"
           placeholder="Phone Number"
           required
-          value={phoneNumber}
+          value={phone}
           autoComplete="off"
-          onChange={(e) => setPhoneNumber(e.target.value)}
+          onChange={(e) => setPhone(e.target.value)}
           className="w-full border border-gray-300 p-3 rounded-md text-black"
         />
         <input
@@ -315,7 +315,7 @@ export default function Details() {
           disabled={loading}
           className="w-full bg-blue-600 text-white p-3 rounded-md"
         >
-          {loading ? 'Submitting...' : 'Continue'}
+          {loading ? 'Submitting...' : 'Continue to Verification'}
         </button>
       </form>
     </div>

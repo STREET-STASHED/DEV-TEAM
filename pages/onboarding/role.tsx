@@ -6,7 +6,7 @@ import Cookies from 'js-cookie';
 
 export default function RolePage() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [selectedRole, setSelectedRole] = useState<string>(''); // default is still '', but no required message flashes until interaction
   const [loading, setLoading] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
@@ -61,6 +61,11 @@ export default function RolePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    if (!selectedRole) {
+      alert('Please select a role to continue.');
+      setLoading(false);
+      return;
+    }
     const {
       data: { session: supaSession },
       error: sessionError,
@@ -120,7 +125,7 @@ export default function RolePage() {
           disabled={!selectedRole || loading}
           className={`w-full ${loading ? 'bg-gray-400' : 'bg-blue-600'} text-white p-3 rounded-md`}
         >
-          {loading ? 'Submitting...' : 'Continue'}
+          {loading ? 'Submitting...' : 'Continue to Details'}
         </button>
       </form>
     </div>
