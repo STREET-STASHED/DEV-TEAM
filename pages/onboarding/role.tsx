@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
 import supabase from '@/lib/supabaseClient';
-import Cookies from 'js-cookie';
 
 export default function RolePage() {
   const router = useRouter();
@@ -87,8 +86,6 @@ export default function RolePage() {
       setLoading(false);
       return;
     }
-    // Always set cookie before redirect for consistent middleware checks
-    Cookies.set('user-role', selectedRole, { expires: 7 });
     console.log("Selected Role:", selectedRole);
     // Redirect based on role
     router.push('/onboarding/details');

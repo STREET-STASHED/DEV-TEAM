@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import { useRouter } from 'next/router';
 import supabase from '@/lib/supabaseClient';
 
@@ -59,7 +58,6 @@ export default function Details() {
 
         if (data?.role) {
           setRole(data.role);
-          Cookies.set('user-role', data.role, { expires: 7 });
         }
         console.log("Loaded role:", data.role);
         // demo defaults
@@ -120,9 +118,9 @@ export default function Details() {
       return;
     }
 
-    if (role) {
-      Cookies.set('user-role', role, { expires: 7 });
-    }
+    // if (role) {
+    //   Cookies.set('user-role', role, { expires: 7 });
+    // }
 
     // Build update payload
     const updateData: any = {
@@ -183,9 +181,9 @@ export default function Details() {
     }
 
     console.log('Details form submitted — redirecting to verification step...');
-    if (role) {
-      Cookies.set('user-role', role, { expires: 7, path: '/' });
-    }
+    // if (role) {
+    //   Cookies.set('user-role', role, { expires: 7, path: '/' });
+    // }
     // Ensure Supabase session reflects recent update before redirect
     await supabase.auth.refreshSession(); // Ensures session reflects recent update
     await router.push('/onboarding/verify');

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../../lib/supabaseClient';
-import Cookies from 'js-cookie';
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -97,9 +96,6 @@ export default function VerifyPage() {
     }
 
     const updatedUser = updateData[0];
-    if (updatedUser.role) {
-      Cookies.set('user-role', updatedUser.role, { expires: 7 });
-    }
 
     const redirectMap: Record<string, string> = {
       buyer: '/buyer/marketplace',

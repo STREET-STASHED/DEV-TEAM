@@ -12,25 +12,32 @@ const AuthScreen = () => {
   const [initError, setInitError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleRedirect = (userData: any) => {
+  const handleRedirect = async (userData: any) => {
     if (!userData?.role) {
+      console.log("Redirecting to: /onboarding/role");
       router.replace('/onboarding/role');
     } else if (!userData.details_complete) {
+      console.log("Redirecting to: /onboarding/details");
       router.replace('/onboarding/details');
     } else if (!userData.onboarded) {
+      console.log("Redirecting to: /onboarding/verify");
       router.replace('/onboarding/verify');
     } else {
       switch (userData.role) {
         case 'seller':
+          console.log("Redirecting to: /seller/dashboard");
           router.replace('/seller/dashboard');
           break;
         case 'stylist':
+          console.log("Redirecting to: /stylist/dashboard");
           router.replace('/stylist/dashboard');
           break;
         case 'driver':
+          console.log("Redirecting to: /driver/dashboard");
           router.replace('/driver/dashboard');
           break;
         default:
+          console.log("Redirecting to: /buyer/marketplace");
           router.replace('/buyer/marketplace');
       }
     }
@@ -103,7 +110,20 @@ const AuthScreen = () => {
 
           await supabase.auth.refreshSession();
 
-          router.replace('/onboarding/role');
+          const { data: userData, error: fetchError } = await supabase
+            .from('users')
+            .select('details_complete, role, verified, onboarded')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (fetchError) {
+            console.error('Fetch user data error:', fetchError);
+            setErrorMessage('Signup succeeded, but we could not retrieve your profile.');
+            setLoading(false);
+            return;
+          }
+
+          await handleRedirect(userData);
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
           setInitError('Something went wrong during signup. Please refresh and try again.');
@@ -135,7 +155,7 @@ const AuthScreen = () => {
 
           if (fetchError) throw fetchError;
 
-          handleRedirect(userData);
+          await handleRedirect(userData);
 
         } catch (err) {
           console.error('Error fetching user data:', err);

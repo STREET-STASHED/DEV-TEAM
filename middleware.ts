@@ -5,7 +5,8 @@ import { cookies } from 'next/headers';
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl.clone();
-  const token = request.cookies.get('sb-access-token')?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get('sb-access-token')?.value;
 
   const pathname = url.pathname;
 
@@ -35,26 +36,38 @@ export async function middleware(request: NextRequest) {
 
     const onboardingIncomplete = needsRole || needsDetails || needsVerify;
 
-    if (pathname.startsWith('/onboarding') && onboardingIncomplete) {
-      if (needsRole) {
+    if (onboardingIncomplete) {
+      if (!pathname.startsWith('/onboarding')) {
         url.pathname = '/onboarding/role';
         return NextResponse.redirect(url);
       }
 
-      if (needsDetails) {
+      if (needsRole && pathname !== '/onboarding/role') {
+        url.pathname = '/onboarding/role';
+        return NextResponse.redirect(url);
+      }
+
+      if (needsDetails && pathname !== '/onboarding/details') {
         url.pathname = '/onboarding/details';
         return NextResponse.redirect(url);
       }
 
-      if (needsVerify) {
+      if (needsVerify && pathname !== '/onboarding/verify') {
         url.pathname = '/onboarding/verify';
         return NextResponse.redirect(url);
       }
-    }
+    } else {
+      // Fully onboarded user
+      if (pathname.startsWith('/onboarding') || pathname === '/signup') {
+        const role = userProfile?.role;
+        if (role === 'buyer') url.pathname = '/buyer';
+        else if (role === 'seller') url.pathname = '/seller';
+        else if (role === 'driver') url.pathname = '/driver';
+        else if (role === 'stylist') url.pathname = '/stylist';
+        else url.pathname = '/dashboard';
 
-    if (pathname === '/signup') {
-      url.pathname = '/onboarding/role';
-      return NextResponse.redirect(url);
+        return NextResponse.redirect(url);
+      }
     }
   }
 
