@@ -17,13 +17,40 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const getUser = async () => {
       const { data, error } = await supabase.auth.getUser();
-      if (!data?.user) {
+      const user = data?.user;
+      if (!user) {
         router.push('/signup');
-      } else {
-        setUser(data.user);
+        return;
       }
-      setLoading(false);
+
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role, details_complete, verification_complete')
+        .eq('id', user.id)
+        .single();
+
+      if (!userData?.role) {
+        router.push('/onboarding/role');
+        return;
+      }
+
+      if (!userData.details_complete) {
+        router.push('/onboarding/details');
+        return;
+      }
+
+      if (!userData.verification_complete) {
+        router.push('/onboarding/verify');
+        return;
+      }
+
+      const role = userData.role;
+      if (role === 'buyer') router.push('/buyer/dashboard');
+      else if (role === 'seller') router.push('/seller/dashboard');
+      else if (role === 'stylist') router.push('/stylist/dashboard');
+      else if (role === 'driver') router.push('/driver/dashboard');
     };
+
     getUser();
   }, [router]);
 

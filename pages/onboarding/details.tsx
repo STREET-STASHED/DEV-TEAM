@@ -128,6 +128,7 @@ export default function Details() {
       phone: phone.trim(),
       referral_code: referralCode.trim(),
       details_complete: true,
+      onboarded: true
     };
 
     if (role === 'seller') {

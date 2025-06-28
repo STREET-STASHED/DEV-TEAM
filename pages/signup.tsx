@@ -11,40 +11,25 @@ const AuthScreen = () => {
   const [initError, setInitError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleRedirect = async (userData: any) => {
-    console.log("User data during redirect:", userData);
-    if (!userData) {
-      console.log("Redirecting to fallback onboarding/role due to empty userData");
-      router.replace('/onboarding/role');
-      return;
-    }
-    if (!userData?.role) {
-      console.log("Redirecting to: /onboarding/role");
-      router.replace('/onboarding/role');
-    } else if (!userData.details_complete) {
-      console.log("Redirecting to: /onboarding/details");
-      router.replace('/onboarding/details');
-    } else if (!userData.onboarded) {
-      console.log("Redirecting to: /onboarding/verify");
-      router.replace('/onboarding/verify');
-    } else {
-      switch (userData.role) {
-        case 'seller':
-          console.log("Redirecting to: /seller/dashboard");
-          router.replace('/seller/dashboard');
-          break;
-        case 'stylist':
-          console.log("Redirecting to: /stylist/dashboard");
-          router.replace('/stylist/dashboard');
-          break;
-        case 'driver':
-          console.log("Redirecting to: /driver/dashboard");
-          router.replace('/driver/dashboard');
-          break;
-        default:
-          console.log("Redirecting to: /buyer/marketplace");
-          router.replace('/buyer/marketplace');
-      }
+  const handleRedirect = async (role: string) => {
+    switch (role) {
+      case 'buyer':
+        router.replace('/buyer');
+        break;
+      case 'seller':
+        router.replace('/seller/dashboard');
+        break;
+      case 'stylist':
+        router.replace('/stylist/dashboard');
+        break;
+      case 'driver':
+        router.replace('/driver');
+        break;
+      case 'admin':
+        router.replace('/admin/dashboard');
+        break;
+      default:
+        router.replace('/onboarding/role');
     }
   };
 
@@ -128,8 +113,9 @@ const AuthScreen = () => {
             return;
           }
 
-          console.log("Calling handleRedirect with:", userData);
-          await handleRedirect(userData);
+          console.log("Calling handleRedirect");
+          await handleRedirect(userData?.role ?? '');
+
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
           setInitError('Something went wrong during signup. Please refresh and try again.');
@@ -161,7 +147,11 @@ const AuthScreen = () => {
 
           if (fetchError) throw fetchError;
 
-          await handleRedirect(userData);
+          if (userData?.role) {
+            await handleRedirect(userData.role);
+          } else {
+            router.replace('/onboarding/role');
+          }
 
         } catch (err) {
           console.error('Error fetching user data:', err);
