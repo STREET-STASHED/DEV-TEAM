@@ -1,25 +1,22 @@
-
-
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClientComponentClient();
 
   useEffect(() => {
     const checkSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user) {
-        router.push("/signup");
+      if (!user && pathname !== "/signup") {
+        router.replace("/signup");
       } else {
         setAuthenticated(true);
       }
@@ -28,7 +25,7 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     };
 
     checkSession();
-  }, []);
+  }, [pathname]);
 
   if (loading) return null;
 

@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 const supabase = createClientComponentClient();
-import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
 
 export default function VerifyPage() {
-  useOnboardingRedirect();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -15,6 +13,7 @@ export default function VerifyPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      // Use Supabase session-based auth directly
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
       if (authError || !authUser) {
         console.error('Auth error:', authError);
@@ -35,7 +34,7 @@ export default function VerifyPage() {
 
       setUser(data);
 
-      if (data.details_complete && data.verified) {
+      if (data.verified && data.details_complete) {
         const redirectMap: Record<string, string> = {
           buyer: '/buyer/marketplace',
           seller: '/seller/dashboard',
@@ -43,9 +42,8 @@ export default function VerifyPage() {
           driver: '/driver/dashboard',
           admin: '/admin/dashboard',
         };
-
-        const rolePath = redirectMap[data.role] || '/';
-        router.replace(rolePath);
+        const path = redirectMap[data.role] || '/';
+        router.replace(path);
       }
     };
 

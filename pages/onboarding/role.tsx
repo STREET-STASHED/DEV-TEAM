@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function RolePage() {
   const router = useRouter();
@@ -10,7 +9,33 @@ export default function RolePage() {
   const [loading, setLoading] = useState(false);
   const [initError, setInitError] = React.useState<string | null>(null);
 
-  useOnboardingRedirect();
+  const supabase = createClientComponentClient();
+  React.useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push('/signup');
+        return;
+      }
+      const { data, error } = await supabase
+        .from('users')
+        .select('role, details_complete, verification_complete')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        if (data.verification_complete) {
+          router.replace(`/dashboard/${data.role}`);
+        } else if (data.details_complete) {
+          router.replace('/onboarding/verify');
+        } else if (data.role) {
+          router.replace('/onboarding/details');
+        }
+      }
+    };
+
+    checkUser();
+  }, []);
 
   if (initError) {
     return (

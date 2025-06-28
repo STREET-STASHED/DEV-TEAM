@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 const supabase = createClientComponentClient();
-import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
+// import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function Details() {
   const router = useRouter();
@@ -28,7 +28,36 @@ export default function Details() {
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [bundles, setBundles] = useState('');
 
-  useOnboardingRedirect();
+  // useOnboardingRedirect();
+
+  useEffect(() => {
+    const fetchUserAndRole = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        setInitError('Unable to fetch user session. Please log in.');
+        setInitialLoading(false);
+        return;
+      }
+
+      const { data, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+
+      if (userError || !data?.role) {
+        setInitError('User role not set. Please go back and select your role.');
+        setInitialLoading(false);
+        router.push('/onboarding/role');
+        return;
+      }
+
+      setRole(data.role);
+      setInitialLoading(false);
+    };
+
+    fetchUserAndRole();
+  }, []);
 
   if (initialLoading) {
     return (

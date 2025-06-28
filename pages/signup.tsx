@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import useOnboardingRedirect from '../hooks/useOnboardingRedirect';
 import { useRouter } from 'next/router';
 import supabase from '../lib/supabaseClient';
 
@@ -10,6 +11,7 @@ const AuthScreen = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const router = useRouter();
+  const redirectUserBasedOnProfile = useOnboardingRedirect;
 
   const handleRedirect = async (role: string) => {
     switch (role) {
@@ -113,8 +115,8 @@ const AuthScreen = () => {
             return;
           }
 
-          console.log("Redirecting to role onboarding after signup");
-          router.replace('/onboarding/role');
+          console.log("Redirecting after signup based on profile");
+          await redirectUserBasedOnProfile();
 
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
@@ -147,11 +149,7 @@ const AuthScreen = () => {
 
           if (fetchError) throw fetchError;
 
-          if (userData?.onboarded) {
-            await handleRedirect(userData.role);
-          } else {
-            router.replace('/onboarding/role');
-          }
+          await redirectUserBasedOnProfile();
 
         } catch (err) {
           console.error('Error fetching user data:', err);

@@ -1,15 +1,18 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useUser } from '../lib/useUser'; // assumes a custom user hook or use supabase directly
-import supabase from '../lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 const useOnboardingRedirect = () => {
   const router = useRouter();
-  const { user, loading } = useUser(); // or fetch session manually
+  const supabase = createClientComponentClient();
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
-      if (!user || loading) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/signup');
+        return;
+      }
 
       const { data, error } = await supabase
         .from('users')
@@ -24,37 +27,39 @@ const useOnboardingRedirect = () => {
 
       const { role, details_complete, verification_complete, onboarded } = data;
 
-      if (!role) {
+      if (!role && router.pathname !== '/onboarding/role') {
         router.replace('/onboarding/role');
-      } else if (!details_complete) {
+      } else if (!details_complete && router.pathname !== '/onboarding/details') {
         router.replace('/onboarding/details');
-      } else if (!verification_complete) {
+      } else if (!verification_complete && router.pathname !== '/onboarding/verify') {
         router.replace('/onboarding/verify');
       } else if (onboarded) {
+        let targetPath = '/';
         switch (role) {
           case 'buyer':
-            router.replace('/buyer');
+            targetPath = '/buyer';
             break;
           case 'seller':
-            router.replace('/seller/dashboard');
+            targetPath = '/seller/dashboard';
             break;
           case 'stylist':
-            router.replace('/stylist/dashboard');
+            targetPath = '/stylist/dashboard';
             break;
           case 'driver':
-            router.replace('/driver');
+            targetPath = '/driver';
             break;
           case 'admin':
-            router.replace('/admin/dashboard');
+            targetPath = '/admin/dashboard';
             break;
-          default:
-            router.replace('/');
+        }
+        if (router.pathname !== targetPath) {
+          router.replace(targetPath);
         }
       }
     };
 
     checkOnboardingStatus();
-  }, [user, loading, router]);
+  }, [router, supabase]);
 };
 
 export default useOnboardingRedirect;
