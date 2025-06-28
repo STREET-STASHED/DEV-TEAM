@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '@/lib/supabaseClient';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+const supabase = createClientComponentClient();
+import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function Details() {
   const router = useRouter();
@@ -26,62 +28,7 @@ export default function Details() {
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [bundles, setBundles] = useState('');
 
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        const user = session?.user;
-        if (sessionError || !user) {
-          console.error('Session fetch error or no user:', sessionError);
-          router.push('/signup');
-          return;
-        }
-
-        console.log('User ID:', user.id);
-
-        const { data, error } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching role:', error);
-          return;
-        }
-
-        if (!data?.role || ['buyer', null].includes(data.role)) {
-          console.warn('No valid role set yet. Redirecting to role selection.');
-          router.push('/onboarding/role');
-          return;
-        }
-
-        if (data?.role) {
-          setRole(data.role);
-        }
-        console.log("Loaded role:", data.role);
-        // demo defaults
-        setFullName('Test User');
-        setPhone('4125551234');
-        setReferralCode('');
-        setStoreName('StreetStyles');
-        setStoreDescription('Trendy fashion and streetwear.');
-        setVehicleType('Sedan');
-        setLicenseNumber('D12345678');
-        setPayoutMethod('Cash App: $streetuser');
-        setSpecialties('Urban fashion, event styling');
-        setPortfolioUrl('https://portfolio.testuser.com');
-        setBundles('Weekend Fits, Event Ready Packages');
-
-        setInitialLoading(false);
-      } catch (e) {
-        console.error('Unhandled error in init():', e);
-        setInitError('An unexpected error occurred while loading your details. Please try refreshing the page.');
-        setInitialLoading(false);
-      }
-    };
-    init();
-  }, [router]);
+  useOnboardingRedirect();
 
   if (initialLoading) {
     return (
@@ -109,8 +56,7 @@ export default function Details() {
       return;
     }
 
-    const { data: { session }, error: submitError } = await supabase.auth.getSession();
-    const user = session?.user;
+    const { data: { user }, error: submitError } = await supabase.auth.getUser();
     if (submitError || !user) {
       alert('Session expired. Please log in again.');
       setLoading(false);

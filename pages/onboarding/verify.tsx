@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../../lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+const supabase = createClientComponentClient();
+import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
 
 export default function VerifyPage() {
+  useOnboardingRedirect();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);

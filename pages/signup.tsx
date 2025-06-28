@@ -113,8 +113,8 @@ const AuthScreen = () => {
             return;
           }
 
-          console.log("Calling handleRedirect");
-          await handleRedirect(userData?.role ?? '');
+          console.log("Redirecting to role onboarding after signup");
+          router.replace('/onboarding/role');
 
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
@@ -147,7 +147,7 @@ const AuthScreen = () => {
 
           if (fetchError) throw fetchError;
 
-          if (userData?.role) {
+          if (userData?.onboarded) {
             await handleRedirect(userData.role);
           } else {
             router.replace('/onboarding/role');

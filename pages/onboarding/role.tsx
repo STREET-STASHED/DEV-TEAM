@@ -1,52 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
-import supabase from '@/lib/supabaseClient';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function RolePage() {
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<string>(''); // default is still '', but no required message flashes until interaction
   const [loading, setLoading] = useState(false);
-  const [initError, setInitError] = useState<string | null>(null);
+  const [initError, setInitError] = React.useState<string | null>(null);
 
-  useEffect(() => {
-    const checkRoleAndRedirect = async () => {
-      try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error || !session?.user) {
-          router.push('/login');
-          return;
-        }
-
-        const { data, error: roleError } = await supabase
-          .from('users')
-          .select('role, onboarded')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (roleError) {
-          console.error('Role fetch error:', roleError);
-          setInitError('Error fetching your role. Please refresh or try again later.');
-          return;
-        }
-
-        if (data?.role && data?.onboarded) {
-          router.replace(`/${data.role}/dashboard`);
-        } else if (data?.role && !data?.onboarded) {
-          router.replace('/onboarding/details');
-        }
-      } catch (e) {
-        console.error('Unhandled error during role check:', e);
-        setInitError('An unexpected error occurred. Please try again.');
-      }
-    };
-
-    checkRoleAndRedirect();
-  }, []);
+  useOnboardingRedirect();
 
   if (initError) {
     return (
@@ -64,21 +28,18 @@ export default function RolePage() {
       setLoading(false);
       return;
     }
-    const {
-      data: { session: supaSession },
-      error: sessionError,
-    } = await supabase.auth.getSession();
-    if (!supaSession || !supaSession.user) {
+    const supabase = createClientComponentClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       alert('User session missing. Please log in again.');
       setLoading(false);
       return;
     }
-    const user = supaSession.user;
     console.log("Saving role to Supabase for user:", user.id, "Role:", selectedRole);
     // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .update({ role: selectedRole })
+      .update({ role: selectedRole, onboarded: false })
       .eq('id', user.id);
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
