@@ -1,103 +1,84 @@
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import supabase from "@/lib/supabaseClient";
+
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import supabase from '../lib/supabaseClient';
 import Cookies from 'js-cookie';
 
-export default function AuthGuard({ role, children }: { role: string, children: React.ReactNode }) {
-  const [loading, setLoading] = useState(true)
-  const router = useRouter()
-  // supabase is already initialized from the import
+interface AuthGuardProps {
+  children: React.ReactNode;
+}
+
+const AuthGuard = ({ children }: AuthGuardProps) => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (router.pathname === '/' || router.pathname === '/welcome') {
-      setLoading(false);
-      return;
-    }
+    const protectRoute = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
 
-    const checkAuth = async () => {
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !session?.user) {
-          console.error('Session error or user not found:', sessionError);
-          await router.replace('/welcome');
-          return;
-        }
-
-        const userId = session.user.id;
-
-        const roleResponse = await fetch(`/api/get-role?id=${userId}`);
-        if (!roleResponse.ok) {
-          console.error('Error fetching user role:', await roleResponse.text());
-          return;
-        }
-
-        interface RoleData {
-          role: string;
-          details_complete: boolean;
-          verified: boolean;
-        }
-
-        const roleData: RoleData = await roleResponse.json();
-
-        if (roleData?.role) {
-          Cookies.set('user-role', roleData.role, { expires: 7 });
-        }
-
-        if (!roleData?.role) {
-          if (router.pathname !== '/onboarding/role') {
-            await router.replace('/onboarding/role');
-            return;
-          }
-        }
-        if (roleData?.role && !roleData.details_complete) {
-          if (router.pathname !== '/onboarding/details') {
-            await router.replace('/onboarding/details');
-            return;
-          }
-        }
-        if (roleData?.details_complete && !roleData.verified) {
-          if (router.pathname !== '/onboarding/verify') {
-            await router.replace('/onboarding/verify');
-            return;
-          }
-        }
-
-        if (roleData.details_complete && roleData.verified) {
-          if (roleData.role !== role) {
-            console.warn(`Role mismatch. Expected: ${role}, Got: ${roleData.role}`);
-            if (router.pathname !== '/not-authorized') {
-              await router.replace('/not-authorized');
-              return;
-            }
-          }
-        }
-
-        console.log('Authorized, loading finished');
-        setLoading(false);
-      } catch (err) {
-        console.error('Unexpected error in auth guard:', err);
-        await router.replace('/welcome');
+      if (!user) {
+        router.push('/login');
         return;
       }
+
+      const { data: profile, error } = await supabase
+        .from('users')
+        .select('role, verified, details_complete')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !profile) {
+        console.error('AuthGuard error fetching user:', error);
+        router.push('/login');
+        return;
+      }
+
+      const { role, verified, details_complete } = profile;
+
+      // Set cookie as plain string
+      Cookies.set('user-role', role, { expires: 7 });
+
+      const currentPath = router.pathname;
+
+      if (!role && !currentPath.includes('/onboarding/role')) {
+        router.push('/onboarding/role');
+        return;
+      }
+
+      if (role && !details_complete && !currentPath.includes('/onboarding/details')) {
+        router.push('/onboarding/details');
+        return;
+      }
+
+      if (role && details_complete && !verified && !currentPath.includes('/onboarding/verify')) {
+        router.push('/onboarding/verify');
+        return;
+      }
+
+      if (role && details_complete && verified && currentPath.includes('/onboarding')) {
+        const redirectMap: Record<string, string> = {
+          buyer: '/buyer/marketplace',
+          seller: '/seller/dashboard',
+          stylist: '/stylist/dashboard',
+          driver: '/driver/dashboard',
+          admin: '/admin/dashboard',
+        };
+        router.push(redirectMap[role] || '/');
+        return;
+      }
+
+      setLoading(false);
     };
 
-    const timeout = setTimeout(() => {
-      console.warn('AuthGuard timeout reached — ending loading state as fallback.');
-      setLoading(false);
-    }, 10000); // 10s fallback
-
-    checkAuth();
-
-    return () => clearTimeout(timeout);
-  }, [role, router]);
+    protectRoute();
+  }, [router]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p className="text-lg text-gray-600">Checking authorization...</p>
-      </div>
-    );
+    return <p className="text-center py-10">Loading...</p>;
   }
-  return <>{children}</>
-}
+
+  return <>{children}</>;
+};
+
+export default AuthGuard;

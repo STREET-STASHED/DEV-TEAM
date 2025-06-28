@@ -1,5 +1,3 @@
-
-
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../../lib/supabaseClient';
@@ -10,6 +8,8 @@ export default function VerifyPage() {
   const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [govId, setGovId] = useState('');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,7 +67,7 @@ export default function VerifyPage() {
 
     if (file) {
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('verifications')
+        .from('verification-docs')
         .upload(`verify_${user.id}_${Date.now()}`, file);
 
       if (uploadError) {
@@ -84,6 +84,8 @@ export default function VerifyPage() {
       .update({
         verified: true,
         verification_file: uploadedPath,
+        full_name: fullName,
+        government_id: govId,
       })
       .eq('id', user.id);
 
@@ -107,16 +109,54 @@ export default function VerifyPage() {
   };
 
   return (
-    <div className="container mx-auto py-10 text-center">
-      <h1 className="text-2xl font-bold mb-4">Upload Verification Document</h1>
-      <input type="file" onChange={handleFileChange} className="mb-4" />
-      <button
-        onClick={handleContinue}
-        className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800"
-        disabled={uploading}
+    <div className="container mx-auto py-10 max-w-md">
+      <h1 className="text-2xl font-bold mb-6 text-center">Final Verification</h1>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleContinue();
+        }}
+        className="space-y-4"
       >
-        {uploading ? 'Submitting...' : 'Continue'}
-      </button>
+        <div>
+          <label className="block text-left mb-1 font-medium">Full Name</label>
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full border border-gray-300 px-4 py-2 rounded"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-left mb-1 font-medium">Government ID Number</label>
+          <input
+            type="text"
+            placeholder="Government ID Number"
+            value={govId}
+            onChange={(e) => setGovId(e.target.value)}
+            className="w-full border border-gray-300 px-4 py-2 rounded"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-left mb-1 font-medium">Upload Document</label>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            className="w-full"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-black text-white px-6 py-2 rounded hover:bg-gray-800 disabled:opacity-60"
+          disabled={uploading}
+        >
+          {uploading ? 'Submitting...' : 'Continue'}
+        </button>
+      </form>
     </div>
   );
 }

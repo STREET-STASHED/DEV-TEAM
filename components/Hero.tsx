@@ -25,20 +25,23 @@ const Hero = () => {
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       <div className="relative z-10">
         <h1 className="text-4xl md:text-6xl font-extrabold text-yellow-400">
-          Welcome to StreetStashed
+          STREETSTASHED
         </h1>
         <p className="text-white mt-4 max-w-2xl">
-          The future of fashion delivery. Tap in to browse the culture or become a seller, stylist or driver.
+          Your all-access pass to streetwear, stylists, and exclusive drops — delivered 24/7.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
-          <Link href="/signup">
-            <button className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition">Join Now</button>
+          <Link href="/buyer/marketplace">
+            <button className="bg-white text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-gray-200 transition">
+              🛍️ Start Shopping
+            </button>
           </Link>
-          <Link href="/marketplace">
-            <button className="bg-white text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-gray-200 transition">Browse Marketplace</button>
+          <Link href="/signup">
+            <button className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition">
+              ✍️ Join the Platform
+            </button>
           </Link>
         </div>
-        <div className="mt-8 p-4 bg-yellow-300 text-black font-bold">Tailwind is working!</div>
       </div>
     </section>
   );
