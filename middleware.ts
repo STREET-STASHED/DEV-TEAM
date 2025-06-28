@@ -33,15 +33,6 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname.startsWith('/onboarding') && pathname !== '/onboarding/role') {
-    const role = req.cookies.get('user-role')?.value;
-    if (!role) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/onboarding/role';
-      return NextResponse.redirect(url);
-    }
-  }
-
   if (pathname === '/onboarding' || pathname === '/onboarding/') {
     const url = req.nextUrl.clone();
     url.pathname = '/onboarding/role';
@@ -77,6 +68,18 @@ export async function middleware(req: NextRequest) {
       const url = req.nextUrl.clone();
       url.pathname = '/onboarding/verify';
       return NextResponse.redirect(url);
+    }
+
+    if (
+      pathname.startsWith('/onboarding') &&
+      pathname !== '/onboarding/role' &&
+      pathname !== '/onboarding/verify'
+    ) {
+      if (!userProfile?.role) {
+        const url = req.nextUrl.clone();
+        url.pathname = '/onboarding/role';
+        return NextResponse.redirect(url);
+      }
     }
   }
 

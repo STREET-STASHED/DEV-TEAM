@@ -28,7 +28,8 @@ export default function VerifyStep() {
 
       if (!userData || !userData.role) {
         console.warn('Missing user data or role.');
-        return; // Don't redirect if already on verify
+        router.push('/onboarding/role');
+        return;
       }
       // Set role and cookie before any redirect check to avoid race conditions
       setRole(userData.role);
