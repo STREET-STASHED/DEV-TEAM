@@ -68,11 +68,14 @@ export async function middleware(req: NextRequest) {
       .single();
 
     if (
-      (pathname.startsWith('/buyer') && userProfile?.role !== 'buyer') ||
-      (pathname.startsWith('/seller') && userProfile?.role !== 'seller') ||
-      (pathname.startsWith('/stylist') && userProfile?.role !== 'stylist') ||
-      (pathname.startsWith('/driver') && userProfile?.role !== 'driver') ||
-      (pathname.startsWith('/admin') && userProfile?.role !== 'admin')
+      !userProfile?.role &&
+      (
+        pathname.startsWith('/buyer') ||
+        pathname.startsWith('/seller') ||
+        pathname.startsWith('/stylist') ||
+        pathname.startsWith('/driver') ||
+        pathname.startsWith('/admin')
+      )
     ) {
       const url = req.nextUrl.clone();
       url.pathname = '/onboarding/role';
@@ -107,7 +110,10 @@ export async function middleware(req: NextRequest) {
       pathname.startsWith('/onboarding') &&
       userProfile?.verified &&
       userProfile?.role &&
-      userProfile?.details_complete
+      userProfile?.details_complete &&
+      pathname !== '/onboarding/verify' &&
+      pathname !== '/onboarding/details' &&
+      pathname !== '/onboarding/role'
     ) {
       const redirectMap: Record<string, string> = {
         buyer: '/buyer/marketplace',

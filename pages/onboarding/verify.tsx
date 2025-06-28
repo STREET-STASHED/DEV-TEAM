@@ -36,12 +36,22 @@ export default function VerifyPage() {
 
       setUser(data);
 
-      if (!data.details_complete && !data.verified) {
-        router.push('/onboarding/details');
+      if (!data.details_complete || !data.verified) {
+        // Stay on the page to finish verification
         return;
       }
 
-      // If user is already verified, we let the middleware handle redirection
+      const redirectMap: Record<string, string> = {
+        buyer: '/buyer/marketplace',
+        seller: '/seller/dashboard',
+        stylist: '/stylist/dashboard',
+        driver: '/driver/dashboard',
+        admin: '/admin/dashboard',
+      };
+
+      if (data.role && redirectMap[data.role]) {
+        router.replace(redirectMap[data.role]);
+      }
     };
 
     fetchUser();
