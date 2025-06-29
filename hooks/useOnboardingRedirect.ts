@@ -6,8 +6,8 @@ const useOnboardingRedirect = () => {
 
   const redirectUserBasedOnProfile = async () => {
     const supabase = createClientComponentClient();
-
     const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
       router.replace('/signup');
       return;
@@ -33,7 +33,7 @@ const useOnboardingRedirect = () => {
     } else if (!verification_complete && router.pathname !== '/onboarding/verify') {
       router.replace('/onboarding/verify');
     } else if (onboarded) {
-      let targetPath = '/';
+      let targetPath = '/onboarding/role'; // fallback path if role is missing
       switch (role) {
         case 'buyer':
           targetPath = '/buyer';
