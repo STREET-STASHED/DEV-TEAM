@@ -11,6 +11,7 @@ const AuthScreen = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
   const router = useRouter();
+  const { redirectUserBasedOnProfile } = useOnboardingRedirect();
 
   const handleRedirect = async (role: string) => {
     switch (role) {
@@ -115,7 +116,6 @@ const AuthScreen = () => {
           }
 
           console.log("Redirecting after signup based on profile");
-          const { redirectUserBasedOnProfile } = useOnboardingRedirect();
           await redirectUserBasedOnProfile();
 
         } catch (signUpCatchError) {
@@ -149,7 +149,6 @@ const AuthScreen = () => {
 
           if (fetchError) throw fetchError;
 
-          const { redirectUserBasedOnProfile } = useOnboardingRedirect();
           await redirectUserBasedOnProfile();
 
         } catch (err) {
