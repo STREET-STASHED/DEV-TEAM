@@ -7,20 +7,21 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLogin, setIsLogin] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     const supabase = createClientComponentClient();
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+
+    const { data, error } = isLogin
+      ? await supabase.auth.signInWithPassword({ email, password })
+      : await supabase.auth.signUp({ email, password });
 
     if (error) {
       setError(error.message);
@@ -33,15 +34,13 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="max-w-md w-full p-8 bg-white shadow-md rounded-md">
-        <h1 className="text-2xl font-bold text-center mb-6">StreetStashed</h1>
-        <form onSubmit={handleSignup}>
-          {error && (
-            <p className="text-red-500 text-sm mb-4">{error}</p>
-          )}
+    <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.jpg')" }}>
+      <div className="w-full max-w-md p-8 bg-white bg-opacity-90 shadow-lg rounded-md">
+        <h1 className="text-3xl font-bold text-center mb-6 text-yellow-600">StreetStashed</h1>
+        <form onSubmit={handleAuth}>
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-800">
               Email
             </label>
             <input
@@ -54,7 +53,7 @@ export default function SignUpPage() {
             />
           </div>
           <div className="mb-6">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-800">
               Password
             </label>
             <input
@@ -69,11 +68,21 @@ export default function SignUpPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-800"
+            className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded"
           >
-            {loading ? "Signing up..." : "Continue"}
+            {loading ? (isLogin ? "Logging in..." : "Signing up...") : (isLogin ? "Log In" : "Sign Up")}
           </button>
         </form>
+        <p className="mt-4 text-center text-sm text-gray-700">
+          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-yellow-600 font-semibold hover:underline"
+          >
+            {isLogin ? "Sign up" : "Log in"}
+          </button>
+        </p>
       </div>
     </div>
   );
