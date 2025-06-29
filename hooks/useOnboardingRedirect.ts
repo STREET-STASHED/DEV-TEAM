@@ -26,50 +26,46 @@ const useOnboardingRedirect = () => {
 
     const { role, details_complete, verification_complete } = data;
 
-    // Enforce strict onboarding flow
+    // Enforce strict onboarding flow on all onboarding pages
     if (!role) {
-      if (router.pathname !== '/onboarding/role') {
-        router.replace('/onboarding/role');
-      }
+      router.replace('/onboarding/role');
       return;
     }
 
     if (!details_complete) {
-      if (router.pathname !== '/onboarding/details') {
-        router.replace('/onboarding/details');
-      }
+      router.replace('/onboarding/details');
       return;
     }
 
     if (!verification_complete) {
-      if (router.pathname !== '/onboarding/verify') {
-        router.replace('/onboarding/verify');
-      }
+      router.replace('/onboarding/verify');
       return;
     }
 
-    // Onboarding complete: redirect to dashboard
-    let targetPath = '/';
-    switch (role) {
-      case 'buyer':
-        targetPath = '/buyer';
-        break;
-      case 'seller':
-        targetPath = '/seller/dashboard';
-        break;
-      case 'stylist':
-        targetPath = '/stylist/dashboard';
-        break;
-      case 'driver':
-        targetPath = '/driver';
-        break;
-      case 'admin':
-        targetPath = '/admin/dashboard';
-        break;
-    }
+    if (role && details_complete && verification_complete) {
+      // Onboarding complete: redirect to dashboard
+      let targetPath = '/';
+      switch (role) {
+        case 'buyer':
+          targetPath = '/buyer';
+          break;
+        case 'seller':
+          targetPath = '/seller/dashboard';
+          break;
+        case 'stylist':
+          targetPath = '/stylist/dashboard';
+          break;
+        case 'driver':
+          targetPath = '/driver';
+          break;
+        case 'admin':
+          targetPath = '/admin/dashboard';
+          break;
+      }
 
-    if (router.pathname !== targetPath) {
-      router.replace(targetPath);
+      if (router.pathname !== targetPath) {
+        router.replace(targetPath);
+      }
     }
   };
 
