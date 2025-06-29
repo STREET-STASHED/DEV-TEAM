@@ -115,13 +115,10 @@ export default function Details() {
       }
     }
 
-    // Update users table for all roles
+    // Update users table for all roles (do not update role again to avoid constraint error)
     const { error: updateError } = await supabase
       .from('users')
-      .update({
-        ...updateData,
-        role: normalizedRole, // ensure role is saved
-      })
+      .update(updateData)
       .eq('id', user.id);
     if (updateError) {
       console.error('User update error:', updateError.message);

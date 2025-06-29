@@ -6,8 +6,9 @@ import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
 const supabase = createClientComponentClient();
 
 export default function VerifyPage() {
+  const { redirectUserBasedOnProfile } = useOnboardingRedirect();
   useEffect(() => {
-    useOnboardingRedirect(); // Handles redirecting if already verified
+    redirectUserBasedOnProfile(); // Handles redirecting if already verified
   }, []);
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -46,7 +47,7 @@ export default function VerifyPage() {
       uploadedPath = uploadData?.path || null;
     }
 
-    // Prepare updates object, ensuring 'role' is not included unless explicitly set
+    // Prepare updates object, ensuring 'role' is not included
     const updates: any = {
       verified: true,
       details_complete: true,
