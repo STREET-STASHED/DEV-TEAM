@@ -65,6 +65,8 @@ export default function VerifyPage() {
     }
 
     const updatedUser = updateData[0];
+    // Log the updated user after verify
+    console.log("Updated user after verify:", updatedUser);
 
     if (!updatedUser) {
       alert('User update failed. Please try again.');
@@ -73,6 +75,8 @@ export default function VerifyPage() {
     }
 
     const userRole = updatedUser.role?.toLowerCase?.();
+    // Log the detected user role
+    console.log("Detected user role:", userRole);
 
     if (!userRole) {
       alert('Missing role information. Please complete your profile or contact support.');
@@ -80,7 +84,9 @@ export default function VerifyPage() {
       return;
     }
 
-    router.push(getDashboardRedirect(userRole));
+    // Use fallback redirect logic
+    const redirectPath = getDashboardRedirect(userRole) || '/';
+    router.push(redirectPath);
   };
 
   return (

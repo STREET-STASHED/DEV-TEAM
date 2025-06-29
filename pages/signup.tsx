@@ -19,32 +19,34 @@ export default function SignUpPage() {
 
     const supabase = createClientComponentClient();
 
-    const { data, error } = isLogin
-      ? await supabase.auth.signInWithPassword({ email, password })
-      : await supabase.auth.signUp({ email, password });
+    try {
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    if (error) {
-      setError(error.message);
+        if (error) throw error;
+
+        router.push("/dashboard");
+      } else {
+        const { data, error } = await supabase.auth.signUp({ email, password });
+
+        if (error) throw error;
+
+        if (data?.user) {
+          await supabase.from("users").upsert({
+            id: data.user.id,
+            email: data.user.email,
+            role: null,
+            onboarded: false,
+          });
+
+          router.push("/onboarding/role");
+        }
+      }
+    } catch (err: any) {
+      setError(err.message || "Something went wrong");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    if (!isLogin && data?.user) {
-      await supabase.from("users").upsert({
-        id: data.user.id,
-        email: data.user.email,
-        role: null,
-        onboarded: false,
-      });
-    }
-
-    if (isLogin) {
-      router.push("/dashboard");
-    } else {
-      router.push("/onboarding/role");
-    }
-
-    setLoading(false);
   };
 
   return (
