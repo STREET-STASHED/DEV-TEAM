@@ -7,7 +7,8 @@ const supabase = createClientComponentClient();
 
 export default function Details() {
   const router = useRouter();
-  useOnboardingRedirect();
+  const { redirectUserBasedOnProfile } = useOnboardingRedirect();
+
 
   const [role, setRole] = useState<string>('');
   useEffect(() => {
@@ -133,7 +134,6 @@ export default function Details() {
     // }
     // Ensure Supabase session reflects recent update before redirect
     await supabase.auth.refreshSession(); // Ensures session reflects recent update
-    await router.push('/onboarding/verify');
     setLoading(false);
   };
 

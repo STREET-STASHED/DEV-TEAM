@@ -25,7 +25,17 @@ export default function SignUpPage() {
 
         if (error) throw error;
 
-        router.push("/dashboard");
+        const { data: userProfile } = await supabase
+          .from("users")
+          .select("role, details_complete, verified")
+          .eq("id", data.user.id)
+          .single();
+
+        if (!userProfile?.role || !userProfile?.details_complete || !userProfile?.verified) {
+          router.push("/onboarding/role");
+        } else {
+          router.push("/dashboard");
+        }
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password });
 
@@ -39,7 +49,9 @@ export default function SignUpPage() {
             onboarded: false,
           });
 
-          router.push("/onboarding/role");
+          // Immediately redirect to role onboarding
+          router.replace("/onboarding/role");
+          return;
         }
       }
     } catch (err: any) {

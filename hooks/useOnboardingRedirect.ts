@@ -24,25 +24,21 @@ const useOnboardingRedirect = () => {
       return;
     }
 
-    const { role, details_complete, verification_complete, onboarded } = data;
+    const { role, details_complete, verification_complete } = data;
 
-    // Updated step-by-step enforcement and dashboard redirect logic
-    if (!role || !details_complete || !verification_complete) {
-      if (!role && router.pathname !== '/onboarding/role') {
-        router.replace('/onboarding/role');
-        return;
-      }
+    // Enforce strict onboarding flow in sequence: role → details → verify
+    if (!role && router.pathname !== '/onboarding/role') {
+      router.replace('/onboarding/role');
+      return;
+    }
 
-      if (!details_complete && router.pathname !== '/onboarding/details') {
-        router.replace('/onboarding/details');
-        return;
-      }
+    if (role && !details_complete && router.pathname !== '/onboarding/details') {
+      router.replace('/onboarding/details');
+      return;
+    }
 
-      if (!verification_complete && router.pathname !== '/onboarding/verify') {
-        router.replace('/onboarding/verify');
-        return;
-      }
-
+    if (role && details_complete && !verification_complete && router.pathname !== '/onboarding/verify') {
+      router.replace('/onboarding/verify');
       return;
     }
 
