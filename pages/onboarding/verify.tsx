@@ -46,15 +46,18 @@ export default function VerifyPage() {
       uploadedPath = uploadData?.path || null;
     }
 
+    // Prepare updates object, ensuring 'role' is not included unless explicitly set
+    const updates: any = {
+      verified: true,
+      details_complete: true,
+      verification_url: uploadedPath,
+      full_name: fullName,
+      license_number: licenseNumber,
+    };
+
     const { data: updateData, error: updateError } = await supabase
       .from('users')
-      .update({
-        verified: true,
-        details_complete: true,
-        verification_url: uploadedPath,
-        full_name: fullName,
-        license_number: licenseNumber,
-      })
+      .update(updates)
       .eq('id', user.id)
       .select();
 
@@ -66,8 +69,16 @@ export default function VerifyPage() {
 
     const updatedUser = updateData[0];
 
-    if (!updatedUser || !updatedUser.role) {
-      alert('Missing role information. Please contact support.');
+    if (!updatedUser) {
+      alert('User update failed. Please try again.');
+      setUploading(false);
+      return;
+    }
+
+    const userRole = updatedUser.role?.toLowerCase?.();
+
+    if (!userRole) {
+      alert('Missing role information. Please complete your profile or contact support.');
       setUploading(false);
       return;
     }
@@ -81,7 +92,7 @@ export default function VerifyPage() {
     };
 
     setTimeout(() => {
-      router.replace(redirectMap[updatedUser.role] || '/');
+      router.replace(redirectMap[userRole] || '/');
     }, 500);
   };
 

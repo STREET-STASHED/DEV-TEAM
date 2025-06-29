@@ -41,10 +41,11 @@ export default function RolePage() {
       return;
     }
     console.log("Saving role to Supabase for user:", user.id, "Role:", selectedRole);
+    const cleanRole = selectedRole.trim().toLowerCase();
     // Update role on users table
     const { error: upsertError } = await supabase
       .from('users')
-      .update({ role: selectedRole, onboarded: false })
+      .update({ role: cleanRole, onboarded: false })
       .eq('id', user.id);
     if (upsertError) {
       console.error('Role upsert error:', upsertError);
@@ -73,7 +74,7 @@ export default function RolePage() {
               name="role"
               value={role}
               checked={selectedRole === role}
-              onChange={() => setSelectedRole(role)}
+              onChange={() => setSelectedRole(role.trim().toLowerCase())}
               className="form-radio text-blue-600"
               required
             />

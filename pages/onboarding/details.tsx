@@ -19,7 +19,7 @@ export default function Details() {
           return;
         }
         if (user.user_metadata?.role) {
-          setRole(user.user_metadata.role);
+          setRole(user.user_metadata.role.toLowerCase().trim());
         }
       }
     };
@@ -62,6 +62,8 @@ export default function Details() {
       return;
     }
 
+    const normalizedRole = role.toLowerCase().trim();
+
     // if (role) {
     //   Cookies.set('user-role', role, { expires: 7 });
     // }
@@ -75,14 +77,14 @@ export default function Details() {
       onboarded: true
     };
 
-    if (role === 'seller') {
+    if (normalizedRole === 'seller') {
       updateData.store_name = storeName;
       updateData.store_description = storeDescription;
-    } else if (role === 'driver') {
+    } else if (normalizedRole === 'driver') {
       updateData.vehicle_type = vehicleType;
       updateData.license_number = licenseNumber;
       updateData.payout_method = payoutMethod;
-    } else if (role === 'stylist') {
+    } else if (normalizedRole === 'stylist') {
       // Stylists handled in a separate table
       try {
         // Validate portfolio URL format
@@ -118,7 +120,7 @@ export default function Details() {
       .from('users')
       .update({
         ...updateData,
-        role, // ensure role is saved
+        role: normalizedRole, // ensure role is saved
       })
       .eq('id', user.id);
     if (updateError) {
@@ -173,12 +175,12 @@ export default function Details() {
           className="w-full border border-gray-300 p-3 rounded-md text-black"
         />
 
-        {(role === 'seller') && (
+        {(role.toLowerCase().trim() === 'seller') && (
           <>
             <input
               type="text"
               placeholder="Store Name"
-              required={role === 'seller'}
+              required={role.toLowerCase().trim() === 'seller'}
               value={storeName}
               autoComplete="off"
               onChange={(e) => setStoreName(e.target.value)}
@@ -186,7 +188,7 @@ export default function Details() {
             />
             <textarea
               placeholder="Store Description"
-              required={role === 'seller'}
+              required={role.toLowerCase().trim() === 'seller'}
               value={storeDescription}
               autoComplete="off"
               onChange={(e) => setStoreDescription(e.target.value)}
@@ -195,12 +197,12 @@ export default function Details() {
           </>
         )}
 
-        {(role === 'driver') && (
+        {(role.toLowerCase().trim() === 'driver') && (
           <>
             <input
               type="text"
               placeholder="Vehicle Type"
-              required={role === 'driver'}
+              required={role.toLowerCase().trim() === 'driver'}
               value={vehicleType}
               autoComplete="off"
               onChange={(e) => setVehicleType(e.target.value)}
@@ -209,7 +211,7 @@ export default function Details() {
             <input
               type="text"
               placeholder="Driver's License Number"
-              required={role === 'driver'}
+              required={role.toLowerCase().trim() === 'driver'}
               value={licenseNumber}
               autoComplete="off"
               onChange={(e) => setLicenseNumber(e.target.value)}
@@ -218,7 +220,7 @@ export default function Details() {
             <input
               type="text"
               placeholder="Payout Method"
-              required={role === 'driver'}
+              required={role.toLowerCase().trim() === 'driver'}
               value={payoutMethod}
               autoComplete="off"
               onChange={(e) => setPayoutMethod(e.target.value)}
@@ -227,12 +229,12 @@ export default function Details() {
           </>
         )}
 
-        {(role === 'stylist') && (
+        {(role.toLowerCase().trim() === 'stylist') && (
           <>
             <input
               type="text"
               placeholder="Specialties"
-              required={role === 'stylist'}
+              required={role.toLowerCase().trim() === 'stylist'}
               value={specialties}
               autoComplete="off"
               onChange={(e) => setSpecialties(e.target.value)}
@@ -241,7 +243,7 @@ export default function Details() {
             <input
               type="url"
               placeholder="Portfolio URL"
-              required={role === 'stylist'}
+              required={role.toLowerCase().trim() === 'stylist'}
               value={portfolioUrl}
               autoComplete="off"
               onChange={(e) => setPortfolioUrl(e.target.value)}
@@ -249,7 +251,7 @@ export default function Details() {
             />
             <textarea
               placeholder="Bundle Options"
-              required={role === 'stylist'}
+              required={role.toLowerCase().trim() === 'stylist'}
               value={bundles}
               autoComplete="off"
               onChange={(e) => setBundles(e.target.value)}
