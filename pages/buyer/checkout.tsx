@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import supabase from '../../lib/ssupabaseClient';
+import supabase from '../../lib/supabaseClient';
 import { useCart, CartItem } from '@/context/CartContext';
 import { useEffect, useState } from 'react';
 import CheckoutForm from '@/components/CheckoutForm';
