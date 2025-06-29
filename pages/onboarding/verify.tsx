@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
+import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
 
 const supabase = createClientComponentClient();
 
 export default function VerifyPage() {
-  const { redirectUserBasedOnProfile } = useOnboardingRedirect();
-  useEffect(() => {
-    redirectUserBasedOnProfile(); // Handles redirecting if already verified
-  }, []);
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -84,17 +80,7 @@ export default function VerifyPage() {
       return;
     }
 
-    const redirectMap: Record<string, string> = {
-      buyer: '/buyer/marketplace',
-      seller: '/seller/dashboard',
-      stylist: '/stylist/dashboard',
-      driver: '/driver/dashboard',
-      admin: '/admin/dashboard',
-    };
-
-    setTimeout(() => {
-      router.replace(redirectMap[userRole] || '/');
-    }, 500);
+    router.push(getDashboardRedirect(userRole));
   };
 
   return (
