@@ -116,7 +116,7 @@ const AuthScreen = () => {
 
           console.log("Redirecting after signup based on profile");
           const { redirectUserBasedOnProfile } = useOnboardingRedirect();
-          redirectUserBasedOnProfile();
+          await redirectUserBasedOnProfile();
 
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
@@ -150,7 +150,7 @@ const AuthScreen = () => {
           if (fetchError) throw fetchError;
 
           const { redirectUserBasedOnProfile } = useOnboardingRedirect();
-          redirectUserBasedOnProfile();
+          await redirectUserBasedOnProfile();
 
         } catch (err) {
           console.error('Error fetching user data:', err);
