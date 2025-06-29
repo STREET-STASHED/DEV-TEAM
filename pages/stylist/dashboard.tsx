@@ -126,7 +126,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   if (loading) return <Spinner />;
 
   return (
-    <AuthGuard role="stylist">
+    <AuthGuard requiredRole="stylist">
       <main style={{ padding: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Stylist Dashboard</h1>
         {bookings.length === 0 ? (

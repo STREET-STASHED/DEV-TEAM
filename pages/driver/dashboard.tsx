@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import supabase from '../../lib/supabaseClient';
+import AuthGuard from '../../components/AuthGuard';
 
 interface Delivery {
   id: string;
@@ -68,55 +69,57 @@ const DriverDashboard = ({ userId }: { userId: string }) => {
   }, []);
 
   return (
-    <div>
-      <h1>Driver Dashboard</h1>
-      <p>User ID: {userId}</p>
+    <AuthGuard requiredRole="driver">
+      <div>
+        <h1>Driver Dashboard</h1>
+        <p>User ID: {userId}</p>
 
-      <section>
-        <h2>Assigned Deliveries</h2>
-        {assignedDeliveries.length > 0 ? (
-          <ul>
-            {assignedDeliveries.map(delivery => (
-              <li key={delivery.id}>
-                Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No assigned deliveries.</p>
-        )}
-      </section>
+        <section>
+          <h2>Assigned Deliveries</h2>
+          {assignedDeliveries.length > 0 ? (
+            <ul>
+              {assignedDeliveries.map(delivery => (
+                <li key={delivery.id}>
+                  Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No assigned deliveries.</p>
+          )}
+        </section>
 
-      <section>
-        <h2>Available Deliveries</h2>
-        {availableDeliveries.length > 0 ? (
-          <ul>
-            {availableDeliveries.map(delivery => (
-              <li key={delivery.id}>
-                Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No available deliveries.</p>
-        )}
-      </section>
+        <section>
+          <h2>Available Deliveries</h2>
+          {availableDeliveries.length > 0 ? (
+            <ul>
+              {availableDeliveries.map(delivery => (
+                <li key={delivery.id}>
+                  Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No available deliveries.</p>
+          )}
+        </section>
 
-      <section>
-        <h2>Past Deliveries</h2>
-        {pastDeliveries.length > 0 ? (
-          <ul>
-            {pastDeliveries.map(delivery => (
-              <li key={delivery.id}>
-                Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No past deliveries.</p>
-        )}
-      </section>
-    </div>
+        <section>
+          <h2>Past Deliveries</h2>
+          {pastDeliveries.length > 0 ? (
+            <ul>
+              {pastDeliveries.map(delivery => (
+                <li key={delivery.id}>
+                  Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No past deliveries.</p>
+          )}
+        </section>
+      </div>
+    </AuthGuard>
   );
 };
 

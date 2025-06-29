@@ -234,7 +234,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
       : "/default-avatar.png";
 
   return (
-    <AuthGuard role="seller">
+    <AuthGuard requiredRole="seller">
       <div className="p-4 sm:p-6 md:p-8 space-y-4 max-w-4xl mx-auto">
         <h2 className="text-xl font-semibold">Seller Analytics</h2>
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">

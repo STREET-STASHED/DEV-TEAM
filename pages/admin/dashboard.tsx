@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import AuthGuard from '@/components/AuthGuard';
 
 import { useEffect, useState } from 'react'
-import supabase from '@/lib/ssupabaseClient';
+import supabase from '@/lib/supabaseClient';
 import type { User } from '@supabase/supabase-js'
 
 type Metrics = {
@@ -262,7 +262,7 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AuthGuard role="admin">
+    <AuthGuard requiredRole="admin">
       <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-8">
         <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
         {user ? (

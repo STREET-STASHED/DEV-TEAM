@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
-const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+interface AuthGuardProps {
+  children: React.ReactNode;
+  requiredRole?: string;
+}
+
+const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const router = useRouter();
@@ -15,24 +20,38 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     const checkSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (
-        !user &&
-        (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin"))
-      ) {
-        router.replace("/signup");
-      } else {
-        setAuthenticated(true);
+      if (!user) {
+        if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+          router.replace("/signup");
+        }
+        setLoading(false);
+        return;
       }
 
+      if (requiredRole) {
+        const { data: userData } = await supabase
+          .from("users")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (!userData || userData.role !== requiredRole) {
+          router.replace("/signup");
+          setLoading(false);
+          return;
+        }
+      }
+
+      setAuthenticated(true);
       setLoading(false);
     };
 
     checkSession();
-  }, [pathname]);
+  }, [pathname, requiredRole]);
 
   if (loading) return null;
 
   return authenticated ? <>{children}</> : null;
 };
 
-export default AuthGuard;
+export default AuthGuard; 
