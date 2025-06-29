@@ -45,12 +45,12 @@ export default function SignUpPage() {
           await supabase.from("users").upsert({
             id: data.user.id,
             email: data.user.email,
-            role: null,
+            // role is intentionally omitted to avoid constraint errors
             onboarded: false,
           });
 
-          // Immediately redirect to role onboarding
-          router.replace("/onboarding/role");
+          // Ensure onboarding starts from role page
+          router.push("/onboarding/role");
           return;
         }
       }
