@@ -115,8 +115,9 @@ const AuthScreen = () => {
             return;
           }
 
-          console.log("Redirecting after signup based on profile");
+          console.log("Calling redirectUserBasedOnProfile...");
           await redirectUserBasedOnProfile();
+          setLoading(false);
 
         } catch (signUpCatchError) {
           console.error("Signup exception:", signUpCatchError);
