@@ -29,7 +29,7 @@ export default function SignUpPage() {
       return;
     }
 
-    router.push("/role");
+    router.push("/onboarding/role");
     setLoading(false);
   };
 

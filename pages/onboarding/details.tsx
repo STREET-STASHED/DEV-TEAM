@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
@@ -10,6 +10,21 @@ export default function Details() {
   useOnboardingRedirect();
 
   const [role, setRole] = useState<string>('');
+  useEffect(() => {
+    const fetchRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        if (user.user_metadata?.onboarded) {
+          router.push('/onboarding/verify'); // skip to verify if already onboarded
+          return;
+        }
+        if (user.user_metadata?.role) {
+          setRole(user.user_metadata.role);
+        }
+      }
+    };
+    fetchRole();
+  }, []);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [referralCode, setReferralCode] = useState('');

@@ -71,7 +71,9 @@ export default function VerifyPage() {
       admin: '/admin/dashboard',
     };
 
-    router.replace(redirectMap[updatedUser.role] || '/');
+    setTimeout(() => {
+      router.replace(redirectMap[updatedUser.role] || '/');
+    }, 500);
   };
 
   return (
