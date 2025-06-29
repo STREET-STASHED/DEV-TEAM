@@ -26,23 +26,29 @@ const useOnboardingRedirect = () => {
 
     const { role, details_complete, verification_complete } = data;
 
-    // Enforce strict onboarding flow in sequence: role → details → verify
-    if (!role && router.pathname !== '/onboarding/role') {
-      router.replace('/onboarding/role');
+    // Enforce strict onboarding flow
+    if (!role) {
+      if (router.pathname !== '/onboarding/role') {
+        router.replace('/onboarding/role');
+      }
       return;
     }
 
-    if (role && !details_complete && router.pathname !== '/onboarding/details') {
-      router.replace('/onboarding/details');
+    if (!details_complete) {
+      if (router.pathname !== '/onboarding/details') {
+        router.replace('/onboarding/details');
+      }
       return;
     }
 
-    if (role && details_complete && !verification_complete && router.pathname !== '/onboarding/verify') {
-      router.replace('/onboarding/verify');
+    if (!verification_complete) {
+      if (router.pathname !== '/onboarding/verify') {
+        router.replace('/onboarding/verify');
+      }
       return;
     }
 
-    // All onboarding steps are complete; redirect to the appropriate dashboard
+    // Onboarding complete: redirect to dashboard
     let targetPath = '/';
     switch (role) {
       case 'buyer':

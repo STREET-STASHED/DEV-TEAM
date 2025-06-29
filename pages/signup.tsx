@@ -49,10 +49,14 @@ export default function SignUpPage() {
             onboarded: false,
           });
 
-          // Ensure onboarding starts from role page
+          await new Promise((resolve) => setTimeout(resolve, 500));
           router.push("/onboarding/role");
           return;
         }
+
+        console.log("Redirecting to /onboarding/role");
+        router.push("/onboarding/role");
+        return;
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong");
