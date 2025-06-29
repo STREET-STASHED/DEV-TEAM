@@ -1,7 +1,6 @@
 import { useEffect, useState, type FC } from 'react';
 import { useRouter } from 'next/router';
 import supabase from '../../lib/supabaseClient';
-import AuthGuard from '@/components/AuthGuard';
 
 const Dashboard: FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
@@ -70,14 +69,7 @@ const Dashboard: FC = () => {
   if (loading) return <p>Loading dashboard...</p>;
   if (error) return <div className="text-red-600 p-4">{error}</div>;
 
-  return (
-    <AuthGuard>
-      <div className="p-6 space-y-4">
-        <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
-        <p className="text-gray-600">Role: {role}</p>
-      </div>
-    </AuthGuard>
-  );
+  return null;
 };
 
 export default Dashboard;
