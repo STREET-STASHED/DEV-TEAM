@@ -28,7 +28,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
         return;
       }
 
-      if (requiredRole) {
+      if (requiredRole && (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin"))) {
         const { data: userData } = await supabase
           .from("users")
           .select("role")
@@ -54,4 +54,4 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
   return authenticated ? <>{children}</> : null;
 };
 
-export default AuthGuard; 
+export default AuthGuard;

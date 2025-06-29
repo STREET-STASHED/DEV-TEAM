@@ -52,19 +52,19 @@ export default function VerifyPage() {
       license_number: licenseNumber,
     };
 
-    const { data: updateData, error: updateError } = await supabase
+    const { data: updatedUser, error: updateError } = await supabase
       .from('users')
       .update(updates)
       .eq('id', user.id)
-      .select();
+      .select()
+      .single();
 
-    if (updateError || !updateData) {
+    if (updateError || !updatedUser) {
       alert('Profile update failed.');
       setUploading(false);
       return;
     }
-
-    const updatedUser = updateData[0];
+    // updatedUser already defined above
     // Log the updated user after verify
     console.log("Updated user after verify:", updatedUser);
 
@@ -74,7 +74,7 @@ export default function VerifyPage() {
       return;
     }
 
-    const userRole = updatedUser.role?.toLowerCase?.();
+    const userRole = updatedUser?.role?.toLowerCase?.();
     // Log the detected user role
     console.log("Detected user role:", userRole);
 

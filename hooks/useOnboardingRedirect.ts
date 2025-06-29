@@ -26,51 +26,48 @@ const useOnboardingRedirect = () => {
 
     const { role, details_complete, verification_complete, onboarded } = data;
 
-    // Step-by-step enforcement
-    if (!role) {
-      if (router.pathname !== '/onboarding/role') {
+    // Updated step-by-step enforcement and dashboard redirect logic
+    if (!role || !details_complete || !verification_complete) {
+      if (!role && router.pathname !== '/onboarding/role') {
         router.replace('/onboarding/role');
+        return;
       }
-      return;
-    }
 
-    if (!details_complete) {
-      if (router.pathname !== '/onboarding/details') {
+      if (!details_complete && router.pathname !== '/onboarding/details') {
         router.replace('/onboarding/details');
+        return;
       }
-      return;
-    }
 
-    if (!verification_complete) {
-      if (router.pathname !== '/onboarding/verify') {
+      if (!verification_complete && router.pathname !== '/onboarding/verify') {
         router.replace('/onboarding/verify');
+        return;
       }
+
       return;
     }
 
-    if (onboarded) {
-      let targetPath = '/onboarding/role'; // fallback
-      switch (role) {
-        case 'buyer':
-          targetPath = '/buyer';
-          break;
-        case 'seller':
-          targetPath = '/seller/dashboard';
-          break;
-        case 'stylist':
-          targetPath = '/stylist/dashboard';
-          break;
-        case 'driver':
-          targetPath = '/driver';
-          break;
-        case 'admin':
-          targetPath = '/admin/dashboard';
-          break;
-      }
+    // All onboarding steps are complete; redirect to the appropriate dashboard
+    let targetPath = '/';
+    switch (role) {
+      case 'buyer':
+        targetPath = '/buyer';
+        break;
+      case 'seller':
+        targetPath = '/seller/dashboard';
+        break;
+      case 'stylist':
+        targetPath = '/stylist/dashboard';
+        break;
+      case 'driver':
+        targetPath = '/driver';
+        break;
+      case 'admin':
+        targetPath = '/admin/dashboard';
+        break;
+    }
 
-      if (router.pathname !== targetPath) {
-        router.replace(targetPath);
-      }
+    if (router.pathname !== targetPath) {
+      router.replace(targetPath);
     }
   };
 
