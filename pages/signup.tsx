@@ -35,7 +35,7 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.jpg')" }}>
-      <div className="w-full max-w-md p-8 bg-white bg-opacity-90 shadow-lg rounded-md">
+      <div className="w-full max-w-md p-8 bg-black bg-opacity-90 text-white shadow-lg rounded-md">
         <h1 className="text-3xl font-bold text-center mb-6 text-yellow-600">StreetStashed</h1>
         <form onSubmit={handleAuth}>
           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
@@ -49,7 +49,7 @@ export default function SignUpPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-white placeholder-gray-400"
             />
           </div>
           <div className="mb-6">
@@ -62,7 +62,7 @@ export default function SignUpPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm bg-gray-800 text-white placeholder-gray-400"
             />
           </div>
           <button
