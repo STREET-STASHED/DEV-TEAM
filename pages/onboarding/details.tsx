@@ -1,18 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
+
 const supabase = createClientComponentClient();
-// import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function Details() {
   const router = useRouter();
-  const [initialLoading, setInitialLoading] = useState(true);
+  useOnboardingRedirect();
+
   const [role, setRole] = useState<string>('');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [referralCode, setReferralCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [initError, setInitError] = useState<string | null>(null);
 
   // Seller fields
   const [storeName, setStoreName] = useState('');
@@ -27,53 +28,6 @@ export default function Details() {
   const [specialties, setSpecialties] = useState('');
   const [portfolioUrl, setPortfolioUrl] = useState('');
   const [bundles, setBundles] = useState('');
-
-  // useOnboardingRedirect();
-
-  useEffect(() => {
-    const fetchUserAndRole = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        setInitError('Unable to fetch user session. Please log in.');
-        setInitialLoading(false);
-        return;
-      }
-
-      const { data, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (userError || !data?.role) {
-        setInitError('User role not set. Please go back and select your role.');
-        setInitialLoading(false);
-        router.push('/onboarding/role');
-        return;
-      }
-
-      setRole(data.role);
-      setInitialLoading(false);
-    };
-
-    fetchUserAndRole();
-  }, []);
-
-  if (initialLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-700">Loading your onboarding step…</p>
-      </div>
-    );
-  }
-
-  if (initError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-red-600 font-semibold">{initError}</p>
-      </div>
-    );
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

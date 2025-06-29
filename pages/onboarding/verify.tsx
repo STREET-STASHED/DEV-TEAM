@@ -1,54 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
+
 const supabase = createClientComponentClient();
 
 export default function VerifyPage() {
+  useOnboardingRedirect(); // Handles redirecting if already verified
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      // Use Supabase session-based auth directly
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      if (authError || !authUser) {
-        console.error('Auth error:', authError);
-        router.push('/login');
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('id, role, verified, details_complete')
-        .eq('id', authUser.id)
-        .single();
-
-      if (error || !data) {
-        console.error('Failed to fetch user profile:', error);
-        return;
-      }
-
-      setUser(data);
-
-      if (data.verified && data.details_complete) {
-        const redirectMap: Record<string, string> = {
-          buyer: '/buyer/marketplace',
-          seller: '/seller/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-          admin: '/admin/dashboard',
-        };
-        const path = redirectMap[data.role] || '/';
-        router.replace(path);
-      }
-    };
-
-    fetchUser();
-  }, [router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
@@ -57,8 +20,13 @@ export default function VerifyPage() {
   };
 
   const handleContinue = async () => {
-    if (!user || uploading) return;
     setUploading(true);
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (!user || authError) {
+      alert('Session expired. Please log in again.');
+      router.push('/login');
+      return;
+    }
 
     let uploadedPath: string | null = null;
 
@@ -68,7 +36,6 @@ export default function VerifyPage() {
         .upload(`verify_${user.id}_${Date.now()}`, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
         alert('Document upload failed.');
         setUploading(false);
         return;
@@ -90,14 +57,12 @@ export default function VerifyPage() {
       .select();
 
     if (updateError || !updateData) {
-      console.error('User update error:', updateError);
       alert('Profile update failed.');
       setUploading(false);
       return;
     }
 
     const updatedUser = updateData[0];
-
     const redirectMap: Record<string, string> = {
       buyer: '/buyer/marketplace',
       seller: '/seller/dashboard',
@@ -106,9 +71,7 @@ export default function VerifyPage() {
       admin: '/admin/dashboard',
     };
 
-    const dashboardPath = redirectMap[updatedUser.role] || '/';
-    await supabase.auth.refreshSession();
-    router.replace(dashboardPath);
+    router.replace(redirectMap[updatedUser.role] || '/');
   };
 
   return (

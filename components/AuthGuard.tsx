@@ -15,7 +15,10 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     const checkSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
-      if (!user && pathname !== "/signup") {
+      if (
+        !user &&
+        (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin"))
+      ) {
         router.replace("/signup");
       } else {
         setAuthenticated(true);
