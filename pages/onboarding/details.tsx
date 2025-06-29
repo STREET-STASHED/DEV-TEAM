@@ -133,7 +133,8 @@ export default function Details() {
     //   Cookies.set('user-role', role, { expires: 7, path: '/' });
     // }
     // Ensure Supabase session reflects recent update before redirect
-    await supabase.auth.refreshSession(); // Ensures session reflects recent update
+    await supabase.auth.refreshSession();
+    redirectUserBasedOnProfile();
     setLoading(false);
   };
 
