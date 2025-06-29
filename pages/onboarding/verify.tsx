@@ -20,6 +20,7 @@ export default function VerifyPage() {
       } = await supabase.auth.getUser();
 
       if (!user || error) {
+        console.error('No user or error fetching user:', error);
         router.push('/signup');
         return;
       }
@@ -31,18 +32,27 @@ export default function VerifyPage() {
         .single();
 
       if (profileError || !userProfile) {
+        console.error('Error fetching user profile:', profileError);
         router.push('/signup');
         return;
       }
 
       const { role, verified, details_complete } = userProfile;
 
-      if (!role || !verified || !details_complete) {
+      // If onboarding is not complete, send them to the first step
+      if (!role || !details_complete || !verified) {
         router.push('/onboarding/role');
         return;
       }
 
-      router.push(getDashboardRedirect(role.toLowerCase()));
+      // If onboarding is complete, redirect to role-based dashboard
+      const dashboardPath = getDashboardRedirect(role?.toLowerCase?.() || '');
+      if (!dashboardPath) {
+        console.error('Could not determine dashboard redirect for role:', role);
+        router.push('/signup');
+        return;
+      }
+      router.push(dashboardPath);
     };
 
     verifyAndRedirect().finally(() => setLoading(false));

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const supabase = createClientComponentClient();
 
 export default function Details() {
   const router = useRouter();
-  const { redirectUserBasedOnProfile } = useOnboardingRedirect();
+  useOnboardingRedirect();
 
 
   const [role, setRole] = useState<string>('');
@@ -134,7 +134,7 @@ export default function Details() {
     // }
     // Ensure Supabase session reflects recent update before redirect
     await supabase.auth.refreshSession();
-    redirectUserBasedOnProfile();
+    await router.push('/onboarding/verify');
     setLoading(false);
   };
 

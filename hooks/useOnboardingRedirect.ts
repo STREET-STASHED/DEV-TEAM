@@ -1,75 +1,48 @@
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
-const useOnboardingRedirect = () => {
+export default function useOnboardingRedirect() {
   const router = useRouter();
+  const supabase = createClientComponentClient();
 
-  const redirectUserBasedOnProfile = async () => {
-    const supabase = createClientComponentClient();
-    const { data: { user } } = await supabase.auth.getUser();
+  useEffect(() => {
+    if (!router.isReady) return;
 
-    if (!user) {
-      router.replace('/signup');
-      return;
-    }
+    const isOnboardingPage = router.pathname.startsWith('/onboarding');
+    if (!isOnboardingPage) return;
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('role, details_complete, verification_complete, onboarded')
-      .eq('id', user.id)
-      .maybeSingle();
+    const checkUserOnboarding = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    if (error || !data) {
-      console.error('Failed to fetch user onboarding status:', error);
-      return;
-    }
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role, details_complete, verified')
+        .eq('id', user.id)
+        .single();
 
-    const { role, details_complete, verification_complete } = data;
+      if (!profile) return;
 
-    // Enforce strict onboarding flow on all onboarding pages
-    if (!role) {
-      router.replace('/onboarding/role');
-      return;
-    }
+      const { role, details_complete, verified } = profile;
 
-    if (!details_complete) {
-      router.replace('/onboarding/details');
-      return;
-    }
-
-    if (!verification_complete) {
-      router.replace('/onboarding/verify');
-      return;
-    }
-
-    if (role && details_complete && verification_complete) {
-      // Onboarding complete: redirect to dashboard
-      let targetPath = '/';
-      switch (role) {
-        case 'buyer':
-          targetPath = '/buyer';
-          break;
-        case 'seller':
-          targetPath = '/seller/dashboard';
-          break;
-        case 'stylist':
-          targetPath = '/stylist/dashboard';
-          break;
-        case 'driver':
-          targetPath = '/driver';
-          break;
-        case 'admin':
-          targetPath = '/admin/dashboard';
-          break;
+      // Logs (dev only)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('User:', user);
+        console.log('Profile:', profile);
+        console.log('Routing from:', router.pathname);
       }
 
-      if (router.pathname !== targetPath) {
-        router.replace(targetPath);
+      // Onboarding flow logic
+      if (!role && router.pathname !== '/onboarding/role') {
+        router.replace('/onboarding/role');
+      } else if (role && !details_complete && router.pathname !== '/onboarding/details') {
+        router.replace('/onboarding/details');
+      } else if (role && details_complete && !verified && router.pathname !== '/onboarding/verify') {
+        router.replace('/onboarding/verify');
       }
-    }
-  };
+    };
 
-  return { redirectUserBasedOnProfile };
-};
-
-export default useOnboardingRedirect;
+    checkUserOnboarding();
+  }, [router]);
+}

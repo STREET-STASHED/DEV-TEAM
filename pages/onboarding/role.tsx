@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { getUserRole } from '@/lib/getUserRole';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
+import redirectUserBasedOnProfile from '@/hooks/useOnboardingRedirect';
 
 export default function RolePage() {
   const router = useRouter();
@@ -11,7 +11,6 @@ export default function RolePage() {
   const [initError, setInitError] = React.useState<string | null>(null);
 
   const supabase = createClientComponentClient();
-  const { redirectUserBasedOnProfile } = useOnboardingRedirect();
 
   React.useEffect(() => {
     redirectUserBasedOnProfile();
