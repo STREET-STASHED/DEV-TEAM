@@ -113,10 +113,13 @@ export default function Details() {
       }
     }
 
-    // Update users table for seller and driver, and mark details_complete for all roles
+    // Update users table for all roles
     const { error: updateError } = await supabase
       .from('users')
-      .update(updateData)
+      .update({
+        ...updateData,
+        role, // ensure role is saved
+      })
       .eq('id', user.id);
     if (updateError) {
       console.error('User update error:', updateError.message);

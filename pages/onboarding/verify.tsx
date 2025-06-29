@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
@@ -6,7 +6,9 @@ import useOnboardingRedirect from '../../hooks/useOnboardingRedirect';
 const supabase = createClientComponentClient();
 
 export default function VerifyPage() {
-  useOnboardingRedirect(); // Handles redirecting if already verified
+  useEffect(() => {
+    useOnboardingRedirect(); // Handles redirecting if already verified
+  }, []);
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -63,6 +65,13 @@ export default function VerifyPage() {
     }
 
     const updatedUser = updateData[0];
+
+    if (!updatedUser || !updatedUser.role) {
+      alert('Missing role information. Please contact support.');
+      setUploading(false);
+      return;
+    }
+
     const redirectMap: Record<string, string> = {
       buyer: '/buyer/marketplace',
       seller: '/seller/dashboard',

@@ -14,30 +14,7 @@ export default function RolePage() {
   const { redirectUserBasedOnProfile } = useOnboardingRedirect();
 
   React.useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/'); // redirect to homepage or login
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('role, onboarded')
-        .eq('id', user.id)
-        .single();
-
-      if (data?.role && data?.onboarded) {
-        // User is fully onboarded, redirect to dashboard
-        router.push('/dashboard');
-      } else if (data?.role && !data?.onboarded) {
-        // User has a role but not completed onboarding
-        router.push('/onboarding/details');
-      }
-      // Else: no role – allow to continue with role selection
-    };
-
-    checkUser();
+    redirectUserBasedOnProfile();
   }, []);
 
   if (initError) {
