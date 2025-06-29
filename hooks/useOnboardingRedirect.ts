@@ -26,14 +26,30 @@ const useOnboardingRedirect = () => {
 
     const { role, details_complete, verification_complete, onboarded } = data;
 
-    if (!role && router.pathname !== '/onboarding/role') {
-      router.replace('/onboarding/role');
-    } else if (!details_complete && router.pathname !== '/onboarding/details') {
-      router.replace('/onboarding/details');
-    } else if (!verification_complete && router.pathname !== '/onboarding/verify') {
-      router.replace('/onboarding/verify');
-    } else if (onboarded) {
-      let targetPath = '/onboarding/role'; // fallback path if role is missing
+    // Step-by-step enforcement
+    if (!role) {
+      if (router.pathname !== '/onboarding/role') {
+        router.replace('/onboarding/role');
+      }
+      return;
+    }
+
+    if (!details_complete) {
+      if (router.pathname !== '/onboarding/details') {
+        router.replace('/onboarding/details');
+      }
+      return;
+    }
+
+    if (!verification_complete) {
+      if (router.pathname !== '/onboarding/verify') {
+        router.replace('/onboarding/verify');
+      }
+      return;
+    }
+
+    if (onboarded) {
+      let targetPath = '/onboarding/role'; // fallback
       switch (role) {
         case 'buyer':
           targetPath = '/buyer';
@@ -51,6 +67,7 @@ const useOnboardingRedirect = () => {
           targetPath = '/admin/dashboard';
           break;
       }
+
       if (router.pathname !== targetPath) {
         router.replace(targetPath);
       }
