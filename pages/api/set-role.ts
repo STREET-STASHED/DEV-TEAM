@@ -27,13 +27,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Role not provided' }, { status: 400 });
     }
 
-    const { error: updateError } = await supabase
-      .from('profiles')
+    const allowedRoles = ['buyer', 'seller', 'stylist', 'driver'];
+    if (!allowedRoles.includes(role)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+    }
+
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
       .update({
         role,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', user.id);
+      .eq('id', user.id)
+      .select()
+      .single();
 
     if (updateError) {
       return NextResponse.json({ error: `Failed to update role: ${updateError.message}` }, { status: 500 });

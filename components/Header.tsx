@@ -21,12 +21,17 @@ const Header = () => {
       const currentUser = data?.user;
       if (currentUser) {
         setUser(currentUser);
-        const { data: roleData } = await supabase
+        const { data: userData } = await supabase
           .from('users')
-          .select('role')
+          .select('role, details_complete, verified')
           .eq('id', currentUser.id)
           .single();
-        setRole(roleData?.role || null);
+        setRole(userData?.role || null);
+        setUser((prev: any) => ({
+          ...prev,
+          details_complete: userData?.details_complete || false,
+          verified: userData?.verified || false,
+        }));
       } else {
         console.warn('No user found or Supabase error:', error);
       }
@@ -39,6 +44,8 @@ const Header = () => {
   const handleJoinClick = () => {
     if (!user) return router.push('/signup');
     if (!role) return router.push('/onboarding/role');
+    if (role && !user.details_complete) return router.push('/onboarding/details');
+    if (role && user.details_complete && !user.verified) return router.push('/onboarding/verify');
     if (role === 'buyer') return router.push('/buyer/marketplace');
     router.push(`/${role}/dashboard`);
   };

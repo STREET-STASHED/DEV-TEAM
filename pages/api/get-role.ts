@@ -1,43 +1,43 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import supabaseAdmin from '../../lib/supabaseAdmin';
+import supabaseAdmin from '@/lib/supabaseAdmin';
+
+interface UserRoleData {
+  role: string | null;
+  details_complete: boolean;
+  verified: boolean;
+  has_completed_onboarding: boolean;
+  onboarded: boolean;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed. Use GET.' });
-  }
+  const { user } = req.body;
 
-  const token = req.headers.authorization?.replace('Bearer ', '') || req.cookies['sb-access-token'];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Unauthorized: no token.' });
-  }
-
-  const {
-    data: { user },
-    error: authError
-  } = await supabaseAdmin.auth.getUser(token);
-
-  if (authError || !user) {
-    return res.status(401).json({ error: 'Unauthorized: failed to get user.' });
+  if (!user || !user.id) {
+    return res.status(400).json({ error: 'Missing user ID' });
   }
 
   const { data, error } = await supabaseAdmin
     .from('users')
-    .select('role, details_complete, verified')
+    .select('role, details_complete, verified, has_completed_onboarding, onboarded')
     .eq('id', user.id)
-    .maybeSingle<{ role: string; details_complete: boolean; verified: boolean }>();
+    .maybeSingle<UserRoleData>();
 
   if (error) {
-    console.error('Error fetching user role:', error.message);
-    return res.status(500).json({ error: 'Failed to retrieve user role.' });
+    console.error('Error fetching user role:', error);
+    return res.status(500).json({ error: 'Error fetching user role' });
   }
 
-  if (!data) {
-    console.warn('No user record found for ID:', user.id);
-    return res.status(404).json({ error: 'User not found.' });
-  }
+  const role = data?.role ?? null;
+  const details_complete = data?.details_complete ?? false;
+  const verified = data?.verified ?? false;
+  const has_completed_onboarding = data?.has_completed_onboarding ?? false;
+  const onboarded = data?.onboarded ?? false;
 
-  const { role, details_complete, verified } = data;
-
-  return res.status(200).json({ role, details_complete, verified });
+  return res.status(200).json({
+    role,
+    details_complete,
+    verified,
+    has_completed_onboarding,
+    onboarded,
+  });
 }

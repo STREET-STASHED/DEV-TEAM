@@ -1,127 +1,55 @@
-import { useEffect, useState } from 'react';
-import supabase from '../../lib/supabaseClient';
-import AuthGuard from '../../components/AuthGuard';
+import React, { useEffect, useState } from 'react';
+// import DeliveryList from '@/components/DeliveryList';
+// import EarningsChart from '@/components/EarningsChart';
+// import RouteMap from '@/components/RouteMap';
+// import { fetchDriverData } from '@/services/api';
 
-interface Delivery {
-  id: string;
-  order_id: string;
-  driver_id: string;
-  status: string;
-  destination: string;
-  pickup_location: string;
-  scheduled_time: string;
-  pay_estimate?: number;
-}
+// Placeholder components and API function
+const DeliveryList = ({ deliveries }: { deliveries: any[] }) => <div>Delivery List Placeholder</div>;
+const EarningsChart = ({ earnings }: { earnings: any[] }) => <div>Earnings Chart Placeholder</div>;
+const RouteMap = ({ route }: { route: any }) => <div>Route Map Placeholder</div>;
+const fetchDriverData = async () => ({
+  deliveries: [],
+  earnings: [],
+  route: null,
+});
 
-const DriverDashboard = ({ userId }: { userId: string }) => {
-  const [assignedDeliveries, setAssignedDeliveries] = useState<Delivery[]>([]);
-  const [availableDeliveries, setAvailableDeliveries] = useState<Delivery[]>([]);
-  const [pastDeliveries, setPastDeliveries] = useState<Delivery[]>([]);
+const DriverDashboard = () => {
+  const [deliveries, setDeliveries] = useState([]);
+  const [earnings, setEarnings] = useState([]);
+  const [route, setRoute] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchDriverData = async () => {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user?.id) return;
-
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('has_completed_onboarding')
-        .eq('id', user.id)
-        .single();
-
-      if (userData?.has_completed_onboarding === false) {
-        window.location.href = '/onboarding/role';
-        return;
+    const loadDriverData = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchDriverData();
+        setDeliveries(data.deliveries);
+        setEarnings(data.earnings);
+        setRoute(data.route);
+      } catch (err) {
+        setError('Failed to load driver data.');
+      } finally {
+        setLoading(false);
       }
-
-      const commonFields = 'id, order_id, driver_id, status, destination, pickup_location, scheduled_time, pay_estimate';
-
-      const { data: assigned } = await supabase
-        .from('deliveries')
-        .select(commonFields)
-        .eq('driver_id', user.id)
-        .in('status', ['assigned', 'accepted'])
-        .order('scheduled_time', { ascending: true })
-        .returns<Delivery[]>();
-
-      const { data: available } = await supabase
-        .from('deliveries')
-        .select(commonFields)
-        .is('driver_id', null)
-        .eq('status', 'open')
-        .order('scheduled_time', { ascending: true })
-        .returns<Delivery[]>();
-
-      const { data: past } = await supabase
-        .from('deliveries')
-        .select(commonFields)
-        .eq('driver_id', user.id)
-        .eq('status', 'completed')
-        .order('scheduled_time', { ascending: false })
-        .returns<Delivery[]>();
-
-      if (assigned) setAssignedDeliveries(assigned);
-      if (available) setAvailableDeliveries(available);
-      if (past) setPastDeliveries(past);
     };
 
-    fetchDriverData();
+    loadDriverData();
   }, []);
 
+  if (loading) return <div className="p-4">Loading dashboard...</div>;
+  if (error) return <div className="p-4 text-red-500">{error}</div>;
+
   return (
-    <AuthGuard requiredRole="driver">
-      <div>
-        <h1>Driver Dashboard</h1>
-        <p>User ID: {userId}</p>
-
-        <section>
-          <h2>Assigned Deliveries</h2>
-          {assignedDeliveries.length > 0 ? (
-            <ul>
-              {assignedDeliveries.map(delivery => (
-                <li key={delivery.id}>
-                  Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No assigned deliveries.</p>
-          )}
-        </section>
-
-        <section>
-          <h2>Available Deliveries</h2>
-          {availableDeliveries.length > 0 ? (
-            <ul>
-              {availableDeliveries.map(delivery => (
-                <li key={delivery.id}>
-                  Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No available deliveries.</p>
-          )}
-        </section>
-
-        <section>
-          <h2>Past Deliveries</h2>
-          {pastDeliveries.length > 0 ? (
-            <ul>
-              {pastDeliveries.map(delivery => (
-                <li key={delivery.id}>
-                  Order ID: {delivery.order_id} | Destination: {delivery.destination} | Pickup: {delivery.pickup_location}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No past deliveries.</p>
-          )}
-        </section>
-      </div>
-    </AuthGuard>
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">Driver Dashboard</h1>
+      <DeliveryList deliveries={deliveries} />
+      <EarningsChart earnings={earnings} />
+      <RouteMap route={route} />
+    </div>
   );
 };
 
 export default DriverDashboard;
-  

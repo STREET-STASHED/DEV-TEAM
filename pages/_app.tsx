@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 import type { Session } from '@supabase/auth-helpers-react';
 
 type MyAppProps = AppProps & {
@@ -19,7 +19,7 @@ type MyAppProps = AppProps & {
 };
 
 export default function MyApp({ Component, pageProps }: MyAppProps) {
-  const [supabaseClient] = React.useState(() => createBrowserSupabaseClient());
+  const [supabaseClient] = React.useState(() => createPagesBrowserClient());
 
   const router = useRouter();
 
@@ -47,6 +47,11 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
           .select('role, details_complete')
           .eq('id', session.user.id)
           .single();
+
+        if (!userProfile) {
+          console.warn('User profile not found. Staying on current page.');
+          return;
+        }
 
         const role = userProfile?.role;
         const detailsComplete = userProfile?.details_complete;
@@ -98,10 +103,6 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
     router.pathname.startsWith('/buyer') ||
     router.pathname.startsWith('/stores');
 
-  const NoAuthProvider = ({ children }: { children: React.ReactNode }) => {
-    return <>{children}</>;
-  };
-
   const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
 
   return (
@@ -111,17 +112,15 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
     >
       <CartProvider>
         <Elements stripe={stripePromise}>
-          <NoAuthProvider>
-            <div className="min-h-screen text-white font-urbanist bg-black bg-[url('/background.png')] bg-cover bg-center bg-fixed">
-              <Header />
-              <div style={{ paddingTop: 80 }}>
-                <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-                  <Component {...pageProps} />
-                </main>
-              </div>
-              {isBuyerFacing && <CartDrawer />}
+          <div className="min-h-screen text-white font-urbanist bg-black bg-[url('/background.png')] bg-cover bg-center bg-fixed">
+            <Header />
+            <div style={{ paddingTop: 80 }}>
+              <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+                <Component {...pageProps} />
+              </main>
             </div>
-          </NoAuthProvider>
+            {isBuyerFacing && <CartDrawer />}
+          </div>
         </Elements>
       </CartProvider>
     </SessionContextProvider>

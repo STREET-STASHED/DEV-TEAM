@@ -65,19 +65,22 @@ export default function SignUpPage() {
         }
 
         if (data?.user) {
-          // Initialize profile row for the new user
+          // Insert required user record after auth signup
           const { error: insertError } = await supabase
             .from("users")
-            .insert([{
-              id: data.user.id,
-              email: data.user.email,
-              role: null,
-              details_complete: false,
-              verified: false,
-              has_completed_onboarding: false,
-              verification_complete: false,
-              onboarded: false
-            }]);
+            .insert([
+              {
+                id: data.user.id,
+                email: data.user.email,
+                role: null,
+                verified: false,
+                onboarded: false,
+                details_complete: false,
+                has_completed_onboarding: false,
+                verification_complete: false
+              }
+            ]);
+
           if (insertError) {
             console.error("Failed to create user profile:", insertError.message);
             setError("Signup succeeded but failed to initialize your profile. Please contact support.");

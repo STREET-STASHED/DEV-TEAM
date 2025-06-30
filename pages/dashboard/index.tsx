@@ -51,6 +51,7 @@ const Dashboard: FC = () => {
 
         if (userData.role && roleRedirectMap[userData.role]) {
           router.push(roleRedirectMap[userData.role]);
+          return;
         } else {
           setError('Unrecognized user role. Please contact support.');
         }
