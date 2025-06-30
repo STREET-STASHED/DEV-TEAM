@@ -1,8 +1,9 @@
-"use client";
+ "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 export default function SignUpPage() {
   const [email, setEmail] = useState("");
@@ -34,7 +35,8 @@ export default function SignUpPage() {
         if (!userProfile?.role || !userProfile?.details_complete || !userProfile?.verified) {
           router.push("/onboarding/role");
         } else {
-          router.push("/dashboard");
+          const dashboardPath = getDashboardRedirect(userProfile.role?.toLowerCase() || "");
+          router.push(dashboardPath);
         }
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password });
@@ -42,19 +44,24 @@ export default function SignUpPage() {
         if (error) throw error;
 
         if (data?.user) {
-          await supabase.from("users").upsert({
-            id: data.user.id,
-            email: data.user.email,
-            // role is intentionally omitted to avoid constraint errors
-            onboarded: false,
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, 500));
-          router.push("/onboarding/role");
-          return;
+          // Initialize profile row for the new user
+          const { error: insertError } = await supabase
+            .from("users")
+            .insert([{
+              id: data.user.id,
+              email: data.user.email,
+              role: null,
+              details_complete: false,
+              verified: false
+            }]);
+          if (insertError) {
+            console.error("Failed to create user profile:", insertError.message);
+            setError("Signup succeeded but failed to initialize your profile. Please contact support.");
+            setLoading(false);
+            return;
+          }
         }
-
-        console.log("Redirecting to /onboarding/role");
+        // Redirect all new accounts into onboarding
         router.push("/onboarding/role");
         return;
       }

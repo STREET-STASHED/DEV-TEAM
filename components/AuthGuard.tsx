@@ -17,18 +17,23 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
   const supabase = createClientComponentClient();
 
   useEffect(() => {
+    // Only protect dashboard/admin routes; let all other routes pass through
+    if (!pathname?.startsWith('/dashboard') && !pathname?.startsWith('/admin')) {
+      setAuthenticated(true);
+      setLoading(false);
+      return;
+    }
+
     const checkSession = async () => {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
-          router.replace("/signup");
-        }
+        router.replace("/signup");
         setLoading(false);
         return;
       }
 
-      if (requiredRole && (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin"))) {
+      if (requiredRole) {
         const { data: userData } = await supabase
           .from("users")
           .select("role")

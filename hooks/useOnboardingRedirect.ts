@@ -6,18 +6,24 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 export default function useOnboardingRedirect() {
   const router = useRouter();
+  const { isReady, pathname, replace } = router;
   const supabase = createClientComponentClient();
 
   useEffect(() => {
-    if (!router.isReady) return;
-    // Skip redirect logic on the final verify step
-    if (router.pathname === '/onboarding/verify') return;
+    if (!isReady) return;
+    // Only protect the first two onboarding steps: role and details
+    if (
+      !pathname.startsWith('/onboarding/role') &&
+      !pathname.startsWith('/onboarding/details')
+    ) {
+      return;
+    }
 
     const checkOnboarding = async () => {
       // Ensure the user is logged in
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        router.replace("/signup");
+        replace("/signup");
         return;
       }
 
@@ -32,19 +38,17 @@ export default function useOnboardingRedirect() {
       }
 
       const { role, details_complete, verified } = profile;
-      const current = router.pathname;
+      const current = pathname;
 
       // Enforce onboarding flow
       if (!role && current !== "/onboarding/role") {
-        router.replace("/onboarding/role");
+        replace("/onboarding/role");
       } else if (role && !details_complete && current !== "/onboarding/details") {
-        router.replace("/onboarding/details");
-      } else if (role && details_complete && !verified && current !== "/onboarding/verify") {
-        router.replace("/onboarding/verify");
+        replace("/onboarding/details");
       }
-      // All steps complete → no redirect (manual dashboard push should handle final)
+      // All steps complete → no redirect (dashboard handling takes over)
     };
 
     checkOnboarding();
-  }, [router]);
+  }, [isReady, pathname]);
 }
