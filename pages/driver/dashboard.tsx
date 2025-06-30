@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import supabase from '../../lib/supabaseClient';
-import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 import AuthGuard from '../../components/AuthGuard';
 
 interface Delivery {
@@ -15,7 +14,6 @@ interface Delivery {
 }
 
 const DriverDashboard = ({ userId }: { userId: string }) => {
-  useOnboardingRedirect();
   const [assignedDeliveries, setAssignedDeliveries] = useState<Delivery[]>([]);
   const [availableDeliveries, setAvailableDeliveries] = useState<Delivery[]>([]);
   const [pastDeliveries, setPastDeliveries] = useState<Delivery[]>([]);
@@ -126,3 +124,4 @@ const DriverDashboard = ({ userId }: { userId: string }) => {
 };
 
 export default DriverDashboard;
+  
