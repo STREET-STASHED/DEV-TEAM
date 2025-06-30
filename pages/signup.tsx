@@ -1,7 +1,7 @@
- "use client";
+"use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
@@ -32,6 +32,12 @@ export default function SignUpPage() {
           .eq("id", data.user.id)
           .single();
 
+        if (!userProfile) {
+          setError("Something went wrong loading your profile.");
+          setLoading(false);
+          return;
+        }
+
         if (!userProfile?.role || !userProfile?.details_complete || !userProfile?.verified) {
           router.push("/onboarding/role");
         } else {
@@ -42,6 +48,12 @@ export default function SignUpPage() {
         const { data, error } = await supabase.auth.signUp({ email, password });
 
         if (error) throw error;
+
+        if (!data?.user) {
+          setError("Signup failed to create user.");
+          setLoading(false);
+          return;
+        }
 
         if (data?.user) {
           // Initialize profile row for the new user

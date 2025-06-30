@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useRouter } from "next/router";
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -13,19 +13,15 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
 
   useEffect(() => {
-    // Only protect dashboard/admin routes; let all other routes pass through
-    if (!pathname?.startsWith('/dashboard') && !pathname?.startsWith('/admin')) {
-      setAuthenticated(true);
-      setLoading(false);
-      return;
-    }
-
     const checkSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const user = session?.user;
 
       if (!user) {
         router.replace("/signup");
@@ -52,7 +48,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
     };
 
     checkSession();
-  }, [pathname, requiredRole]);
+  }, [requiredRole]);
 
   if (loading) return null;
 

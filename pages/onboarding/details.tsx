@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
-const supabase = createClientComponentClient();
+const supabase = createBrowserSupabaseClient();
 
 export default function Details() {
   const router = useRouter();
@@ -14,10 +14,13 @@ export default function Details() {
   useEffect(() => {
     const fetchRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        if (user.user_metadata?.role) {
-          setRole(user.user_metadata.role.toLowerCase().trim());
-        }
+      if (!user) {
+        alert("Session expired. Please log in again.");
+        router.push("/signup");
+        return;
+      }
+      if (user.user_metadata?.role) {
+        setRole(user.user_metadata.role.toLowerCase().trim());
       }
     };
     fetchRole();
@@ -135,11 +138,18 @@ export default function Details() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black bg-opacity-50 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black bg-opacity-50 px-4 py-8">
+      <button
+        type="button"
+        onClick={() => router.push("/onboarding/role")}
+        className="mb-4 text-sm text-gray-300 hover:text-white underline"
+      >
+        ← Back to Role Selection
+      </button>
       <h1 className="text-2xl font-bold text-center text-white mb-6">Complete Your Details</h1>
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-900 text-white p-8 rounded-lg shadow-lg w-full max-w-md space-y-4"
+        className="bg-gray-900 text-white p-8 rounded-lg shadow-lg w-full max-w-xl space-y-6"
         data-testid="details-form"
       >
         <input
@@ -171,6 +181,7 @@ export default function Details() {
 
         {(role.toLowerCase().trim() === 'seller') && (
           <>
+            <h2 className="text-lg font-semibold mt-4">Store Information</h2>
             <input
               type="text"
               placeholder="Store Name"
@@ -193,6 +204,7 @@ export default function Details() {
 
         {(role.toLowerCase().trim() === 'driver') && (
           <>
+            <h2 className="text-lg font-semibold mt-4">Driver Information</h2>
             <input
               type="text"
               placeholder="Vehicle Type"
@@ -225,6 +237,7 @@ export default function Details() {
 
         {(role.toLowerCase().trim() === 'stylist') && (
           <>
+            <h2 className="text-lg font-semibold mt-4">Stylist Information</h2>
             <input
               type="text"
               placeholder="Specialties"

@@ -2,14 +2,14 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import useOnboardingRedirect from "@/hooks/useOnboardingRedirect";
 
 export default function RolePage() {
   const router = useRouter();
   useOnboardingRedirect();   // 🔥 just call the hook—no destructure
 
-  const supabase = createClientComponentClient();
+  const supabase = createBrowserSupabaseClient();
   const [role, setRole] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,32 +47,52 @@ export default function RolePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md bg-black text-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-2xl font-bold text-center">Choose Your Role</h1>
-        <label className="block">
-          <span className="text-gray-700">Select Your Role</span>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            required
-            className="mt-2 block w-full p-3 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="" disabled>
-              -- Choose a role --
-            </option>
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
-            <option value="driver">Driver</option>
-            <option value="stylist">Stylist</option>
-          </select>
-        </label>
-        {error && <p className="text-red-400">{error}</p>}
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 w-full max-w-md bg-black text-white p-8 rounded-lg shadow-lg"
+      >
+        <h1 className="text-2xl font-bold text-center mb-4">Choose Your Role</h1>
+
+        <div className="grid gap-4">
+          {["buyer", "seller", "driver", "stylist"].map((r) => (
+            <button
+              type="button"
+              key={r}
+              onClick={() => setRole(r)}
+              className={`py-3 rounded-lg font-semibold border transition-colors ${
+                role === r
+                  ? "bg-yellow-500 text-black border-yellow-600"
+                  : "bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
+              }`}
+              aria-label={`Select ${r} role`}
+            >
+              {r.charAt(0).toUpperCase() + r.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        {error && (
+          <p className="text-red-400 animate-pulse text-center">{error}</p>
+        )}
+
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-3 rounded-lg text-white font-semibold ${loading ? "bg-gray-600" : "bg-yellow-500 hover:bg-yellow-600"}`}
+          className={`w-full py-3 rounded-lg text-white font-semibold ${
+            loading
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-yellow-500 hover:bg-yellow-600"
+          }`}
         >
           {loading ? "Saving…" : "Continue"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => router.push("/signup")}
+          className="w-full py-2 mt-2 text-sm text-gray-400 hover:text-white underline"
+        >
+          ← Back to Signup
         </button>
       </form>
     </div>
