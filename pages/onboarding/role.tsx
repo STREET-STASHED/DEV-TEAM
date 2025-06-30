@@ -41,6 +41,10 @@ export default function RolePage() {
       return;
     }
 
+    await supabase.auth.updateUser({
+      data: { role: cleanRole }
+    });
+
     // go to next step; hook will pick up details_complete=false
     router.push("/onboarding/details");
   };

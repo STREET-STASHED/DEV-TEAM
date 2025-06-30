@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 export default function SignUpPage() {
@@ -18,7 +18,7 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClientComponentClient();
+    const supabase = createBrowserSupabaseClient();
 
     try {
       if (isLogin) {
@@ -72,10 +72,9 @@ export default function SignUpPage() {
             setLoading(false);
             return;
           }
+          router.push("/onboarding/role");
+          return;
         }
-        // Redirect all new accounts into onboarding
-        router.push("/onboarding/role");
-        return;
       }
     } catch (err: any) {
       setError(err.message || "Something went wrong");

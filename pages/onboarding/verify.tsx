@@ -3,12 +3,13 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
+import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function VerifyPage() {
   const router = useRouter();
   const supabase = createBrowserSupabaseClient();
 
-  // ← NO call to useOnboardingRedirect()
+  useOnboardingRedirect();
 
   const [uploading, setUploading] = useState(false);
   const [error, setError]       = useState<string | null>(null);
@@ -66,6 +67,14 @@ export default function VerifyPage() {
       setError(updErr?.message || 'Could not update profile.');
       return setUploading(false);
     }
+
+    await supabase.auth.updateUser({
+      data: {
+        full_name: fullName.trim(),
+        license_number: licenseNumber.trim(),
+        verified: true,
+      },
+    });
 
     // — refresh & re-fetch role
     await supabase.auth.refreshSession();

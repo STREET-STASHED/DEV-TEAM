@@ -19,10 +19,23 @@ export default function Details() {
         router.push("/signup");
         return;
       }
-      if (user.user_metadata?.role) {
-        setRole(user.user_metadata.role.toLowerCase().trim());
+
+      let finalRole = user.user_metadata?.role;
+
+      if (!finalRole) {
+        const { data: profile } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+        finalRole = profile?.role;
+      }
+
+      if (finalRole) {
+        setRole(finalRole.toLowerCase().trim());
       }
     };
+
     fetchRole();
   }, []);
   const [fullName, setFullName] = useState('');
@@ -126,6 +139,15 @@ export default function Details() {
       setLoading(false);
       return;
     }
+
+    await supabase.auth.updateUser({
+      data: {
+        role: normalizedRole,
+        phone: phone.trim(),
+        full_name: fullName.trim(),
+        referral_code: referralCode.trim()
+      }
+    });
 
     console.log('Details form submitted — redirecting to verification step...');
     // if (role) {
