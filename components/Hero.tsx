@@ -30,15 +30,17 @@ const Hero = () => {
           Your all-access pass to streetwear, stylists, and exclusive drops — delivered 24/7.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
-          <Link href="/buyer/marketplace">
-            <button className="bg-white text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-gray-200 transition">
-              🛍️ Start Shopping
-            </button>
+          <Link
+            href="/buyer/marketplace"
+            className="bg-white text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-gray-200 transition text-center"
+          >
+            🛍️ Start Shopping
           </Link>
-          <Link href="/signup">
-            <button className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition">
-              ✍️ Join the Platform
-            </button>
+          <Link
+            href="/signup"
+            className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
+          >
+            ✍️ Join the Platform
           </Link>
         </div>
       </div>

@@ -13,21 +13,19 @@ export default function WelcomePage() {
         Shop the drip or join the movement — sell, style, or deliver.
       </p>
       <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-10">
-        <Link href="/buyer/marketplace" passHref>
-          <a
-            aria-label="Start shopping for streetwear"
-            className="bg-white text-black font-semibold py-4 px-8 rounded hover:bg-gray-200 w-full sm:w-auto hover:scale-105 transition-transform"
-          >
-            🛍️ Start Shopping
-          </a>
+        <Link
+          href="/buyer/marketplace"
+          aria-label="Start shopping for streetwear"
+          className="bg-white text-black font-semibold py-4 px-8 rounded hover:bg-gray-200 w-full sm:w-auto hover:scale-105 transition-transform"
+        >
+          🛍️ Start Shopping
         </Link>
-        <Link href="/signup" passHref>
-          <a
-            aria-label="Join the StreetStashed platform"
-            className="border border-white text-white font-semibold py-4 px-8 rounded hover:bg-white hover:text-black w-full sm:w-auto hover:scale-105 transition-transform"
-          >
-            ✍️ Join the Platform
-          </a>
+        <Link
+          href="/signup"
+          aria-label="Join the StreetStashed platform"
+          className="border border-white text-white font-semibold py-4 px-8 rounded hover:bg-white hover:text-black w-full sm:w-auto hover:scale-105 transition-transform"
+        >
+          ✍️ Join the Platform
         </Link>
       </div>
     </div>

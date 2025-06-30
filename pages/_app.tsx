@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 import type { Session } from '@supabase/auth-helpers-react';
 
 type MyAppProps = AppProps & {
@@ -19,6 +19,8 @@ type MyAppProps = AppProps & {
 };
 
 export default function MyApp({ Component, pageProps }: MyAppProps) {
+  const [supabaseClient] = React.useState(() => createPagesBrowserClient());
+
   const router = useRouter();
 
   const session = useSession();
@@ -26,39 +28,54 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   useEffect(() => {
     if (!router.isReady || typeof session === 'undefined') return;
 
+    console.log("🔥 Routing Check Triggered");
+    console.log("router.pathname:", router.pathname);
+    console.log("session.user:", session?.user);
+
     const runRedirectLogic = async () => {
+      if (!supabaseClient) return;
+      const supabase = supabaseClient;
+
       const unprotected = ['/', '/welcome', '/signup'];
       const onboarding = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
       const currentPath = router.pathname;
 
       if (!session?.user && !unprotected.includes(currentPath)) {
-        router.push('/welcome');
+        console.log("❌ No session.user — redirecting to /welcome");
+        await router.push('/welcome');
         return;
       }
 
       if (session?.user) {
-        const supabase = createBrowserSupabaseClient();
         const { data: userProfile } = await supabase
           .from('users')
           .select('role, details_complete')
           .eq('id', session.user.id)
           .single();
 
+        console.log("✅ Fetched userProfile:", userProfile);
+
         const role = userProfile?.role;
         const detailsComplete = userProfile?.details_complete;
 
         if (!role && !onboarding.includes(currentPath)) {
-          router.push('/onboarding/role');
+          console.log("➡️ Redirecting to /onboarding/role");
+          await router.push('/onboarding/role');
+          return;
         } else if (role && !detailsComplete && !onboarding.includes(currentPath)) {
-          router.push('/onboarding/details');
+          console.log("➡️ Redirecting to /onboarding/details");
+          await router.push('/onboarding/details');
+          return;
+        } else if (role && detailsComplete && onboarding.includes(currentPath)) {
+          console.log("✅ Onboarding complete, redirecting to dashboard");
+          await router.push(`/${role}/dashboard`);
+          return;
         }
       }
     };
 
     runRedirectLogic();
-  }, [router, session]);
-
-  const [supabaseClient] = React.useState(() => createBrowserSupabaseClient());
+  }, [router, session, supabaseClient]);
 
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const stripePromise = stripeKey ? loadStripe(stripeKey) : null;

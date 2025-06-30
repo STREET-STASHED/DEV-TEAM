@@ -43,7 +43,9 @@ const ProductDetail: React.FC = () => {
     return (
       <div style={{ padding: 20 }}>
         <h1>Product Not Found</h1>
-        <Link href="/stores">← Back to Stores</Link>
+        <Link href="/stores" legacyBehavior>
+          <a>← Back to Stores</a>
+        </Link>
       </div>
     )
   }

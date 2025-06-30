@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 export default function SignUpPage() {
@@ -18,7 +18,7 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createBrowserSupabaseClient();
+    const supabase = createPagesBrowserClient();
 
     try {
       if (isLogin) {
@@ -45,7 +45,13 @@ export default function SignUpPage() {
           router.push(dashboardPath);
         }
       } else {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${location.origin}/onboarding/role`,
+          },
+        });
 
         if (error) throw error;
 

@@ -46,7 +46,9 @@ const BuyerOrderConfirmation: React.FC = () => {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <h1>Order Not Found</h1>
-        <Link href="/buyer/orders">← Back to Orders</Link>
+        <Link href="/buyer/orders" legacyBehavior>
+          <a>← Back to Orders</a>
+        </Link>
       </div>
     );
   }
@@ -67,31 +69,35 @@ const BuyerOrderConfirmation: React.FC = () => {
         Placed on {new Date(order.created_at).toLocaleString()}
       </p>
       <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-        <Link href="/buyer/orders">
-          <button style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#FFD700',
-            color: '#000',
-            fontWeight: 'bold',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}>
-            View Orders
-          </button>
+        <Link href="/buyer/orders" legacyBehavior>
+          <a>
+            <button style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: '#FFD700',
+              color: '#000',
+              fontWeight: 'bold',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}>
+              View Orders
+            </button>
+          </a>
         </Link>
-        <Link href="/stores">
-          <button style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: 'transparent',
-            color: '#FFD700',
-            fontWeight: 'bold',
-            border: '2px solid #FFD700',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}>
-            Continue Shopping
-          </button>
+        <Link href="/stores" legacyBehavior>
+          <a>
+            <button style={{
+              padding: '0.75rem 1.5rem',
+              backgroundColor: 'transparent',
+              color: '#FFD700',
+              fontWeight: 'bold',
+              border: '2px solid #FFD700',
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}>
+              Continue Shopping
+            </button>
+          </a>
         </Link>
       </div>
     </div>

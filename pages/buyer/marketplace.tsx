@@ -53,8 +53,11 @@ export default function Marketplace() {
       <div className="flex flex-wrap gap-8">
         {stores.map((store) => (
           <div key={store.id} className="border border-gray-800 rounded-2xl p-6 w-[300px] bg-[#fafbfc]">
-            <Link href={`/stores/${store.id}`}>
-              <h2 className="text-lg font-semibold text-blue-500 cursor-pointer">{store.name}</h2>
+            <Link
+              href={`/stores/${store.id}`}
+              className="text-lg font-semibold text-blue-500 cursor-pointer"
+            >
+              {store.name}
             </Link>
             <span className="text-sm text-gray-500">{store.category}</span>
             <div className="flex gap-4 mt-4">

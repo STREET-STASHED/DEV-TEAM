@@ -34,25 +34,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <div className="product-card border p-4 rounded shadow hover:shadow-lg transition-transform transform hover:-translate-y-1 bg-white">
-      <Link href={`/products/${product.id}`}>
-        <a>
-          {product.image && (
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full h-48 object-cover mb-4 rounded"
-            />
-          )}
-          <h3 className="text-lg font-semibold">{product.name}</h3>
-          {hasDiscount ? (
-            <p className="text-gray-700 mb-2">
-              <span className="line-through text-sm mr-2">${originalPrice.toFixed(2)}</span>
-              <span className="text-red-600 font-bold">${product.price.toFixed(2)}</span>
-            </p>
-          ) : (
-            <p className="text-gray-700 mb-2">${product.price.toFixed(2)}</p>
-          )}
-        </a>
+      <Link
+        href={`/products/${product.id}`}
+        className="block"
+      >
+        {product.image && (
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-48 object-cover mb-4 rounded"
+          />
+        )}
+        <h3 className="text-lg font-semibold">{product.name}</h3>
+        {hasDiscount ? (
+          <p className="text-gray-700 mb-2">
+            <span className="line-through text-sm mr-2">${originalPrice.toFixed(2)}</span>
+            <span className="text-red-600 font-bold">${product.price.toFixed(2)}</span>
+          </p>
+        ) : (
+          <p className="text-gray-700 mb-2">${product.price.toFixed(2)}</p>
+        )}
       </Link>
       {isOutOfStock ? (
         <button

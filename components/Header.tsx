@@ -56,7 +56,7 @@ const Header = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-3 relative">
           {/* Logo & Brand */}
           <div className="flex items-center gap-4">
-            <Link href="/">
+            <Link href="/" className="rounded-full border-4 border-yellow-400 shadow-xl bg-black cursor-pointer">
               <Image
                 src="/logo.png"
                 alt="StreetStashed Logo"
@@ -74,21 +74,11 @@ const Header = () => {
           </div>
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-6 font-bold nav-links text-base md:text-lg">
-            <Link href="/" passHref>
-              <span className="cursor-pointer hover:text-yellow-400 transition">Home</span>
-            </Link>
-            <Link href="/buyer/marketplace" passHref>
-              <span className="cursor-pointer hover:text-yellow-400 transition">Marketplace</span>
-            </Link>
-            <Link href="/stores" passHref>
-              <span className="cursor-pointer hover:text-yellow-400 transition">Stores</span>
-            </Link>
-            <Link href="/stylists" passHref>
-              <span className="cursor-pointer hover:text-yellow-400 transition">Stylists</span>
-            </Link>
-            <Link href="/track-order" passHref>
-              <span className="cursor-pointer hover:text-yellow-400 transition">Track Order</span>
-            </Link>
+            <Link href="/" className="cursor-pointer hover:text-yellow-400 transition">Home</Link>
+            <Link href="/buyer/marketplace" className="cursor-pointer hover:text-yellow-400 transition">Marketplace</Link>
+            <Link href="/stores" className="cursor-pointer hover:text-yellow-400 transition">Stores</Link>
+            <Link href="/stylists" className="cursor-pointer hover:text-yellow-400 transition">Stylists</Link>
+            <Link href="/track-order" className="cursor-pointer hover:text-yellow-400 transition">Track Order</Link>
             {/* Become a Seller */}
             <span
               className="ml-2 bg-yellow-400 text-black px-4 py-2 rounded-xl font-extrabold shadow-lg border-2 border-yellow-400 hover:bg-yellow-500 hover:scale-105 transition cursor-pointer"

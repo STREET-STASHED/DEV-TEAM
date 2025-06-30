@@ -47,10 +47,12 @@ const OrderHistory: React.FC = () => {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
         <h1>No Orders Found</h1>
-        <Link href="/stores">
-          <button style={{ marginTop: '1rem', padding: '0.75rem 1.5rem', background: '#FFD700', color: '#000', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
-            Shop Now
-          </button>
+        <Link href="/stores" legacyBehavior>
+          <a>
+            <button style={{ marginTop: '1rem', padding: '0.75rem 1.5rem', background: '#FFD700', color: '#000', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+              Shop Now
+            </button>
+          </a>
         </Link>
       </div>
     );
