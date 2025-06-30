@@ -11,12 +11,12 @@ export default function DriverIndex() {
 
     const timeout = setTimeout(() => {
       if (!user) {
-        router.replace('/onboarding');
+        router.replace('/onboarding/role');
       } else if (user?.role === 'driver') {
         if (user?.onboarding_complete) {
           router.replace('/driver/dashboard');
         } else {
-          router.replace('/verify');
+          router.replace('/onboarding/verify');
         }
       } else {
         router.replace('/unauthorized');

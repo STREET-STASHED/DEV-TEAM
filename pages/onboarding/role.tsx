@@ -47,26 +47,30 @@ export default function RolePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-md bg-white p-6 rounded shadow">
+      <form onSubmit={handleSubmit} className="space-y-6 w-full max-w-md bg-black text-white p-8 rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-center">Choose Your Role</h1>
-        {["buyer", "seller", "driver", "stylist"].map((r) => (
-          <label key={r} className="flex items-center space-x-2">
-            <input
-              type="radio"
-              name="role"
-              value={r}
-              checked={role === r}
-              onChange={() => setRole(r)}
-              className="h-5 w-5 text-blue-600 bg-white border-gray-300 focus:ring-blue-500"
-            />
-            <span className="capitalize">{r}</span>
-          </label>
-        ))}
-        {error && <p className="text-red-500">{error}</p>}
+        <label className="block">
+          <span className="text-gray-700">Select Your Role</span>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            required
+            className="mt-2 block w-full p-3 border border-gray-600 rounded bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="" disabled>
+              -- Choose a role --
+            </option>
+            <option value="buyer">Buyer</option>
+            <option value="seller">Seller</option>
+            <option value="driver">Driver</option>
+            <option value="stylist">Stylist</option>
+          </select>
+        </label>
+        {error && <p className="text-red-400">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 rounded text-white ${loading ? "bg-gray-400" : "bg-blue-600"}`}
+          className={`w-full py-3 rounded-lg text-white font-semibold ${loading ? "bg-gray-600" : "bg-yellow-500 hover:bg-yellow-600"}`}
         >
           {loading ? "Saving…" : "Continue"}
         </button>

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 export default function useOnboardingRedirect() {
   const router = useRouter();
@@ -11,50 +10,41 @@ export default function useOnboardingRedirect() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    // Skip redirect logic on the final verify step
+    if (router.pathname === '/onboarding/verify') return;
 
-    const path = router.pathname;
-    // Only guard onboarding steps and dashboard/admin pages
-    if (
-      !path.startsWith("/onboarding") &&
-      !path.startsWith("/dashboard") &&
-      !path.startsWith("/admin")
-    ) {
-      return;
-    }
-
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        return router.replace("/signup");
+    const checkOnboarding = async () => {
+      // Ensure the user is logged in
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        router.replace("/signup");
+        return;
       }
 
-      const { data: profile } = await supabase
+      // Fetch onboarding flags
+      const { data: profile, error: profileError } = await supabase
         .from("users")
         .select("role, details_complete, verified")
         .eq("id", user.id)
         .single();
-
-      if (!profile) {
-        return router.replace("/signup");
+      if (profileError || !profile) {
+        return;
       }
 
       const { role, details_complete, verified } = profile;
+      const current = router.pathname;
 
-      // If fully onboarded, send them to their dashboard
-      if (role && details_complete && verified) {
-        return router.replace(getDashboardRedirect(role));
+      // Enforce onboarding flow
+      if (!role && current !== "/onboarding/role") {
+        router.replace("/onboarding/role");
+      } else if (role && !details_complete && current !== "/onboarding/details") {
+        router.replace("/onboarding/details");
+      } else if (role && details_complete && !verified && current !== "/onboarding/verify") {
+        router.replace("/onboarding/verify");
       }
+      // All steps complete → no redirect (manual dashboard push should handle final)
+    };
 
-      // Otherwise, enforce the appropriate onboarding step:
-      if (!role) {
-        return router.replace("/onboarding/role");
-      }
-      if (!details_complete) {
-        return router.replace("/onboarding/details");
-      }
-      if (!verified) {
-        return router.replace("/onboarding/verify");
-      }
-    })();
+    checkOnboarding();
   }, [router]);
 }

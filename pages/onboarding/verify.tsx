@@ -74,27 +74,30 @@ export default function VerifyPage() {
       return;
     }
 
-    // Redirect to the correct dashboard
-    const redirectPath = getDashboardRedirect(updatedUser.role || '');
-    router.push(redirectPath);
+    // Refresh session to pick up updated onboarding flags
+    await supabase.auth.refreshSession();
+    // Determine and navigate to the role-based dashboard
+    const roleKey = updatedUser.role?.toLowerCase().trim() || '';
+    const redirectPath = getDashboardRedirect(roleKey);
+    router.replace(redirectPath);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center bg-black bg-opacity-50">
       <form
         onSubmit={handleContinue}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
+        className="bg-gray-900 text-white p-8 rounded shadow-lg w-full max-w-md"
       >
         <h2 className="text-2xl font-bold mb-6">Verify Your Account</h2>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}
 
         <label className="block mb-4">
-          <span className="text-gray-700">Full Name</span>
+          <span className="text-gray-200">Full Name</span>
           <input
             name="fullName"
             type="text"
-            className="mt-1 block w-full border rounded p-2"
+            className="mt-1 block w-full bg-gray-800 text-white border-gray-700 rounded p-2 focus:ring focus:ring-blue-500"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
@@ -102,11 +105,11 @@ export default function VerifyPage() {
         </label>
 
         <label className="block mb-4">
-          <span className="text-gray-700">License Number</span>
+          <span className="text-gray-200">License Number</span>
           <input
             name="licenseNumber"
             type="text"
-            className="mt-1 block w-full border rounded p-2"
+            className="mt-1 block w-full bg-gray-800 text-white border-gray-700 rounded p-2 focus:ring focus:ring-blue-500"
             value={licenseNumber}
             onChange={(e) => setLicenseNumber(e.target.value)}
             required
@@ -114,12 +117,12 @@ export default function VerifyPage() {
         </label>
 
         <label className="block mb-6">
-          <span className="text-gray-700">Upload Document</span>
+          <span className="text-gray-200">Upload Document</span>
           <input
             name="verificationFile"
             type="file"
             accept="image/*,application/pdf"
-            className="mt-1 block w-full"
+            className="mt-1 block w-full text-white"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
             required
           />

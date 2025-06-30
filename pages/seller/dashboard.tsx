@@ -90,10 +90,10 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
         try {
           const currentUser = await getCurrentUser();
           if (currentUser) setLocalUserId(currentUser.id);
-          else window.location.href = "/onboarding";
+          else window.location.href = "/onboarding/role";
         } catch (err) {
           console.error("Failed to get user session", err);
-          window.location.href = "/onboarding";
+          window.location.href = "/onboarding/role";
         }
       }
     }
@@ -108,7 +108,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
       try {
         const currentUser = await getCurrentUser();
         if (!currentUser) {
-          window.location.href = "/onboarding";
+          window.location.href = "/onboarding/role";
           return;
         }
         // Role check
@@ -618,7 +618,7 @@ export async function getServerSideProps(context: any) {
     if (!session) {
       return {
         redirect: {
-          destination: "/onboarding",
+          destination: "/onboarding/role",
           permanent: false,
         },
       };
@@ -629,7 +629,7 @@ export async function getServerSideProps(context: any) {
     console.error("Error in getServerSideProps:", err);
     return {
       redirect: {
-        destination: "/onboarding",
+        destination: "/onboarding/role",
         permanent: false,
       },
     };

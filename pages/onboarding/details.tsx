@@ -135,11 +135,11 @@ export default function Details() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4">
-      <h1 className="text-2xl font-bold text-center text-black mb-6">Complete Your Details</h1>
+    <div className="min-h-screen flex items-center justify-center bg-black bg-opacity-50 px-4">
+      <h1 className="text-2xl font-bold text-center text-white mb-6">Complete Your Details</h1>
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md flex flex-col gap-4"
+        className="bg-gray-900 text-white p-8 rounded-lg shadow-lg w-full max-w-md space-y-4"
         data-testid="details-form"
       >
         <input
@@ -149,7 +149,7 @@ export default function Details() {
           value={fullName}
           autoComplete="off"
           onChange={(e) => setFullName(e.target.value)}
-          className="w-full border border-gray-300 p-3 rounded-md text-black"
+          className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="tel"
@@ -158,7 +158,7 @@ export default function Details() {
           value={phone}
           autoComplete="off"
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full border border-gray-300 p-3 rounded-md text-black"
+          className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <input
           type="text"
@@ -166,7 +166,7 @@ export default function Details() {
           value={referralCode}
           autoComplete="off"
           onChange={(e) => setReferralCode(e.target.value)}
-          className="w-full border border-gray-300 p-3 rounded-md text-black"
+          className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
         {(role.toLowerCase().trim() === 'seller') && (
@@ -178,7 +178,7 @@ export default function Details() {
               value={storeName}
               autoComplete="off"
               onChange={(e) => setStoreName(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <textarea
               placeholder="Store Description"
@@ -186,7 +186,7 @@ export default function Details() {
               value={storeDescription}
               autoComplete="off"
               onChange={(e) => setStoreDescription(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </>
         )}
@@ -200,7 +200,7 @@ export default function Details() {
               value={vehicleType}
               autoComplete="off"
               onChange={(e) => setVehicleType(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="text"
@@ -209,7 +209,7 @@ export default function Details() {
               value={licenseNumber}
               autoComplete="off"
               onChange={(e) => setLicenseNumber(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="text"
@@ -218,7 +218,7 @@ export default function Details() {
               value={payoutMethod}
               autoComplete="off"
               onChange={(e) => setPayoutMethod(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </>
         )}
@@ -232,7 +232,7 @@ export default function Details() {
               value={specialties}
               autoComplete="off"
               onChange={(e) => setSpecialties(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <input
               type="url"
@@ -241,7 +241,7 @@ export default function Details() {
               value={portfolioUrl}
               autoComplete="off"
               onChange={(e) => setPortfolioUrl(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <textarea
               placeholder="Bundle Options"
@@ -249,7 +249,7 @@ export default function Details() {
               value={bundles}
               autoComplete="off"
               onChange={(e) => setBundles(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md text-black"
+              className="w-full p-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </>
         )}
@@ -257,7 +257,7 @@ export default function Details() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 text-white p-3 rounded-md"
+          className="w-full py-3 rounded-lg text-white font-semibold bg-yellow-500 hover:bg-yellow-600 disabled:opacity-50"
         >
           {loading ? 'Submitting...' : 'Continue to Verification'}
         </button>

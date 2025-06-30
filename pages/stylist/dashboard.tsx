@@ -200,7 +200,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (!session) {
     return {
       redirect: {
-        destination: '/onboarding',
+        destination: '/onboarding/role',
         permanent: false,
       },
     };
