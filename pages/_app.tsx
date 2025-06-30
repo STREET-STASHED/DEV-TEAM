@@ -58,18 +58,39 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
         const role = userProfile?.role;
         const detailsComplete = userProfile?.details_complete;
 
-        if (!role && !onboarding.includes(currentPath)) {
+        // Improved onboarding flow: /onboarding/role → /onboarding/details → /onboarding/verify → <role>/dashboard
+        if (!role && currentPath !== '/onboarding/role') {
           console.log("➡️ Redirecting to /onboarding/role");
           await router.push('/onboarding/role');
           return;
-        } else if (role && !detailsComplete && !onboarding.includes(currentPath)) {
+        }
+
+        if (role && !detailsComplete && currentPath !== '/onboarding/details') {
           console.log("➡️ Redirecting to /onboarding/details");
           await router.push('/onboarding/details');
           return;
-        } else if (role && detailsComplete && onboarding.includes(currentPath)) {
-          console.log("✅ Onboarding complete, redirecting to dashboard");
-          await router.push(`/${role}/dashboard`);
-          return;
+        }
+
+        if (role && detailsComplete && currentPath !== '/onboarding/verify' && currentPath !== `/${role}/dashboard`) {
+          const { data: verificationCheck } = await supabase
+            .from('users')
+            .select('verified')
+            .eq('id', session.user.id)
+            .single();
+
+          const isVerified = verificationCheck?.verified;
+
+          if (!isVerified && currentPath !== '/onboarding/verify') {
+            console.log("➡️ Redirecting to /onboarding/verify");
+            await router.push('/onboarding/verify');
+            return;
+          }
+
+          if (isVerified && onboarding.includes(currentPath)) {
+            console.log("✅ Fully onboarded — redirecting to dashboard");
+            await router.push(`/${role}/dashboard`);
+            return;
+          }
         }
       }
     };

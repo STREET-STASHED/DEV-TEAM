@@ -15,8 +15,18 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
 
   useEffect(() => {
     const validateUser = async () => {
+      const onboardingPaths = [
+        "/welcome",
+        "/signup",
+        "/onboarding/role",
+        "/onboarding/details",
+        "/onboarding/verify",
+      ];
+
+      if (onboardingPaths.includes(router.pathname)) return;
+
       if (!session?.user) {
-        router.replace("/signup");
+        router.replace("/welcome");
         return;
       }
 
@@ -28,14 +38,14 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
           .single();
 
         if (!userData || userData.role !== requiredRole) {
-          router.replace("/signup");
+          router.replace("/welcome");
           return;
         }
       }
     };
 
     if (!isLoading) validateUser();
-  }, [session, isLoading, requiredRole]);
+  }, [session, isLoading, requiredRole, router.pathname]);
 
   if (isLoading) return null;
 
