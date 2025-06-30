@@ -15,10 +15,6 @@ export default function Details() {
     const fetchRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        if (user.user_metadata?.onboarded) {
-          router.push('/onboarding/verify'); // skip to verify if already onboarded
-          return;
-        }
         if (user.user_metadata?.role) {
           setRole(user.user_metadata.role.toLowerCase().trim());
         }
