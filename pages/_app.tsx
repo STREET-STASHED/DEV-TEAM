@@ -24,16 +24,19 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const session = useSession();
 
   useEffect(() => {
+    if (typeof session === 'undefined') return; // Wait until session is loaded
+
     const unprotected = ['/', '/welcome', '/signup'];
     const onboarding = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
     const currentPath = router.pathname;
 
     if (!session?.user && !unprotected.includes(currentPath)) {
       router.push('/welcome');
+      return;
     }
 
-    const userRole = pageProps.user?.role;
-    const detailsComplete = pageProps.user?.detailsComplete;
+    const userRole = pageProps?.user?.role;
+    const detailsComplete = pageProps?.user?.detailsComplete;
 
     if (session?.user) {
       if (!userRole && !onboarding.includes(currentPath)) {

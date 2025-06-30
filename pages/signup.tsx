@@ -72,6 +72,7 @@ export default function SignUpPage() {
             setLoading(false);
             return;
           }
+          await supabase.auth.refreshSession();
           router.push("/onboarding/role");
           return;
         }
