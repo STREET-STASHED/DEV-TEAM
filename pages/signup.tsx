@@ -53,6 +53,9 @@ export default function SignUpPage() {
           },
         });
 
+        console.log("✅ Signup result:", data);
+        console.log("❌ Signup error:", error);
+
         if (error) throw error;
 
         if (!data?.user) {
@@ -70,7 +73,10 @@ export default function SignUpPage() {
               email: data.user.email,
               role: null,
               details_complete: false,
-              verified: false
+              verified: false,
+              has_completed_onboarding: false,
+              verification_complete: false,
+              onboarded: false
             }]);
           if (insertError) {
             console.error("Failed to create user profile:", insertError.message);
@@ -78,6 +84,19 @@ export default function SignUpPage() {
             setLoading(false);
             return;
           }
+
+          // Immediately check the session after signup
+          const {
+            data: { session: newSession },
+            error: sessionError
+          } = await supabase.auth.getSession();
+
+          if (sessionError || !newSession) {
+            console.error("⚠️ Session not available after signup:", sessionError);
+          } else {
+            console.log("✅ Session after signup:", newSession);
+          }
+
           router.push("/onboarding/role");
           return;
         }

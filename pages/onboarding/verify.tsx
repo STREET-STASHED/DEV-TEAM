@@ -3,13 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
-import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 
 export default function VerifyPage() {
   const router = useRouter();
   const supabase = createBrowserSupabaseClient();
 
-  useOnboardingRedirect();
 
   const [uploading, setUploading] = useState(false);
   const [error, setError]       = useState<string | null>(null);
@@ -51,15 +49,20 @@ export default function VerifyPage() {
     }
 
     // — update profile
+    const updatePayload = {
+      full_name: fullName,
+      license_number: licenseNumber,
+      verification_url: up.path,
+      verification_complete: true,
+      has_completed_onboarding: true,
+      details_complete: true,
+      onboarded: true,
+      updated_at: new Date().toISOString(),
+    };
+    console.log("✅ Updating user profile in verify step:", updatePayload);
     const { data: updatedUser, error: updErr } = await supabase
       .from('users')
-      .update({
-        full_name:       fullName,
-        license_number:  licenseNumber,
-        verification_url: up.path,
-        verified:        true,
-        details_complete: true,
-      })
+      .update(updatePayload)
       .eq('id', user.id)
       .select()
       .single();
@@ -72,7 +75,8 @@ export default function VerifyPage() {
       data: {
         full_name: fullName.trim(),
         license_number: licenseNumber.trim(),
-        verified: true,
+        verification_complete: true,
+        has_completed_onboarding: true,
       },
     });
 

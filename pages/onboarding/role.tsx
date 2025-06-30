@@ -3,11 +3,9 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
-import useOnboardingRedirect from "@/hooks/useOnboardingRedirect";
 
 export default function RolePage() {
   const router = useRouter();
-  useOnboardingRedirect();   // 🔥 just call the hook—no destructure
 
   const supabase = createBrowserSupabaseClient();
   const [role, setRole] = useState<string>("");
@@ -32,8 +30,16 @@ export default function RolePage() {
     const cleanRole = role.trim().toLowerCase();
     const { error: updateError } = await supabase
       .from("users")
-      .update({ role: cleanRole, details_complete: false, verified: false })
+      .update({
+        role: cleanRole,
+        details_complete: false,
+        has_completed_onboarding: false,
+        verification_complete: false,
+        onboarded: false
+      })
       .eq("id", user.id);
+
+    console.log("✅ Role update submitted:", cleanRole);
 
     if (updateError) {
       setError(updateError.message);

@@ -25,7 +25,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
 
       if (onboardingPaths.includes(router.pathname)) return;
 
-      if (!session?.user) {
+      if (!isLoading && !session?.user) {
         router.replace("/welcome");
         return;
       }
@@ -34,7 +34,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
         const { data: userData } = await supabaseClient
           .from("users")
           .select("role")
-          .eq("id", session.user.id)
+          .eq("id", session?.user?.id)
           .single();
 
         if (!userData || userData.role !== requiredRole) {

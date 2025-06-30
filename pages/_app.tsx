@@ -24,70 +24,60 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const router = useRouter();
 
   const session = useSession();
+  const isLoading = typeof session === 'undefined';
 
   useEffect(() => {
-    if (!router.isReady || typeof session === 'undefined') return;
-
-    console.log("🔥 Routing Check Triggered");
-    console.log("router.pathname:", router.pathname);
-    console.log("session.user:", session?.user);
+    if (!router.isReady || isLoading || typeof session === 'undefined') return;
 
     const runRedirectLogic = async () => {
       if (!supabaseClient) return;
-      const supabase = supabaseClient;
 
+      const currentPath = router.pathname;
       const unprotected = ['/', '/welcome', '/signup'];
       const onboarding = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
-      const currentPath = router.pathname;
 
       if (!session?.user && !unprotected.includes(currentPath)) {
-        console.log("❌ No session.user — redirecting to /welcome");
         await router.push('/welcome');
         return;
       }
 
       if (session?.user) {
-        const { data: userProfile } = await supabase
+        const { data: userProfile } = await supabaseClient
           .from('users')
           .select('role, details_complete')
           .eq('id', session.user.id)
           .single();
 
-        console.log("✅ Fetched userProfile:", userProfile);
-
         const role = userProfile?.role;
         const detailsComplete = userProfile?.details_complete;
 
-        // Improved onboarding flow: /onboarding/role → /onboarding/details → /onboarding/verify → <role>/dashboard
         if (!role && currentPath !== '/onboarding/role') {
-          console.log("➡️ Redirecting to /onboarding/role");
           await router.push('/onboarding/role');
           return;
         }
 
         if (role && !detailsComplete && currentPath !== '/onboarding/details') {
-          console.log("➡️ Redirecting to /onboarding/details");
           await router.push('/onboarding/details');
           return;
         }
 
-        if (role && detailsComplete && currentPath !== '/onboarding/verify' && currentPath !== `/${role}/dashboard`) {
-          const { data: verificationCheck } = await supabase
+        if (role && detailsComplete) {
+          const { data: verificationCheck } = await supabaseClient
             .from('users')
-            .select('verified')
+            .select('has_completed_onboarding, verification_complete')
             .eq('id', session.user.id)
             .single();
 
-          const isVerified = verificationCheck?.verified;
+          const isVerified =
+            verificationCheck?.has_completed_onboarding ||
+            verificationCheck?.verification_complete;
 
           if (!isVerified && currentPath !== '/onboarding/verify') {
-            console.log("➡️ Redirecting to /onboarding/verify");
             await router.push('/onboarding/verify');
             return;
           }
 
           if (isVerified && onboarding.includes(currentPath)) {
-            console.log("✅ Fully onboarded — redirecting to dashboard");
             await router.push(`/${role}/dashboard`);
             return;
           }
@@ -96,7 +86,7 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
     };
 
     runRedirectLogic();
-  }, [router, session, supabaseClient]);
+  }, [router, session, supabaseClient, isLoading]);
 
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const stripePromise = stripeKey ? loadStripe(stripeKey) : null;

@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import useOnboardingRedirect from '@/hooks/useOnboardingRedirect';
 import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 const supabase = createBrowserSupabaseClient();
 
 export default function Details() {
   const router = useRouter();
-  useOnboardingRedirect();
 
 
   const [role, setRole] = useState<string>('');
@@ -87,8 +85,12 @@ export default function Details() {
       phone: phone.trim(),
       referral_code: referralCode.trim(),
       details_complete: true,
-      onboarded: true
+      has_completed_onboarding: false,
+      verification_complete: false,
+      onboarded: true,
+      updated_at: new Date().toISOString()
     };
+    console.log("✅ Submitting detail update:", updateData);
 
     if (normalizedRole === 'seller') {
       updateData.store_name = storeName;
@@ -140,14 +142,15 @@ export default function Details() {
       return;
     }
 
-    await supabase.auth.updateUser({
-      data: {
-        role: normalizedRole,
-        phone: phone.trim(),
-        full_name: fullName.trim(),
-        referral_code: referralCode.trim()
-      }
-    });
+    // Remove updating user metadata unless you depend on it elsewhere
+    // await supabase.auth.updateUser({
+    //   data: {
+    //     role: normalizedRole,
+    //     phone: phone.trim(),
+    //     full_name: fullName.trim(),
+    //     referral_code: referralCode.trim()
+    //   }
+    // });
 
     console.log('Details form submitted — redirecting to verification step...');
     // if (role) {
