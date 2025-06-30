@@ -38,7 +38,7 @@ const nextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' https://js.stripe.com 'unsafe-eval'",
+      "script-src 'self' https://js.stripe.com https://vercel.live 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src * blob: data:",

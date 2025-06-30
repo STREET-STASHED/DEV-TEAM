@@ -11,7 +11,7 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
 import type { Session } from '@supabase/auth-helpers-react';
 
 type MyAppProps = AppProps & {
@@ -19,7 +19,7 @@ type MyAppProps = AppProps & {
 };
 
 export default function MyApp({ Component, pageProps }: MyAppProps) {
-  const [supabaseClient] = React.useState(() => createPagesBrowserClient());
+  const [supabaseClient] = React.useState(() => createBrowserSupabaseClient());
 
   const router = useRouter();
 
