@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
+import supabase from "@/lib/supabaseClient";
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 export default function SignUpPage() {
@@ -18,7 +18,6 @@ export default function SignUpPage() {
     setLoading(true);
     setError(null);
 
-    const supabase = createPagesBrowserClient();
 
     try {
       if (isLogin) {
