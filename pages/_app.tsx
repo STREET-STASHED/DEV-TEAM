@@ -24,27 +24,38 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const session = useSession();
 
   useEffect(() => {
-    if (typeof session === 'undefined') return; // Wait until session is loaded
+    if (!router.isReady || typeof session === 'undefined') return;
 
-    const unprotected = ['/', '/welcome', '/signup'];
-    const onboarding = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
-    const currentPath = router.pathname;
+    const runRedirectLogic = async () => {
+      const unprotected = ['/', '/welcome', '/signup'];
+      const onboarding = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
+      const currentPath = router.pathname;
 
-    if (!session?.user && !unprotected.includes(currentPath)) {
-      router.push('/welcome');
-      return;
-    }
-
-    const userRole = pageProps?.user?.role;
-    const detailsComplete = pageProps?.user?.detailsComplete;
-
-    if (session?.user) {
-      if (!userRole && !onboarding.includes(currentPath)) {
-        router.push('/onboarding/role');
-      } else if (userRole && !detailsComplete && !onboarding.includes(currentPath)) {
-        router.push('/onboarding/details');
+      if (!session?.user && !unprotected.includes(currentPath)) {
+        router.push('/welcome');
+        return;
       }
-    }
+
+      if (session?.user) {
+        const supabase = createBrowserSupabaseClient();
+        const { data: userProfile } = await supabase
+          .from('users')
+          .select('role, details_complete')
+          .eq('id', session.user.id)
+          .single();
+
+        const role = userProfile?.role;
+        const detailsComplete = userProfile?.details_complete;
+
+        if (!role && !onboarding.includes(currentPath)) {
+          router.push('/onboarding/role');
+        } else if (role && !detailsComplete && !onboarding.includes(currentPath)) {
+          router.push('/onboarding/details');
+        }
+      }
+    };
+
+    runRedirectLogic();
   }, [router, session]);
 
   const [supabaseClient] = React.useState(() => createBrowserSupabaseClient());
