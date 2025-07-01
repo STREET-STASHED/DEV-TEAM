@@ -81,12 +81,7 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ onClose }) => {
-  let cart;
-  try {
-    cart = useCart();
-  } catch {
-    return null;
-  }
+  const cart = useCart();
   const { items, totalCount, totalPrice, updateQuantity, removeItem, clearCart } = cart;
 
   return (

@@ -112,12 +112,12 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 /**
  * Custom hook to access cart context.
- * If used outside CartProvider, returns a fallback context (noops) instead of throwing.
+ * Prevents crashes in environments where the provider isn't mounted by returning a safe fallback.
  */
 export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (!context) {
-    // Fallback noop context for SSR/prerender or unwrapped components
+    // Return safe fallback for SSR/unmounted provider
     return {
       items: [],
       addItem: () => {},
