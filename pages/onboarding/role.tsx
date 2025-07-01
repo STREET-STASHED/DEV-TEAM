@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 
 export default function RolePage() {
   const router = useRouter();
 
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createPagesBrowserClient();
   const [role, setRole] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,10 +99,10 @@ export default function RolePage() {
 
         <button
           type="button"
-          onClick={() => router.push("/signup")}
+          onClick={() => router.back()}
           className="w-full py-2 mt-2 text-sm text-gray-400 hover:text-white underline"
         >
-          ← Back to Signup
+          ← Back
         </button>
       </form>
     </div>

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 
-const supabase = createBrowserSupabaseClient();
+const supabase = createPagesBrowserClient();
 
 export default function Details() {
   const router = useRouter();
@@ -11,7 +11,8 @@ export default function Details() {
   const [role, setRole] = useState<string>('');
   useEffect(() => {
     const fetchRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) {
         alert("Session expired. Please log in again.");
         router.push("/signup");
@@ -65,7 +66,8 @@ export default function Details() {
       return;
     }
 
-    const { data: { user }, error: submitError } = await supabase.auth.getUser();
+    const { data: { session }, error: submitError } = await supabase.auth.getSession();
+    const user = session?.user;
     if (submitError || !user) {
       alert('Session expired. Please log in again.');
       setLoading(false);

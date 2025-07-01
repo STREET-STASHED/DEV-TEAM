@@ -64,41 +64,48 @@ export default function SignUpPage() {
         }
 
         if (data?.user) {
-          // Insert required user record after auth signup
+          // Force sign-in to create session first
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
+
+          if (loginError || !loginData.user) {
+            console.error("Auto-login failed after signup:", loginError);
+            setError("Signup complete but login failed. Please try logging in manually.");
+            setLoading(false);
+            return;
+          }
+
+          // Now insert user profile with valid session (RLS will allow)
           const { error: insertError } = await supabase
             .from("users")
             .insert([
               {
                 id: data.user.id,
                 email: data.user.email,
+                full_name: "",
+                name: "",
                 role: null,
                 verified: false,
                 onboarded: false,
                 details_complete: false,
                 has_completed_onboarding: false,
-                verification_complete: false
+                verification_complete: false,
+                is_active: true,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
               }
             ]);
 
-          if (insertError) {
+          if (insertError && insertError.code !== "23505") {
             console.error("Failed to create user profile:", insertError.message);
             setError("Signup succeeded but failed to initialize your profile. Please contact support.");
             setLoading(false);
             return;
           }
 
-          // Immediately check the session after signup
-          const {
-            data: { session: newSession },
-            error: sessionError
-          } = await supabase.auth.getSession();
-
-          if (sessionError || !newSession) {
-            console.error("⚠️ Session not available after signup:", sessionError);
-          } else {
-            console.log("✅ Session after signup:", newSession);
-          }
-
+          console.log("✅ Session established and user profile created");
           router.push("/onboarding/role");
           return;
         }

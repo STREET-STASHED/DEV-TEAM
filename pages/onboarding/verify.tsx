@@ -1,12 +1,12 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
 
 export default function VerifyPage() {
   const router = useRouter();
-  const supabase = createBrowserSupabaseClient();
+  const supabase = createClientComponentClient();
 
 
   const [uploading, setUploading] = useState(false);
