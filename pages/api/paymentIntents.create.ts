@@ -4,7 +4,9 @@ import Stripe from 'stripe';
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
 });
-import supabase from '../../lib/supabaseClient'; // Adjust path if necessary
+import { supabaseServer } from '@/lib/supabaseServer'; // Adjust path if necessary
+
+const supabase = supabaseServer;
 
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/router";
-import supabase from "@/lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 export default function SignUpPage() {
@@ -17,7 +17,6 @@ export default function SignUpPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
 
     try {
       if (isLogin) {
@@ -52,9 +51,6 @@ export default function SignUpPage() {
           },
         });
 
-        console.log("✅ Signup result:", data);
-        console.log("❌ Signup error:", error);
-
         if (error) throw error;
 
         if (!data?.user) {
@@ -64,48 +60,45 @@ export default function SignUpPage() {
         }
 
         if (data?.user) {
-          // Force sign-in to create session first
           const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
             email,
             password
           });
 
-          if (loginError || !loginData.user) {
-            console.error("Auto-login failed after signup:", loginError);
+          if (loginError || !loginData.session || !loginData.user) {
             setError("Signup complete but login failed. Please try logging in manually.");
             setLoading(false);
             return;
           }
 
-          // Now insert user profile with valid session (RLS will allow)
-          const { error: insertError } = await supabase
-            .from("users")
-            .insert([
-              {
-                id: data.user.id,
-                email: data.user.email,
-                full_name: "",
-                name: "",
-                role: null,
-                verified: false,
-                onboarded: false,
-                details_complete: false,
-                has_completed_onboarding: false,
-                verification_complete: false,
-                is_active: true,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }
-            ]);
+          if (loginData.session && loginData.user) {
+            const { error: insertError } = await supabase
+              .from("users")
+              .insert([
+                {
+                  id: data.user.id,
+                  email: data.user.email,
+                  full_name: "",
+                  name: "",
+                  role: null,
+                  verified: false,
+                  onboarded: false,
+                  details_complete: false,
+                  has_completed_onboarding: false,
+                  verification_complete: false,
+                  is_active: true,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                }
+              ]);
 
-          if (insertError && insertError.code !== "23505") {
-            console.error("Failed to create user profile:", insertError.message);
-            setError("Signup succeeded but failed to initialize your profile. Please contact support.");
-            setLoading(false);
-            return;
+            if (insertError && insertError.code !== "23505") {
+              setError("Signup succeeded but failed to initialize your profile. Please contact support.");
+              setLoading(false);
+              return;
+            }
           }
 
-          console.log("✅ Session established and user profile created");
           router.push("/onboarding/role");
           return;
         }

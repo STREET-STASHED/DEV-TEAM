@@ -7,7 +7,8 @@ import { useRouter } from 'next/router';
 import AuthGuard from '@/components/AuthGuard';
 
 import { useEffect, useState } from 'react'
-import supabase from '@/lib/supabaseClient';
+import { supabaseServer } from '@/lib/supabaseServer';
+const supabase = supabaseServer;
 import type { User } from '@supabase/supabase-js'
 
 type Metrics = {

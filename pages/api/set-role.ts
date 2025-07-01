@@ -1,19 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { supabaseServer } from '@/lib/supabaseServer';
 import { jwtVerify } from 'jose';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-export async function POST(req: NextRequest) {
+  const supabase = supabaseServer;
+
   try {
     console.log('Incoming request to set-role');
-    const accessToken = req.headers.get('Authorization')?.replace('Bearer ', '');
+    const accessToken = req.headers.authorization?.replace('Bearer ', '');
     console.log('Access Token:', accessToken);
     if (!accessToken) {
-      return NextResponse.json({ error: 'Missing or invalid access token' }, { status: 401 });
+      return res.status(401).json({ error: 'Missing or invalid access token' });
     }
 
     const secret = new TextEncoder().encode(process.env.SUPABASE_JWT_SECRET!);
@@ -21,17 +22,17 @@ export async function POST(req: NextRequest) {
     const userId = payload.sub;
     console.log('Decoded User ID:', userId);
     if (!userId) {
-      return NextResponse.json({ error: 'Unable to decode user ID from token' }, { status: 401 });
+      return res.status(401).json({ error: 'Unable to decode user ID from token' });
     }
 
-    const { role } = await req.json();
+    const { role } = req.body;
     if (!role) {
-      return NextResponse.json({ error: 'Role not provided' }, { status: 400 });
+      return res.status(400).json({ error: 'Role not provided' });
     }
 
     const allowedRoles = ['buyer', 'seller', 'stylist', 'driver'];
     if (!allowedRoles.includes(role)) {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+      return res.status(400).json({ error: 'Invalid role' });
     }
 
     const { data: updatedUser, error: updateError } = await supabase
@@ -39,19 +40,18 @@ export async function POST(req: NextRequest) {
       .update({
         role,
         updated_at: new Date().toISOString(),
-        has_completed_onboarding: false,
       })
       .eq('id', userId)
       .select()
       .single();
 
     if (updateError) {
-      return NextResponse.json({ error: `Failed to update role: ${updateError.message}` }, { status: 500 });
+      return res.status(500).json({ error: `Failed to update role: ${updateError.message}` });
     }
 
-    return NextResponse.json({ success: true, user: updatedUser });
+    return res.status(200).json({ success: true, user: updatedUser });
   } catch (err) {
     console.error('Unexpected error in set-role:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

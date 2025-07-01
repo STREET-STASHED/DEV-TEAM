@@ -1,7 +1,7 @@
 // pages/buyer/[orderid].tsx
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 import Link from 'next/link';
 
 interface Order {

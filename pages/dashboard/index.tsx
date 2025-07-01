@@ -1,6 +1,7 @@
 import { useEffect, useState, type FC } from 'react';
 import { useRouter } from 'next/router';
-import supabase from '../../lib/supabaseClient';
+import { supabaseServer } from '@/lib/supabaseServer';
+const supabase = supabaseServer;
 
 const Dashboard: FC = () => {
   const [userId, setUserId] = useState<string | null>(null);

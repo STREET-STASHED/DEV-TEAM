@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useEffect, useState } from 'react';
-import supabase from '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 
 export default function Marketplace() {
   const { addItem, hasItem } = useCart();

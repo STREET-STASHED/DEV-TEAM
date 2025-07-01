@@ -1,23 +1,45 @@
 import React, { useEffect, useState } from 'react';
-// import DeliveryList from '@/components/DeliveryList';
-// import EarningsChart from '@/components/EarningsChart';
-// import RouteMap from '@/components/RouteMap';
-// import { fetchDriverData } from '@/services/api';
+import { supabase } from '@/lib/supabaseClient';
 
 // Placeholder components and API function
 const DeliveryList = ({ deliveries }: { deliveries: any[] }) => <div>Delivery List Placeholder</div>;
 const EarningsChart = ({ earnings }: { earnings: any[] }) => <div>Earnings Chart Placeholder</div>;
 const RouteMap = ({ route }: { route: any }) => <div>Route Map Placeholder</div>;
-const fetchDriverData = async () => ({
-  deliveries: [],
-  earnings: [],
-  route: null,
-});
+const fetchDriverData = async () => {
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) throw new Error('Failed to load user');
+
+  const { data: deliveries, error: deliveryError } = await supabase
+    .from('deliveries')
+    .select('*')
+    .eq('driver_id', user.id);
+
+  const { data: earnings, error: earningsError } = await supabase
+    .from('earnings')
+    .select('*')
+    .eq('driver_id', user.id);
+
+  const { data: route, error: routeError } = await supabase
+    .from('routes')
+    .select('*')
+    .eq('driver_id', user.id)
+    .single();
+
+  if (deliveryError || earningsError || routeError) {
+    throw new Error('Failed to fetch driver data');
+  }
+
+  return { deliveries, earnings, route };
+};
 
 const DriverDashboard = () => {
-  const [deliveries, setDeliveries] = useState([]);
-  const [earnings, setEarnings] = useState([]);
-  const [route, setRoute] = useState(null);
+  const [deliveries, setDeliveries] = useState<any[]>([]);
+  const [earnings, setEarnings] = useState<any[]>([]);
+  const [route, setRoute] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

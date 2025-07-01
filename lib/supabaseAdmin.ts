@@ -7,14 +7,7 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY as string;
 
 const supabaseAdmin = createClient<Database>(
   supabaseUrl,
-  serviceRoleKey,
-  {
-    global: {
-      headers: {
-        Authorization: `Bearer ${process.env.SUPABASE_JWT_SECRET}`,
-      },
-    },
-  }
+  serviceRoleKey
 );
 
-export default supabaseAdmin;
+export const supabaseServer = supabaseAdmin;

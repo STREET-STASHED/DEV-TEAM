@@ -1,7 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import supabase from '@/lib/supabaseClient';
+import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/router';
 
 const Hero = () => {
@@ -19,7 +19,7 @@ const Hero = () => {
 
   return (
     <section
-      className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-20 bg-cover bg-center bg-[url('/background.png')]"
+      className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-20 bg-cover bg-center bg-[url('/background.png')] bg-no-repeat bg-fixed"
     >
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       <div className="relative z-10">
@@ -27,7 +27,9 @@ const Hero = () => {
           24/7 STREETWEAR DELIVERY
         </h1>
         <p className="text-white mt-4 max-w-2xl">
-          Instant access to local streetwear, stylists, and exclusive drops. Delivered anytime, anywhere.
+          {session
+            ? "Welcome back. Your dashboard is one click away."
+            : "Instant access to local streetwear, stylists, and exclusive drops. Delivered anytime, anywhere."}
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Link
@@ -36,12 +38,21 @@ const Hero = () => {
           >
             Browse Marketplace
           </Link>
-          <Link
-            href="/signup"
-            className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
-          >
-            Become a Seller or Stylist
-          </Link>
+          {!session ? (
+            <Link
+              href="/signup"
+              className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
+            >
+              Become a Seller or Stylist
+            </Link>
+          ) : (
+            <Link
+              href="/dashboard"
+              className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
+            >
+              Go to Dashboard
+            </Link>
+          )}
         </div>
       </div>
     </section>

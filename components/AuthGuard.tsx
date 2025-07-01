@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useSessionContext } from "@supabase/auth-helpers-react";
+import { createBrowserClient } from "@supabase/ssr";
+import { Session, User } from "@supabase/supabase-js";
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -11,7 +17,17 @@ interface AuthGuardProps {
 
 const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
   const router = useRouter();
-  const { session, isLoading, supabaseClient } = useSessionContext();
+  const [session, setSession] = useState<Session | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      setSession(data?.session ?? null);
+      setIsLoading(false);
+    };
+    getSession();
+  }, []);
 
   useEffect(() => {
     const validateUser = async () => {
@@ -25,19 +41,19 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
 
       if (onboardingPaths.includes(router.pathname)) return;
 
-      if (!isLoading && !session?.user) {
+      if (!isLoading && !session?.user?.id) {
         router.replace("/welcome");
         return;
       }
 
       if (requiredRole) {
-        const { data: userData } = await supabaseClient
+        const { data: userData } = await supabase
           .from("users")
           .select("role")
-          .eq("id", session?.user?.id)
+          .eq("id", session!.user!.id)
           .single();
 
-        if (!userData || userData.role !== requiredRole) {
+        if (!userData || userData?.role !== requiredRole) {
           router.replace("/welcome");
           return;
         }

@@ -1,7 +1,7 @@
-import supabase from './supabaseAdmin';
+import { supabaseServer } from './supabaseAdmin';
 
 export async function setUserRole(userId: string, role: string) {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseServer
     .from('users')
     .update({
       role,

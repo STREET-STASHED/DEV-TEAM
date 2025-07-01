@@ -1,4 +1,5 @@
-import supabase from './supabaseClient';
+import { supabaseServer } from './supabaseServer';
+const supabase = supabaseServer;
 
 export async function getUserRoleById(id: string): Promise<{
   role: string | null;

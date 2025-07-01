@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import supabase from '@/lib/supabaseClient';
+import { supabaseServer } from '@/lib/supabaseServer';
+const supabase = supabaseServer;
 import { GetServerSideProps } from 'next';
-import { createServerClient } from '@supabase/ssr';
 import AuthGuard from '@/components/AuthGuard';
 
 interface StylistDashboardProps {
@@ -177,22 +177,6 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 export default StylistDashboard;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (key: string) => ctx.req.cookies[key],
-        set: (key, value, options) => {
-          ctx.res.setHeader('Set-Cookie', `${key}=${value}`);
-        },
-        remove: (key, options) => {
-          ctx.res.setHeader('Set-Cookie', `${key}=; Max-Age=0`);
-        },
-      },
-    }
-  );
-
   const {
     data: { session },
   } = await supabase.auth.getSession();

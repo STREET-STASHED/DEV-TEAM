@@ -1,6 +1,7 @@
 // /lib/dataSource.ts
 import { demoStores } from './demoData';
-import supabase from './supabaseClient';
+import { supabaseServer } from './supabaseServer';
+const supabase = supabaseServer;
 
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
