@@ -3,7 +3,6 @@ import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import { useSession } from '@supabase/auth-helpers-react';
 import { useEffect } from 'react';
-import { CartProvider } from '../context/CartContext';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Header from '../components/Header';
@@ -13,6 +12,7 @@ import React from 'react';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
 import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 import type { Session } from '@supabase/auth-helpers-react';
+import { CartProvider } from '../context/CartContext';
 
 type MyAppProps = AppProps & {
   pageProps: AppProps['pageProps'] & { initialSession?: Session };
@@ -96,12 +96,16 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
+  const isAdminRoute = router.pathname.startsWith('/admin');
   const isBuyerFacing =
-    router.pathname === '/' ||
-    router.pathname === '/welcome' ||
-    router.pathname === '/buyer/marketplace' ||
-    router.pathname.startsWith('/buyer') ||
-    router.pathname.startsWith('/stores');
+    !isAdminRoute &&
+    (
+      router.pathname === '/' ||
+      router.pathname === '/welcome' ||
+      router.pathname === '/buyer/marketplace' ||
+      router.pathname.startsWith('/buyer') ||
+      router.pathname.startsWith('/stores')
+    );
 
   const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
 
@@ -110,19 +114,28 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
       supabaseClient={supabaseClient}
       initialSession={pageProps.initialSession}
     >
-      <CartProvider>
-        <Elements stripe={stripePromise}>
-          <div className="min-h-screen text-white font-urbanist bg-black bg-[url('/background.png')] bg-cover bg-center bg-fixed">
+      <Elements stripe={stripePromise}>
+        {isBuyerFacing ? (
+          <CartProvider>
             <Header />
             <div style={{ paddingTop: 80 }}>
               <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
                 <Component {...pageProps} />
               </main>
             </div>
-            {isBuyerFacing && <CartDrawer />}
-          </div>
-        </Elements>
-      </CartProvider>
+            <CartDrawer />
+          </CartProvider>
+        ) : (
+          <>
+            <Header />
+            <div style={{ paddingTop: 80 }}>
+              <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+                <Component {...pageProps} />
+              </main>
+            </div>
+          </>
+        )}
+      </Elements>
     </SessionContextProvider>
   );
 }

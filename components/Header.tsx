@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '@/lib/supabaseClient';
+import { AuthSessionMissingError } from '@supabase/supabase-js';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
 
@@ -32,8 +33,8 @@ const Header = () => {
           details_complete: userData?.details_complete || false,
           verified: userData?.verified || false,
         }));
-      } else {
-        console.warn('No user found or Supabase error:', error);
+      } else if (error && !(error instanceof AuthSessionMissingError)) {
+        console.error('Supabase error fetching user:', error);
       }
     };
     fetchUser();

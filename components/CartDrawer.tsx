@@ -11,7 +11,7 @@ export interface CartItem {
   store_id?: string;
 }
 
-interface CartContextType {
+export interface CartContextType {
   items: CartItem[];
   totalCount: number;
   totalPrice: number;
@@ -66,10 +66,19 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-export const useCart = () => {
+export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    // Safe fallback for undefined context (e.g., during prerender)
+    return {
+      items: [],
+      totalCount: 0,
+      totalPrice: 0,
+      addItem: () => {},
+      updateQuantity: () => {},
+      removeItem: () => {},
+      clearCart: () => {},
+    };
   }
   return context;
 };

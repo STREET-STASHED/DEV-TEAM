@@ -1,13 +1,17 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { supabaseServer } from '@/lib/supabaseServer';
+import cookie from 'cookie';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabase = supabaseServer;
+  // Parse Supabase session token from cookies
+  const cookies = cookie.parse(req.headers.cookie || '');
+  const token = cookies['sb-access-token'] || '';
 
   const {
     data: { user },
     error: authError,
-  } = await supabase.auth.getUser();
+  } = await supabase.auth.getUser(token);
 
   if (authError || !user) {
     console.error('Auth error or missing user:', authError);
