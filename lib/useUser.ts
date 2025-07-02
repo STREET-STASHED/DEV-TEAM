@@ -26,7 +26,7 @@ export function useUser() {
       }
 
       const { data: userData, error: userError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', authUser.id)
         .single();

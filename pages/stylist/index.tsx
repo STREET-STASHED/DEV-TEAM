@@ -11,7 +11,7 @@ export default function StylistOnboarding() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { data, error } = await supabase.from('stylists').insert([{
+    const { data, error } = await supabase.from('public.stylists').insert([{
       name: form.name,
       email: form.email,
       expertise: form.expertise,

@@ -64,7 +64,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 
       // Check if onboarding is complete
       const { data: userStatus, error: userError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('has_completed_onboarding')
         .eq('id', userId)
         .single();

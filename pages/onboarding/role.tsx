@@ -32,7 +32,7 @@ export default function RolePage() {
 
     const cleanRole = role.trim().toLowerCase();
     const { error: updateError } = await supabase
-      .from("users")
+      .from("profiles")
       .update({
         role: cleanRole,
         details_complete: false,

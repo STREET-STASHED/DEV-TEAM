@@ -13,6 +13,16 @@ const fetchDriverData = async () => {
 
   if (userError || !user) throw new Error('Failed to load user');
 
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role, details_complete, has_completed_onboarding, verification_complete')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile || profile.role !== 'driver') {
+    throw new Error('Access denied: Not a driver or profile not found.');
+  }
+
   const { data: deliveries, error: deliveryError } = await supabase
     .from('deliveries')
     .select('*')

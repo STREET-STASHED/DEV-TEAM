@@ -13,7 +13,7 @@ export default function SellerOnboarding() {
     e.preventDefault();
     setStatus('Submitting...');
 
-    const { error } = await supabase.from('storefronts').insert([
+    const { error } = await supabase.from('public.storefronts').insert([
       {
         name: form.storeName,
         location: form.storeAddress,

@@ -26,7 +26,7 @@ export default function Details() {
 
       if (!finalRole) {
         const { data: profile } = await supabase
-          .from('users')
+          .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
@@ -137,7 +137,7 @@ export default function Details() {
 
     // Update users table for all roles (do not update role again to avoid constraint error)
     const { error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update(updateData)
       .eq('id', user.id);
     if (updateError) {

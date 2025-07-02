@@ -13,7 +13,7 @@ export default function DriverIndex() {
       if (!user) {
         router.replace('/onboarding/role');
       } else if (user?.role === 'driver') {
-        if (user?.onboarding_complete) {
+        if (user?.has_completed_onboarding) {
           router.replace('/driver/dashboard');
         } else {
           router.replace('/onboarding/verify');

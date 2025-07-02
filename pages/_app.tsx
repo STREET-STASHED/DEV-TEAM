@@ -31,6 +31,8 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   useEffect(() => {
     const getSession = async () => {
       const { data } = await supabaseClient.auth.getSession();
+      console.log('Supabase session:', data.session);
+      console.log('User ID:', data.session?.user?.id);
       setSession(data.session);
     };
     getSession();
@@ -50,6 +52,7 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
     if (!router.isReady || isLoading || typeof session === 'undefined') return;
 
     const runRedirectLogic = async () => {
+      console.log('Running redirect logic...');
       if (!supabaseClient) return;
 
       const currentPath = router.pathname;
@@ -63,7 +66,7 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
 
       if (session?.user) {
         const { data: userProfile } = await supabaseClient
-          .from('users')
+          .from('profiles')
           .select('role, details_complete')
           .eq('id', session.user.id)
           .single();
@@ -88,7 +91,7 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
 
         if (role && detailsComplete) {
           const { data: verificationCheck } = await supabaseClient
-            .from('users')
+            .from('profiles')
             .select('has_completed_onboarding, verification_complete')
             .eq('id', session.user.id)
             .single();
@@ -128,6 +131,15 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
     );
 
   const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
+
+  if (isLoading) {
+    console.log('Waiting for session...');
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading session...</p>
+      </div>
+    );
+  }
 
   return (
     <SupabaseContext.Provider value={{ supabase: supabaseClient }}>

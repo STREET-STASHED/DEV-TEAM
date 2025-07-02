@@ -41,6 +41,17 @@ export default function Signup() {
           setLoading(false);
           return;
         }
+        // Insert profile row immediately after sign up
+        const {
+          data: sessionData,
+          error: sessionError
+        } = await supabase.auth.getSession();
+
+        const userId = sessionData?.session?.user?.id;
+
+        if (userId) {
+          await supabase.from('profiles').insert({ id: userId, full_name: fullName });
+        }
         router.push("/onboarding/role");
       } else {
         // Log In

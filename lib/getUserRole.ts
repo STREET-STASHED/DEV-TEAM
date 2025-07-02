@@ -10,7 +10,7 @@ export async function getUserRoleById(id: string): Promise<{
   verification_complete: boolean;
 }> {
   const { data, error } = await supabase
-    .from('users')
+    .from('profiles')
     .select('role, details_complete, verified, onboarded, has_completed_onboarding, verification_complete')
     .eq('id', id)
     .maybeSingle();

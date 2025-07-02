@@ -26,7 +26,7 @@ const Dashboard: FC = () => {
         setUserId(user.id);
 
         const { data: userData, error: roleError } = await supabase
-          .from('users')
+          .from('profiles')
           .select('role, has_completed_onboarding')
           .eq('id', user.id)
           .single();

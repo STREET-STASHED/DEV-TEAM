@@ -36,7 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const { data: updatedUser, error: updateError } = await supabase
-      .from('users')
+      .from('profiles')
       .update({
         role,
         updated_at: new Date().toISOString(),

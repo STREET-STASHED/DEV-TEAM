@@ -66,7 +66,7 @@ const AdminDashboard = () => {
         }
 
         const { data: profile, error: roleError } = await supabase
-          .from('users')
+          .from('profiles')
           .select('role')
           .eq('id', user.id)
           .single();
@@ -121,13 +121,13 @@ const AdminDashboard = () => {
           { count: totalBookings = 0 } = {},
         ] = await Promise.all([
           // Total registered users
-          supabase.from('users').select('id', { count: 'exact', head: true }),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
           // Stylists
-          supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'stylist'),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'stylist'),
           // Sellers
-          supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'seller'),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'seller'),
           // Buyers
-          supabase.from('users').select('id', { count: 'exact', head: true }).eq('role', 'buyer'),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'buyer'),
           // Orders
           supabase.from('orders').select('id', { count: 'exact', head: true }),
           // Bookings

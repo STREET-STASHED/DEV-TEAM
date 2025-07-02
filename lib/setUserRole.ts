@@ -2,7 +2,7 @@ import { supabaseServer } from './supabaseAdmin';
 
 export async function setUserRole(userId: string, role: string) {
   const { data, error } = await supabaseServer
-    .from('users')
+    .from('profiles')
     .update({
       role,
       details_complete: false,

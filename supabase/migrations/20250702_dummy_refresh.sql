@@ -1,0 +1,1 @@
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS dummy_refresh_patch BOOLEAN DEFAULT FALSE;

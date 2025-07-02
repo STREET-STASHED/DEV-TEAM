@@ -18,7 +18,7 @@ async function getCurrentUser() {
 // Helper to check seller role
 async function checkSellerRole(userId: string) {
   const { data: user, error } = await supabase
-    .from("users")
+    .from("profiles")
     .select("role")
     .eq("id", userId)
     .single();
@@ -32,15 +32,15 @@ async function checkSellerRole(userId: string) {
 // Helper to check onboarding status
 async function checkOnboardingComplete(userId: string) {
   const { data: onboardingStatus, error } = await supabase
-    .from("users")
-    .select("onboarding_complete")
+    .from("profiles")
+    .select("has_completed_onboarding")
     .eq("id", userId)
     .single();
   if (error) {
     console.error("Error fetching onboarding status:", error);
     return false;
   }
-  return onboardingStatus?.onboarding_complete;
+  return onboardingStatus?.has_completed_onboarding;
 }
 import AuthGuard from "@/components/AuthGuard";
 
@@ -306,7 +306,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
                     `users/${currentUserId}/profile.png`
                   ).data.publicUrl;
                 await supabase
-                  .from("users")
+                  .from("profiles")
                   .update({ profile_image_url: publicURL })
                   .eq("id", currentUserId);
                 sessionStorage.setItem("profile_image", publicURL);

@@ -64,7 +64,7 @@ export default function VerifyPage() {
     };
     console.log("✅ Updating user profile in verify step:", updatePayload);
     const { data: updatedUser, error: updErr } = await supabase
-      .from('users')
+      .from('profiles')
       .update(updatePayload)
       .eq('id', user.id)
       .select()
@@ -86,7 +86,7 @@ export default function VerifyPage() {
     // — refresh & re-fetch role
     await supabase.auth.refreshSession();
     const { data: freshProfile, error: profErr } = await supabase
-      .from('users')
+      .from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();

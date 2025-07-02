@@ -19,8 +19,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const { data, error } = await supabase
-    .from('users')
-    .select('id, role, email, phone, created_at, updated_at, last_sign_in_at, is_sso_user, is_anonymous')
+    .from('profiles')
+    .select('id, role, email, phone, created_at, updated_at')
     .eq('id', user.id)
     .maybeSingle();
 
