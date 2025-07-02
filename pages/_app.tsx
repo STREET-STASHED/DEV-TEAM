@@ -1,30 +1,50 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { useSession } from '@supabase/auth-helpers-react';
-import { useEffect } from 'react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import Header from '../components/Header';
 import dynamic from 'next/dynamic';
 import React from 'react';
 
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
-import type { Session } from '@supabase/auth-helpers-react';
+import { createBrowserClient } from '@supabase/ssr';
+import { SupabaseContext } from '../lib/SupabaseContext';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { CartProvider } from '../context/CartContext';
+
+const supabaseClient = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 type MyAppProps = AppProps & {
   pageProps: AppProps['pageProps'] & { initialSession?: Session };
 };
 
 export default function MyApp({ Component, pageProps }: MyAppProps) {
-  const [supabaseClient] = React.useState(() => createPagesBrowserClient());
-
   const router = useRouter();
 
-  const session = useSession();
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
   const isLoading = typeof session === 'undefined';
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabaseClient.auth.getSession();
+      setSession(data.session);
+    };
+    getSession();
+
+    const {
+      data: { subscription },
+    } = supabaseClient.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (!router.isReady || isLoading || typeof session === 'undefined') return;
@@ -91,7 +111,7 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
     };
 
     runRedirectLogic();
-  }, [router, session, supabaseClient, isLoading]);
+  }, [router, session, isLoading]);
 
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
@@ -110,10 +130,7 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
 
   return (
-    <SessionContextProvider
-      supabaseClient={supabaseClient}
-      initialSession={pageProps.initialSession}
-    >
+    <SupabaseContext.Provider value={{ supabase: supabaseClient }}>
       <Elements stripe={stripePromise}>
         {isBuyerFacing ? (
           <CartProvider>
@@ -136,6 +153,6 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
           </>
         )}
       </Elements>
-    </SessionContextProvider>
+    </SupabaseContext.Provider>
   );
 }

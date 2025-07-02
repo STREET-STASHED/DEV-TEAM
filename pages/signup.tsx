@@ -29,7 +29,10 @@ export default function Signup() {
           email,
           password,
           options: {
-            emailRedirectTo: `${location.origin}/onboarding/role`,
+            emailRedirectTo:
+              process.env.NODE_ENV === "production"
+                ? "https://your-production-domain.com/onboarding/role"
+                : "http://localhost:3000/onboarding/role",
             data: { full_name: fullName },
           },
         });
