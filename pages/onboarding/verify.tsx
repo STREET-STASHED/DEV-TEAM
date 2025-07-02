@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createBrowserClient } from '@supabase/ssr';
 import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
+import { useOnboarding } from '../../hooks/useOnboarding';
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function VerifyPage() {
   const [licenseNumber, setLicenseNumber] = useState('');
   const [file, setFile]         = useState<File | null>(null);
 
+  const { submitOnboarding, error: onboardingError } = useOnboarding();
+
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -28,21 +31,13 @@ export default function VerifyPage() {
       return setUploading(false);
     }
 
-    // — get user
-    const { data: { user }, error: authErr } = await supabase.auth.getUser();
-    if (authErr || !user) {
-      setError('Session expired—please log in.');
-      router.push('/signup');
-      return setUploading(false);
-    }
-
-    // — upload file
     const ext = file.name.split('.').pop();
     if (!ext) {
       setError('Invalid file format.');
       return setUploading(false);
     }
-    const fileName = `${user.id}.${ext}`;
+
+    const fileName = `${crypto.randomUUID()}.${ext}`;
     const { data: up, error: upErr } = await supabase
       .storage.from('verification-docs')
       .upload(fileName, file);
@@ -51,54 +46,31 @@ export default function VerifyPage() {
       return setUploading(false);
     }
 
-    // — update profile
-    const updatePayload = {
-      full_name: fullName,
-      license_number: licenseNumber,
-      verification_url: up.path,
-      verification_complete: true,
-      has_completed_onboarding: true,
-      details_complete: true,
-      onboarded: true,
-      updated_at: new Date().toISOString(),
-    };
-    console.log("✅ Updating user profile in verify step:", updatePayload);
-    const { data: updatedUser, error: updErr } = await supabase
-      .from('profiles')
-      .update(updatePayload)
-      .eq('id', user.id)
-      .select()
-      .single();
-    if (updErr || !updatedUser) {
-      setError(updErr?.message || 'Could not update profile.');
+    const { data: signedUrlData, error: signedUrlErr } = await supabase
+      .storage.from('verification-docs')
+      .createSignedUrl(fileName, 60 * 60);
+
+    if (signedUrlErr || !signedUrlData?.signedUrl) {
+      setError('Failed to generate access link.');
       return setUploading(false);
     }
 
-    await supabase.auth.updateUser({
-      data: {
-        full_name: fullName.trim(),
-        license_number: licenseNumber.trim(),
-        verification_complete: true,
-        has_completed_onboarding: true,
-      },
-    });
+    try {
+      const result = await submitOnboarding({
+        full_name: fullName,
+        license_number: licenseNumber,
+        verification_url: signedUrlData.signedUrl,
+        role: 'agent'
+      });
 
-    // — refresh & re-fetch role
-    await supabase.auth.refreshSession();
-    const { data: freshProfile, error: profErr } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
-    if (profErr || !freshProfile?.role) {
-      setError('Could not fetch your role.');
-      return setUploading(false);
+      const roleKey = result?.profile?.role?.toLowerCase?.() || 'buyer';
+      const dest = getDashboardRedirect(roleKey);
+      router.replace(dest);
+    } catch (err: any) {
+      setError(err?.message || 'Onboarding failed.');
+    } finally {
+      setUploading(false);
     }
-
-    // ← **force** the correct dashboard
-    const roleKey = freshProfile.role.toLowerCase();
-    const dest = getDashboardRedirect(roleKey);
-    router.replace(dest);
   };
 
   return (
@@ -132,9 +104,8 @@ export default function VerifyPage() {
           className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 hover:file:bg-yellow-600"
         />
 
-        {error && (
-          <p className="text-red-400 animate-pulse text-center">{error}</p>
-        )}
+        {error && <p className="text-red-400 animate-pulse text-center">{error}</p>}
+        {onboardingError && <p className="text-red-400 animate-pulse text-center">{onboardingError}</p>}
 
         <button
           type="submit"

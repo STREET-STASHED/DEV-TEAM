@@ -48,7 +48,7 @@ const AuthGuard: React.FC<AuthGuardProps> = ({ children, requiredRole }) => {
 
       if (requiredRole) {
         const { data: userData } = await supabase
-          .from("users")
+          .from("profiles")
           .select("role")
           .eq("id", session!.user!.id)
           .single();

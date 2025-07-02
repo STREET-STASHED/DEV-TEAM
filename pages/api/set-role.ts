@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .from('profiles')
       .update({
         role,
-        updated_at: new Date().toISOString(),
+        details_complete: false,
       })
       .eq('id', userId)
       .select()

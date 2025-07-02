@@ -7,7 +7,7 @@ interface BuyerDashboardProps {
   userId: string;
 }
 
-const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
+const Dashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
   const [orders, setOrders] = useState<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>([])
 
   useEffect(() => {
@@ -79,4 +79,4 @@ const BuyerDashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
   )
 }
 
-export default BuyerDashboard
+export default Dashboard

@@ -1,77 +1,53 @@
-import { useEffect, useState, type FC } from 'react';
-import { useRouter } from 'next/router';
-import { supabaseServer } from '@/lib/supabaseServer';
-const supabase = supabaseServer;
+import { useEffect } from 'react'
+import { useRouter } from 'next/router'
+import { createBrowserClient } from '@supabase/ssr'
 
-const Dashboard: FC = () => {
-  const [userId, setUserId] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const router = useRouter();
+export default function DashboardIndexRedirect() {
+  const router = useRouter()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const redirectToRoleDashboard = async () => {
+      const {
+        data: { user }
+      } = await supabase.auth.getUser()
 
-        if (authError || !user?.id) {
-          console.error('Error retrieving authenticated user:', authError);
-          setError('Authentication error. Please try logging in again.');
-          setLoading(false);
-          return;
-        }
+      if (!user) return router.push('/login')
 
-        setUserId(user.id);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
 
-        const { data: userData, error: roleError } = await supabase
-          .from('profiles')
-          .select('role, has_completed_onboarding')
-          .eq('id', user.id)
-          .single();
+      const role = profile?.role
 
-        if (roleError || !userData) {
-          console.error('Error fetching user data:', roleError);
-          setError('Unable to retrieve user data.');
-          setLoading(false);
-          return;
-        }
-
-        if (userData.has_completed_onboarding === false) {
-          router.push('/onboarding/verify');
-          return;
-        }
-
-        const roleRedirectMap: Record<string, string> = {
-          seller: '/seller/dashboard',
-          buyer: '/buyer/dashboard',
-          stylist: '/stylist/dashboard',
-          driver: '/driver/dashboard',
-        };
-
-        if (userData.role && roleRedirectMap[userData.role]) {
-          router.push(roleRedirectMap[userData.role]);
-          return;
-        } else {
-          setError('Unrecognized user role. Please contact support.');
-        }
-
-      } catch (err) {
-        console.error('Unexpected error:', err);
-        setError('Unexpected error occurred. Please try again.');
-      } finally {
-        setLoading(false);
+      switch (role) {
+        case 'buyer':
+          router.push('/dashboard/buyer')
+          break
+        case 'seller':
+          router.push('/dashboard/seller')
+          break
+        case 'stylist':
+          router.push('/dashboard/stylist')
+          break
+        case 'driver':
+          router.push('/dashboard/driver')
+          break
+        case 'agent':
+          router.push('/dashboard/agent')
+          break
+        default:
+          router.push('/dashboard/general')
       }
-    };
+    }
 
-    fetchUserData();
-  }, [router]);
+    redirectToRoleDashboard()
+  }, [router, supabase])
 
-  if (loading) return <p>Loading dashboard...</p>;
-  if (error) return <div className="text-red-600 p-4">{error}</div>;
-
-  return null;
-};
-
-export default Dashboard;
+  return null
+}

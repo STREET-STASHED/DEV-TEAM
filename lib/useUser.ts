@@ -5,6 +5,7 @@ interface AppUser {
   id: string;
   email: string;
   role: string;
+  details_complete: boolean;
   [key: string]: any;
 }
 
@@ -39,6 +40,7 @@ export function useUser() {
           id: authUser.id,
           email: authUser.email,
           role: userData.role,
+          details_complete: userData.details_complete,
           ...userData,
         });
       }

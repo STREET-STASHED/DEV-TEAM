@@ -1,10 +1,12 @@
+// File: /pages/driver/dashboard.tsx
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 
-// Placeholder components and API function
+// Placeholder components for driver-specific dashboard
 const DeliveryList = ({ deliveries }: { deliveries: any[] }) => <div>Delivery List Placeholder</div>;
 const EarningsChart = ({ earnings }: { earnings: any[] }) => <div>Earnings Chart Placeholder</div>;
-const RouteMap = ({ route }: { route: any }) => <div>Route Map Placeholder</div>;
+const DriverRatings = ({ ratings }: { ratings: any }) => <div>Driver Ratings Placeholder</div>;
+
 const fetchDriverData = async () => {
   const {
     data: { user },
@@ -23,33 +25,33 @@ const fetchDriverData = async () => {
     throw new Error('Access denied: Not a driver or profile not found.');
   }
 
-  const { data: deliveries, error: deliveryError } = await supabase
+  const { data: deliveries, error: deliveriesError } = await supabase
     .from('deliveries')
     .select('*')
     .eq('driver_id', user.id);
 
   const { data: earnings, error: earningsError } = await supabase
-    .from('earnings')
+    .from('driver_earnings')
     .select('*')
     .eq('driver_id', user.id);
 
-  const { data: route, error: routeError } = await supabase
-    .from('routes')
+  const { data: ratings, error: ratingsError } = await supabase
+    .from('driver_ratings')
     .select('*')
     .eq('driver_id', user.id)
     .single();
 
-  if (deliveryError || earningsError || routeError) {
+  if (deliveriesError || earningsError || ratingsError) {
     throw new Error('Failed to fetch driver data');
   }
 
-  return { deliveries, earnings, route };
+  return { deliveries, earnings, ratings };
 };
 
 const DriverDashboard = () => {
   const [deliveries, setDeliveries] = useState<any[]>([]);
   const [earnings, setEarnings] = useState<any[]>([]);
-  const [route, setRoute] = useState<any | null>(null);
+  const [ratings, setRatings] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,7 +62,7 @@ const DriverDashboard = () => {
         const data = await fetchDriverData();
         setDeliveries(data.deliveries);
         setEarnings(data.earnings);
-        setRoute(data.route);
+        setRatings(data.ratings);
       } catch (err) {
         setError('Failed to load driver data.');
       } finally {
@@ -79,7 +81,7 @@ const DriverDashboard = () => {
       <h1 className="text-2xl font-bold mb-4">Driver Dashboard</h1>
       <DeliveryList deliveries={deliveries} />
       <EarningsChart earnings={earnings} />
-      <RouteMap route={route} />
+      <DriverRatings ratings={ratings} />
     </div>
   );
 };

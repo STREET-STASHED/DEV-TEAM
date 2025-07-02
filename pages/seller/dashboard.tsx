@@ -66,7 +66,7 @@ function getProgressPercent(status: string) {
   }
 }
 
-const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
+const SellerDashboardPageContent: React.FC<SellerDashboardProps> = ({ userId }) => {
   const [services, setServices] = useState<any[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
@@ -604,7 +604,7 @@ const SellerDashboard: React.FC<SellerDashboardProps> = ({ userId }) => {
 };
 
 export default function SellerDashboardPage(props: { userId: string }) {
-  return <SellerDashboard userId={props.userId} />;
+  return <SellerDashboardPageContent userId={props.userId} />;
 }
 
 export async function getServerSideProps(context: any) {

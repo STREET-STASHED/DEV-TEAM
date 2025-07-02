@@ -7,6 +7,31 @@ export type Json =
   | Json[]
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       bookings: {
@@ -90,6 +115,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "deliveries_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deliveries_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -107,6 +139,7 @@ export type Database = {
           id: string
           is_online: boolean | null
           license_number: string | null
+          payout_method: string | null
           user_id: string | null
           vehicle_type: string | null
         }
@@ -118,6 +151,7 @@ export type Database = {
           id?: string
           is_online?: boolean | null
           license_number?: string | null
+          payout_method?: string | null
           user_id?: string | null
           vehicle_type?: string | null
         }
@@ -129,6 +163,7 @@ export type Database = {
           id?: string
           is_online?: boolean | null
           license_number?: string | null
+          payout_method?: string | null
           user_id?: string | null
           vehicle_type?: string | null
         }
@@ -136,7 +171,7 @@ export type Database = {
           {
             foreignKeyName: "drivers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -186,9 +221,13 @@ export type Database = {
           buyer_id: string | null
           commission_amount: number | null
           created_at: string | null
+          customer_type: string | null
           delivery_address: string | null
           delivery_fee: number | null
+          guest_id: string | null
           id: string
+          is_guest: boolean | null
+          product_id: string
           seller_id: string | null
           status: string | null
           support_fee: number | null
@@ -199,9 +238,13 @@ export type Database = {
           buyer_id?: string | null
           commission_amount?: number | null
           created_at?: string | null
+          customer_type?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
+          guest_id?: string | null
           id?: string
+          is_guest?: boolean | null
+          product_id: string
           seller_id?: string | null
           status?: string | null
           support_fee?: number | null
@@ -212,9 +255,13 @@ export type Database = {
           buyer_id?: string | null
           commission_amount?: number | null
           created_at?: string | null
+          customer_type?: string | null
           delivery_address?: string | null
           delivery_fee?: number | null
+          guest_id?: string | null
           id?: string
+          is_guest?: boolean | null
+          product_id?: string
           seller_id?: string | null
           status?: string | null
           support_fee?: number | null
@@ -227,6 +274,13 @@ export type Database = {
             columns: ["buyer_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -320,20 +374,29 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          email: string | null
+          first_name: string | null
           full_name: string | null
           id: string
+          last_name: string | null
           role: string
         }
         Insert: {
           created_at?: string | null
+          email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
+          last_name?: string | null
           role?: string
         }
         Update: {
           created_at?: string | null
+          email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          last_name?: string | null
           role?: string
         }
         Relationships: []
@@ -373,7 +436,7 @@ export type Database = {
           {
             foreignKeyName: "sellers_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -387,6 +450,7 @@ export type Database = {
           location: string | null
           name: string
           owner_id: string | null
+          payout_method: string | null
         }
         Insert: {
           created_at?: string | null
@@ -395,6 +459,7 @@ export type Database = {
           location?: string | null
           name: string
           owner_id?: string | null
+          payout_method?: string | null
         }
         Update: {
           created_at?: string | null
@@ -403,6 +468,7 @@ export type Database = {
           location?: string | null
           name?: string
           owner_id?: string | null
+          payout_method?: string | null
         }
         Relationships: [
           {
@@ -418,6 +484,7 @@ export type Database = {
         Row: {
           bio: string | null
           booking_link: string | null
+          bundles: string | null
           city: string | null
           created_at: string | null
           email: string
@@ -426,11 +493,14 @@ export type Database = {
           instagram: string | null
           phone: string | null
           portfolio_url: string | null
+          specialties: string | null
           specialty: string | null
+          user_id: string | null
         }
         Insert: {
           bio?: string | null
           booking_link?: string | null
+          bundles?: string | null
           city?: string | null
           created_at?: string | null
           email: string
@@ -439,11 +509,14 @@ export type Database = {
           instagram?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          specialties?: string | null
           specialty?: string | null
+          user_id?: string | null
         }
         Update: {
           bio?: string | null
           booking_link?: string | null
+          bundles?: string | null
           city?: string | null
           created_at?: string | null
           email?: string
@@ -452,7 +525,9 @@ export type Database = {
           instagram?: string | null
           phone?: string | null
           portfolio_url?: string | null
+          specialties?: string | null
           specialty?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -463,6 +538,7 @@ export type Database = {
           created_at: string | null
           id: string
           instagram: string | null
+          payout_method: string | null
           specialty: string | null
           user_id: string | null
         }
@@ -472,6 +548,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           instagram?: string | null
+          payout_method?: string | null
           specialty?: string | null
           user_id?: string | null
         }
@@ -481,6 +558,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           instagram?: string | null
+          payout_method?: string | null
           specialty?: string | null
           user_id?: string | null
         }
@@ -488,7 +566,7 @@ export type Database = {
           {
             foreignKeyName: "stylists_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -497,33 +575,84 @@ export type Database = {
       users: {
         Row: {
           created_at: string | null
+          details_complete: boolean | null
+          dummy_patch: boolean | null
           email: string
           full_name: string | null
+          has_completed_onboarding: boolean | null
           id: string
           is_active: boolean | null
+          license_number: string | null
           name: string | null
+          onboarded: boolean | null
+          payout_method: string | null
+          phone: string | null
+          portfolio: string | null
           profile_image_url: string | null
-          role: string
+          referral_code: string | null
+          role: string | null
+          specialties: string | null
+          store_description: string | null
+          store_name: string | null
+          updated_at: string | null
+          vehicle_type: string | null
+          verification_complete: boolean | null
+          verification_url: string | null
+          verified: boolean | null
         }
         Insert: {
           created_at?: string | null
+          details_complete?: boolean | null
+          dummy_patch?: boolean | null
           email: string
           full_name?: string | null
+          has_completed_onboarding?: boolean | null
           id?: string
           is_active?: boolean | null
+          license_number?: string | null
           name?: string | null
+          onboarded?: boolean | null
+          payout_method?: string | null
+          phone?: string | null
+          portfolio?: string | null
           profile_image_url?: string | null
-          role: string
+          referral_code?: string | null
+          role?: string | null
+          specialties?: string | null
+          store_description?: string | null
+          store_name?: string | null
+          updated_at?: string | null
+          vehicle_type?: string | null
+          verification_complete?: boolean | null
+          verification_url?: string | null
+          verified?: boolean | null
         }
         Update: {
           created_at?: string | null
+          details_complete?: boolean | null
+          dummy_patch?: boolean | null
           email?: string
           full_name?: string | null
+          has_completed_onboarding?: boolean | null
           id?: string
           is_active?: boolean | null
+          license_number?: string | null
           name?: string | null
+          onboarded?: boolean | null
+          payout_method?: string | null
+          phone?: string | null
+          portfolio?: string | null
           profile_image_url?: string | null
-          role?: string
+          referral_code?: string | null
+          role?: string | null
+          specialties?: string | null
+          store_description?: string | null
+          store_name?: string | null
+          updated_at?: string | null
+          vehicle_type?: string | null
+          verification_complete?: boolean | null
+          verification_url?: string | null
+          verified?: boolean | null
         }
         Relationships: []
       }
@@ -533,7 +662,22 @@ export type Database = {
     }
     Functions: {
       create_delivery_on_order: {
-        Args: { order_id: number; delivery_address: string }
+        Args:
+          | Record<PropertyKey, never>
+          | { order_id: number; delivery_address: string }
+          | { order_id: string }
+          | {
+              order_id: string
+              driver_id?: string
+              status?: string
+              destination?: string
+              pickup_location?: string
+              scheduled_time?: string
+            }
+        Returns: undefined
+      }
+      create_role_data: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
     }
@@ -652,7 +796,11 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },
 } as const
+

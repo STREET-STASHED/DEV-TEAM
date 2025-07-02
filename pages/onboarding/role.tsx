@@ -37,7 +37,6 @@ export default function RolePage() {
         role: cleanRole,
         details_complete: false,
         has_completed_onboarding: false,
-        verification_complete: false,
         onboarded: false
       })
       .eq("id", user.id);
@@ -68,19 +67,21 @@ export default function RolePage() {
 
         <div className="grid gap-4">
           {["buyer", "seller", "driver", "stylist"].map((r) => (
-            <button
-              type="button"
-              key={r}
-              onClick={() => setRole(r)}
-              className={`py-3 rounded-lg font-semibold border transition-colors ${
-                role === r
-                  ? "bg-yellow-500 text-black border-yellow-600"
-                  : "bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
-              }`}
-              aria-label={`Select ${r} role`}
-            >
+            <label key={r} className={`py-3 px-4 rounded-lg font-semibold border cursor-pointer transition-colors ${
+              role === r
+                ? "bg-yellow-500 text-black border-yellow-600"
+                : "bg-gray-800 text-white border-gray-700 hover:bg-gray-700"
+            }`}>
+              <input
+                type="radio"
+                name="role"
+                value={r}
+                checked={role === r}
+                onChange={() => setRole(r)}
+                className="hidden"
+              />
               {r.charAt(0).toUpperCase() + r.slice(1)}
-            </button>
+            </label>
           ))}
         </div>
 

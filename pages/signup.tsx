@@ -1,8 +1,13 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { supabase } from "@/lib/supabaseClient";
+import { createBrowserClient } from "@supabase/ssr";
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
+
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function Signup() {
   const [isLogin, setIsLogin] = useState(false);
@@ -41,17 +46,7 @@ export default function Signup() {
           setLoading(false);
           return;
         }
-        // Insert profile row immediately after sign up
-        const {
-          data: sessionData,
-          error: sessionError
-        } = await supabase.auth.getSession();
-
-        const userId = sessionData?.session?.user?.id;
-
-        if (userId) {
-          await supabase.from('profiles').insert({ id: userId, full_name: fullName });
-        }
+        // Removed manual profile upsert as onboarding is handled by Edge Function
         router.push("/onboarding/role");
       } else {
         // Log In

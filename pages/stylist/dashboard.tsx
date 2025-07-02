@@ -53,7 +53,7 @@ const Spinner = () => (
   </div>
 );
 
-const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
+const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -174,7 +174,7 @@ const StylistDashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   );
 };
 
-export default StylistDashboard;
+export default Dashboard;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const {

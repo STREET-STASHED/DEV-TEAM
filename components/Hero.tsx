@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/router';
+import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
 
 const Hero = () => {
   const router = useRouter();
@@ -10,12 +11,22 @@ const Hero = () => {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(
-      ({ data }: { data: { session: Session | null } }) => {
-        setSession(data.session);
+    supabase.auth.getSession().then(async ({ data }) => {
+      setSession(data.session);
+
+      if (data.session?.user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, details_complete')
+          .eq('id', data.session.user.id)
+          .single();
+
+        if (profile?.details_complete) {
+          router.push(getDashboardRedirect(profile.role));
+        }
       }
-    );
-  }, []);
+    });
+  }, [router]);
 
   return (
     <section
@@ -47,7 +58,18 @@ const Hero = () => {
             </Link>
           ) : (
             <Link
-              href="/dashboard"
+              href="#"
+              onClick={async () => {
+                const { data: profile } = await supabase
+                  .from('profiles')
+                  .select('role')
+                  .eq('id', session?.user?.id)
+                  .single();
+
+                if (profile?.role) {
+                  router.push(getDashboardRedirect(profile.role));
+                }
+              }}
               className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
             >
               Go to Dashboard
