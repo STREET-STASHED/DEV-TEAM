@@ -1,13 +1,27 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
-import { createBrowserClient } from "@supabase/ssr";
+import { createBrowserClient } from '@supabase/ssr';
 import { getDashboardRedirect } from "@/lib/getDashboardRedirect";
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+// Helper to update/create profile row after sign up
+const updateProfile = async (updates: Record<string, any>) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id);
+    if (error) {
+      console.error('Error updating profile during sign-up:', error.message);
+    }
+  }
+};
 
 export default function Signup() {
   const [isLogin, setIsLogin] = useState(false);
@@ -46,8 +60,13 @@ export default function Signup() {
           setLoading(false);
           return;
         }
-        // Removed manual profile upsert as onboarding is handled by Edge Function
         router.push("/onboarding/role");
+        // Also create or update the user's profile row after sign up
+        await updateProfile({
+          full_name: fullName,
+          has_completed_onboarding: false,
+          details_complete: false,
+        });
       } else {
         // Log In
         const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
@@ -100,11 +119,13 @@ export default function Signup() {
       </Head>
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="w-full max-w-md bg-gray-900 rounded-xl shadow-2xl px-8 py-10 flex flex-col items-center">
-          <img
-            src="/logo.png"
-            alt="StreetStashed Logo"
-            className="h-16 w-16 mb-4"
-          />
+          <div className="w-full flex justify-center">
+            <img
+              src="/logo.png"
+              alt="StreetStashed Logo"
+              className="h-20 w-20 mb-4 object-contain"
+            />
+          </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-yellow-400 mb-2">
             StreetStashed
           </h1>

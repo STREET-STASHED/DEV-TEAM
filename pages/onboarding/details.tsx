@@ -2,7 +2,6 @@ import ProtectedLayout from '../../components/ProtectedLayout'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import { createBrowserClient } from '@supabase/ssr'
-import { useOnboarding } from '../../hooks/useOnboarding'
 
 export default function Details() {
   const router = useRouter()
@@ -10,7 +9,6 @@ export default function Details() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
-  const { submitOnboarding, loading, error } = useOnboarding()
   
   const [user, setUser] = useState<any>(null)
   const [formData, setFormData] = useState({
@@ -64,7 +62,30 @@ export default function Details() {
     e.preventDefault()
 
     try {
-      await submitOnboarding(formData)
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        alert('Session expired. Please log in again.')
+        router.push('/signup')
+        return
+      }
+
+      await supabase.from('profiles').update({
+        full_name: formData.full_name,
+        role: formData.role,
+        license_number: formData.license_number,
+        verification_url: formData.verification_url,
+        details_complete: true,
+        has_completed_onboarding: true
+      }).eq('id', user.id)
+
+      await supabase.auth.updateUser({
+        data: {
+          full_name: formData.full_name,
+          role: formData.role
+        }
+      })
+
       router.push('/onboarding/verify')
     } catch (err: any) {
       console.error('Onboarding failed:', err.message)
@@ -79,9 +100,6 @@ export default function Details() {
     <ProtectedLayout supabaseClient={supabase}>
       <div className="min-h-screen flex flex-col items-center justify-center bg-black bg-opacity-50 px-4 py-8">
         <h1 className="text-2xl font-bold text-white mb-6">Complete Your Profile</h1>
-        {error && (
-          <div className="bg-red-500 text-white px-4 py-2 rounded mb-4">{error}</div>
-        )}
         <form
           onSubmit={handleSubmit}
           className="bg-gray-900 text-white p-8 rounded-lg shadow-lg w-full max-w-xl space-y-6"
@@ -133,10 +151,9 @@ export default function Details() {
 
           <button
             type="submit"
-            disabled={loading}
             className="w-full bg-yellow-500 hover:bg-yellow-600 py-3 rounded text-white font-semibold"
           >
-            {loading ? 'Saving...' : 'Continue to Verification'}
+            Continue to Verification
           </button>
         </form>
       </div>

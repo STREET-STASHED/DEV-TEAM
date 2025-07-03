@@ -32,30 +32,36 @@ export default function RolePage() {
     }
 
     const cleanRole = role.trim().toLowerCase();
+
     const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
+      .from('profiles')
+      .update({ 
         role: cleanRole,
         details_complete: false,
         has_completed_onboarding: false,
         onboarded: false,
         onboarding_step: "details"
       })
-      .eq("id", user.id);
-
-    console.log("✅ Role update submitted:", cleanRole);
+      .eq('id', user.id);
 
     if (updateError) {
+      console.error('Error updating profile:', updateError);
       setError(updateError.message);
       setLoading(false);
       return;
     }
 
-    await supabase.auth.updateUser({
+    const { error: metaError } = await supabase.auth.updateUser({
       data: { role: cleanRole }
     });
 
-    // go to next step; hook will pick up details_complete=false
+    if (metaError) {
+      console.error('Error updating user metadata:', metaError);
+      setError(metaError.message);
+      setLoading(false);
+      return;
+    }
+
     router.push("/onboarding/details");
   };
 

@@ -9,7 +9,6 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 
 import { createBrowserClient } from '@supabase/ssr';
-import { SupabaseContext } from '../lib/SupabaseContext';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { CartProvider } from '../context/CartContext';
 
@@ -141,29 +140,27 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   }
 
   return (
-    <SupabaseContext.Provider value={{ supabase: supabaseClient }}>
-      <Elements stripe={stripePromise}>
-        {isBuyerFacing ? (
-          <CartProvider>
-            <Header />
-            <div style={{ paddingTop: 80 }}>
-              <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-                <Component {...pageProps} />
-              </main>
-            </div>
-            <CartDrawer />
-          </CartProvider>
-        ) : (
-          <>
-            <Header />
-            <div style={{ paddingTop: 80 }}>
-              <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-                <Component {...pageProps} />
-              </main>
-            </div>
-          </>
-        )}
-      </Elements>
-    </SupabaseContext.Provider>
+    <Elements stripe={stripePromise}>
+      {isBuyerFacing ? (
+        <CartProvider>
+          <Header />
+          <div style={{ paddingTop: 80 }}>
+            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+              <Component {...pageProps} />
+            </main>
+          </div>
+          <CartDrawer />
+        </CartProvider>
+      ) : (
+        <>
+          <Header />
+          <div style={{ paddingTop: 80 }}>
+            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
+              <Component {...pageProps} />
+            </main>
+          </div>
+        </>
+      )}
+    </Elements>
   );
 }

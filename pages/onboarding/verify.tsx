@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { createBrowserClient } from '@supabase/ssr';
 import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
-import { useOnboarding } from '../../hooks/useOnboarding';
 import ProtectedLayout from '../../components/ProtectedLayout';
 
 export default function VerifyPage() {
@@ -19,8 +18,6 @@ export default function VerifyPage() {
   const [fullName, setFullName] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
   const [file, setFile]         = useState<File | null>(null);
-
-  const { submitOnboarding, error: onboardingError } = useOnboarding();
 
   const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,14 +54,33 @@ export default function VerifyPage() {
     }
 
     try {
-      const result = await submitOnboarding({
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        setError('User not authenticated.');
+        return;
+      }
+
+      const updates = {
         full_name: fullName,
         license_number: licenseNumber,
         verification_url: signedUrlData.signedUrl,
+        has_completed_onboarding: true,
+        details_complete: true,
         role: 'agent'
-      });
+      };
 
-      const roleKey = result?.profile?.role?.toLowerCase?.() || 'buyer';
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user.id);
+
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+
+      const roleKey = updates.role.toLowerCase() || 'buyer';
       const dest = getDashboardRedirect(roleKey);
       router.replace(dest);
     } catch (err: any) {
@@ -107,7 +123,6 @@ export default function VerifyPage() {
           />
 
           {error && <p className="text-red-400 animate-pulse text-center">{error}</p>}
-          {onboardingError && <p className="text-red-400 animate-pulse text-center">{onboardingError}</p>}
 
           <button
             type="submit"
