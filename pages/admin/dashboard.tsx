@@ -4,7 +4,6 @@ interface ProfileRecord {
   full_name?: string | null;
 }
 import { useRouter } from 'next/router';
-import AuthGuard from '@/components/AuthGuard';
 
 import { useEffect, useState } from 'react'
 import { supabaseServer } from '@/lib/supabaseServer';
@@ -263,139 +262,137 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AuthGuard requiredRole="admin">
-      <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-8">
-        <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
-        {user ? (
-          <p>Welcome, {user?.email ?? ''}</p>
-        ) : (
-          <p>Loading admin info...</p>
-        )}
+    <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-8">
+      <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
+      {user ? (
+        <p>Welcome, {user?.email ?? ''}</p>
+      ) : (
+        <p>Loading admin info...</p>
+      )}
 
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-semibold">Platform Metrics (Live)</h2>
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
-            <ul>
-              <li><strong>Total Users:</strong> {metrics.totalUsers}</li>
-              <li><strong>Active Stylists:</strong> {metrics.activeStylists}</li>
-              <li><strong>Active Sellers:</strong> {metrics.activeSellers}</li>
-              <li><strong>Active Buyers:</strong> {metrics.activeBuyers}</li>
-              <li><strong>Total Orders:</strong> {metrics.totalOrders}</li>
-              <li><strong>Total Bookings:</strong> {metrics.totalBookings}</li>
-              <li><strong>Monthly Orders:</strong> {metrics.monthlyOrders}</li>
-              <li><strong>Monthly Bookings:</strong> {metrics.monthlyBookings}</li>
-              <li><strong>Top Cities:</strong> {Object.entries(metrics.topCities).map(([city, count]) => `${city}: ${count}`).join(', ')}</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-semibold">All Orders</h2>
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
-            {metrics.totalOrders > 0 ? (
-              <ul className="divide-y divide-gray-200">
-                {(ordersList ?? []).map((order) => (
-                  <li key={order?.id} className="py-2">
-                    <div><strong>Product:</strong> {order?.product_name ?? ''}</div>
-                    <div><strong>Price:</strong> ${order?.price ?? ''}</div>
-                    <div><strong>Status:</strong> {order?.status ?? ''}</div>
-                    <div><strong>Buyer ID:</strong> {order?.buyer_id ?? ''}</div>
-                    <div><strong>Seller ID:</strong> {order?.seller_id ?? ''}</div>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No orders available.</p>
-            )}
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-semibold">Admin Tools</h2>
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
-            <ul>
-              <li>✅ View sample user records</li>
-              <li>✅ Approve seller/stylist applications</li>
-              <li>✅ Monitor mock disputes</li>
-              <li>✅ Payout management dashboard</li>
-              <li>✅ View payout history</li>
-              <li>
-                🛠 Manually assign roles to users (coming soon)
-                <br />
-                <button className="mt-1 px-3 py-1 bg-gray-100 border rounded text-sm text-gray-600 cursor-not-allowed" disabled>
-                  Launch Role Manager
-                </button>
-              </li>
-              <li>🛠 Suspend or reinstate user accounts (coming soon)</li>
-              <li>🛠 View all transactions (coming soon)</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-semibold">Pending Seller Applications</h2>
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
-            <ul>
-              {(sellerApps ?? []).length > 0 ? (
-                (sellerApps ?? []).map((app) => (
-                  <li key={app?.id} className="mb-4">
-                    <div className="font-semibold flex items-center gap-2">
-                      {app?.brand_name ?? ''}
-                      <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
-                        {app?.status ?? 'Pending'}
-                      </span>
-                    </div>
-                    <div>{app?.email ?? ''} ({app?.city ?? ''})</div>
-                    <div className="mt-2 flex gap-2">
-                      <button onClick={() => handleUpdateStatus(app?.id, 'seller', 'approved')} className="px-4 py-2 bg-green-600 text-white rounded">
-                        Approve
-                      </button>
-                      <button onClick={() => handleUpdateStatus(app?.id, 'seller', 'rejected')} className="px-4 py-2 bg-red-600 text-white rounded">
-                        Reject
-                      </button>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <li>No pending seller applications.</li>
-              )}
-            </ul>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <h2 className="text-xl sm:text-2xl font-semibold">Pending Stylist Applications</h2>
-          <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
-            <ul>
-              {(stylistApps ?? []).length > 0 ? (
-                (stylistApps ?? []).map((app) => (
-                  <li key={app?.id} className="mb-4">
-                    <div className="font-semibold flex items-center gap-2">
-                      {app?.name ?? ''}
-                      <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
-                        {app?.status ?? 'Pending'}
-                      </span>
-                    </div>
-                    <div>{app?.email ?? ''} ({app?.city ?? ''})</div>
-                    <div className="mt-2 flex gap-2">
-                      <button onClick={() => handleUpdateStatus(app?.id, 'stylist', 'approved')} className="px-4 py-2 bg-green-600 text-white rounded">
-                        Approve
-                      </button>
-                      <button onClick={() => handleUpdateStatus(app?.id, 'stylist', 'rejected')} className="px-4 py-2 bg-red-600 text-white rounded">
-                        Reject
-                      </button>
-                    </div>
-                  </li>
-                ))
-              ) : (
-                <li>No pending stylist applications.</li>
-              )}
-            </ul>
-          </div>
+      <div className="space-y-2">
+        <h2 className="text-xl sm:text-2xl font-semibold">Platform Metrics (Live)</h2>
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
+          <ul>
+            <li><strong>Total Users:</strong> {metrics.totalUsers}</li>
+            <li><strong>Active Stylists:</strong> {metrics.activeStylists}</li>
+            <li><strong>Active Sellers:</strong> {metrics.activeSellers}</li>
+            <li><strong>Active Buyers:</strong> {metrics.activeBuyers}</li>
+            <li><strong>Total Orders:</strong> {metrics.totalOrders}</li>
+            <li><strong>Total Bookings:</strong> {metrics.totalBookings}</li>
+            <li><strong>Monthly Orders:</strong> {metrics.monthlyOrders}</li>
+            <li><strong>Monthly Bookings:</strong> {metrics.monthlyBookings}</li>
+            <li><strong>Top Cities:</strong> {Object.entries(metrics.topCities).map(([city, count]) => `${city}: ${count}`).join(', ')}</li>
+          </ul>
         </div>
       </div>
-    </AuthGuard>
-  )
+
+      <div className="space-y-2">
+        <h2 className="text-xl sm:text-2xl font-semibold">All Orders</h2>
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
+          {metrics.totalOrders > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {(ordersList ?? []).map((order) => (
+                <li key={order?.id} className="py-2">
+                  <div><strong>Product:</strong> {order?.product_name ?? ''}</div>
+                  <div><strong>Price:</strong> ${order?.price ?? ''}</div>
+                  <div><strong>Status:</strong> {order?.status ?? ''}</div>
+                  <div><strong>Buyer ID:</strong> {order?.buyer_id ?? ''}</div>
+                  <div><strong>Seller ID:</strong> {order?.seller_id ?? ''}</div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No orders available.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-xl sm:text-2xl font-semibold">Admin Tools</h2>
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
+          <ul>
+            <li>✅ View sample user records</li>
+            <li>✅ Approve seller/stylist applications</li>
+            <li>✅ Monitor mock disputes</li>
+            <li>✅ Payout management dashboard</li>
+            <li>✅ View payout history</li>
+            <li>
+              🛠 Manually assign roles to users (coming soon)
+              <br />
+              <button className="mt-1 px-3 py-1 bg-gray-100 border rounded text-sm text-gray-600 cursor-not-allowed" disabled>
+                Launch Role Manager
+              </button>
+            </li>
+            <li>🛠 Suspend or reinstate user accounts (coming soon)</li>
+            <li>🛠 View all transactions (coming soon)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-xl sm:text-2xl font-semibold">Pending Seller Applications</h2>
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
+          <ul>
+            {(sellerApps ?? []).length > 0 ? (
+              (sellerApps ?? []).map((app) => (
+                <li key={app?.id} className="mb-4">
+                  <div className="font-semibold flex items-center gap-2">
+                    {app?.brand_name ?? ''}
+                    <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
+                      {app?.status ?? 'Pending'}
+                    </span>
+                  </div>
+                  <div>{app?.email ?? ''} ({app?.city ?? ''})</div>
+                  <div className="mt-2 flex gap-2">
+                    <button onClick={() => handleUpdateStatus(app?.id, 'seller', 'approved')} className="px-4 py-2 bg-green-600 text-white rounded">
+                      Approve
+                    </button>
+                    <button onClick={() => handleUpdateStatus(app?.id, 'seller', 'rejected')} className="px-4 py-2 bg-red-600 text-white rounded">
+                      Reject
+                    </button>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li>No pending seller applications.</li>
+            )}
+          </ul>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <h2 className="text-xl sm:text-2xl font-semibold">Pending Stylist Applications</h2>
+        <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
+          <ul>
+            {(stylistApps ?? []).length > 0 ? (
+              (stylistApps ?? []).map((app) => (
+                <li key={app?.id} className="mb-4">
+                  <div className="font-semibold flex items-center gap-2">
+                    {app?.name ?? ''}
+                    <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
+                      {app?.status ?? 'Pending'}
+                    </span>
+                  </div>
+                  <div>{app?.email ?? ''} ({app?.city ?? ''})</div>
+                  <div className="mt-2 flex gap-2">
+                    <button onClick={() => handleUpdateStatus(app?.id, 'stylist', 'approved')} className="px-4 py-2 bg-green-600 text-white rounded">
+                      Approve
+                    </button>
+                    <button onClick={() => handleUpdateStatus(app?.id, 'stylist', 'rejected')} className="px-4 py-2 bg-red-600 text-white rounded">
+                      Reject
+                    </button>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li>No pending stylist applications.</li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default AdminDashboard
