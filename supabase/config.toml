@@ -24,8 +24,8 @@ enabled = false
 [db]
 # Port to use for the local database URL.
 port = 54322
-# Port used by db diff command to initialize the shadow database.
-shadow_port = 54320
+# Port used by db diff command to initialize the shadow database. Must not conflict with production ports.
+shadow_port = 6543
 # The database major version to use. This has to be the same as your remote database's. Run `SHOW
 # server_version;` on the remote database to check.
 major_version = 15
@@ -93,8 +93,8 @@ enabled = true
 file_size_limit = "50MiB"
 
 # Image transformation API is available to Supabase Pro plan.
-# [storage.image_transformation]
-# enabled = true
+[storage.image_transformation]
+enabled = true
 
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
@@ -109,7 +109,11 @@ enabled = true
 # in emails.
 site_url = "http://localhost:3000"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = []
+additional_redirect_urls = [
+  "http://localhost:3000",
+  "https://streetstashed.com",
+  "https://streetstashed-web.vercel.app"
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # If disabled, the refresh token will never expire.
@@ -169,14 +173,14 @@ otp_length = 6
 otp_expiry = 3600
 
 # Use a production-ready SMTP server
-# [auth.email.smtp]
-# enabled = true
-# host = "smtp.sendgrid.net"
-# port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+[auth.email.smtp]
+enabled = true
+host = "smtp.sendgrid.net"
+port = 587
+user = "apikey"
+pass = "env(SENDGRID_API_KEY)"
+admin_email = "admin@streetstashed.com"
+sender_name = "StreetStashed"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
@@ -254,7 +258,7 @@ client_id = ""
 # DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
 secret = "env(SUPABASE_AUTH_EXTERNAL_APPLE_SECRET)"
 # Overrides the default auth redirectUrl.
-redirect_uri = ""
+redirect_uri = "https://streetstashed.com"
 # Overrides the default auth provider URL. Used to support self-hosted gitlab, single-tenant Azure,
 # or any other third-party OIDC providers.
 url = ""

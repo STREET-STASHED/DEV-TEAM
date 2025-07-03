@@ -1,4 +1,44 @@
 -- USERS
+
+-- PROFILES
+create table if not exists profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  full_name text,
+  license_number text,
+  verification_url text,
+  role text check (role in ('buyer', 'seller', 'stylist', 'driver')),
+  created_at timestamp with time zone default now()
+);
+
+-- Enable Row Level Security
+alter table profiles enable row level security;
+
+-- RLS Policies
+create policy "Users can view their profile"
+on profiles for select
+using (auth.uid() = id);
+
+create policy "Users can update their profile"
+on profiles for update
+using (auth.uid() = id)
+with check (auth.uid() = id);
+
+-- Trigger function to insert into profiles when user signs up
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, role)
+  values (new.id, 'buyer'); -- default role
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger on auth.users
+create trigger on_auth_user_created
+after insert on auth.users
+for each row
+execute procedure public.handle_new_user();
+
 create table if not exists users (
   id uuid primary key default gen_random_uuid(),
   name text,
