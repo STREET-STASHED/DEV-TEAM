@@ -17,12 +17,13 @@ export default function ProtectedLayout({ children, supabaseClient }) {
   const [user, setUser] = useState(null)
 
   useEffect(() => {
+    const publicRoutes = ['/', '/welcome', '/marketplace', '/stores', '/stylist-booking']
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
 
       if (!user) {
-        if (!router.pathname.startsWith('/login')) {
+        if (!router.pathname.startsWith('/login') && !publicRoutes.includes(router.pathname)) {
           router.push(`/login?redirectedFrom=${router.pathname}`)
         }
         return
@@ -40,7 +41,7 @@ export default function ProtectedLayout({ children, supabaseClient }) {
           checkUserOnboarding(session?.user || null)
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
-          if (!router.pathname.startsWith('/login')) {
+          if (!router.pathname.startsWith('/login') && !publicRoutes.includes(router.pathname)) {
             router.push('/login')
           }
         }

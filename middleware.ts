@@ -31,7 +31,22 @@ export async function middleware(req: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
-  if (session) {
+  const PUBLIC_PATHS = [
+    '/',
+    '/welcome',
+    '/marketplace',
+    '/stores',
+    '/stylists',
+    '/track',
+    '/login',
+    '/signup',
+  ]
+
+  const isPublicPath = PUBLIC_PATHS.some((path) =>
+    req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith(path + '/')
+  )
+
+  if (session && !isPublicPath) {
     const { data: profileData } = await supabase
       .from('profiles')
       .select('details_complete, has_completed_onboarding, onboarded')
@@ -47,11 +62,10 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (!session && !req.nextUrl.pathname.startsWith('/login')) {
+  if (!session && !isPublicPath) {
     const currentPath = req.nextUrl.pathname + req.nextUrl.search
     const targetPath = `/login?redirectedFrom=${req.nextUrl.pathname}`
 
-    // Prevent redirect loop if already on the intended login path
     if (currentPath !== targetPath) {
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/login'
