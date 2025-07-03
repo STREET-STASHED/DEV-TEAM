@@ -1,5 +1,3 @@
-
-
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
@@ -33,11 +31,32 @@ export async function middleware(req: NextRequest) {
 
   const { data: { session } } = await supabase.auth.getSession()
 
+  if (session) {
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('details_complete, has_completed_onboarding, onboarded')
+      .eq('id', session.user.id)
+      .single()
+
+    if (!profileData?.details_complete || !profileData?.has_completed_onboarding || !profileData?.onboarded) {
+      if (!req.nextUrl.pathname.startsWith('/onboarding')) {
+        const onboardingUrl = req.nextUrl.clone()
+        onboardingUrl.pathname = '/onboarding'
+        return NextResponse.redirect(onboardingUrl)
+      }
+    }
+  }
+
   if (!session && !req.nextUrl.pathname.startsWith('/login')) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/login'
-    redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
-    return NextResponse.redirect(redirectUrl)
+    const currentPath = req.nextUrl.pathname + req.nextUrl.search
+    const targetPath = `/login?redirectedFrom=${req.nextUrl.pathname}`
+
+    if (currentPath !== targetPath) {
+      const redirectUrl = req.nextUrl.clone()
+      redirectUrl.pathname = '/login'
+      redirectUrl.searchParams.set('redirectedFrom', req.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
   }
 
   return res

@@ -27,14 +27,6 @@ const nextConfig = {
       },
     ],
   },
-  async rewrites() {
-    return [
-      {
-        source: '/service-worker.js',
-        destination: '/_next/static/service-worker.js',
-      },
-    ];
-  },
   async headers() {
     const csp = [
       "default-src 'self'",
