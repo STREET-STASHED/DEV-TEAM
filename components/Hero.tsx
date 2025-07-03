@@ -1,7 +1,7 @@
 import type { Session } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
 

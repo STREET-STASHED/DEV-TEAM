@@ -12,24 +12,18 @@ export async function middleware(req: NextRequest) {
       cookies: {
         get: (name) => req.cookies.get(name)?.value,
         set: (name, value, options) => {
-          res.cookies.set({
-            name,
-            value,
-            ...options,
-          })
+          res.cookies.set({ name, value, ...options })
         },
         remove: (name, options) => {
-          res.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          res.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
   const PUBLIC_PATHS = [
     '/',
@@ -46,16 +40,22 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith(path + '/')
   )
 
+  const isOnboardingPath = req.nextUrl.pathname.startsWith('/onboarding')
+
   if (session && !isPublicPath) {
-    const { data: profileData } = await supabase
+    const { data: profileData, error } = await supabase
       .from('profiles')
       .select('details_complete, has_completed_onboarding, onboarded')
       .eq('id', session.user.id)
       .single()
 
-    const isOnboardingIncomplete = !profileData?.details_complete || !profileData?.has_completed_onboarding || !profileData?.onboarded
+    const isOnboardingIncomplete =
+      !profileData ||
+      !profileData.details_complete ||
+      !profileData.has_completed_onboarding ||
+      !profileData.onboarded
 
-    if (isOnboardingIncomplete && !req.nextUrl.pathname.startsWith('/onboarding')) {
+    if (isOnboardingIncomplete && !isOnboardingPath) {
       const onboardingUrl = req.nextUrl.clone()
       onboardingUrl.pathname = '/onboarding'
       return NextResponse.redirect(onboardingUrl)
@@ -78,7 +78,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
 }

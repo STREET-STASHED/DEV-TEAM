@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import { AuthSessionMissingError } from '@supabase/supabase-js';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
@@ -64,21 +64,21 @@ const Header = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-10 py-3 relative">
           {/* Logo & Brand */}
           <div className="flex items-center gap-4">
-            <Link href="/" className="rounded-full border-4 border-yellow-400 shadow-xl bg-black cursor-pointer">
+            <Link href="/">
               <Image
                 src="/logo.png"
                 alt="StreetStashed Logo"
                 width={48}
                 height={48}
-                className="rounded-full border-4 border-yellow-400 shadow-xl bg-black cursor-pointer"
+                className="rounded-full"
                 priority
               />
             </Link>
-            <span
-              className="text-white font-extrabold text-xl sm:text-2xl md:text-3xl tracking-widest"
-            >
-              STREETSTASHED
-            </span>
+            <Link href="/">
+              <span className="text-white font-extrabold text-xl sm:text-2xl md:text-3xl tracking-widest">
+                STREETSTASHED
+              </span>
+            </Link>
           </div>
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-6 font-bold nav-links text-base md:text-lg">

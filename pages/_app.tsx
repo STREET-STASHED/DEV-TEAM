@@ -53,13 +53,12 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
 
     const runRedirectLogic = async () => {
       console.log('Running redirect logic...');
-      if (!supabaseClient) return;
 
       const currentPath = router.pathname;
       const unprotected = ['/', '/welcome', '/signup'];
       const onboarding = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
 
-      if (!session?.user && !unprotected.includes(currentPath) && currentPath !== '/welcome') {
+      if (!session?.user && !unprotected.includes(currentPath)) {
         await router.push('/welcome');
         return;
       }
@@ -80,17 +79,13 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
         const detailsComplete = userProfile?.details_complete;
 
         if (!role && currentPath !== '/onboarding/role') {
-          if (currentPath !== '/onboarding/role') {
-            await router.push('/onboarding/role');
-            return;
-          }
+          await router.push('/onboarding/role');
+          return;
         }
 
         if (role && !detailsComplete && currentPath !== '/onboarding/details') {
-          if (currentPath !== '/onboarding/details') {
-            await router.push('/onboarding/details');
-            return;
-          }
+          await router.push('/onboarding/details');
+          return;
         }
 
         if (role && detailsComplete) {
@@ -105,10 +100,8 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
             verificationCheck?.verification_complete;
 
           if (!isVerified && currentPath !== '/onboarding/verify') {
-            if (currentPath !== '/onboarding/verify') {
-              await router.push('/onboarding/verify');
-              return;
-            }
+            await router.push('/onboarding/verify');
+            return;
           }
 
           if (isVerified && onboarding.includes(currentPath) && currentPath !== `/${role}/dashboard`) {
