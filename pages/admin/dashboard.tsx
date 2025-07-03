@@ -6,8 +6,11 @@ interface ProfileRecord {
 import { useRouter } from 'next/router';
 
 import { useEffect, useState } from 'react'
-import { supabaseServer } from '@/lib/supabaseServer';
-const supabase = supabaseServer;
+import { createBrowserClient } from '@supabase/ssr';
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 import type { User } from '@supabase/supabase-js'
 
 type Metrics = {
