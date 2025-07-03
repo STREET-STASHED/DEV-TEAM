@@ -1,16 +1,17 @@
-
-
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { createBrowserClient } from '@supabase/ssr'
 import { useOnboarding } from '../hooks/useOnboarding'
 
 export default function ProtectedLayout({ children, supabaseClient }) {
   const router = useRouter()
-  const supabase = supabaseClient || createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  )
+  const supabase = useMemo(() => {
+    return supabaseClient || createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    )
+  }, [supabaseClient])
+
   const { checkOnboardingStatus } = useOnboarding()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState(null)
@@ -21,11 +22,13 @@ export default function ProtectedLayout({ children, supabaseClient }) {
       setUser(user)
 
       if (!user) {
-        router.push('/login')
+        if (!router.pathname.startsWith('/login')) {
+          router.push(`/login?redirectedFrom=${router.pathname}`)
+        }
         return
       }
 
-      checkUserOnboarding()
+      checkUserOnboarding(user)
     }
 
     getUser()
@@ -34,10 +37,12 @@ export default function ProtectedLayout({ children, supabaseClient }) {
       (event, session) => {
         if (event === 'SIGNED_IN') {
           setUser(session?.user || null)
-          checkUserOnboarding()
+          checkUserOnboarding(session?.user || null)
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
-          router.push('/login')
+          if (!router.pathname.startsWith('/login')) {
+            router.push('/login')
+          }
         }
       }
     )
@@ -47,18 +52,64 @@ export default function ProtectedLayout({ children, supabaseClient }) {
     }
   }, [router.pathname])
 
-  async function checkUserOnboarding() {
-    if (!user) return
+  async function checkUserOnboarding(currentUser) {
+    if (!currentUser) return
 
     try {
       const isOnboardingComplete = await checkOnboardingStatus()
 
-      if (!isOnboardingComplete && router.pathname !== '/onboarding') {
-        router.push('/onboarding')
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role, onboarding_step')
+        .eq('id', currentUser.id)
+        .single()
+
+      if (!data || error) {
+        console.error('Error fetching role/onboarding_step:', error)
+        return
+      }
+
+      const { role, onboarding_step } = data
+
+      if (!isOnboardingComplete) {
+        if (onboarding_step === 'role') {
+          router.push('/onboarding/role')
+        } else if (onboarding_step === 'details') {
+          router.push('/onboarding/details')
+        } else if (onboarding_step === 'verify') {
+          router.push('/onboarding/verify')
+        } else {
+          router.push('/onboarding/role')
+        }
         return
       }
 
       setIsLoading(false)
+
+      if (!role || typeof role !== 'string') {
+        console.warn('Invalid or missing role; redirecting to generic dashboard')
+        router.push('/dashboard')
+        return
+      }
+
+      if (router.pathname === '/dashboard' || router.pathname === '/') {
+        switch (role) {
+          case 'buyer':
+            router.push('/buyer/dashboard')
+            break
+          case 'seller':
+            router.push('/seller/dashboard')
+            break
+          case 'stylist':
+            router.push('/stylist/dashboard')
+            break
+          case 'driver':
+            router.push('/driver/dashboard')
+            break
+          default:
+            router.push('/dashboard')
+        }
+      }
     } catch (error) {
       console.error('Error checking onboarding status:', error)
       setIsLoading(false)

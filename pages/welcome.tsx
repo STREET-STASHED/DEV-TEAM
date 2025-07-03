@@ -27,6 +27,13 @@ export default function WelcomePage() {
         >
           ✍️ Join the Platform
         </Link>
+        <Link
+          href="/login"
+          aria-label="Login to your account"
+          className="bg-blue-600 text-white font-semibold py-4 px-8 rounded hover:bg-blue-700 w-full sm:w-auto hover:scale-105 transition-transform"
+        >
+          🔐 Login
+        </Link>
       </div>
     </div>
   );

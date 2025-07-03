@@ -80,7 +80,9 @@ export default function Signup() {
           const userRole = json.role;
           if (!userRole) throw new Error('Unable to determine user role');
           const redirect = getDashboardRedirect(userRole);
-          router.push(redirect);
+          if (router.asPath !== redirect) {
+            router.push(redirect);
+          }
         } catch (err: any) {
           setError(err.message || 'Error fetching user role');
         }

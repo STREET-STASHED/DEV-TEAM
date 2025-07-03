@@ -1,24 +1,35 @@
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useState } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import OrderProgressBar from '@/components/OrderProgressBar';
 
-interface BuyerDashboardProps {
-  userId: string;
-}
+const Dashboard: React.FC = () => {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
-const Dashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
-  const [orders, setOrders] = useState<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>([])
+  const [orders, setOrders] = useState<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!userId) return;
-
       try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile) return;
+
         const { data, error } = await supabase
           .from('orders')
           .select('id, status, total_price, created_at')
-          .eq('buyer_id', userId);
+          .eq('buyer_id', profile.id);
 
         if (error) throw error;
 
@@ -31,23 +42,23 @@ const Dashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
           }))
         );
       } catch (err) {
-        if (err instanceof Error) {
-          console.error('Error fetching orders:', err.message);
-        } else {
-          console.error('Unknown error fetching orders:', err);
-        }
+        console.error('Error fetching orders:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchOrders();
-  }, [userId]);
+  }, []);
 
   return (
     <div className="p-4 sm:p-8 md:p-12 max-w-4xl mx-auto">
       <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-center text-black">Welcome to the StreetStashed Buyer Hub</h1>
 
       <h2 className="text-xl sm:text-2xl font-semibold mt-10 mb-4 border-b pb-2">Track Your Most Recent Orders</h2>
-      {orders.length === 0 ? (
+      {loading ? (
+        <p className="text-center text-gray-500 italic">Loading your orders...</p>
+      ) : orders.length === 0 ? (
         <p className="text-gray-500 italic text-center">You haven't placed any orders yet. Start shopping to see them here!</p>
       ) : (
         orders.map((order) => (
@@ -76,7 +87,7 @@ const Dashboard: React.FC<BuyerDashboardProps> = ({ userId }) => {
         ))
       )}
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

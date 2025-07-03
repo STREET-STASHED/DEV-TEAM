@@ -7,7 +7,7 @@ interface Booking {
   service_name?: string;
 }
 import React, { useEffect, useState } from "react";
-import { supabaseServer } from "@/lib/supabaseServer";
+import { supabaseServer } from "../../lib/supabaseServer";
 const supabase = supabaseServer;
 // Helper to get the current user session
 async function getCurrentUser() {
@@ -42,7 +42,6 @@ async function checkOnboardingComplete(userId: string) {
   }
   return onboardingStatus?.has_completed_onboarding;
 }
-import AuthGuard from "@/components/AuthGuard";
 
 interface SellerDashboardProps {
   userId: string;
@@ -235,8 +234,7 @@ const SellerDashboardPageContent: React.FC<SellerDashboardProps> = ({ userId }) 
       : "/default-avatar.png";
 
   return (
-    <AuthGuard requiredRole="seller">
-      <div className="p-4 sm:p-6 md:p-8 space-y-4 max-w-4xl mx-auto">
+    <div className="p-4 sm:p-6 md:p-8 space-y-4 max-w-4xl mx-auto">
         <h2 className="text-xl font-semibold">Seller Analytics</h2>
         <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
           <div className="bg-gray-100 p-4 rounded shadow">
@@ -599,7 +597,6 @@ const SellerDashboardPageContent: React.FC<SellerDashboardProps> = ({ userId }) 
           ))
         )}
       </div>
-    </AuthGuard>
   );
 };
 

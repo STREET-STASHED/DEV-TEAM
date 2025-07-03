@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabaseServer } from '@/lib/supabaseServer';
 const supabase = supabaseServer;
 import { GetServerSideProps } from 'next';
-import AuthGuard from '@/components/AuthGuard';
+import ProtectedLayout from '@/components/ProtectedLayout';
 
 interface StylistDashboardProps {
   userId: string;
@@ -126,7 +126,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   if (loading) return <Spinner />;
 
   return (
-    <AuthGuard requiredRole="stylist">
+    <ProtectedLayout supabaseClient={supabase}>
       <main style={{ padding: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Stylist Dashboard</h1>
         {bookings.length === 0 ? (
@@ -170,7 +170,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
           </div>
         )}
       </main>
-    </AuthGuard>
+    </ProtectedLayout>
   );
 };
 

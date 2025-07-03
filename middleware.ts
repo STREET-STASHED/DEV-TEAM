@@ -32,18 +32,18 @@ export async function middleware(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
 
   if (session) {
-    const { data: profileData, error: profileError } = await supabase
+    const { data: profileData } = await supabase
       .from('profiles')
       .select('details_complete, has_completed_onboarding, onboarded')
       .eq('id', session.user.id)
       .single()
 
-    if (!profileData?.details_complete || !profileData?.has_completed_onboarding || !profileData?.onboarded) {
-      if (!req.nextUrl.pathname.startsWith('/onboarding')) {
-        const onboardingUrl = req.nextUrl.clone()
-        onboardingUrl.pathname = '/onboarding'
-        return NextResponse.redirect(onboardingUrl)
-      }
+    const isOnboardingIncomplete = !profileData?.details_complete || !profileData?.has_completed_onboarding || !profileData?.onboarded
+
+    if (isOnboardingIncomplete && !req.nextUrl.pathname.startsWith('/onboarding')) {
+      const onboardingUrl = req.nextUrl.clone()
+      onboardingUrl.pathname = '/onboarding'
+      return NextResponse.redirect(onboardingUrl)
     }
   }
 
@@ -51,6 +51,7 @@ export async function middleware(req: NextRequest) {
     const currentPath = req.nextUrl.pathname + req.nextUrl.search
     const targetPath = `/login?redirectedFrom=${req.nextUrl.pathname}`
 
+    // Prevent redirect loop if already on the intended login path
     if (currentPath !== targetPath) {
       const redirectUrl = req.nextUrl.clone()
       redirectUrl.pathname = '/login'

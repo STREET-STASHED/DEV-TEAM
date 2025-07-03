@@ -1,11 +1,42 @@
 // File: /pages/driver/dashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 
-// Placeholder components for driver-specific dashboard
-const DeliveryList = ({ deliveries }: { deliveries: any[] }) => <div>Delivery List Placeholder</div>;
-const EarningsChart = ({ earnings }: { earnings: any[] }) => <div>Earnings Chart Placeholder</div>;
-const DriverRatings = ({ ratings }: { ratings: any }) => <div>Driver Ratings Placeholder</div>;
+
+const DeliveryList = ({ deliveries }: { deliveries: any[] }) => (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold mb-2">Deliveries</h2>
+    <ul className="list-disc list-inside">
+      {deliveries.length > 0 ? deliveries.map((delivery, idx) => (
+        <li key={idx}>
+          {delivery.package_id} - {delivery.status} - {new Date(delivery.created_at).toLocaleDateString()}
+        </li>
+      )) : <li>No deliveries found.</li>}
+    </ul>
+  </div>
+);
+
+const EarningsChart = ({ earnings }: { earnings: any[] }) => (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold mb-2">Earnings</h2>
+    <ul className="list-disc list-inside">
+      {earnings.length > 0 ? earnings.map((entry, idx) => (
+        <li key={idx}>${entry.amount} on {new Date(entry.date).toLocaleDateString()}</li>
+      )) : <li>No earnings data available.</li>}
+    </ul>
+  </div>
+);
+
+const DriverRatings = ({ ratings }: { ratings: any }) => (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold mb-2">Driver Rating</h2>
+    {ratings ? (
+      <p>Average Rating: {ratings.average_rating} ({ratings.total_reviews} reviews)</p>
+    ) : (
+      <p>No ratings yet.</p>
+    )}
+  </div>
+);
 
 const fetchDriverData = async () => {
   const {
