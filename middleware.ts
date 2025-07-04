@@ -40,27 +40,6 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith(path + '/')
   )
 
-  const isOnboardingPath = req.nextUrl.pathname.startsWith('/onboarding')
-
-  if (session && !isPublicPath) {
-    const { data: profileData, error } = await supabase
-      .from('profiles')
-      .select('onboarding_step')
-      .eq('id', session.user.id)
-      .single()
-
-    if (profileData && profileData.onboarding_step) {
-      const currentStep = profileData.onboarding_step
-      const stepPath = `/onboarding/${currentStep}`
-
-      if (!req.nextUrl.pathname.startsWith(stepPath)) {
-        const redirectUrl = req.nextUrl.clone()
-        redirectUrl.pathname = stepPath
-        return NextResponse.redirect(redirectUrl)
-      }
-    }
-  }
-
   if (!session && !isPublicPath) {
     const currentPath = req.nextUrl.pathname + req.nextUrl.search
     const targetPath = `/login?redirectedFrom=${req.nextUrl.pathname}`

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 import { createBrowserClient } from '@supabase/ssr'
-import { useOnboarding } from '../hooks/useOnboarding'
 
 export default function ProtectedLayout({ children, supabaseClient }) {
   const router = useRouter()
@@ -12,7 +11,6 @@ export default function ProtectedLayout({ children, supabaseClient }) {
     )
   }, [supabaseClient])
 
-  const { checkOnboardingStatus } = useOnboarding()
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState(null)
 
@@ -29,45 +27,10 @@ export default function ProtectedLayout({ children, supabaseClient }) {
         return
       }
 
-      checkUserOnboarding(user)
-    }
-
-    getUser()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN') {
-          setUser(session?.user || null)
-          checkUserOnboarding(session?.user || null)
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null)
-          if (!router.pathname.startsWith('/login') && !publicRoutes.includes(router.pathname)) {
-            router.push('/login')
-          }
-        }
-      }
-    )
-
-    return () => {
-      subscription?.unsubscribe()
-    }
-  }, [router.pathname])
-
-  async function checkUserOnboarding(currentUser) {
-    if (!currentUser) return
-
-    try {
-      const onboardingStep = await checkOnboardingStatus()
-
-      if (onboardingStep !== 'dashboard') {
-        router.push(`/onboarding/${onboardingStep}`)
-        return
-      }
-
       const { data, error } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', currentUser.id)
+        .eq('id', user.id)
         .single()
 
       if (!data || error) {
@@ -76,14 +39,7 @@ export default function ProtectedLayout({ children, supabaseClient }) {
       }
 
       const { role } = data
-
       setIsLoading(false)
-
-      if (!role || typeof role !== 'string') {
-        console.warn('Invalid or missing role; redirecting to generic dashboard')
-        router.push('/dashboard')
-        return
-      }
 
       if (router.pathname === '/dashboard' || router.pathname === '/') {
         switch (role) {
@@ -103,11 +59,27 @@ export default function ProtectedLayout({ children, supabaseClient }) {
             router.push('/dashboard')
         }
       }
-    } catch (error) {
-      console.error('Error checking onboarding status:', error)
-      setIsLoading(false)
     }
-  }
+
+    getUser()
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN') {
+          setUser(session?.user || null)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+          if (!router.pathname.startsWith('/login') && !publicRoutes.includes(router.pathname)) {
+            router.push('/login')
+          }
+        }
+      }
+    )
+
+    return () => {
+      subscription?.unsubscribe()
+    }
+  }, [router.pathname])
 
   if (isLoading) {
     return (
