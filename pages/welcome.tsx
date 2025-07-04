@@ -42,7 +42,7 @@ export default function WelcomePage() {
         </Link>
         {!isLoading && (
           <button
-            onClick={() => router.push(isLoggedIn ? '/onboarding/role' : '/signup')}
+            onClick={() => router.push('/signup')}
             className="border border-white text-white font-semibold py-4 px-8 rounded hover:bg-white hover:text-black w-full sm:w-auto hover:scale-105 transition-transform"
           >
             ✍️ Join Us

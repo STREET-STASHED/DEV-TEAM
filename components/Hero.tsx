@@ -11,21 +11,24 @@ const Hero = () => {
   const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
+    const fetchUserAndProfile = async () => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (user && !userError) {
+        setSession({ user } as Session);
 
-      if (data.session?.user) {
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role, details_complete')
-          .eq('id', data.session.user.id)
+          .eq('id', user.id)
           .single();
 
-        if (profile?.details_complete) {
+        if (profile && profile.details_complete && !profileError) {
           router.push(getDashboardRedirect(profile.role));
         }
       }
-    });
+    };
+
+    fetchUserAndProfile();
   }, [router]);
 
   return (
@@ -60,10 +63,11 @@ const Hero = () => {
             <Link
               href="#"
               onClick={async () => {
+                const { data: { user } } = await supabase.auth.getUser();
                 const { data: profile } = await supabase
                   .from('profiles')
                   .select('role')
-                  .eq('id', session?.user?.id)
+                  .eq('id', user?.id)
                   .single();
 
                 if (profile?.role) {

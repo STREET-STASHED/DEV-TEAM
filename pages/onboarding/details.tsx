@@ -70,14 +70,15 @@ export default function Details() {
         return
       }
 
-      await supabase.from('profiles').update({
+      await supabase.from('profiles').upsert({
+        id: user.id,
         full_name: formData.full_name,
         role: formData.role,
         license_number: formData.license_number,
         verification_url: formData.verification_url,
         details_complete: true,
         has_completed_onboarding: true
-      }).eq('id', user.id)
+      })
 
       await supabase.auth.updateUser({
         data: {

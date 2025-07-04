@@ -57,33 +57,25 @@ export default function ProtectedLayout({ children, supabaseClient }) {
     if (!currentUser) return
 
     try {
-      const isOnboardingComplete = await checkOnboardingStatus()
+      const onboardingStep = await checkOnboardingStatus()
+
+      if (onboardingStep !== 'dashboard') {
+        router.push(`/onboarding/${onboardingStep}`)
+        return
+      }
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('role, onboarding_step')
+        .select('role')
         .eq('id', currentUser.id)
         .single()
 
       if (!data || error) {
-        console.error('Error fetching role/onboarding_step:', error)
+        console.error('Error fetching role from profiles table:', error)
         return
       }
 
-      const { role, onboarding_step } = data
-
-      if (!isOnboardingComplete) {
-        if (onboarding_step === 'role') {
-          router.push('/onboarding/role')
-        } else if (onboarding_step === 'details') {
-          router.push('/onboarding/details')
-        } else if (onboarding_step === 'verify') {
-          router.push('/onboarding/verify')
-        } else {
-          router.push('/onboarding/role')
-        }
-        return
-      }
+      const { role } = data
 
       setIsLoading(false)
 

@@ -1,5 +1,3 @@
-
-
 import { useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
@@ -52,12 +50,16 @@ export function useOnboarding() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('details_complete, has_completed_onboarding, onboarded')
+        .select('details_complete, has_completed_onboarding, onboarded, onboarding_step')
         .single()
 
       if (error) throw error
 
-      return !!(data && (data.has_completed_onboarding || data.onboarded))
+      if (!data) return 'role';
+      if (!data.onboarding_step || data.onboarding_step === 'role') return 'role';
+      if (data.onboarding_step === 'details' && !data.details_complete) return 'details';
+      if (data.onboarding_step === 'verify' && !data.has_completed_onboarding) return 'verify';
+      return 'dashboard';
     } catch (err) {
       setError(err.message)
       return false

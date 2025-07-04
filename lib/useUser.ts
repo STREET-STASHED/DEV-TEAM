@@ -33,7 +33,7 @@ export function useUser() {
         .single();
 
       if (userError || !userData) {
-        console.error('Failed to fetch user profile from `users` table:', userError?.message || userError);
+        console.error('Failed to fetch user profile from `profiles` table:', userError?.message || userError);
         setUser(null);
       } else {
         setUser({

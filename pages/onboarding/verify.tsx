@@ -72,8 +72,7 @@ export default function VerifyPage() {
 
       const { error: updateError } = await supabase
         .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+        .upsert({ id: user.id, ...updates });
 
       if (updateError) {
         setError(updateError.message);

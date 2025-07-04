@@ -1,4 +1,6 @@
 import { useState } from "react";
+import Image from 'next/image';
+import logo from '../public/logo.png';
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { createBrowserClient } from '@supabase/ssr';
@@ -9,14 +11,12 @@ const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Helper to update/create profile row after sign up
 const updateProfile = async (updates: Record<string, any>) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     const { error } = await supabase
       .from('profiles')
-      .update(updates)
-      .eq('id', user.id);
+      .upsert({ id: user.id, ...updates });
     if (error) {
       console.error('Error updating profile during sign-up:', error.message);
     }
@@ -42,9 +42,9 @@ export default function Signup() {
         setLoading(false);
         return;
       }
+
       if (!isLogin) {
-        // Sign Up
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -55,58 +55,58 @@ export default function Signup() {
             data: { full_name: fullName },
           },
         });
+
         if (signUpError) {
           setError(signUpError.message);
           setLoading(false);
           return;
         }
-        router.push("/onboarding/role");
-        // Also create or update the user's profile row after sign up
+
         await updateProfile({
           full_name: fullName,
           has_completed_onboarding: false,
           details_complete: false,
         });
+
+        router.push("/onboarding/role");
       } else {
-        // Log In
-        const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+        const { error: loginError } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
+
         if (loginError) {
           setError(loginError.message);
           setLoading(false);
           return;
         }
-        // Get current session to retrieve access token
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session) {
-          setError('Session missing');
+
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError || !user) {
+          setError('Unable to fetch user');
           setLoading(false);
           return;
         }
-        // Fetch user role from API route with Authorization header
+
         try {
           const res = await fetch('/api/get-role', {
             headers: {
-              'Authorization': `Bearer ${session.access_token}`,
+              'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
             },
           });
           const json = await res.json();
-          const userRole = json.role;
+          const userRole = json?.role;
           if (!userRole) throw new Error('Unable to determine user role');
           const redirect = getDashboardRedirect(userRole);
           if (router.asPath !== redirect) {
-            router.push(redirect);
+            router.replace(redirect);
           }
         } catch (err: any) {
           setError(err.message || 'Error fetching user role');
         }
       }
-    } catch (err: any) {
+    } catch {
       setError("Something went wrong. Please try again.");
     }
     setLoading(false);
@@ -120,11 +120,15 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="w-full max-w-md bg-gray-900 rounded-xl shadow-2xl px-8 py-10 flex flex-col items-center">
           <div className="w-full flex justify-center">
-            <img
-              src="/logo.png"
-              alt="StreetStashed Logo"
-              className="h-20 w-20 mb-4 object-contain"
-            />
+            <div className="h-20 w-20 flex items-center justify-center border border-gray-700 rounded mb-4">
+              <Image
+                src={logo}
+                alt="StreetStashed Logo"
+                height={64}
+                width={64}
+                className="object-contain"
+              />
+            </div>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-yellow-400 mb-2">
             StreetStashed

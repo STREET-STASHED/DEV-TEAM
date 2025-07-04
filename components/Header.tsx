@@ -23,7 +23,7 @@ const Header = () => {
       if (currentUser) {
         setUser(currentUser);
         const { data: userData } = await supabase
-          .from('users')
+          .from('profiles')
           .select('role, details_complete, verified')
           .eq('id', currentUser.id)
           .single();

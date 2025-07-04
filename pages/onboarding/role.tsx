@@ -35,14 +35,14 @@ export default function RolePage() {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .update({ 
+      .upsert({
+        id: user.id,
         role: cleanRole,
         details_complete: false,
         has_completed_onboarding: false,
         onboarded: false,
         onboarding_step: "details"
-      })
-      .eq('id', user.id);
+      });
 
     if (updateError) {
       console.error('Error updating profile:', updateError);

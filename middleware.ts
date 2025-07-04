@@ -45,20 +45,19 @@ export async function middleware(req: NextRequest) {
   if (session && !isPublicPath) {
     const { data: profileData, error } = await supabase
       .from('profiles')
-      .select('details_complete, has_completed_onboarding, onboarded')
+      .select('onboarding_step')
       .eq('id', session.user.id)
       .single()
 
-    const isOnboardingIncomplete =
-      !profileData ||
-      !profileData.details_complete ||
-      !profileData.has_completed_onboarding ||
-      !profileData.onboarded
+    if (profileData && profileData.onboarding_step) {
+      const currentStep = profileData.onboarding_step
+      const stepPath = `/onboarding/${currentStep}`
 
-    if (isOnboardingIncomplete && !isOnboardingPath) {
-      const onboardingUrl = req.nextUrl.clone()
-      onboardingUrl.pathname = '/onboarding'
-      return NextResponse.redirect(onboardingUrl)
+      if (!req.nextUrl.pathname.startsWith(stepPath)) {
+        const redirectUrl = req.nextUrl.clone()
+        redirectUrl.pathname = stepPath
+        return NextResponse.redirect(redirectUrl)
+      }
     }
   }
 
