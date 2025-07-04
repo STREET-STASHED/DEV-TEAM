@@ -48,7 +48,9 @@ export default function Signup() {
           email,
           password,
           options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/onboarding/role`,
+            emailRedirectTo: typeof window !== "undefined"
+              ? `${window.location.origin}/onboarding/role`
+              : undefined,
             data: { full_name: fullName },
           },
         });
