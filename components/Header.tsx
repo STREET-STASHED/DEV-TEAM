@@ -66,7 +66,7 @@ const Header = () => {
           <div className="flex items-center gap-4">
             <Link href="/">
               <Image
-                src="/logo.png"
+                src="/streetstashed-logo.png"
                 alt="StreetStashed Logo"
                 width={48}
                 height={48}
