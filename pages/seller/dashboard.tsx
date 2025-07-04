@@ -7,8 +7,11 @@ interface Booking {
   service_name?: string;
 }
 import React, { useEffect, useState } from "react";
-import { supabaseServer } from "../../lib/supabaseServer";
-const supabase = supabaseServer;
+import { createBrowserClient } from "@supabase/ssr";
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 // Helper to get the current user session
 async function getCurrentUser() {
   const session = await supabase.auth.getSession().then((r: { data: { session: any } }) => r.data.session);
@@ -29,18 +32,24 @@ async function checkSellerRole(userId: string) {
   return user?.role === "seller";
 }
 
-// Helper to check onboarding status
-async function checkOnboardingComplete(userId: string) {
+// Helper to check onboarding status and current step
+async function checkOnboardingComplete(userId: string): Promise<{
+  complete: boolean;
+  step?: string;
+}> {
   const { data: onboardingStatus, error } = await supabase
     .from("profiles")
-    .select("has_completed_onboarding")
+    .select("has_completed_onboarding, onboarding_step")
     .eq("id", userId)
     .single();
   if (error) {
     console.error("Error fetching onboarding status:", error);
-    return false;
+    return { complete: false };
   }
-  return onboardingStatus?.has_completed_onboarding;
+  return {
+    complete: onboardingStatus?.has_completed_onboarding,
+    step: onboardingStatus?.onboarding_step,
+  };
 }
 
 interface SellerDashboardProps {
@@ -118,9 +127,10 @@ const SellerDashboardPageContent: React.FC<SellerDashboardProps> = ({ userId }) 
           return;
         }
         // Onboarding check
-        const onboarded = await checkOnboardingComplete(currentUser.id);
-        if (!onboarded) {
-          window.location.href = "/onboarding/details";
+        const onboardingResult = await checkOnboardingComplete(currentUser.id);
+        if (!onboardingResult.complete) {
+          const step = onboardingResult.step || "role";
+          window.location.href = `/onboarding/${step}`;
           return;
         }
         // Fetch services
@@ -609,8 +619,12 @@ export async function getServerSideProps(context: any) {
   // This SSR logic is for initial prop population only.
   let userId = null;
   try {
-    const { supabaseServer } = await import("@/lib/supabaseServer");
-    const supabase = supabaseServer;
+    const { createServerClient } = await import("@supabase/ssr");
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { cookies: context.req.headers.cookie }
+    );
     const {
       data: { session },
     } = await supabase.auth.getSession();

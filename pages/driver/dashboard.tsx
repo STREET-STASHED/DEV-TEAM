@@ -1,6 +1,10 @@
 // File: /pages/driver/dashboard.tsx
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { createBrowserClient } from '@supabase/ssr';
+const env = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+};
 
 
 const DeliveryList = ({ deliveries }: { deliveries: any[] }) => (
@@ -39,6 +43,8 @@ const DriverRatings = ({ ratings }: { ratings: any }) => (
 );
 
 const fetchDriverData = async () => {
+  const supabase = createBrowserClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+
   const {
     data: { user },
     error: userError
