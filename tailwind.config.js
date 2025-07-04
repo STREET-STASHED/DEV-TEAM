@@ -68,6 +68,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['Urbanist', 'Inter', 'sans-serif'],
+        urbanist: ['Urbanist', 'sans-serif'],
       },
       screens: {
         xs: '375px',
