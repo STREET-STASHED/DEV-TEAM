@@ -78,30 +78,8 @@ export default function Signup() {
           return;
         }
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-        if (userError || !user) {
-          setError('Unable to fetch user');
-          setLoading(false);
-          return;
-        }
-
-        try {
-          const res = await fetch('/api/get-role', {
-            headers: {
-              'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`,
-            },
-          });
-          const json = await res.json();
-          const userRole = json?.role;
-          if (!userRole) throw new Error('Unable to determine user role');
-          const redirect = getDashboardRedirect(userRole);
-          if (router.asPath !== redirect) {
-            router.replace(redirect);
-          }
-        } catch (err: any) {
-          setError(err.message || 'Error fetching user role');
-        }
+        // After successful login, route to onboarding/role to continue onboarding flow
+        router.push('/onboarding/role');
       }
     } catch {
       setError("Something went wrong. Please try again.");
