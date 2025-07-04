@@ -4,13 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import Header from '../components/Header';
 import dynamic from 'next/dynamic';
 import React from 'react';
 
 import { createBrowserClient } from '@supabase/ssr';
 import type { Session, SupabaseClient } from '@supabase/supabase-js';
-import { CartProvider } from '../context/CartContext';
+import Layout from '../components/Layout';
 
 const supabaseClient = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,13 +27,18 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const isLoading = typeof session === 'undefined';
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabaseClient.auth.getSession();
-      console.log('Supabase session:', data.session);
-      console.log('User ID:', data.session?.user?.id);
-      setSession(data.session);
+    const fetchUserAndSession = async () => {
+      const { data: userData } = await supabaseClient.auth.getUser();
+      if (userData?.user) {
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        console.log('Supabase session:', sessionData.session);
+        console.log('User ID:', userData.user.id);
+        setSession(sessionData.session);
+      } else {
+        setSession(null);
+      }
     };
-    getSession();
+    fetchUserAndSession();
 
     const {
       data: { subscription },
@@ -117,19 +121,6 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
   const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
   const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
-  const isAdminRoute = router.pathname.startsWith('/admin');
-  const isBuyerFacing =
-    !isAdminRoute &&
-    (
-      router.pathname === '/' ||
-      router.pathname === '/welcome' ||
-      router.pathname === '/buyer/marketplace' ||
-      router.pathname.startsWith('/buyer') ||
-      router.pathname.startsWith('/stores')
-    );
-
-  const CartDrawer = dynamic(() => import('../components/CartDrawer'), { ssr: false });
-
   if (isLoading) {
     console.log('Waiting for session...');
     return (
@@ -141,26 +132,9 @@ export default function MyApp({ Component, pageProps }: MyAppProps) {
 
   return (
     <Elements stripe={stripePromise}>
-      {isBuyerFacing ? (
-        <CartProvider>
-          <Header />
-          <div style={{ paddingTop: 80 }}>
-            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-              <Component {...pageProps} />
-            </main>
-          </div>
-          <CartDrawer />
-        </CartProvider>
-      ) : (
-        <>
-          <Header />
-          <div style={{ paddingTop: 80 }}>
-            <main className="px-4 sm:px-6 py-4 max-w-6xl mx-auto w-full">
-              <Component {...pageProps} />
-            </main>
-          </div>
-        </>
-      )}
+      <Layout>
+        <Component {...pageProps} />
+      </Layout>
     </Elements>
   );
 }

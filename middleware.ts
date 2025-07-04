@@ -22,8 +22,9 @@ export async function middleware(req: NextRequest) {
   )
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   const PUBLIC_PATHS = [
     '/',
@@ -40,7 +41,7 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname === path || req.nextUrl.pathname.startsWith(path + '/')
   )
 
-  if (!session && !isPublicPath) {
+  if (!user && !isPublicPath) {
     const currentPath = req.nextUrl.pathname + req.nextUrl.search
     const targetPath = `/login?redirectedFrom=${req.nextUrl.pathname}`
 

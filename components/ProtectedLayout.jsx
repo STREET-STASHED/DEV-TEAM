@@ -16,7 +16,8 @@ export default function ProtectedLayout({ children, supabaseClient }) {
 
   useEffect(() => {
     const publicRoutes = ['/', '/welcome', '/marketplace', '/stores', '/stylist-booking']
-    const getUser = async () => {
+
+    const fetchUserAndRedirect = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
 
@@ -61,12 +62,12 @@ export default function ProtectedLayout({ children, supabaseClient }) {
       }
     }
 
-    getUser()
+    fetchUserAndRedirect()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event) => {
         if (event === 'SIGNED_IN') {
-          setUser(session?.user || null)
+          await fetchUserAndRedirect()
         } else if (event === 'SIGNED_OUT') {
           setUser(null)
           if (!router.pathname.startsWith('/login') && !publicRoutes.includes(router.pathname)) {

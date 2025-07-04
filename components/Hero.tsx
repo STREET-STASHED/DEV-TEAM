@@ -33,14 +33,14 @@ const Hero = () => {
 
   return (
     <section
-      className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-20 bg-cover bg-center bg-[url('/background.png')] bg-no-repeat bg-fixed"
+      className="relative min-h-[80vh] flex flex-col justify-center items-center text-center px-4 py-20 bg-cover bg-center bg-hero-bg bg-fixed"
     >
       <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       <div className="relative z-10">
-        <h1 className="text-4xl md:text-6xl font-extrabold text-yellow-400">
+        <h1 className="text-4xl md:text-6xl font-extrabold text-primary">
           24/7 STREETWEAR DELIVERY
         </h1>
-        <p className="text-white mt-4 max-w-2xl">
+        <p className="text-secondary/90 mt-4 max-w-2xl">
           {session
             ? "Welcome back. Your dashboard is one click away."
             : "Instant access to local streetwear, stylists, and exclusive drops. Delivered anytime, anywhere."}
@@ -48,14 +48,14 @@ const Hero = () => {
         <div className="mt-6 flex flex-wrap justify-center gap-4">
           <Link
             href="/buyer/marketplace"
-            className="bg-white text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-gray-200 transition text-center"
+            className="bg-primary text-secondary px-6 py-3 rounded-xl font-semibold shadow hover:bg-accent transition text-center"
           >
             Browse Marketplace
           </Link>
           {!session ? (
             <Link
               href="/signup"
-              className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
+              className="bg-primary text-secondary px-6 py-3 rounded-xl font-semibold shadow hover:bg-accent transition text-center"
             >
               Become a Seller or Stylist
             </Link>
@@ -74,7 +74,7 @@ const Hero = () => {
                   router.push(getDashboardRedirect(profile.role));
                 }
               }}
-              className="bg-yellow-400 text-black px-6 py-3 rounded-xl font-semibold shadow hover:bg-yellow-500 transition text-center"
+              className="bg-primary text-secondary px-6 py-3 rounded-xl font-semibold shadow hover:bg-accent transition text-center"
             >
               Go to Dashboard
             </Link>
