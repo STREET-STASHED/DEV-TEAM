@@ -56,7 +56,7 @@ const Hero = () => {
             </Link>
             {!session ? (
               <Link
-                href="/signup"
+                href="/Auth"
                 className="bg-primary text-secondary px-6 py-3 rounded-xl font-semibold shadow hover:bg-accent transition text-center"
               >
                 Become a Seller or Stylist

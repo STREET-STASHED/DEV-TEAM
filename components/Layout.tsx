@@ -12,7 +12,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const router = useRouter();
-  const hideHeaderFooter = ['/signup', '/onboarding/role', '/onboarding/details', '/onboarding/verify'].includes(router.pathname);
+  const hideHeaderFooter = ['/Auth', '/onboarding/role', '/onboarding/details', '/onboarding/verify'].includes(router.pathname);
   const isBuyerFacing =
     router.pathname.startsWith('/buyer') ||
     router.pathname.startsWith('/stores') ||

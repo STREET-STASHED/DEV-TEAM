@@ -52,7 +52,7 @@ export default function OnboardingFlow() {
 
   // If user is not logged in, redirect to signup
   if (!profile) {
-    return <Navigate to="/auth/signup" replace />;
+    return <Navigate to="/auth/Auth" replace />;
   }
 
   // If onboarding is complete, redirect to dashboard

@@ -33,7 +33,7 @@ export default function Details() {
       
       if (!user) {
         alert('Session expired. Please log in again.')
-        router.push('/signup')
+        router.push('/Auth')
         return
       }
 
@@ -86,7 +86,7 @@ export default function Details() {
 
       if (!user) {
         alert('Session expired. Please log in again.')
-        router.push('/signup')
+        router.push('/Auth')
         return
       }
 

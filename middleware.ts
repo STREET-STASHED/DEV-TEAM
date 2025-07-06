@@ -45,7 +45,7 @@ export async function middleware(req: NextRequest) {
   const PUBLIC_PATHS = [
     '/',
     '/welcome',
-    '/signup',
+    '/Auth',
     '/login',
     '/marketplace',
     '/stores',

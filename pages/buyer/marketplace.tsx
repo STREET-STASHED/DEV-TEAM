@@ -92,7 +92,7 @@ export default function Marketplace() {
                     ) : (
                       <button
                         className="mt-2 px-4 py-1.5 bg-blue-500 text-white rounded text-sm cursor-pointer"
-                        onClick={() => window.location.href = '/signup'}
+                        onClick={() => window.location.href = '/Auth'}
                       >
                         Sign up to Purchase
                       </button>

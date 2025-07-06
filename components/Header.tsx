@@ -44,7 +44,7 @@ const Header = () => {
   const handleCartOpen = () => toggleCart();
 
   const handleJoinClick = () => {
-    if (!user) return router.push('/signup');
+    if (!user) return router.push('/Auth');
     if (!role) return router.push('/onboarding/role');
     if (role && !user.details_complete) return router.push('/onboarding/details');
     if (role && user.details_complete && !user.verified) return router.push('/onboarding/verify');
