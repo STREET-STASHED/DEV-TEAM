@@ -22,7 +22,7 @@ export default function VerifyPage() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
-  const { profile, completeOnboarding, updateProfile, ONBOARDING_STEPS, refreshProfile } = useOnboarding();
+  const { profile, completeOnboarding, updateProfile, refreshProfile } = useOnboarding();
 
   const [files, setFiles] = useState({
     business_license: null,

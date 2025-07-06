@@ -103,5 +103,11 @@ export function useOnboarding() {
     updateOnboardingStep,
     completeOnboarding,
     refreshProfile: fetchProfile,
+    ONBOARDING_STEPS: {
+      ROLE: 'role',
+      DETAILS: 'details',
+      VERIFY: 'verify',
+      COMPLETE: 'complete',
+    }
   };
 }
