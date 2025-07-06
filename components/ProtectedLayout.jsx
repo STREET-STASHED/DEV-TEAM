@@ -1,24 +1,19 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
-import { createBrowserClient } from '@supabase/ssr'
+import { supabase } from '../lib/supabaseClient'
 
 export default function ProtectedLayout({ children, supabaseClient }) {
   const router = useRouter()
-  const supabase = useMemo(() => {
-    return supabaseClient || createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
-  }, [supabaseClient])
+  const supabaseInstance = supabaseClient || supabase
 
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const publicRoutes = ['/', '/welcome', '/marketplace', '/stores', '/stylist-booking']
+    const publicRoutes = ['/', '/welcome', '/marketplace', '/stores', '/stylist-booking', '/onboarding/details', '/onboarding/role', '/onboarding/verify']
 
     const fetchUserAndRedirect = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await supabaseInstance.auth.getUser()
       setUser(user)
 
       if (!user) {
@@ -28,7 +23,7 @@ export default function ProtectedLayout({ children, supabaseClient }) {
         return
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseInstance
         .from('profiles')
         .select('role')
         .eq('id', user.id)
@@ -64,7 +59,7 @@ export default function ProtectedLayout({ children, supabaseClient }) {
 
     fetchUserAndRedirect()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = supabaseInstance.auth.onAuthStateChange(
       async (event) => {
         if (event === 'SIGNED_IN') {
           await fetchUserAndRedirect()

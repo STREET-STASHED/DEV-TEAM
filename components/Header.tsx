@@ -9,8 +9,7 @@ import { useCart } from '../context/CartContext';
 
 const Header = () => {
   const router = useRouter();
-  const { totalCount } = useCart();
-  const [cartOpen, setCartOpen] = useState(false);
+  const { totalCount, toggleCart } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -18,8 +17,8 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      const currentUser = data?.user;
+      const { data: { session }, error } = await supabase.auth.getSession();
+      const currentUser = session?.user;
       if (currentUser) {
         const { data: userData } = await supabase
           .from('profiles')
@@ -42,7 +41,7 @@ const Header = () => {
     fetchUser();
   }, []);
 
-  const handleCartOpen = () => setCartOpen(true);
+  const handleCartOpen = () => toggleCart();
 
   const handleJoinClick = () => {
     if (!user) return router.push('/signup');
@@ -193,7 +192,7 @@ const Header = () => {
         </div>
       </header>
       <div className="h-20" /> {/* Push content below the fixed header */}
-      <CartDrawer />
+      
     </>
   );
 };

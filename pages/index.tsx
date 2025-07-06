@@ -1,34 +1,31 @@
 // pages/index.tsx
 import React from 'react';
 import Link from 'next/link';
-import UserIcon from '../components/UserIcon';
-import CartIcon from '../components/CartIcon';
-import CartDrawer from '../components/CartDrawer';
+import CategoryNav from '../components/CategoryNav';
+import FiltersSidebar from '../components/FiltersSidebar';
+import ProductCard, { Product } from '../components/ProductCard';
+
+// Temporary dummy products until real data is loaded
+const dummyProducts: Product[] = Array.from({ length: 8 }).map((_, i) => ({
+  id: (i + 1).toString(),
+  name: `StreetStashed Sneaker #${i + 1}`,
+  price: 250 + i * 10,
+  image: '/images/sneaker1.jpg',
+}));
 
 const HomePage: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-graffiti bg-cover bg-center text-white font-sans">
-      {/* 1. HEADER */}
-      <header className="sticky top-0 z-50 bg-secondary/75 backdrop-blur px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-primary">STREETSTASHED</Link>
-        <div className="flex-1 mx-6">
-          <input
-            type="search"
-            placeholder="Search streetwear…"
-            className="w-full px-4 py-2 border border-primary rounded-lg bg-secondary/20 placeholder-primary focus:outline-none focus:ring focus:ring-primary/50"
-          />
-        </div>
-        <nav className="flex items-center space-x-4">
-          <button className="p-2 hover:text-accent"><UserIcon /></button>
-          <button className="p-2 hover:text-accent"><CartIcon /></button>
-        </nav>
-      </header>
-
-      {/* 2. HERO / FEATURED */}
-      <section className="relative w-full h-64 bg-hero-bg bg-cover bg-center flex items-center justify-center">
+    <>
+      {/* 1. HERO / FEATURED */}
+      <section className="relative w-full h-[80vh] bg-hero-bg bg-cover bg-center flex items-center justify-center">
         <div className="absolute inset-0 bg-secondary/60" />
-        <div className="relative z-10 max-w-lg w-full p-8 bg-secondary/80 rounded-xl shadow-lg text-center space-y-4">
-          <h1 className="text-3xl font-bold text-primary">Drop Alert: Exclusive AJ1 Retro</h1>
+        <div className="relative z-10 max-w-lg w-full p-8 bg-secondary/80 rounded-xl shadow-xl text-center space-y-4">
+          <h1 className="text-5xl font-extrabold text-primary">
+            StreetStashed
+          </h1>
+          <p className="text-lg text-secondary/90">
+            Streetwear Delivered. Culture Curated.
+          </p>
           <Link
             href="/marketplace"
             className="inline-block bg-primary text-secondary px-6 py-3 rounded-lg font-semibold hover:bg-accent transition"
@@ -38,48 +35,27 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. CATEGORY NAV */}
-      <nav className="overflow-x-auto whitespace-nowrap py-4 px-6 space-x-4 bg-secondary/20">
-        <Link href="?cat=men" className="inline-block px-4 py-2 rounded-full bg-secondary/50 hover:bg-secondary/70">Men</Link>
-        <Link href="?cat=women" className="inline-block px-4 py-2 rounded-full bg-secondary/50 hover:bg-secondary/70">Women</Link>
-        <Link href="?cat=apparel" className="inline-block px-4 py-2 rounded-full bg-secondary/50 hover:bg-secondary/70">Apparel</Link>
-      </nav>
+      {/* 2. CATEGORY NAV */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <CategoryNav />
+      </section>
 
-      {/* 4. FILTER + PRODUCT GRID */}
-      <div className="flex grow">
-        {/* Sidebar (desktop) */}
-        <aside className="hidden lg:block w-60 border-r border-secondary/50 px-4 py-6 bg-secondary/20">
-          <h5 className="font-semibold text-primary mb-4">Filters</h5>
-          {/* Insert filter controls here */}
+      {/* 3. FILTER + PRODUCT GRID */}
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-4 gap-8 pb-16">
+        {/* Sidebar (desktop only) */}
+        <aside className="hidden lg:block lg:col-span-1 sticky top-24">
+          <FiltersSidebar />
         </aside>
 
-        {/* Products */}
-        <main className="flex-1 p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-          {/* Example Card */}
-          <div className="bg-secondary/80 rounded-lg shadow hover:shadow-lg overflow-hidden flex flex-col">
-            <img src="/images/sneaker1.jpg" alt="Sneaker" className="w-full h-48 object-cover"/>
-            <div className="p-4 flex-1 flex flex-col justify-between">
-              <div className="space-y-1">
-                <h3 className="font-medium text-white">Air Jordan 1 Retro</h3>
-                <p className="text-lg font-bold text-primary">$250</p>
-              </div>
-              <button className="mt-4 w-full bg-primary text-secondary py-2 rounded-lg font-semibold hover:bg-accent transition">
-                Buy Now
-              </button>
-            </div>
-          </div>
-          {/* …repeat cards dynamically… */}
-        </main>
-      </div>
-
-      {/* 5. CART DRAWER */}
-      <CartDrawer />
-
-      {/* 6. FOOTER */}
-      <footer className="bg-secondary/90 text-sm text-secondary/50 py-6 px-6">
-        © 2025 STREETSTASHED™ &nbsp; • &nbsp; Terms &nbsp; • &nbsp; Privacy &nbsp; • &nbsp; Help
-      </footer>
-    </div>
+        {/* Products grid */}
+        <section className="col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {/* Example cards */}
+          {dummyProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </section>
+      </main>
+    </>
   );
 };
 

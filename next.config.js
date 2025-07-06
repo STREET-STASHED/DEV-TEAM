@@ -28,17 +28,35 @@ const nextConfig = {
     ],
   },
   async headers() {
+    const isDev = process.env.NODE_ENV !== 'production';
     const csp = [
       "default-src 'self'",
-      "script-src 'self' https://js.stripe.com https://vercel.live 'unsafe-eval'",
+      `script-src 'self' https://js.stripe.com${isDev ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src * blob: data:",
+      "img-src 'self' data: blob: https://*.supabase.co",
       "frame-src https://js.stripe.com",
-      "connect-src *"
+      `connect-src 'self' https://*.supabase.co${isDev ? " http://localhost:54321" : ""}`
     ].join("; ");
 
     return [
+      {
+        source: '/_next/static/webpack/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'X-Requested-With, Content-Type, Authorization',
+          },
+        ],
+      },
       {
         source: "/(.*)",
         headers: [
@@ -51,5 +69,4 @@ const nextConfig = {
     ];
   },
 };
-
 module.exports = withPWA(nextConfig);

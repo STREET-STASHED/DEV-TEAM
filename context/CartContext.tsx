@@ -11,6 +11,7 @@ export interface CartItem {
 
 export interface CartContextType {
   items: CartItem[];
+  cartItems: CartItem[];
   /**
    * Add an item to the cart with a specified quantity.
    * If the product already exists, increment its quantity by the new item's quantity.
@@ -44,12 +45,15 @@ export interface CartContextType {
   hasItem: (productId: string) => boolean;
   totalCount: number;
   totalPrice: number;
+  isOpen: boolean;
+  toggleCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
 
   const addItem = (item: CartItem) => {
     setItems(prev => {
@@ -88,6 +92,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return items.some(i => i.id === productId);
   };
 
+  const toggleCart = () => {
+    setIsOpen(prev => !prev);
+  };
+
   const totalCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
 
@@ -95,6 +103,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <CartContext.Provider
       value={{
         items,
+        cartItems: items,
         addItem,
         removeItem,
         updateQuantity,
@@ -103,6 +112,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         hasItem,
         totalCount,
         totalPrice,
+        isOpen,
+        toggleCart,
       }}
     >
       {children}
@@ -120,6 +131,7 @@ export const useCart = (): CartContextType => {
     // Return safe fallback for SSR/unmounted provider
     return {
       items: [],
+      cartItems: [],
       addItem: () => {},
       removeItem: () => {},
       updateQuantity: () => {},
@@ -128,6 +140,8 @@ export const useCart = (): CartContextType => {
       hasItem: () => false,
       totalCount: 0,
       totalPrice: 0,
+      isOpen: false,
+      toggleCart: () => {},
     };
   }
   return context;

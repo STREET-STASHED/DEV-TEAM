@@ -1,9 +1,20 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { createBrowserClient } from '@supabase/ssr';
-import { getDashboardRedirect } from '@/lib/getDashboardRedirect';
 import ProtectedLayout from '../../components/ProtectedLayout';
+import { useOnboarding } from '@/hooks/useOnboarding';
+
+type Profile = {
+  id: string;
+  business_license_url?: string;
+  brand_logo_url?: string;
+  additional_document_url?: string;
+  onboarding_step?: string;
+  has_completed_onboarding?: boolean;
+  verification_submitted_at?: string;
+  updated_at?: string;
+};
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -11,79 +22,105 @@ export default function VerifyPage() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+  const { profile, completeOnboarding, updateProfile, ONBOARDING_STEPS, refreshProfile } = useOnboarding();
 
+  const [files, setFiles] = useState({
+    business_license: null,
+    brand_logo: null,
+    additional_document: null
+  });
+
+  const [fileUrls, setFileUrls] = useState({
+    business_license: profile?.business_license_url || null,
+    brand_logo: profile?.brand_logo_url || null,
+    additional_document: profile?.additional_document_url || null
+  });
 
   const [uploading, setUploading] = useState(false);
-  const [error, setError]       = useState<string | null>(null);
-  const [fullName, setFullName] = useState('');
-  const [licenseNumber, setLicenseNumber] = useState('');
-  const [file, setFile]         = useState<File | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleContinue = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setUploading(true);
-
-    if (!fullName || !licenseNumber || !file) {
-      setError('Please fill out all fields and select a document.');
-      return setUploading(false);
+  useEffect(() => {
+    if (profile && profile.onboarding_step !== 'verify') {
+      if (profile.onboarding_step === 'details') {
+        router.push('/onboarding/details');
+      } else {
+        router.push('/onboarding');
+      }
     }
+  }, [profile]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, files: selectedFiles } = e.target;
+
+    if (selectedFiles && selectedFiles[0]) {
+      setFiles(prev => ({
+        ...prev,
+        [name]: selectedFiles[0]
+      }));
+
+      const fileUrl = URL.createObjectURL(selectedFiles[0]);
+      setFileUrls(prev => ({
+        ...prev,
+        [name]: fileUrl
+      }));
+    }
+  };
+
+  const uploadFile = async (file: File, path: string) => {
+    if (!file) return null;
 
     const ext = file.name.split('.').pop();
-    if (!ext) {
-      setError('Invalid file format.');
-      return setUploading(false);
-    }
+    const fileName = `${profile?.id}-${Date.now()}.${ext}`;
+    const filePath = `${path}/${fileName}`;
 
-    const fileName = `${crypto.randomUUID()}.${ext}`;
-    const { data: up, error: upErr } = await supabase
-      .storage.from('verification-docs')
-      .upload(fileName, file);
-    if (upErr) {
-      setError(upErr.message);
-      return setUploading(false);
-    }
+    const { data, error } = await supabase.storage
+      .from('verification')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
 
-    const { data: signedUrlData, error: signedUrlErr } = await supabase
-      .storage.from('verification-docs')
-      .createSignedUrl(fileName, 60 * 60);
+    if (error) throw error;
 
-    if (signedUrlErr || !signedUrlData?.signedUrl) {
-      setError('Failed to generate access link.');
-      return setUploading(false);
-    }
+    const { data: { publicUrl } } = supabase.storage
+      .from('verification')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUploading(true);
+    setError(null);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const updates: any = {};
 
-      if (!user) {
-        setError('User not authenticated.');
-        return;
+      if (files.business_license) {
+        updates.business_license_url = await uploadFile(files.business_license, 'business-licenses');
       }
 
-      const updates = {
-        full_name: fullName,
-        license_number: licenseNumber,
-        verification_url: signedUrlData.signedUrl,
-        has_completed_onboarding: true,
-        details_complete: true,
-        role: 'agent'
-      };
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .upsert({ id: user.id, ...updates });
-
-      if (updateError) {
-        setError(updateError.message);
-        return;
+      if (files.brand_logo) {
+        updates.brand_logo_url = await uploadFile(files.brand_logo, 'brand-logos');
       }
 
-      const roleKey = updates.role.toLowerCase() || 'buyer';
-      const dest = getDashboardRedirect(roleKey);
-      router.replace(dest);
+      if (files.additional_document) {
+        updates.additional_document_url = await uploadFile(files.additional_document, 'additional-documents');
+      }
+
+      updates.verification_submitted_at = new Date().toISOString();
+
+      const { error: profileUpdateError } = await updateProfile(updates);
+      if (profileUpdateError) throw profileUpdateError;
+
+      const { error: completeError } = await completeOnboarding();
+      if (completeError) throw completeError;
+
+      await refreshProfile();
     } catch (err: any) {
-      setError(err?.message || 'Onboarding failed.');
+      console.error('Verification failed:', err);
+      setError(err.message || 'Failed to complete verification.');
     } finally {
       setUploading(false);
     }
@@ -93,47 +130,71 @@ export default function VerifyPage() {
     <ProtectedLayout supabaseClient={supabase}>
       <div className="min-h-screen flex items-center justify-center bg-black px-4 py-10">
         <form
-          onSubmit={handleContinue}
+          onSubmit={handleSubmit}
           className="w-full max-w-xl bg-gray-900 text-white p-8 rounded-lg shadow-lg space-y-6"
         >
-          <h1 className="text-2xl font-bold text-center mb-4">Verify Your Identity</h1>
+          <h1 className="text-2xl font-bold text-center mb-4">Verify Your Brand</h1>
+          <p className="text-center text-sm text-gray-400 mb-6">
+            Upload your business license, brand logo, and any additional documents.
+          </p>
 
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Full Name"
-            className="w-full p-3 rounded bg-gray-800 border border-gray-600 focus:outline-none"
-          />
+          <div className="space-y-4">
+            <label className="block">
+              <span>Business License</span>
+              <input
+                type="file"
+                name="business_license"
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                className="mt-1 w-full text-sm text-gray-300"
+              />
+            </label>
 
-          <input
-            type="text"
-            value={licenseNumber}
-            onChange={(e) => setLicenseNumber(e.target.value)}
-            placeholder="Driver’s License / ID Number"
-            className="w-full p-3 rounded bg-gray-800 border border-gray-600 focus:outline-none"
-          />
+            <label className="block">
+              <span>Brand Logo</span>
+              <input
+                type="file"
+                name="brand_logo"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="mt-1 w-full text-sm text-gray-300"
+              />
+            </label>
 
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            accept="image/*,.pdf"
-            className="w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-yellow-500 hover:file:bg-yellow-600"
-          />
+            <label className="block">
+              <span>Additional Document (optional)</span>
+              <input
+                type="file"
+                name="additional_document"
+                accept="image/*,.pdf"
+                onChange={handleFileChange}
+                className="mt-1 w-full text-sm text-gray-300"
+              />
+            </label>
+          </div>
 
-          {error && <p className="text-red-400 animate-pulse text-center">{error}</p>}
+          {error && <p className="text-red-400 text-center animate-pulse">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={uploading}
-            className={`w-full py-3 rounded-lg font-semibold ${
-              uploading
-                ? 'bg-gray-600 cursor-not-allowed'
-                : 'bg-yellow-500 hover:bg-yellow-600'
-            }`}
-          >
-            {uploading ? 'Verifying…' : 'Submit and Finish'}
-          </button>
+          <div className="flex justify-between pt-6">
+            <button
+              type="button"
+              onClick={() => router.push('/onboarding/details')}
+              className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded"
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              disabled={uploading || !files.business_license}
+              className={`py-2 px-6 rounded font-semibold ${
+                uploading
+                  ? 'bg-gray-600 cursor-not-allowed'
+                  : 'bg-yellow-500 hover:bg-yellow-600'
+              }`}
+            >
+              {uploading ? 'Submitting...' : 'Complete Verification'}
+            </button>
+          </div>
         </form>
       </div>
     </ProtectedLayout>

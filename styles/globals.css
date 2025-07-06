@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @font-face {
   font-family: 'Urbanist', system-ui, sans-serif;
   src: url('/fonts/Urbanist-Regular.ttf') format('truetype');
@@ -35,7 +39,7 @@
 body {
   font-family: 'Urbanist', sans-serif;
   background-color: #000;
-  background-image: url('/graffiti-bg.png');
+  background-image: url('/background.png');
   background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;

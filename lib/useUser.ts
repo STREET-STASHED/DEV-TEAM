@@ -1,69 +1,18 @@
-import { supabase } from '@/lib/supabaseClient';
-import { useState, useEffect } from 'react';
 
-interface AppUser {
-  id: string;
-  email: string;
-  role: string;
-  details_complete: boolean;
-  [key: string]: any;
-}
 
-export function useUser() {
-  const [user, setUser] = useState<AppUser | null>(null);
-  const [loading, setLoading] = useState(true);
+import { supabase } from './supabaseClient';
 
-  const fetchUser = async () => {
-    try {
-      const {
-        data: { user: authUser },
-        error: authError,
-      } = await supabase.auth.getUser();
 
-      if (authError || !authUser) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
+export async function getVerifiedProfiles() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, verified')
+    .eq('verified', true);
 
-      const { data: userData, error: userError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
+  if (error) {
+    console.error('Error fetching verified profiles:', error);
+    return [];
+  }
 
-      if (userError || !userData) {
-        console.error('Failed to fetch user profile from `profiles` table:', userError?.message || userError);
-        setUser(null);
-      } else {
-        setUser({
-          id: authUser.id,
-          email: authUser.email,
-          role: userData.role,
-          details_complete: userData.details_complete,
-          ...userData,
-        });
-      }
-    } catch (error) {
-      console.error('Unexpected error fetching user:', error);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      setLoading(true);
-      fetchUser();
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
-  return { user, loading, hasSession: !!user };
+  return data;
 }

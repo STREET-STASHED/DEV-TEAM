@@ -3,6 +3,22 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Bypass middleware for Next.js internals, static assets, and service worker
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/static/') ||
+    pathname.endsWith('.png') ||
+    pathname.endsWith('.jpg') ||
+    pathname.endsWith('.jpeg') ||
+    pathname.endsWith('.svg') ||
+    pathname.endsWith('.ico') ||
+    pathname.endsWith('.css')
+  ) {
+    return NextResponse.next();
+  }
+
   const res = NextResponse.next()
 
   const supabase = createServerClient(
@@ -29,12 +45,15 @@ export async function middleware(req: NextRequest) {
   const PUBLIC_PATHS = [
     '/',
     '/welcome',
+    '/signup',
+    '/login',
     '/marketplace',
     '/stores',
     '/stylists',
     '/track',
-    '/login',
-    '/signup',
+    '/onboarding/details',
+    '/onboarding/role',
+    '/onboarding/verify',
   ]
 
   const isPublicPath = PUBLIC_PATHS.some((path) =>
@@ -57,5 +76,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|public/).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|_next/data|favicon.ico|public/).*)',
+  ],
 }
