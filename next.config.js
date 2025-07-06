@@ -31,7 +31,8 @@ const nextConfig = {
     const isDev = process.env.NODE_ENV !== 'production';
     const csp = [
       "default-src 'self'",
-      `script-src 'self' https://js.stripe.com${isDev ? " 'unsafe-eval'" : ""}`,
+      `script-src 'self' https://js.stripe.com https://vercel.live${isDev ? " 'unsafe-eval'" : ""}`,
+      "worker-src 'self'",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https://*.supabase.co",
