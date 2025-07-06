@@ -2,7 +2,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@supabase/supabase-js';
 
 /**
  * @typedef {Object} Profile
@@ -33,7 +33,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
  * }}
  */
 export function useOnboarding() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
