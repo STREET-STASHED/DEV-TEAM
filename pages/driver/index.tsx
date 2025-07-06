@@ -1,19 +1,19 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useUser } from '@/lib/useUser';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 export default function DriverIndex() {
   const router = useRouter();
-  const { user, loading } = useUser();
+  const { profile, loading } = useOnboarding();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || !profile) return;
 
     const timeout = setTimeout(() => {
-      if (!user) {
+      if (!profile) {
         router.replace('/onboarding/role');
-      } else if (user?.role === 'driver') {
-        if (user?.has_completed_onboarding) {
+      } else if (profile.role === 'driver') {
+        if (profile.has_completed_onboarding) {
           router.replace('/driver/dashboard');
         } else {
           router.replace('/onboarding/verify');
@@ -24,7 +24,7 @@ export default function DriverIndex() {
     }, 100);
 
     return () => clearTimeout(timeout);
-  }, [user, loading]);
+  }, [profile, loading]);
 
   return (
     <div className="flex items-center justify-center min-h-screen text-lg">
