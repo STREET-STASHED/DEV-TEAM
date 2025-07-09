@@ -30,6 +30,13 @@
   font-style: normal;
 }
 
+:root {
+  --brand-black: #000000;
+  --brand-gold: #FFD700;
+  --brand-dark: #111111;
+  --text-muted: #AAAAAA;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -38,26 +45,222 @@
 
 body {
   font-family: 'Urbanist', sans-serif;
-  background-color: #000;
+  background-color: var(--brand-black);
   background-image: url('/background.png');
   background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  color: #fff;
+  color: white;
   min-height: 100vh;
 }
 
 a {
-  color: #FFD700;
+  color: var(--brand-gold);
   text-decoration: none;
 }
 
 button {
   font-family: inherit;
+  background-color: var(--brand-gold);
+  color: var(--brand-black);
+  border: none;
+  padding: 10px 18px;
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #e6c200;
+}
+
+/* Layout Components */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--brand-black);
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: var(--brand-black);
+  border-bottom: 1px solid #333;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--brand-gold);
+}
+
+.main-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-content {
+  flex: 1;
+  padding: 24px;
+  background-color: transparent;
+}
+
+.app-footer {
+  padding: 16px 24px;
+  background-color: var(--brand-black);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  border-top: 1px solid #333;
+}
+
+/* Auth + Card Styles (Optional override for white components) */
+.auth-card,
+.dashboard-card {
+  background-color: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+}
+
+/* Auth buttons and messages */
+.btn-primary {
+  background-color: var(--brand-gold);
+  color: black;
+}
+
+.btn-primary:hover {
+  background-color: #e6c200;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--brand-gold);
+  border: 1px solid var(--brand-gold);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 215, 0, 0.1);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 18px;
+  color: var(--brand-gold);
+}
+
+/* Auth Page Styles */
+.auth-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: transparent;
+  flex-direction: column;
+}
+
+.auth-card {
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.auth-card h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  font-weight: bold;
+  color: #FFD700;
+}
+
+.auth-links a {
+  color: #FFD700;
+  text-decoration: underline;
+}
+
+.auth-footer button.link-button {
+  color: #FFD700;
+  background: none;
+  border: none;
+  font-weight: bold;
   cursor: pointer;
 }
 
-input, textarea, select {
-  font-family: inherit;
+/* Form Inputs */
+input,
+textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #111;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 1rem;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #777;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--brand-gold);
+}
+
+/* Form Group Spacing */
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-gold);
+}
+
+/* Mobile Auth Card Tweaks */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 8px 14px;
+  }
 }

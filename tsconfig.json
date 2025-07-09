@@ -1,23 +1,27 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
     "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
     ],
-    "allowJs": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "module": "esnext",
-    "moduleResolution": "node",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "noEmit": true,
     "jsx": "preserve",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "incremental": true,
     "baseUrl": ".",
     "paths": {
@@ -31,17 +35,24 @@
         "lib/supabaseClient"
       ],
       "@components/*": [
-        "./components/*"
+        "components/*"
+      ],
+      "@/lib/*": [
+        "lib/*"
       ]
     },
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "allowJs": true
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "types/**/*.d.ts"
-  ],
+    "types/**/*.d.ts",
+    "src"
+, "components/OnboardingFlow.jsx"  ],
   "exclude": [
     "node_modules"
   ]

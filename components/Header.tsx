@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
-import { AuthSessionMissingError } from '@supabase/supabase-js';
 import CartDrawer from './CartDrawer';
 import { useCart } from '../context/CartContext';
 
@@ -17,26 +16,29 @@ const Header = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      const currentUser = session?.user;
-      if (currentUser) {
-        const { data: userData } = await supabase
-          .from('profiles')
-          .select('role, details_complete, verified')
-          .eq('id', currentUser.id)
-          .single();
-        setRole(userData?.role || null);
-        if (!userData) return;
-        setUser({
-          ...currentUser,
-          details_complete: userData?.details_complete || false,
-          verified: userData?.verified || false,
-        });
-      } else if (!error) {
-        console.warn('No user found and no Supabase error thrown');
-      } else if (error && !(error instanceof AuthSessionMissingError)) {
-        console.error('Supabase error fetching user:', error);
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Supabase error fetching user:', userError);
+        return;
       }
+      if (!currentUser) {
+        // no user signed in
+        setUser(null);
+        setRole(null);
+        return;
+      }
+      const { data: userData } = await supabase
+        .from('profiles')
+        .select('role, details_complete, verified')
+        .eq('id', currentUser.id)
+        .single();
+      setRole(userData?.role || null);
+      if (!userData) return;
+      setUser({
+        ...currentUser,
+        details_complete: userData?.details_complete || false,
+        verified: userData?.verified || false,
+      });
     };
     fetchUser();
   }, []);

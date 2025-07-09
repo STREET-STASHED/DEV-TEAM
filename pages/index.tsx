@@ -1,62 +1,52 @@
-// pages/index.tsx
-import React from 'react';
+// Static visitor-facing page. No onboarding/profile logic should be loaded here.
+import Head from 'next/head';
 import Link from 'next/link';
-import CategoryNav from '../components/CategoryNav';
-import FiltersSidebar from '../components/FiltersSidebar';
-import ProductCard, { Product } from '../components/ProductCard';
 
-// Temporary dummy products until real data is loaded
-const dummyProducts: Product[] = Array.from({ length: 8 }).map((_, i) => ({
-  id: (i + 1).toString(),
-  name: `StreetStashed Sneaker #${i + 1}`,
-  price: 250 + i * 10,
-  image: '/images/sneaker1.jpg',
-}));
-
-const HomePage: React.FC = () => {
+export default function Home() {
   return (
     <>
-      {/* 1. HERO / FEATURED */}
-      <section className="relative w-full h-[80vh] bg-hero-bg bg-cover bg-center flex items-center justify-center">
-        <div className="absolute inset-0 bg-secondary/60" />
-        <div className="relative z-10 max-w-lg w-full p-8 bg-secondary/80 rounded-xl shadow-xl text-center space-y-4">
-          <h1 className="text-5xl font-extrabold text-primary">
-            StreetStashed
-          </h1>
-          <p className="text-lg text-secondary/90">
-            Streetwear Delivered. Culture Curated.
-          </p>
-          <Link
-            href="/marketplace"
-            className="inline-block bg-primary text-secondary px-6 py-3 rounded-lg font-semibold hover:bg-accent transition"
-          >
-            Shop Now
-          </Link>
+      <Head>
+        <title>StreetStashed</title>
+        <meta name="description" content="Your curated fashion delivery experience starts here" />
+      </Head>
+      <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat text-white" style={{ backgroundImage: 'url("/bg/background.png")' }}>
+        <main className="flex flex-col items-center justify-start w-full max-w-screen-xl mx-auto px-4 py-12">
+        <div className="text-center px-4">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-4 drop-shadow-lg">Welcome to StreetStashed</h1>
+          <p className="text-lg md:text-xl mb-8 drop-shadow">Your curated fashion delivery experience starts here.</p>
+          <div className="flex justify-center gap-4">
+            <Link href="/marketplace" className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition">Shop Now</Link>
+            <Link href="/signup" className="bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition">Join Us</Link>
+          </div>
         </div>
-      </section>
 
-      {/* 2. CATEGORY NAV */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <CategoryNav />
-      </section>
-
-      {/* 3. FILTER + PRODUCT GRID */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-4 gap-8 pb-16">
-        {/* Sidebar (desktop only) */}
-        <aside className="hidden lg:block lg:col-span-1 sticky top-24">
-          <FiltersSidebar />
-        </aside>
-
-        {/* Products grid */}
-        <section className="col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {/* Example cards */}
-          {dummyProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+        {/* Categories Section */}
+        <section className="mt-16 px-6 max-w-6xl w-full">
+          <h2 className="text-3xl font-bold mb-6">Explore Categories</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {['Streetwear', 'Luxury', 'Accessories', 'Shoes'].map((category) => (
+              <Link key={category} href={`/category/${category.toLowerCase()}`} className="bg-white bg-opacity-20 backdrop-blur-md p-4 rounded text-center hover:bg-opacity-30 transition">
+                {category}
+              </Link>
+            ))}
+          </div>
         </section>
-      </main>
+
+        {/* Featured/Trending Items Section */}
+        <section className="mt-20 px-6 max-w-6xl w-full">
+          <h2 className="text-3xl font-bold mb-6">Trending Items</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((item) => (
+              <div key={item} className="bg-white bg-opacity-20 backdrop-blur-md p-4 rounded shadow">
+                <div className="h-40 bg-gray-200 mb-4 rounded">Image {item}</div>
+                <h3 className="text-xl font-semibold mb-2">Item {item}</h3>
+                <p className="text-sm">Short description of item {item}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+        </main>
+      </div>
     </>
   );
-};
-
-export default HomePage;
+}

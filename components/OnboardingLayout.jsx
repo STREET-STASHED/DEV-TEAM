@@ -1,8 +1,19 @@
 // components/OnboardingLayout.jsx
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import { useOnboarding } from '../hooks/useOnboarding';
 
 export default function OnboardingLayout({ children }) {
-  const { profile, ONBOARDING_STEPS } = useOnboarding();
+  const router = useRouter();
+  const [shouldFetch, setShouldFetch] = useState(false);
+
+  useEffect(() => {
+    if (router.pathname.startsWith('/onboarding')) {
+      setShouldFetch(true);
+    }
+  }, [router.pathname]);
+
+  const { profile, ONBOARDING_STEPS } = useOnboarding(shouldFetch);
   
   // Determine current step for progress indicator
   const getCurrentStepNumber = () => {

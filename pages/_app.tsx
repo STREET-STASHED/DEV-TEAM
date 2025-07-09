@@ -1,75 +1,62 @@
-import '../styles/globals.css';
-import type { AppProps } from 'next/app';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import dynamic from 'next/dynamic';
-import React from 'react';
-
-import { supabase } from '../lib/supabaseClient';
-import type { Session } from '@supabase/supabase-js';
-
-import type { NextPage } from 'next';
-import Layout from '../components/Layout';
-
-export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
-  getLayout?: (page: React.ReactNode) => React.ReactNode;
-};
-
-type AppPropsWithLayout = AppProps & {
-  Component: NextPageWithLayout;
-};
+import '../styles/globals.css'
+import type { AppProps } from 'next/app'
+import { useEffect, useState } from 'react'
+import type { Session } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
+import { useRouter } from 'next/router'
+import OnboardingFlow from '../components/OnboardingFlow.tsx'
+import AuthForm from '../components/Auth.tsx'
+import { SupabaseProvider } from '../context/SupabaseContext.tsx'
 
 
-export default function MyApp({ Component, pageProps }: AppPropsWithLayout) {
-  const router = useRouter();
+const supabaseUrl: string = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey: string = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-  const [session, setSession] = useState<Session | null | undefined>(undefined);
-  const isLoading = typeof session === 'undefined';
+function MyAppWrapper({ Component, pageProps }: AppProps) {
+  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
+  const router = useRouter()
+  const [session, setSession] = useState<Session | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchUserAndSession = async () => {
-      const { data: userData } = await supabase.auth.getUser();
-      if (userData?.user) {
-        const { data: sessionData } = await supabase.auth.getSession();
-        console.log('Supabase session:', sessionData.session);
-        console.log('User ID:', userData.user.id);
-        setSession(sessionData.session);
-      } else {
-        setSession(null);
-      }
-    };
-    fetchUserAndSession();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setLoading(false)
+    })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setLoading(false)
+    })
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+    return () => subscription.unsubscribe()
+  }, [])
 
-  const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-  const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
-
-  if (isLoading) {
-    console.log('Waiting for session...');
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading session...</p>
-      </div>
-    );
+  if (loading) {
+    return <div>Loading...</div>
   }
 
-  const getLayout = Component.getLayout ?? ((page) => <Layout>{page}</Layout>);
+  if (!session) {
+    return <AuthForm />
+  }
+
+  const isOnboardingPage = router.pathname.startsWith('/onboarding');
 
   return (
-    <Elements stripe={stripePromise}>
-      {getLayout(<Component {...pageProps} />)}
-    </Elements>
+    <>
+      {isOnboardingPage ? (
+        <OnboardingFlow />
+      ) : (
+        <Component {...pageProps} />
+      )}
+    </>
   );
+}
+
+export default function MyApp(props: AppProps) {
+  return (
+    <SupabaseProvider>
+      <MyAppWrapper {...props} />
+    </SupabaseProvider>
+  )
 }

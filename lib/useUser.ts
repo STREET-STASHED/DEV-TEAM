@@ -5,16 +5,19 @@ import { supabase } from './supabaseClient';
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Fetch initial user
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
+      setIsLoading(false);
     });
 
     // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      setIsLoading(false);
     });
 
     return () => {
@@ -22,7 +25,7 @@ export function useUser() {
     };
   }, []);
 
-  return user;
+  return { user, isLoading };
 }
 
 
