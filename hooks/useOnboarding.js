@@ -1,9 +1,15 @@
 /* eslint-env browser */
 'use client';
 /* global fetch, console */
+/* global window */
+
+const SUPABASE_ANON_KEY = typeof globalThis !== 'undefined' && globalThis?.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ? globalThis.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  : '';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabaseClient.ts';
+import { useUser } from '../lib/useUser';
+import { supabase } from '../lib/supabaseClient';
 
 // Define the valid role types to match your database enum
 export const USER_ROLES = {
@@ -45,29 +51,61 @@ export const USER_ROLES = {
  * }}
  */
 export function useOnboarding() {
+  const { user, profile: userProfile } = useUser();
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
   const [shouldFetch, setShouldFetch] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Only trigger onboarding logic on /onboarding routes
+  useEffect(() => {
+    if (!pathname.startsWith('/onboarding')) {
+      return;
+    }
+    if (user && userProfile && userProfile.has_completed_onboarding === false) {
+      setShouldFetch(true);
+    }
+  }, [user, userProfile, pathname]);
+
   const fetchProfile = async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-      if (!session?.access_token) throw new Error('No valid session token found');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) throw new Error('No authenticated user');
 
-      const res = await fetch('http://localhost:54321/functions/v1/handle-onboarding', {
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) throw new Error('No access token found');
+
+      const res = await fetch(`https://ofccxjxowebslrcuynrw.supabase.co/functions/v1/handle-onboarding`, {
         headers: {
-          Authorization: `Bearer ${session.access_token}`
+          Authorization: `Bearer ${accessToken}`,
+          apikey: SUPABASE_ANON_KEY
         }
       });
 
-      if (!res.ok) throw new Error(`Edge Function failed: ${res.status}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Edge Function error response:', errorText);
+        throw new Error(`Edge Function failed: ${res.status} - ${errorText}`);
+      }
       const responseData = await res.json();
-      if (!responseData?.success) throw new Error('Failed to retrieve profile');
-      setProfile(responseData?.user || null);
+      if (responseData?.requiresProfile) {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/onboarding';
+        }
+        return;
+      }
+
+      if (!responseData?.user) {
+        throw new Error('No user profile found and no fallback route provided.');
+      }
+
+      setProfile(responseData.user);
     } catch (err) {
       console.error('fetchProfile error:', err);
       setError(err.message || 'Unknown error');
@@ -135,16 +173,6 @@ export function useOnboarding() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (typeof globalThis !== 'undefined') {
-      const onboardingPaths = ['/onboarding/role', '/onboarding/details', '/onboarding/verify'];
-      const pathname = globalThis?.window?.location?.pathname;
-      if (onboardingPaths.includes(pathname)) {
-        setShouldFetch(true);
-      }
-    }
-  }, []);
 
   useEffect(() => {
     if (shouldFetch) fetchProfile();

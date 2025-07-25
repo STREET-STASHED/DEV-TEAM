@@ -1,11 +1,9 @@
 // File: src/hooks/useSupabase.ts
 
 import { useState, useEffect } from 'react';
-import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase/client';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface UseSupabaseReturn {
   supabase: SupabaseClient;
@@ -15,6 +13,8 @@ interface UseSupabaseReturn {
   signIn: (email: string, password: string) => Promise<{ error: any | null; data: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null; data: any | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<any>;
+  updatePassword: (newPassword: string) => Promise<any>;
 }
 
 export function useSupabase(): UseSupabaseReturn {
@@ -26,15 +26,15 @@ export function useSupabase(): UseSupabaseReturn {
     const getInitialSession = async () => {
       try {
         setLoading(true);
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        setSession(currentSession);
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        setSession(null);
 
-        if (currentSession) {
-          setUser(currentSession.user);
+        if (currentUser) {
+          setUser(currentUser);
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', currentSession.user.id)
+            .eq('id', currentUser.id)
             .maybeSingle();
 
           if (profile) {
@@ -51,15 +51,17 @@ export function useSupabase(): UseSupabaseReturn {
     getInitialSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, currentSession) => {
-        setSession(currentSession);
+      async (_event) => {
+        const { data: { user: newUser } } = await supabase.auth.getUser();
 
-        if (currentSession) {
-          setUser(currentSession.user);
+        setSession(null);
+
+        if (newUser) {
+          setUser(newUser);
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', currentSession.user.id)
+            .eq('id', newUser.id)
             .maybeSingle();
 
           if (profile) {
@@ -86,6 +88,16 @@ export function useSupabase(): UseSupabaseReturn {
     await supabase.auth.signOut();
   };
 
+  const resetPassword = async (email: string) => {
+    return await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+  };
+
+  const updatePassword = async (newPassword: string) => {
+    return await supabase.auth.updateUser({ password: newPassword });
+  };
+
   return {
     supabase,
     user,
@@ -93,6 +105,8 @@ export function useSupabase(): UseSupabaseReturn {
     loading,
     signIn,
     signUp,
-    signOut
+    signOut,
+    resetPassword,
+    updatePassword
   };
 }

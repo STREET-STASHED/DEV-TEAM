@@ -13,14 +13,13 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { user, signOut } = useSupabase();
   const router = useRouter();
-  let userRole: UserRole | undefined = undefined;
-
+  const isAuthPage = router.pathname.startsWith('/auth') || router.pathname === '/reset-password';
+  const onboarding = !isAuthPage ? useOnboarding() : { profile: null };
   const showOnboardingData = user && router.pathname.startsWith('/onboarding');
-  const onboarding = showOnboardingData ? useOnboarding() : null;
-  const profile = onboarding?.profile ?? null;
-  userRole = profile?.role as UserRole | undefined;
+  const profile = showOnboardingData ? onboarding.profile : null;
+  const userRole: UserRole | undefined = profile?.role as UserRole | undefined;
 
-  const hideNav = router.pathname.startsWith('/auth');
+  const hideNav = router.pathname.startsWith('/auth') || router.pathname === '/reset-password';
 
   const handleSignOut = async () => {
     try {

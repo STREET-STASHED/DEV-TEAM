@@ -1,16 +1,10 @@
-
-
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
-import { createBrowserClient } from '@supabase/ssr'
+import { supabase } from '@/lib/supabaseClient'
 import { useOnboarding } from '../hooks/useOnboarding'
 
 export default function OnboardingForm({ supabaseClient }) {
   const router = useRouter()
-  const supabase = supabaseClient || createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  )
   const { submitOnboarding, loading, error } = useOnboarding()
   
   const [user, setUser] = useState(null)
@@ -28,8 +22,11 @@ export default function OnboardingForm({ supabaseClient }) {
       setUser(user)
       if (user) fetchProfile(user.id)
     }
-    getUser()
-  }, [])
+
+    if (!['/', '/auth'].includes(router.pathname)) {
+      getUser()
+    }
+  }, [router.pathname])
 
   async function fetchProfile(userId) {
     try {
@@ -98,18 +95,21 @@ export default function OnboardingForm({ supabaseClient }) {
         </div>
 
         <div className="mb-4">
-          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-          <select
-            id="role"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-          >
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
-            <option value="agent">Agent</option>
-          </select>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <div className="grid grid-cols-2 gap-2">
+            {['buyer', 'seller', 'agent'].map((r) => (
+              <button
+                type="button"
+                key={r}
+                onClick={() => setFormData({ ...formData, role: r })}
+                className={`p-2 border rounded text-center capitalize ${
+                  formData.role === r ? 'bg-black text-white border-black' : 'border-gray-300'
+                }`}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
         </div>
 
         {formData.role === 'agent' && (

@@ -10,7 +10,7 @@ const CheckoutPage = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await supabase.auth.getUser();
       if (!session) {
         setIsClient(true); // Allow guests
       } else {

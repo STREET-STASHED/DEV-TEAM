@@ -1,11 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createServerClient } from '@supabase/ssr';
 import { GetServerSideProps } from 'next';
 import ProtectedLayout from '@/components/ProtectedLayout';
+import { supabase } from '@/lib/supabaseClient';
 
 interface StylistDashboardProps {
   userId: string;
@@ -129,7 +126,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   if (loading) return <Spinner />;
 
   return (
-    <ProtectedLayout supabaseClient={supabase}>
+    <ProtectedLayout>
       <main style={{ padding: '2rem' }}>
         <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Stylist Dashboard</h1>
         {bookings.length === 0 ? (
@@ -180,11 +177,22 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 export default Dashboard;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get: (name: string) => ctx.req?.cookies?.[name] ?? null,
+        set: () => {},
+      },
+    }
+  );
 
-  if (!session) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
     return {
       redirect: {
         destination: '/onboarding/role',
@@ -195,7 +203,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   return {
     props: {
-      userId: session.user.id,
+      userId: user.id,
     },
   };
 };

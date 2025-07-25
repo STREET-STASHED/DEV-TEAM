@@ -1,62 +1,88 @@
 import '../styles/globals.css'
 import type { AppProps } from 'next/app'
-import { useEffect, useState } from 'react'
-import type { Session } from '@supabase/supabase-js'
-import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/router'
-import OnboardingFlow from '../components/OnboardingFlow.tsx'
-import AuthForm from '../components/Auth.tsx'
+import type { NextRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { SupabaseProvider } from '../context/SupabaseContext.tsx'
+import Layout from '../components/Layout'
+import ProtectedLayout from '../components/ProtectedLayout'
+import { createBrowserClient } from '@supabase/ssr'
 
+async function handleRedirect(router: NextRouter) {
+  try {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { data: { session } } = await supabase.auth.getSession()
 
-const supabaseUrl: string = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey: string = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+    if (!session) {
+      return
+    }
 
-function MyAppWrapper({ Component, pageProps }: AppProps) {
-  const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey)
-  const router = useRouter()
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+    console.log('[APP REDIRECT] Found session token:', session.access_token);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setLoading(false)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/handle-redirect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({})
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setLoading(false)
-    })
+    let data;
+    try {
+      const text = await response.text();
+      console.log('[APP REDIRECT RAW]', text); // Log raw response to debug format
+      data = JSON.parse(text);
+    } catch (err) {
+      console.error('[APP REDIRECT ERROR] Failed to parse JSON:', err);
+      return;
+    }
 
-    return () => subscription.unsubscribe()
-  }, [])
-
-  if (loading) {
-    return <div>Loading...</div>
+    if (response.ok && data?.redirectTo) {
+      await router.replace(data.redirectTo);
+    } else {
+      console.warn('[APP REDIRECT ERROR] No valid redirect data or response not OK', data);
+    }
+  } catch (error) {
+    console.error('[APP REDIRECT ERROR]', error)
   }
-
-  if (!session) {
-    return <AuthForm />
-  }
-
-  const isOnboardingPage = router.pathname.startsWith('/onboarding');
-
-  return (
-    <>
-      {isOnboardingPage ? (
-        <OnboardingFlow />
-      ) : (
-        <Component {...pageProps} />
-      )}
-    </>
-  );
 }
 
-export default function MyApp(props: AppProps) {
+export default function MyApp({ Component, pageProps }: AppProps) {
+  const router = useRouter()
+  const protectedRoutes = ['/dashboard', '/onboarding']
+
+  const isProtected = protectedRoutes.some((path) =>
+    router.pathname.startsWith(path)
+  )
+
+  const [hasHandledRedirect, setHasHandledRedirect] = useState(false)
+
+  useEffect(() => {
+    const runRedirect = async () => {
+      if (!hasHandledRedirect && router.isReady) {
+        await handleRedirect(router)
+        setHasHandledRedirect(true)
+      }
+    }
+
+    runRedirect()
+  }, [router.pathname, router.isReady])
+
   return (
     <SupabaseProvider>
-      <MyAppWrapper {...props} />
+      <Layout>
+        {isProtected ? (
+          <ProtectedLayout>
+            <Component {...pageProps} />
+          </ProtectedLayout>
+        ) : (
+          <Component {...pageProps} />
+        )}
+      </Layout>
     </SupabaseProvider>
   )
 }

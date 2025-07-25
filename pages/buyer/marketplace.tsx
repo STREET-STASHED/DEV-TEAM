@@ -1,9 +1,9 @@
 // pages/buyer/marketplace.tsx
-import Layout from '../../components/Layout';
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { useRouter } from 'next/router';
 
 type Store = {
   id: string;
@@ -33,11 +33,12 @@ export default function Marketplace() {
   const [page, setPage] = useState(1);
   const pageSize = 4;
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   // Auth check
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user);
     });
   }, []);
 
@@ -50,7 +51,42 @@ export default function Marketplace() {
           id, name, category,
           products ( id, name, price, image_url, type )
         `);
-      if (!error) setStores(data || []);
+      if (!error) {
+        if (!data || data.length === 0) {
+          setStores([
+            {
+              id: 'mock1',
+              name: 'Drip City',
+              category: 'Streetwear',
+              products: [
+                {
+                  id: 'p1',
+                  name: 'Gold Hoodie',
+                  price: 120,
+                  image_url: '/mock/gold-hoodie.jpg',
+                  type: 'Hoodie'
+                }
+              ]
+            },
+            {
+              id: 'mock2',
+              name: 'Lux Vault',
+              category: 'Luxury',
+              products: [
+                {
+                  id: 'p2',
+                  name: 'Designer Shades',
+                  price: 300,
+                  image_url: '/mock/shades.jpg',
+                  type: 'Accessories'
+                }
+              ]
+            }
+          ]);
+        } else {
+          setStores(data);
+        }
+      }
     }
     fetchStores();
   }, []);
@@ -62,7 +98,24 @@ export default function Marketplace() {
       const { data, error } = await supabase
         .from('stylists')
         .select('id, name, image_url');
-      if (!error) setStylists(data || []);
+      if (!error) {
+        if (!data || data.length === 0) {
+          setStylists([
+            {
+              id: 'sty1',
+              name: 'Kiara Styles',
+              image_url: '/mock/stylist1.jpg'
+            },
+            {
+              id: 'sty2',
+              name: 'J Luxe',
+              image_url: '/mock/stylist2.jpg'
+            }
+          ]);
+        } else {
+          setStylists(data);
+        }
+      }
     }
     fetchStylists();
   }, [selectedTab]);
@@ -91,15 +144,14 @@ export default function Marketplace() {
   }, [loadMoreRef.current, selectedTab]);
 
   return (
-    <Layout>
-      <div
-        className="min-h-screen p-8 text-white"
-        style={{
-          backgroundImage: `url('/bg/background.png')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
+    <div
+      className="min-h-screen p-8 text-white"
+      style={{
+        backgroundImage: `url('/bg/background.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
         {/* TOP NAV */}
         <nav className="flex space-x-4 overflow-x-auto mb-8">
           {categories.map((tab) => (
@@ -127,7 +179,7 @@ export default function Marketplace() {
                 className="bg-black/70 p-6 rounded-lg hover:shadow-xl transition text-center"
               >
                 <img
-                  src={stylist.image_url}
+                  src={stylist.image_url || '/mock/default-stylist.jpg'}
                   alt={stylist.name}
                   className="w-32 h-32 mx-auto rounded-full object-cover mb-4"
                 />
@@ -156,7 +208,7 @@ export default function Marketplace() {
                       <div key={prod.id} className="w-[90px] text-center">
                         <Link href={`/stores/${store.id}/products/${prod.id}`}>
                           <img
-                            src={prod.image_url}
+                            src={prod.image_url || '/mock/default-product.jpg'}
                             alt={prod.name}
                             className="w-full h-[90px] object-cover rounded-lg border border-gray-600 hover:scale-105 transition"
                           />
@@ -183,7 +235,7 @@ export default function Marketplace() {
                           </button>
                         ) : (
                           <button
-                            onClick={() => window.location.href = '/auth'}
+                            onClick={() => router.push('/auth')}
                             className="mt-2 px-2 py-1 bg-gold text-black rounded text-xs font-semibold hover:bg-gold/80 transition"
                           >
                             Sign up to Buy
@@ -200,6 +252,5 @@ export default function Marketplace() {
           </>
         )}
       </div>
-    </Layout>
   );
 }

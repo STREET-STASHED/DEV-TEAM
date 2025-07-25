@@ -6,9 +6,9 @@ const withPWA = pkg.default || pkg;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {},
   images: {
     remotePatterns: [
       {
@@ -42,4 +42,8 @@ const pwaConfig = {
 };
 
 const isProd = process.env.NODE_ENV === 'production';
-export default isProd ? withPWA(pwaConfig)(nextConfig) : nextConfig;
+
+export default {
+  ...(isProd ? withPWA(pwaConfig)(nextConfig) : nextConfig),
+  allowedDevOrigins: ['http://10.0.0.210:3000'], // ✅ patch moved to export level
+};

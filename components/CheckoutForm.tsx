@@ -39,15 +39,15 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
     setError(null);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error('No user session found');
 
       let guestId = null;
       let buyerId = null;
       let isGuest = false;
 
-      if (session && session.user) {
-        buyerId = session.user.id;
+      if (user) {
+        buyerId = user.id;
       } else {
         isGuest = true;
         guestId = localStorage.getItem("guest_id");

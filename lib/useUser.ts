@@ -5,16 +5,36 @@ import { supabase } from './supabaseClient';
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch initial user
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-      setIsLoading(false);
-    });
+    const getUserAndProfile = async () => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setIsLoading(false);
+        return;
+      }
 
-    // Listen for auth changes
+      setUser(user);
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.warn('No profile found for user yet — possibly a new signup.');
+      }
+
+      setProfile(profileData ?? null);
+
+      setIsLoading(false);
+    };
+
+    getUserAndProfile();
+
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -25,7 +45,7 @@ export function useUser() {
     };
   }, []);
 
-  return { user, isLoading };
+  return { user, profile, isLoading };
 }
 
 

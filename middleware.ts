@@ -1,61 +1,126 @@
-// middleware.ts
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
 
-export async function middleware(req: NextRequest) {
-  const { pathname, search } = req.nextUrl
+// 👇 Add all guest-accessible buyer/shopping pages here
+const PUBLIC_PATHS = [
+  '/',
+  '/signup',
+  '/login',
+  '/marketplace',
+  '/buyer',
+  '/buyer/marketplace',
+  '/browse',
+  '/products',
+  '/product',
+  '/collections',
+  '/categories',
+  '/brands',
+  '/search',
+  '/favicon.ico'
+]
 
-  // Skip internals/static
-  if (
-    pathname.startsWith('/_next/') ||
-    pathname.startsWith('/static/') ||
-    pathname.endsWith('.png') ||
-    pathname.endsWith('.jpg') ||
-    pathname.endsWith('.jpeg') ||
-    pathname.endsWith('.svg') ||
-    pathname.endsWith('.ico') ||
-    pathname.endsWith('.css')
-  ) {
-    return NextResponse.next()
-  }
-
-  // Only check for the Supabase auth cookie
-  const hasAccessToken = req.cookies.has('sb-access-token')
-
-  // Publicly accessible routes
-  const PUBLIC_PATHS = [
-    '/',
-    '/welcome',
-    '/auth',         // updated
-    '/marketplace',
-    '/stores',
-    '/stylists',
-    '/track',
-    '/onboarding/details',
-    '/onboarding/role',
-    '/onboarding/verify',
-  ]
-
-  const isPublic = PUBLIC_PATHS.some(
-    (path) =>
-      pathname === path || pathname.startsWith(path + '/')
+function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.some((path) =>
+    pathname === path || pathname.startsWith(`${path}/`)
   )
-
-  if (!hasAccessToken && !isPublic) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/auth'        // updated
-    redirectUrl.searchParams.set(
-      'redirectedFrom',
-      pathname + search
-    )
-    return NextResponse.redirect(redirectUrl)
-  }
-
-  return NextResponse.next()
 }
 
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  const res = NextResponse.next()
+  const supabase = createServerClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll().map(({ name, value }) => ({ name, value }))
+        },
+        setAll(cookies) {
+          cookies.forEach(({ name, value, options }) => {
+            res.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  // 🔓 Allow public/guest access to buyer routes and static paths
+  if (
+    !user &&
+    (isPublicPath(pathname) || pathname.startsWith('/_next') || pathname.includes('/_error'))
+  ) {
+    return res
+  }
+
+  // 🔒 Not logged in + not public = redirect to signup
+  if (!user) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/signup'
+    url.searchParams.set('redirectedFrom', pathname)
+    return NextResponse.redirect(url)
+  }
+
+  // 🧠 Fetch profile info
+  const {
+    data: profile,
+  } = await supabase
+    .from('profiles')
+    .select('has_completed_onboarding, role')
+    .eq('user_id', user?.id)
+    .single()
+
+  // 🚧 Not onboarded = force to /onboarding
+  if (
+    profile &&
+    !profile.has_completed_onboarding &&
+    !pathname.startsWith('/onboarding')
+  ) {
+    console.log('[MIDDLEWARE] Redirecting to onboarding');
+    const url = req.nextUrl.clone();
+    url.pathname = '/onboarding';
+    return NextResponse.redirect(url);
+  }
+
+  // ⛔ Onboarded but visiting /onboarding = block
+  if (
+    profile &&
+    profile.has_completed_onboarding &&
+    pathname.startsWith('/onboarding')
+  ) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
+
+  // 🧭 Shared dashboard path → redirect to role-specific dashboard
+  if (
+    profile?.has_completed_onboarding &&
+    pathname === '/dashboard'
+  ) {
+    const url = req.nextUrl.clone()
+    if (profile.role === 'driver') {
+      url.pathname = '/driver'
+    } else if (profile.role === 'stylist') {
+      url.pathname = '/stylist'
+    } else if (profile.role === 'seller' || profile.role === 'seller/brand') {
+      url.pathname = '/seller'
+    } else {
+      url.pathname = '/marketplace'
+    }
+    return NextResponse.redirect(url)
+  }
+
+  console.log('[MIDDLEWARE] Allowing access to:', pathname);
+  return res
+}
+
+// ✅ This patch fixes API route interference
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|_next/data|favicon.ico|public/).*)',
-  ],
+  matcher: ['/((?!api|_next/static|favicon.ico).*)'],
 }

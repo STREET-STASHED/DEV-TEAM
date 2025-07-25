@@ -14,9 +14,16 @@ export default function Home() {
         <div className="text-center px-4">
           <h1 className="text-5xl md:text-6xl font-extrabold mb-4 drop-shadow-lg">Welcome to StreetStashed</h1>
           <p className="text-lg md:text-xl mb-8 drop-shadow">Your curated fashion delivery experience starts here.</p>
-          <div className="flex justify-center gap-4">
-            <Link href="/marketplace" className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition">Shop Now</Link>
-            <Link href="/signup" className="bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition">Join Us</Link>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link href="/buyer/marketplace" scroll={false}>
+              <button className="bg-black text-white px-6 py-3 rounded hover:bg-gray-800 transition">Start Browsing</button>
+            </Link>
+            <Link href="/signup" scroll={false}>
+              <button className="bg-white text-black px-6 py-3 rounded hover:bg-gray-200 transition">Join Us</button>
+            </Link>
+            <Link href="/login" scroll={false}>
+              <button className="bg-white text-black px-6 py-3 rounded border border-black hover:bg-gray-100 transition">Welcome Back</button>
+            </Link>
           </div>
         </div>
 

@@ -1,7 +1,8 @@
 // File: context/SupabaseContext.tsx
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js'
+import { SupabaseClient, User, Session } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase/client'
 
 // Create a type for the context value
 interface SupabaseContextType {
@@ -32,11 +33,6 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true)
   const [profile, setProfile] = useState<any | null>(null)
   
-  // Initialize the Supabase client
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
   
   useEffect(() => {
     // Get the current session and user on mount
@@ -45,18 +41,18 @@ export function SupabaseProvider({ children }: { children: ReactNode }) {
         setLoading(true)
         
         // Get the current session
-        const { data: { session: currentSession } } = await supabase.auth.getSession()
-        setSession(currentSession)
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
         
         // Set the user if we have a session
-        if (currentSession) {
-          setUser(currentSession.user)
+        if (session) {
+          setUser(session.user)
           
           // Optionally fetch additional profile data
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
-            .eq('id', currentSession.user.id)
+            .eq('id', session.user.id)
             .single()
             
           // Merge profile data with user data if needed

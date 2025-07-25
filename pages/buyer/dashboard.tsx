@@ -1,13 +1,8 @@
-import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/lib/supabase/client';
 import OrderProgressBar from '@/components/OrderProgressBar';
 
 const Dashboard: React.FC = () => {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
 
   const [orders, setOrders] = useState<Array<{ id: string; status?: string; total_price?: number; created_at?: string }>>([]);
   const [loading, setLoading] = useState(true);

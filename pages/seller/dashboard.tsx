@@ -7,15 +7,11 @@ interface Booking {
   service_name?: string;
 }
 import React, { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from "@/lib/supabase/client";
 // Helper to get the current user session
 async function getCurrentUser() {
-  const session = await supabase.auth.getSession().then((r: { data: { session: any } }) => r.data.session);
-  return session?.user;
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 }
 
 // Helper to check seller role
@@ -225,7 +221,7 @@ const SellerDashboardPageContent: React.FC<SellerDashboardProps> = ({ userId }) 
     };
     fetchAll();
     return () => {
-      if (cleanup) cleanup();
+      if (typeof cleanup === 'function') cleanup();
     };
   }, [localUserId]);
 
@@ -626,9 +622,9 @@ export async function getServerSideProps(context: any) {
       { cookies: context.req.headers.cookie }
     );
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
       return {
         redirect: {
           destination: "/onboarding/role",
@@ -636,7 +632,7 @@ export async function getServerSideProps(context: any) {
         },
       };
     }
-    userId = session.user.id;
+    userId = user.id;
   } catch (err) {
     // Log error but do not leak details to user
     console.error("Error in getServerSideProps:", err);
