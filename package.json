@@ -6,7 +6,7 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ./components ./pages ./lib ./hooks ./context"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.1",

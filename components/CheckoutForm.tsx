@@ -1,9 +1,13 @@
-import { useState } from 'react';
+/* global localStorage, crypto */
+/// <reference lib="dom" />
+/* eslint-env browser */
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { useCart } from '../context/CartContext';
 import type { CartItem } from '../context/CartContext';
 import { supabase } from '../lib/supabaseClient';
+
 
 interface CheckoutFormProps {
   items: CartItem[];
@@ -28,7 +32,37 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
     zip: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return;
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, email, address, city, state, zip')
+        .eq('id', user.id)
+        .single();
+
+      if (profile && !profileError) {
+        const [firstName, ...rest] = profile.full_name?.split(' ') || [''];
+        const lastName = rest.join(' ');
+        setForm(prev => ({
+          ...prev,
+          firstName,
+          lastName,
+          email: profile.email || '',
+          address: profile.address || '',
+          city: profile.city || '',
+          state: profile.state || '',
+          zip: profile.zip || '',
+        }));
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<any>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
@@ -52,7 +86,7 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
         isGuest = true;
         guestId = localStorage.getItem("guest_id");
         if (!guestId) {
-          guestId = crypto.randomUUID();
+        guestId = crypto.randomUUID();
           localStorage.setItem("guest_id", guestId);
         }
       }
@@ -70,8 +104,8 @@ export default function CheckoutForm({ items, totalAmount, mode = 'buyNow' }: Ch
         throw new Error(data.message || 'Payment failed on server');
       }
 
-      if (mode === 'cart' && data.orderId) {
-        clearCart();
+      if (data.orderId) {
+        if (mode === 'cart') clearCart();
         router.push(`/order/${data.orderId}`);
         return;
       }

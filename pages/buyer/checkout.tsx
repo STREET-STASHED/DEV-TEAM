@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useCart, CartItem } from '@/context/CartContext';
 import { useEffect, useState } from 'react';
@@ -6,12 +5,11 @@ import CheckoutForm from '@/components/CheckoutForm';
 
 const CheckoutPage = () => {
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getUser();
-      if (!session) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         setIsClient(true); // Allow guests
       } else {
         setIsClient(true);
