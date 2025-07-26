@@ -193,8 +193,8 @@ const Header = () => {
           )}
         </div>
       </header>
+      <CartDrawer />
       <div className="h-20" /> {/* Push content below the fixed header */}
-      
     </>
   );
 };

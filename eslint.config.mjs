@@ -1,40 +1,52 @@
 // eslint.config.mjs
-import js from '@eslint/js'
-import * as tseslint from 'typescript-eslint'
+import js from '@eslint/js';
+import parser from '@typescript-eslint/parser';
+import eslintPlugin from '@typescript-eslint/eslint-plugin';
 
-const tsPlugin = await tseslint.config({
-  files: ['**/*.ts', '**/*.tsx'],
-  languageOptions: {
-    parser: '@typescript-eslint/parser',
-    parserOptions: {
-      sourceType: 'module',
-      ecmaVersion: 'latest',
-      ecmaFeatures: { jsx: true },
-    },
-  },
-})
-
+/** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
   {
-    files: ['**/*.js', '**/*.ts'],
-    languageOptions: {
-      globals: {
-        process: 'readonly',
-        __dirname: 'readonly',
-      },
-    },
+    ignores: ['.next/**/*', 'node_modules/**/*'],
   },
-  js.configs.recommended,
-  ...tsPlugin,
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
-      globals: {
-        window: 'readonly',
+      parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
       },
+      globals: {
+        React: true,
+        console: true,
+        window: true,
+        document: true,
+        module: true,
+        require: true,
+        process: true,
+        setTimeout: true,
+        clearTimeout: true,
+        alert: true,
+        FileReader: true,
+        FormData: true,
+        Blob: true,
+        fetch: true,
+        URL: true,
+        URLSearchParams: true,
+        XMLHttpRequest: true,
+        self: true,
+        __dirname: 'readonly',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': eslintPlugin,
     },
     rules: {
       // Add your custom rules here
     },
   },
+  js.configs.recommended,
 ];
