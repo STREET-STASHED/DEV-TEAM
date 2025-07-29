@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "useDefineForClassFields": true,
-    "lib": [
-      "ES2021",
-      "DOM"
-    ],
+    "lib": ["ES2021", "DOM"],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "skipLibCheck": true,
@@ -24,21 +21,11 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@lib/*": [
-        "lib/*"
-      ],
-      "@supabaseClient": [
-        "lib/supabaseClient"
-      ],
-      "@components/*": [
-        "components/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ]
+      "@/*": ["./*"],
+      "@lib/*": ["lib/*"],
+      "@supabaseClient": ["lib/supabaseClient"],
+      "@components/*": ["components/*"],
+      "@/lib/*": ["lib/*"]
     },
     "allowJs": true
   },
@@ -47,9 +34,8 @@
     "**/*.ts",
     "**/*.tsx",
     "types/**/*.d.ts",
-    "src"
-, "components/OnboardingFlow.jsx"  ],
-  "exclude": [
-    "node_modules"
-  ]
+    "src",
+    "components/OnboardingFlow.jsx"
+  ],
+  "exclude": ["node_modules"]
 }

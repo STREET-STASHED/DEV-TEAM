@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { createServerClient } from '@supabase/ssr';
-import { GetServerSideProps } from 'next';
-import ProtectedLayout from '@/components/ProtectedLayout';
-import { supabase } from '@/lib/supabaseClient';
+import React, { useEffect, useState } from "react";
+import { createServerClient } from "@supabase/ssr";
+import { GetServerSideProps } from "next";
+import ProtectedLayout from "@/components/ProtectedLayout";
+import { supabase } from "@/lib/supabaseClient";
 
 interface StylistDashboardProps {
   userId: string;
@@ -20,14 +20,22 @@ interface Booking {
 const formatDate = (dateString: string) => {
   try {
     const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
   } catch {
     return dateString;
   }
 };
 
 const Spinner = () => (
-  <div role="status" aria-live="polite" style={{ padding: '1rem', textAlign: 'center' }}>
+  <div
+    role="status"
+    aria-live="polite"
+    style={{ padding: "1rem", textAlign: "center" }}
+  >
     <svg
       aria-hidden="true"
       className="animate-spin h-8 w-8 text-gray-600 mx-auto"
@@ -64,39 +72,39 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 
       // Check if onboarding is complete
       const { data: userStatus, error: userError } = await supabase
-        .from('profiles')
-        .select('has_completed_onboarding')
-        .eq('id', userId)
+        .from("profiles")
+        .select("has_completed_onboarding")
+        .eq("id", userId)
         .single();
 
       if (userError) {
-        console.error('Error checking onboarding status:', userError.message);
+        console.error("Error checking onboarding status:", userError.message);
         return;
       }
 
       if (!userStatus?.has_completed_onboarding) {
-        window.location.href = '/onboarding/details';
+        window.location.href = "/onboarding/details";
         return;
       }
 
       const { data, error } = await supabase
-        .from('bookings')
-        .select('id, client_name, date, status, event_type, outfit_request')
-        .eq('stylist_id', userId);
+        .from("bookings")
+        .select("id, client_name, date, status, event_type, outfit_request")
+        .eq("stylist_id", userId);
 
       if (error) {
-        console.error('Error fetching bookings:', error.message);
+        console.error("Error fetching bookings:", error.message);
         setBookings([]);
       } else {
         setBookings(
           (data || []).map((booking: any) => ({
             id: booking.id,
-            client_name: booking.client_name || 'N/A',
-            date: booking.date || '',
-            status: booking.status || 'pending',
-            event_type: booking.event_type || 'Unknown',
-            outfit_request: booking.outfit_request || 'None',
-          }))
+            client_name: booking.client_name || "N/A",
+            date: booking.date || "",
+            status: booking.status || "pending",
+            event_type: booking.event_type || "Unknown",
+            outfit_request: booking.outfit_request || "None",
+          })),
         );
       }
       setLoading(false);
@@ -107,19 +115,19 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 
   const updateStatus = async (bookingId: string, status: string) => {
     const { error } = await supabase
-      .from('bookings')
+      .from("bookings")
       .update({ status })
-      .eq('id', bookingId);
+      .eq("id", bookingId);
 
     if (error) {
-      console.error('Failed to update booking status:', error.message);
+      console.error("Failed to update booking status:", error.message);
       return;
     }
 
     setBookings((prev) =>
       prev.map((booking) =>
-        booking.id === bookingId ? { ...booking, status } : booking
-      )
+        booking.id === bookingId ? { ...booking, status } : booking,
+      ),
     );
   };
 
@@ -127,8 +135,12 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
 
   return (
     <ProtectedLayout>
-      <main style={{ padding: '2rem' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem' }}>Stylist Dashboard</h1>
+      <main style={{ padding: "2rem" }}>
+        <h1
+          style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "1rem" }}
+        >
+          Stylist Dashboard
+        </h1>
         {bookings.length === 0 ? (
           <p>No bookings found.</p>
         ) : (
@@ -137,28 +149,38 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
               <section
                 key={booking.id}
                 style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  padding: '1rem',
-                  marginBottom: '1.5rem',
+                  border: "1px solid #ddd",
+                  borderRadius: "8px",
+                  padding: "1rem",
+                  marginBottom: "1.5rem",
                 }}
               >
-                <p><strong>Client:</strong> {booking.client_name}</p>
-                <p><strong>Date:</strong> {formatDate(booking.date)}</p>
-                <p><strong>Event:</strong> {booking.event_type}</p>
-                <p><strong>Request:</strong> {booking.outfit_request}</p>
-                <p><strong>Status:</strong> {booking.status}</p>
-                {booking.status === 'pending' && (
-                  <div style={{ marginTop: '0.5rem' }}>
+                <p>
+                  <strong>Client:</strong> {booking.client_name}
+                </p>
+                <p>
+                  <strong>Date:</strong> {formatDate(booking.date)}
+                </p>
+                <p>
+                  <strong>Event:</strong> {booking.event_type}
+                </p>
+                <p>
+                  <strong>Request:</strong> {booking.outfit_request}
+                </p>
+                <p>
+                  <strong>Status:</strong> {booking.status}
+                </p>
+                {booking.status === "pending" && (
+                  <div style={{ marginTop: "0.5rem" }}>
                     <button
-                      onClick={() => updateStatus(booking.id, 'accepted')}
+                      onClick={() => updateStatus(booking.id, "accepted")}
                       aria-label={`Accept booking for ${booking.client_name}`}
-                      style={{ marginRight: '0.5rem' }}
+                      style={{ marginRight: "0.5rem" }}
                     >
                       Accept
                     </button>
                     <button
-                      onClick={() => updateStatus(booking.id, 'declined')}
+                      onClick={() => updateStatus(booking.id, "declined")}
                       aria-label={`Decline booking for ${booking.client_name}`}
                     >
                       Decline
@@ -185,7 +207,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         get: (name: string) => ctx.req?.cookies?.[name] ?? null,
         set: () => {},
       },
-    }
+    },
   );
 
   const {
@@ -195,7 +217,7 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
   if (!user) {
     return {
       redirect: {
-        destination: '/onboarding/role',
+        destination: "/onboarding/role",
         permanent: false,
       },
     };

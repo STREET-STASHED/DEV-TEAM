@@ -1,10 +1,18 @@
 {
   "eslint.useFlatConfig": true,
-  "eslint.validate": ["typescript", "typescriptreact", "javascript", "javascriptreact"],
+  "eslint.validate": [
+    "typescript",
+    "typescriptreact",
+    "javascript",
+    "javascriptreact"
+  ],
   "eslint.workingDirectories": [{ "mode": "auto" }],
   "editor.formatOnSave": true,
   "deno.enable": false,
   "deno.lint": true,
   "deno.unstable": ["--unstable"],
-  "deno.path": "/opt/homebrew/bin/deno"
+  "deno.path": "/opt/homebrew/bin/deno",
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always"
+  }
 }

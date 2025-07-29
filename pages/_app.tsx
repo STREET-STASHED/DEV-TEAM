@@ -1,88 +1,96 @@
-import '../styles/globals.css'
-import type { AppProps } from 'next/app'
-import { useRouter } from 'next/router'
-import type { NextRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { SupabaseProvider } from '../context/SupabaseContext.tsx'
-import Layout from '../components/Layout'
-import ProtectedLayout from '../components/ProtectedLayout'
-import { createBrowserClient } from '@supabase/ssr'
+import "../styles/globals.css";
+import type { AppProps } from "next/app";
+import { useRouter } from "next/router";
+import type { NextRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { SupabaseProvider } from "../context/SupabaseContext.tsx";
+import { CartProvider } from "../context/CartContext";
+import Layout from "../components/Layout";
+import ProtectedLayout from "../components/ProtectedLayout";
+import { supabase } from "../lib/supabaseClient";
 
 async function handleRedirect(router: NextRouter) {
   try {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const { data: { session } } = await supabase.auth.getSession()
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
     if (!session) {
-      return
+      return;
     }
 
-    console.log('[APP REDIRECT] Found session token:', session.access_token);
+    console.log("[APP REDIRECT] Found session token:", session.access_token);
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/handle-redirect`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/handle-redirect`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({}),
       },
-      body: JSON.stringify({})
-    })
+    );
 
     let data;
     try {
       const text = await response.text();
-      console.log('[APP REDIRECT RAW]', text); // Log raw response to debug format
+      console.log("[APP REDIRECT STATUS]", response.status);
+      console.log("[APP REDIRECT RAW]", text);
       data = JSON.parse(text);
     } catch (err) {
-      console.error('[APP REDIRECT ERROR] Failed to parse JSON:', err);
+      console.error("[APP REDIRECT ERROR] Failed to parse JSON:", err);
       return;
     }
 
     if (response.ok && data?.redirectTo) {
       await router.replace(data.redirectTo);
     } else {
-      console.warn('[APP REDIRECT ERROR] No valid redirect data or response not OK', data);
+      console.warn(
+        "[APP REDIRECT ERROR] No valid redirect data or response not OK",
+        data,
+      );
     }
   } catch (error) {
-    console.error('[APP REDIRECT ERROR]', error)
+    console.error("[APP REDIRECT ERROR]", error);
   }
 }
 
 export default function MyApp({ Component, pageProps }: AppProps) {
-  const router = useRouter()
-  const protectedRoutes = ['/dashboard', '/onboarding']
+  const router = useRouter();
+  const protectedRoutes = ["/dashboard", "/onboarding"];
 
   const isProtected = protectedRoutes.some((path) =>
-    router.pathname.startsWith(path)
-  )
+    router.pathname.startsWith(path),
+  );
 
-  const [hasHandledRedirect, setHasHandledRedirect] = useState(false)
+  const [hasHandledRedirect, setHasHandledRedirect] = useState(false);
 
   useEffect(() => {
     const runRedirect = async () => {
       if (!hasHandledRedirect && router.isReady) {
-        await handleRedirect(router)
-        setHasHandledRedirect(true)
+        await handleRedirect(router);
+        setHasHandledRedirect(true);
       }
-    }
+    };
 
-    runRedirect()
-  }, [router.pathname, router.isReady])
+    runRedirect();
+  }, [router.pathname, router.isReady]);
 
   return (
     <SupabaseProvider>
-      <Layout>
-        {isProtected ? (
-          <ProtectedLayout>
+      <CartProvider>
+        <Layout>
+          {isProtected ? (
+            <ProtectedLayout>
+              <Component {...pageProps} />
+            </ProtectedLayout>
+          ) : (
             <Component {...pageProps} />
-          </ProtectedLayout>
-        ) : (
-          <Component {...pageProps} />
-        )}
-      </Layout>
+          )}
+        </Layout>
+      </CartProvider>
     </SupabaseProvider>
-  )
+  );
 }

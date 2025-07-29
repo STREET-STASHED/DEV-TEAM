@@ -1,16 +1,13 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
+  console.error("Missing Supabase environment variables");
 }
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
  * Gets the user role from the profiles table
@@ -19,18 +16,18 @@ export const supabase = createClient(
  */
 export async function getUserRole(userId: string): Promise<string | null> {
   if (!userId) {
-    console.error('getUserRole: No user ID provided');
+    console.error("getUserRole: No user ID provided");
     return null;
   }
 
   const { data, error } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
     .single();
 
   if (error) {
-    console.error('Error fetching user role:', error.message);
+    console.error("Error fetching user role:", error.message);
     return null;
   }
 

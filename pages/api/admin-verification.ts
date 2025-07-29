@@ -1,13 +1,13 @@
 // /pages/api/admin-verification.ts
 export const config = {
-  runtime: 'edge',
+  runtime: "edge",
 };
 
 export default async function handler(req: Request) {
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 
@@ -17,29 +17,29 @@ export default async function handler(req: Request) {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_SUPABASE_EDGE_URL}/admin-verification`,
       {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
         },
         body: JSON.stringify(body),
-      }
+      },
     );
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.error || 'Admin verification failed');
+      throw new Error(data.error || "Admin verification failed");
     }
 
     return new Response(JSON.stringify({ success: true, data }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 }

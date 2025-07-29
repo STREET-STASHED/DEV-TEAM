@@ -6,9 +6,11 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "clean": "eslint . --fix"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.9.0",
     "@googlemaps/google-maps-services-js": "^3.4.1",
     "@headlessui/react": "^2.2.4",
     "@hookform/resolvers": "^5.1.1",
@@ -17,6 +19,8 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@stripe/react-stripe-js": "^3.7.0",
     "@stripe/stripe-js": "^7.3.1",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
+    "@supabase/auth-helpers-react": "^0.5.0",
     "@supabase/auth-ui-react": "^0.4.7",
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/ssr": "^0.6.1",
@@ -30,7 +34,6 @@
     "cookie": "^1.0.2",
     "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
-    "eslint-plugin-react-hooks": "^5.2.0",
     "formidable": "^3.5.4",
     "formik": "^2.4.6",
     "jose": "^6.0.11",
@@ -80,13 +83,15 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-tailwindcss": "^3.18.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^16.3.0",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.13",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.3.3"
   }
 }

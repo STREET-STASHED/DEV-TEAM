@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import type { User } from '@supabase/supabase-js';
-import { supabase } from './supabaseClient';
-
+import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
+import { supabase } from "./supabaseClient";
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
@@ -10,7 +9,10 @@ export function useUser() {
 
   useEffect(() => {
     const getUserAndProfile = async () => {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError || !user) {
         setIsLoading(false);
         return;
@@ -19,13 +21,13 @@ export function useUser() {
       setUser(user);
 
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
         .maybeSingle();
 
       if (profileError) {
-        console.warn('No profile found for user yet — possibly a new signup.');
+        console.warn("No profile found for user yet — possibly a new signup.");
       }
 
       setProfile(profileData ?? null);
@@ -35,10 +37,12 @@ export function useUser() {
 
     getUserAndProfile();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      },
+    );
 
     return () => {
       listener.subscription.unsubscribe();
@@ -48,15 +52,14 @@ export function useUser() {
   return { user, profile, isLoading };
 }
 
-
 export async function getVerifiedProfiles() {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, verified')
-    .eq('verified', true);
+    .from("profiles")
+    .select("id, full_name, verified")
+    .eq("verified", true);
 
   if (error) {
-    console.error('Error fetching verified profiles:', error);
+    console.error("Error fetching verified profiles:", error);
     return [];
   }
 

@@ -1,26 +1,34 @@
-import Stripe from 'stripe';
-import type { NextApiRequest, NextApiResponse } from 'next';
+import Stripe from "stripe";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
     const { paymentMethodId, items, name, email } = req.body;
 
     if (!paymentMethodId) {
-      return res.status(400).json({ error: 'Missing payment method ID' });
+      return res.status(400).json({ error: "Missing payment method ID" });
     }
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: 'Missing cart items' });
+      return res.status(400).json({ error: "Missing cart items" });
     }
 
-    if (!items.every(item => typeof item.price === 'number' && typeof item.quantity === 'number')) {
-      return res.status(400).json({ error: 'Invalid item format' });
+    if (
+      !items.every(
+        (item) =>
+          typeof item.price === "number" && typeof item.quantity === "number",
+      )
+    ) {
+      return res.status(400).json({ error: "Invalid item format" });
     }
 
     const totalAmount = items.reduce((sum: number, item: any) => {
@@ -29,9 +37,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(totalAmount * 100),
-      currency: 'usd',
+      currency: "usd",
       payment_method: paymentMethodId,
-      confirmation_method: 'automatic',
+      confirmation_method: "automatic",
       confirm: true,
       metadata: {
         customer_name: name,
@@ -43,8 +51,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (
-      paymentIntent.status === 'requires_action' &&
-      paymentIntent.next_action?.type === 'use_stripe_sdk'
+      paymentIntent.status === "requires_action" &&
+      paymentIntent.next_action?.type === "use_stripe_sdk"
     ) {
       return res.status(200).json({
         requiresAction: true,
@@ -52,8 +60,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
     }
 
-    if (paymentIntent.status !== 'succeeded') {
-      return res.status(500).json({ error: 'Payment failed', status: paymentIntent.status });
+    if (paymentIntent.status !== "succeeded") {
+      return res
+        .status(500)
+        .json({ error: "Payment failed", status: paymentIntent.status });
     }
 
     return res.status(200).json({
@@ -62,9 +72,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       amount: paymentIntent.amount,
     });
   } catch (err: any) {
-    console.error('Charge error:', err);
+    console.error("Charge error:", err);
     return res.status(500).json({
-      error: err?.message || 'Internal server error',
+      error: err?.message || "Internal server error",
     });
   }
 }

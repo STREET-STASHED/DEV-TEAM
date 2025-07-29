@@ -1,7 +1,10 @@
 // pages/onboarding/index.tsx
-import dynamic from 'next/dynamic'
-const OnboardingFlow = dynamic(() => import('../../components/OnboardingFlow'), { ssr: false })
+import dynamic from "next/dynamic";
+const OnboardingFlow = dynamic(
+  () => import("../../components/OnboardingFlow"),
+  { ssr: false },
+);
 
 export default function OnboardingIndex() {
-  return <OnboardingFlow />
+  return <OnboardingFlow />;
 }

@@ -1,20 +1,20 @@
 // components/OnboardingFlow/index.jsx
-import { useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useOnboarding } from '../../hooks/useOnboarding';
-import RoleSelection from './RoleSelection';
-import BrandDetails from './BrandDetails';
-import Verification from './Verification';
-import OnboardingLayout from './OnboardingLayout';
+import { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useOnboarding } from "../../hooks/useOnboarding";
+import RoleSelection from "./RoleSelection";
+import BrandDetails from "./BrandDetails";
+import Verification from "./Verification";
+import OnboardingLayout from "./OnboardingLayout";
 
 export default function OnboardingFlow() {
-  const { 
-    profile, 
-    loading, 
-    error, 
+  const {
+    profile,
+    loading,
+    error,
     navigateToCurrentStep,
     hasCompletedOnboarding,
-    ONBOARDING_STEPS
+    ONBOARDING_STEPS,
   } = useOnboarding();
 
   // Redirect to the appropriate step if user tries to access onboarding directly

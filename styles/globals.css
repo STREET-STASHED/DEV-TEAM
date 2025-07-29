@@ -3,38 +3,38 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Urbanist', system-ui, sans-serif;
-  src: url('/fonts/Urbanist-Regular.ttf') format('truetype');
+  font-family: "Urbanist", system-ui, sans-serif;
+  src: url("/fonts/Urbanist-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Urbanist', system-ui, sans-serif;
-  src: url('/fonts/Urbanist-Medium.ttf') format('truetype');
+  font-family: "Urbanist", system-ui, sans-serif;
+  src: url("/fonts/Urbanist-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Urbanist', system-ui, sans-serif;
-  src: url('/fonts/Urbanist-Bold.ttf') format('truetype');
+  font-family: "Urbanist", system-ui, sans-serif;
+  src: url("/fonts/Urbanist-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Urbanist', system-ui, sans-serif;
-  src: url('/fonts/Urbanist-Light.ttf') format('truetype');
+  font-family: "Urbanist", system-ui, sans-serif;
+  src: url("/fonts/Urbanist-Light.ttf") format("truetype");
   font-weight: 300;
   font-style: normal;
 }
 
 :root {
   --brand-black: #000000;
-  --brand-gold: #FFD700;
+  --brand-gold: #ffd700;
   --brand-dark: #111111;
-  --text-muted: #AAAAAA;
+  --text-muted: #aaaaaa;
 }
 
 * {
@@ -44,9 +44,9 @@
 }
 
 body {
-  font-family: 'Urbanist', sans-serif;
+  font-family: "Urbanist", sans-serif;
   background-color: var(--brand-black);
-  background-image: url('/background.png');
+  background-image: url("/background.png");
   background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;
@@ -193,16 +193,16 @@ button:hover {
   text-align: center;
   margin-bottom: 1rem;
   font-weight: bold;
-  color: #FFD700;
+  color: #ffd700;
 }
 
 .auth-links a {
-  color: #FFD700;
+  color: #ffd700;
   text-decoration: underline;
 }
 
 .auth-footer button.link-button {
-  color: #FFD700;
+  color: #ffd700;
   background: none;
   border: none;
   font-weight: bold;

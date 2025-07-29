@@ -1,151 +1,159 @@
-// File: context/SupabaseContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { Session, User } from "@supabase/supabase-js";
+import { supabase } from "../lib/supabaseClient";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { SupabaseClient, User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase/client'
+// Define the Profile type to match a realistic Supabase marketplace schema
+type Profile = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  phone: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  role: "buyer" | "seller" | "stylist" | "driver" | null;
+};
 
-// Create a type for the context value
 interface SupabaseContextType {
-  supabase: SupabaseClient;
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{
-    error: any | null;
-    data: any | null;
-  }>;
-  signUp: (email: string, password: string) => Promise<{
-    error: any | null;
-    data: any | null;
-  }>;
+  profile: Profile | null;
+  signIn: (params: { email: string; password: string }) => Promise<{ error: any; data: any }>;
+  signUp: (params: { email: string; password: string }) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
-  // Extended profile data from the 'profiles' table
-  profile: any | null;
 }
 
-// Create the context
-const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined)
+const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
 
-// Create a provider component
-export function SupabaseProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [profile, setProfile] = useState<any | null>(null)
-  
-  
+type SupabaseProviderProps = {
+  children: ReactNode;
+};
+
+export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  // Fetch profile from the database
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    if (error) {
+      setProfile(null);
+      return;
+    }
+    setProfile(data);
+  };
+
   useEffect(() => {
-    // Get the current session and user on mount
-    const getInitialSession = async () => {
-      try {
-        setLoading(true)
-        
-        // Get the current session
-        const { data: { session } } = await supabase.auth.getSession()
-        setSession(session)
-        
-        // Set the user if we have a session
-        if (session) {
-          setUser(session.user)
-          
-          // Optionally fetch additional profile data
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-            
-          // Merge profile data with user data if needed
-          if (profile) {
-            setProfile(profile)
-            // No need to modify the Supabase user object
-          }
-        }
-      } catch (error) {
-        console.error('Error getting initial session:', error)
-      } finally {
-        setLoading(false)
+    let mounted = true;
+    const getSessionAndProfile = async () => {
+      setLoading(true);
+      const {
+        data: { session: activeSession },
+      } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(activeSession);
+      setUser(activeSession?.user ?? null);
+      if (activeSession?.user) {
+        await fetchProfile(activeSession.user.id);
+      } else {
+        setProfile(null);
       }
-    }
-    
-    getInitialSession()
-    
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_, currentSession) => {
-        setSession(currentSession)
-        
-        if (currentSession) {
-          setUser(currentSession.user)
-          
-          // Optionally fetch additional profile data
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentSession.user.id)
-            .single()
-            
-          // Merge profile data with user data if needed
-          if (profile) {
-            setProfile(profile)
-            // No need to modify the Supabase user object
-          }
+      setLoading(false);
+    };
+    getSessionAndProfile();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (_event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        if (newSession?.user) {
+          await fetchProfile(newSession.user.id);
         } else {
-          setUser(null)
+          setProfile(null);
         }
+        setLoading(false);
       }
-    )
-    
-    // Clean up subscription on unmount
+    );
+
     return () => {
-      subscription?.unsubscribe()
-    }
-  }, [])
-  
-  // Add authentication methods
-  const signIn = async (email: string, password: string) => {
-    return await supabase.auth.signInWithPassword({
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const signIn = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
-      password
-    })
-  }
-  
-  const signUp = async (email: string, password: string) => {
-    return await supabase.auth.signUp({
+      password,
+    });
+    setLoading(false);
+    return { data, error };
+  };
+
+  const signUp = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
+    setLoading(true);
+    const { data, error } = await supabase.auth.signUp({
       email,
-      password
-    })
-  }
-  
+      password,
+    });
+    setLoading(false);
+    return { data, error };
+  };
+
   const signOut = async () => {
-    await supabase.auth.signOut()
-  }
-  
-  const value = {
-    supabase,
+    setLoading(true);
+    await supabase.auth.signOut();
+    setLoading(false);
+  };
+
+  const value: SupabaseContextType = {
     user,
     session,
     loading,
+    profile,
     signIn,
     signUp,
     signOut,
-    profile
-  }
-  
+  };
+
   return (
     <SupabaseContext.Provider value={value}>
       {children}
     </SupabaseContext.Provider>
-  )
-}
+  );
+};
 
-// Create a hook to use the context
-export function useSupabase() {
-  const context = useContext(SupabaseContext)
-  
+export const useSupabase = () => {
+  const context = useContext(SupabaseContext);
   if (context === undefined) {
-    throw new Error('useSupabase must be used within a SupabaseProvider')
+    throw new Error("useSupabase must be used within a SupabaseProvider");
   }
-  
-  return context
-}
+  return context;
+};

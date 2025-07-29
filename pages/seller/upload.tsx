@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import { useRouter } from 'next/router';
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/router";
 
 export default function UploadProduct() {
-  const [storeId, setStoreId] = useState('');
+  const [storeId, setStoreId] = useState("");
   const [storeList, setStoreList] = useState<any[]>([]);
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [description, setDescription] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const router = useRouter();
@@ -22,9 +22,9 @@ export default function UploadProduct() {
 
       if (currentUser) {
         const { data: stores, error: storeError } = await supabase
-          .from('stores')
-          .select('id, name')
-          .eq('owner_id', currentUser.id);
+          .from("stores")
+          .select("id, name")
+          .eq("owner_id", currentUser.id);
 
         if (!storeError) setStoreList(stores || []);
       }
@@ -37,37 +37,35 @@ export default function UploadProduct() {
     e.preventDefault();
 
     if (!user) {
-      alert('You must be logged in to upload a product.');
+      alert("You must be logged in to upload a product.");
       return;
     }
 
     setUploading(true);
-    const { error } = await supabase
-      .from('products')
-      .insert([
-        {
-          name,
-          price: parseFloat(price),
-          image_url: imageUrl || null,
-          description,
-          quantity: parseInt(quantity),
-          store_id: storeId,
-        },
-      ]);
+    const { error } = await supabase.from("products").insert([
+      {
+        name,
+        price: parseFloat(price),
+        image_url: imageUrl || null,
+        description,
+        quantity: parseInt(quantity),
+        store_id: storeId,
+      },
+    ]);
 
     if (error) {
       console.error(error);
-      alert('Product upload failed.');
+      alert("Product upload failed.");
       setUploading(false);
     } else {
-      alert('Product uploaded successfully!');
+      alert("Product uploaded successfully!");
       setUploading(false);
-      router.push('/seller/dashboard');
+      router.push("/seller/dashboard");
     }
   };
 
   return (
-    <div style={{ padding: '2rem' }}>
+    <div style={{ padding: "2rem" }}>
       <h1>Upload Product</h1>
       <form onSubmit={handleSubmit}>
         <label>
@@ -137,7 +135,7 @@ export default function UploadProduct() {
         </label>
         <br />
         <button type="submit" disabled={uploading}>
-          {uploading ? 'Uploading...' : 'Submit'}
+          {uploading ? "Uploading..." : "Submit"}
         </button>
       </form>
     </div>

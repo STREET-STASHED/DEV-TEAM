@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useCart } from '../../context/CartContext';
-import { supabase } from '@/lib/supabase/client';
-
+import React, { useEffect, useState } from "react";
+import { useCart } from "../../context/CartContext";
+import { supabase } from "@/lib/supabase/client";
 
 const ProductList = () => {
   const { addItem } = useCart();
-  const [products, setProducts] = useState<{ id: string; name: string; price: number; image_url: string }[]>([]);
+  const [products, setProducts] = useState<
+    { id: string; name: string; price: number; image_url: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -13,9 +14,11 @@ const ProductList = () => {
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
-      const { data, error } = await supabase.from('products').select('id, name, price, image_url');
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, price, image_url");
       if (error) {
-        setError('Failed to fetch products.');
+        setError("Failed to fetch products.");
         setProducts([]);
       } else if (data) {
         setProducts(data);
@@ -55,8 +58,12 @@ const ProductList = () => {
               className="w-full h-52 object-cover"
             />
             <div className="p-4">
-              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-gold">{product.name}</h3>
-              <p className="text-sm sm:text-md text-gold-light mb-4">${product.price}</p>
+              <h3 className="text-lg sm:text-xl font-semibold mb-1 sm:mb-2 text-gold">
+                {product.name}
+              </h3>
+              <p className="text-sm sm:text-md text-gold-light mb-4">
+                ${product.price}
+              </p>
               <button
                 onClick={() =>
                   addItem({

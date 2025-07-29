@@ -1,14 +1,14 @@
 // components/CategoryNav.tsx
-import React from 'react'
-import Link from 'next/link'
+import React from "react";
+import Link from "next/link";
 
 const categories = [
-  { slug: 'men', label: 'Men' },
-  { slug: 'women', label: 'Women' },
-  { slug: 'apparel', label: 'Apparel' },
-  { slug: 'accessories', label: 'Accessories' },
+  { slug: "men", label: "Men" },
+  { slug: "women", label: "Women" },
+  { slug: "apparel", label: "Apparel" },
+  { slug: "accessories", label: "Accessories" },
   // add more as needed…
-]
+];
 
 export default function CategoryNav() {
   return (
@@ -23,5 +23,5 @@ export default function CategoryNav() {
         </Link>
       ))}
     </nav>
-  )
+  );
 }

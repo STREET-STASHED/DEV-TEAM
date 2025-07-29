@@ -1,6 +1,6 @@
-import { demoStores } from './demoData';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { demoStores } from "./demoData";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 const supabase = createServerClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -12,26 +12,28 @@ const supabase = createServerClient(
         get: (name: string) => allCookies.get(name)?.value ?? null,
         getAll: () => allCookies.getAll(),
         set: () => {},
-        delete: () => {}
+        delete: () => {},
       };
     })(),
-    db: { schema: 'public' }
-  }
+    db: { schema: "public" },
+  },
 );
 
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 
 export async function getStores() {
   if (USE_MOCK) return demoStores;
 
   const { data, error } = await supabase
-    .from('storefronts')
-    .select('id, name, category, description, image, products(id, name, price, image, type, description)');
+    .from("storefronts")
+    .select(
+      "id, name, category, description, image, products(id, name, price, image, type, description)",
+    );
 
   if (error) return demoStores;
 
   return data.map((s: any) => ({
     ...s,
-    products: s.products || []
+    products: s.products || [],
   }));
 }

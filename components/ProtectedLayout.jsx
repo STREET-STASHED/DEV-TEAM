@@ -1,94 +1,115 @@
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
-import { supabase } from '../lib/supabaseClient'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import { supabase } from "../lib/supabaseClient";
 
 export default function ProtectedLayout({ children }) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState(null)
-  const [profileError, setProfileError] = useState(null)
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [profileError, setProfileError] = useState(null);
 
-  const publicRoutes = ['/', '/welcome', '/marketplace', '/stores', '/stylist-booking']
+  const publicRoutes = [
+    "/",
+    "/welcome",
+    "/marketplace",
+    "/stores",
+    "/stylist-booking",
+  ];
 
   const redirectToDashboard = (role) => {
     switch (role) {
-      case 'buyer':
-        router.replace('/buyer/dashboard')
-        break
-      case 'seller':
-        router.replace('/seller/dashboard')
-        break
-      case 'stylist':
-        router.replace('/stylist/dashboard')
-        break
-      case 'driver':
-        router.replace('/driver/dashboard')
-        break
+      case "buyer":
+        router.replace("/buyer/dashboard");
+        break;
+      case "seller":
+        router.replace("/seller/dashboard");
+        break;
+      case "stylist":
+        router.replace("/stylist/dashboard");
+        break;
+      case "driver":
+        router.replace("/driver/dashboard");
+        break;
       default:
-        router.replace('/dashboard')
+        router.replace("/dashboard");
     }
-  }
+  };
 
   useEffect(() => {
     const fetchUserAndRedirect = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
 
       if (!user) {
-        setIsLoading(false)
-        if (!router.pathname.startsWith('/auth') && !publicRoutes.includes(router.pathname)) {
-          router.replace(`/auth?redirectedFrom=${router.pathname}`)
+        setIsLoading(false);
+        if (
+          !router.pathname.startsWith("/auth") &&
+          !publicRoutes.includes(router.pathname)
+        ) {
+          router.replace(`/auth?redirectedFrom=${router.pathname}`);
         }
-        return
+        return;
       }
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('role, onboarding_step')
-        .eq('user_id', user.id)
-        .single()
+        .from("profiles")
+        .select("role, onboarding_step")
+        .eq("user_id", user.id)
+        .single();
 
       if (!data || error) {
-        console.error('Error fetching role from profiles table:', error)
-        setProfileError(error)
-        setIsLoading(false)
-        return
+        console.error("Error fetching role from profiles table:", error);
+        setProfileError(error);
+        setIsLoading(false);
+        return;
       }
 
-      const { role, onboarding_step } = data
-      setIsLoading(false)
+      const { role, onboarding_step } = data;
+      setIsLoading(false);
 
-      if (onboarding_step !== 'completed' && router.pathname !== '/onboarding') {
-        router.replace('/onboarding')
-        return
+      if (
+        onboarding_step !== "completed" &&
+        router.pathname !== "/onboarding"
+      ) {
+        router.replace("/onboarding");
+        return;
       }
 
-      if (onboarding_step === 'completed') {
-        if (router.pathname === '/onboarding' || router.pathname === '/dashboard' || router.pathname === '/') {
-          redirectToDashboard(role)
+      if (onboarding_step === "completed") {
+        if (
+          router.pathname === "/onboarding" ||
+          router.pathname === "/dashboard" ||
+          router.pathname === "/"
+        ) {
+          redirectToDashboard(role);
         }
       }
-    }
+    };
 
-    fetchUserAndRedirect()
+    fetchUserAndRedirect();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        if (event === 'SIGNED_IN') {
-          await fetchUserAndRedirect()
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null)
-          if (!router.pathname.startsWith('/auth') && !publicRoutes.includes(router.pathname)) {
-            router.replace('/auth')
-          }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_IN") {
+        await fetchUserAndRedirect();
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        if (
+          !router.pathname.startsWith("/auth") &&
+          !publicRoutes.includes(router.pathname)
+        ) {
+          router.replace("/auth");
         }
       }
-    )
+    });
 
     return () => {
-      subscription?.unsubscribe()
-    }
-  }, [router.pathname])
+      subscription?.unsubscribe();
+    };
+  }, [router.pathname]);
 
   if (isLoading) {
     return (
@@ -98,7 +119,7 @@ export default function ProtectedLayout({ children }) {
           <p className="mt-4">Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (profileError) {
@@ -106,8 +127,8 @@ export default function ProtectedLayout({ children }) {
       <div className="flex items-center justify-center min-h-screen">
         <p>Error loading profile. Please refresh or contact support.</p>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

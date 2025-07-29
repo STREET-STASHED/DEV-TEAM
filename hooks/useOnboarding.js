@@ -1,22 +1,24 @@
 /* eslint-env browser */
-'use client';
+"use client";
 /* global fetch, console */
 /* global window */
 
-const SUPABASE_ANON_KEY = typeof globalThis !== 'undefined' && globalThis?.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  ? globalThis.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  : '';
+const SUPABASE_ANON_KEY =
+  typeof globalThis !== "undefined" &&
+  globalThis?.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    ? globalThis.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    : "";
 
-import { useState, useEffect } from 'react';
-import { useUser } from '../lib/useUser';
-import { supabase } from '../lib/supabaseClient';
+import { useState, useEffect } from "react";
+import { useUser } from "../lib/useUser";
+import { supabase } from "../lib/supabaseClient";
 
 // Define the valid role types to match your database enum
 export const USER_ROLES = {
-  BUYER: 'buyer',
-  SELLER_BRAND: 'seller/brand',
-  STYLIST: 'stylist',
-  DRIVER: 'driver'
+  BUYER: "buyer",
+  SELLER_BRAND: "seller/brand",
+  STYLIST: "stylist",
+  DRIVER: "driver",
 };
 
 /**
@@ -52,7 +54,8 @@ export const USER_ROLES = {
  */
 export function useOnboarding() {
   const { user, profile: userProfile } = useUser();
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname =
+    typeof window !== "undefined" ? window.location.pathname : "";
   const [shouldFetch, setShouldFetch] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -60,7 +63,7 @@ export function useOnboarding() {
 
   // Only trigger onboarding logic on /onboarding routes
   useEffect(() => {
-    if (!pathname.startsWith('/onboarding')) {
+    if (!pathname.startsWith("/onboarding")) {
       return;
     }
     if (user && userProfile && userProfile.has_completed_onboarding === false) {
@@ -72,43 +75,52 @@ export function useOnboarding() {
     setLoading(true);
     setError(null);
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) throw userError;
-      if (!user) throw new Error('No authenticated user');
+      if (!user) throw new Error("No authenticated user");
 
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
       if (sessionError) throw sessionError;
       const accessToken = sessionData?.session?.access_token;
-      if (!accessToken) throw new Error('No access token found');
+      if (!accessToken) throw new Error("No access token found");
 
-      const res = await fetch(`https://ofccxjxowebslrcuynrw.supabase.co/functions/v1/handle-onboarding`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          apikey: SUPABASE_ANON_KEY
-        }
-      });
+      const res = await fetch(
+        `https://ofccxjxowebslrcuynrw.supabase.co/functions/v1/handle-onboarding`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+        },
+      );
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Edge Function error response:', errorText);
+        console.error("Edge Function error response:", errorText);
         throw new Error(`Edge Function failed: ${res.status} - ${errorText}`);
       }
       const responseData = await res.json();
       if (responseData?.requiresProfile) {
-        if (typeof window !== 'undefined') {
-          window.location.href = '/onboarding';
+        if (typeof window !== "undefined") {
+          window.location.href = "/onboarding";
         }
         return;
       }
 
       if (!responseData?.user) {
-        throw new Error('No user profile found and no fallback route provided.');
+        throw new Error(
+          "No user profile found and no fallback route provided.",
+        );
       }
 
       setProfile(responseData.user);
     } catch (err) {
-      console.error('fetchProfile error:', err);
-      setError(err.message || 'Unknown error');
+      console.error("fetchProfile error:", err);
+      setError(err.message || "Unknown error");
     } finally {
       setLoading(false);
     }
@@ -118,12 +130,15 @@ export function useOnboarding() {
     setLoading(true);
     setError(null);
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) throw userError;
-      if (!user) throw new Error('No authenticated user');
+      if (!user) throw new Error("No authenticated user");
 
       const { data, error: upsertError } = await supabase
-        .from('profiles')
+        .from("profiles")
         .upsert({ id: user.id, ...updates })
         .select()
         .limit(1);
@@ -141,27 +156,37 @@ export function useOnboarding() {
     }
   };
 
-  const updateOnboardingStep = (step) => updateProfile({ onboarding_step: step });
+  const updateOnboardingStep = (step) =>
+    updateProfile({ onboarding_step: step });
 
   const completeOnboarding = () =>
-    updateProfile({ has_completed_onboarding: true, onboarding_step: 'complete' });
+    updateProfile({
+      has_completed_onboarding: true,
+      onboarding_step: "complete",
+    });
 
   const updateUserRole = async (newRole) => {
     setLoading(true);
     setError(null);
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
       if (userError) throw userError;
-      if (!user?.id) throw new Error('User not authenticated');
+      if (!user?.id) throw new Error("User not authenticated");
 
       if (!Object.values(USER_ROLES).includes(newRole)) {
-        throw new Error('Invalid role selected');
+        throw new Error("Invalid role selected");
       }
 
-      const { data, error: updateError } = await supabase.rpc('update_profile_role', {
-        user_id: user.id,
-        new_role: newRole
-      });
+      const { data, error: updateError } = await supabase.rpc(
+        "update_profile_role",
+        {
+          user_id: user.id,
+          new_role: newRole,
+        },
+      );
       if (updateError) throw updateError;
 
       await fetchProfile();
@@ -188,11 +213,11 @@ export function useOnboarding() {
     refreshProfile: fetchProfile,
     updateUserRole,
     ONBOARDING_STEPS: {
-      ROLE: 'role',
-      DETAILS: 'details',
-      VERIFY: 'verify',
-      COMPLETE: 'complete'
+      ROLE: "role",
+      DETAILS: "details",
+      VERIFY: "verify",
+      COMPLETE: "complete",
     },
-    USER_ROLES
+    USER_ROLES,
   };
 }

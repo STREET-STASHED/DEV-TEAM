@@ -1,5 +1,3 @@
-
-
 /**
  * Helper type for JSON values
  */

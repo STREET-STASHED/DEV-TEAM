@@ -1,119 +1,168 @@
-// context/CartContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+"use client";
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  ReactNode,
+} from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { User } from "@supabase/supabase-js";
 
 export interface CartItem {
   id: string;
   name: string;
   price: number;
-  image?: string;
   quantity: number;
+  image?: string;
 }
 
 export interface CartContextType {
   items: CartItem[];
-  cartItems: CartItem[];
-  /**
-   * Add an item to the cart with a specified quantity.
-   * If the product already exists, increment its quantity by the new item's quantity.
-   * Supports adding from any store or product grid by ensuring unique product ids.
-   */
-  addItem: (item: CartItem) => void;
-  /**
-   * Remove an item from the cart by productId.
-   * Enables removal from any UI such as modals or checkout.
-   */
-  removeItem: (productId: string) => void;
-  /**
-   * Update the quantity of a specific cart item.
-   * Enforces minimum quantity of 1 to avoid invalid states.
-   * Useful for quantity selectors in product grids or cart details.
-   */
-  updateQuantity: (productId: string, quantity: number) => void;
-  /**
-   * Clear all items from the cart.
-   */
-  clearCart: () => void;
-  /**
-   * Retrieve a cart item by productId.
-   * Useful for detail views or modals that require item info.
-   */
-  getItem: (productId: string) => CartItem | undefined;
-  /**
-   * Check if a product is already in the cart.
-   * Useful for UI feedback such as "Added!" badges.
-   */
-  hasItem: (productId: string) => boolean;
   totalCount: number;
   totalPrice: number;
   isOpen: boolean;
+  addItem: (item: CartItem, quantity?: number) => void;
+  updateQuantity: (id: string, quantity: number) => void;
+  removeItem: (id: string) => void;
+  clearCart: () => void;
   toggleCart: () => void;
+  hasItem: (id: string) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+const STORAGE_KEY = "guestCart";
+const EXPIRY_MS = 7 * 86400 * 1000;
+
+type GuestCartPayload = {
+  items: CartItem[];
+  timestamp: number;
+};
+
+export const CartProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
-  const addItem = (item: CartItem) => {
-    setItems(prev => {
-      const exists = prev.find(i => i.id === item.id);
-      if (exists) {
-        return prev.map(i =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
-        );
-      }
-      // Add new product with specified quantity (default to 1 if missing)
-      return [...prev, { ...item, quantity: item.quantity || 1 }];
+  const isAuthenticated = !!user;
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data?.session?.user ?? null);
     });
-  };
+  }, []);
 
-  const removeItem = (productId: string) => {
-    setItems(prev => prev.filter(i => i.id !== productId));
-  };
+  useEffect(() => {
+    const loadCart = async () => {
+      const guestItems = getGuestCart();
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    setItems(prev =>
-      prev.map(i =>
-        i.id === productId ? { ...i, quantity: Math.max(1, quantity) } : i
-      )
+      if (isAuthenticated && user?.id) {
+        const { data: serverItems } = await supabase
+          .from("cart_items")
+          .select("*")
+          .eq("user_id", user.id);
+
+        const mergedItems = mergeItems(serverItems ?? [], guestItems ?? []);
+        setItems(mergedItems);
+
+        await supabase.from("cart_items").upsert(
+          mergedItems.map((item) => ({ ...item, user_id: user.id })),
+          { onConflict: "id" },
+        );
+
+        clearGuestCart();
+      } else {
+        setItems(guestItems);
+      }
+    };
+
+    loadCart();
+  }, [isAuthenticated, user]);
+
+  useEffect(() => {
+    if (!isAuthenticated) saveGuestCart(items);
+  }, [items, isAuthenticated]);
+
+  const syncToServer = async (nextItems: CartItem[]): Promise<void> => {
+    if (!isAuthenticated || !user?.id) return;
+    await supabase.from("cart_items").upsert(
+      nextItems.map((item) => ({ ...item, user_id: user.id })),
+      { onConflict: "id" },
     );
   };
 
-  const clearCart = () => {
+  const addItem = (item: CartItem, quantity = 1) => {
+    setItems((prev) => {
+      const exists = prev.find((i) => i.id === item.id);
+      const next = exists
+        ? prev.map((i) =>
+            i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i,
+          )
+        : [...prev, { ...item, quantity }];
+      syncToServer(next).catch(console.error);
+      return next;
+    });
+  };
+
+  const updateQuantity = (id: string, quantity: number) => {
+    setItems((prev) => {
+      const next = prev.map((i) =>
+        i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i,
+      );
+      syncToServer(next).catch(console.error);
+      return next;
+    });
+  };
+
+  const removeItem = (id: string) => {
+    setItems((prev) => {
+      const next = prev.filter((i) => i.id !== id);
+      syncToServer(next).catch(console.error);
+      return next;
+    });
+  };
+
+  const clearCart = async () => {
     setItems([]);
+    if (isAuthenticated && user?.id) {
+      try {
+        await supabase.from("cart_items").delete().eq("user_id", user.id);
+      } catch (error) {
+        console.error(error);
+      }
+    }
   };
 
-  const getItem = (productId: string): CartItem | undefined => {
-    return items.find(i => i.id === productId);
-  };
+  const toggleCart = () => setIsOpen((prev) => !prev);
 
-  const hasItem = (productId: string): boolean => {
-    return items.some(i => i.id === productId);
-  };
-
-  const toggleCart = () => {
-    setIsOpen(prev => !prev);
-  };
-
-  const totalCount = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+  const totalCount = useMemo(
+    () => items.reduce((sum, i) => sum + i.quantity, 0),
+    [items],
+  );
+  const totalPrice = useMemo(
+    () => items.reduce((sum, i) => sum + i.quantity * i.price, 0),
+    [items],
+  );
+  const hasItem = (id: string) => items.some((i) => i.id === id);
 
   return (
     <CartContext.Provider
       value={{
         items,
-        cartItems: items,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        getItem,
-        hasItem,
         totalCount,
         totalPrice,
         isOpen,
+        addItem,
+        updateQuantity,
+        removeItem,
+        clearCart,
         toggleCart,
+        hasItem,
       }}
     >
       {children}
@@ -121,28 +170,47 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-/**
- * Custom hook to access cart context.
- * Prevents crashes in environments where the provider isn't mounted by returning a safe fallback.
- */
 export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
-  if (!context) {
-    // Return safe fallback for SSR/unmounted provider
-    return {
-      items: [],
-      cartItems: [],
-      addItem: () => {},
-      removeItem: () => {},
-      updateQuantity: () => {},
-      clearCart: () => {},
-      getItem: () => undefined,
-      hasItem: () => false,
-      totalCount: 0,
-      totalPrice: 0,
-      isOpen: false,
-      toggleCart: () => {},
-    };
-  }
+  if (!context) throw new Error("useCart must be used within a CartProvider");
   return context;
 };
+
+function getGuestCart(): CartItem[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return [];
+    const parsed: GuestCartPayload = JSON.parse(stored);
+    const expired = Date.now() - parsed.timestamp > EXPIRY_MS;
+    return expired ? [] : parsed.items;
+  } catch {
+    return [];
+  }
+}
+
+function saveGuestCart(items: CartItem[]) {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ items, timestamp: Date.now() }),
+  );
+}
+
+function clearGuestCart() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+function mergeItems(
+  serverItems: CartItem[],
+  guestItems: CartItem[],
+): CartItem[] {
+  const map = new Map<string, CartItem>();
+  [...serverItems, ...guestItems].forEach((item) => {
+    const existing = map.get(item.id);
+    if (existing) {
+      existing.quantity += item.quantity;
+    } else {
+      map.set(item.id, { ...item });
+    }
+  });
+  return Array.from(map.values());
+}

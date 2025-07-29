@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useOnboarding } from '@/hooks/useOnboarding';
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useOnboarding } from "@/hooks/useOnboarding";
 
 export default function DriverIndex() {
   const router = useRouter();
@@ -11,15 +11,15 @@ export default function DriverIndex() {
 
     const timeout = setTimeout(() => {
       if (!profile) {
-        router.replace('/onboarding/role');
-      } else if (profile.role === 'driver') {
+        router.replace("/onboarding/role");
+      } else if (profile.role === "driver") {
         if (profile.has_completed_onboarding) {
-          router.replace('/driver/dashboard');
+          router.replace("/driver/dashboard");
         } else {
-          router.replace('/onboarding/verify');
+          router.replace("/onboarding/verify");
         }
       } else {
-        router.replace('/unauthorized');
+        router.replace("/unauthorized");
       }
     }, 100);
 

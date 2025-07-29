@@ -1,7 +1,7 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
-import process from 'process';
-import pkg from 'next-pwa';
+import path from "path";
+import { fileURLToPath } from "url";
+import process from "process";
+import pkg from "next-pwa";
 const withPWA = pkg.default || pkg;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -12,38 +12,58 @@ const nextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'http',
-        hostname: 'localhost',
-        pathname: '/**',
+        protocol: "http",
+        hostname: "localhost",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: 'localhost',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "localhost",
+        pathname: "/**",
       },
       {
-        protocol: 'https',
-        hostname: '**.supabase.co',
-        pathname: '/storage/v1/object/public/**',
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+      {
+        protocol: "https",
+        hostname: "loremflickr.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "source.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "picsum.photos",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.pexels.com",
+        pathname: "/**",
       },
     ],
   },
   webpack: (config) => {
-    config.resolve.alias['@'] = path.resolve(__dirname);
+    config.resolve.alias["@"] = path.resolve(__dirname);
     return config;
   },
 };
 
 const pwaConfig = {
-  dest: 'public',
+  dest: "public",
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV !== 'production',
+  disable: process.env.NODE_ENV !== "production",
 };
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === "production";
 
 export default {
   ...(isProd ? withPWA(pwaConfig)(nextConfig) : nextConfig),
-  allowedDevOrigins: ['http://10.0.0.210:3000'], // ✅ patch moved to export level
+  allowedDevOrigins: ["http://10.0.0.210:3000"], // ✅ patch moved to export level
 };
