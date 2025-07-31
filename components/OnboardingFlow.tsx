@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import type { User } from "@supabase/supabase-js";
+// Use the DOM File type, no import needed
 import { supabase } from "../lib/supabaseClient.ts";
 
 // Onboarding steps
@@ -40,7 +41,7 @@ export default function OnboardingFlow() {
     };
 
     fetchUser();
-  }, [router.pathname]);
+  }, [router.pathname, router]);
 
   useEffect(() => {
     if (!user || !router.pathname.startsWith("/onboarding")) return;
@@ -50,7 +51,8 @@ export default function OnboardingFlow() {
 
   useEffect(() => {
     if (currentStep === STEPS.COMPLETE) {
-      const role = onboardingStatus?.role || user?.user_metadata?.role || "buyer";
+      const role =
+        onboardingStatus?.role || user?.user_metadata?.role || "buyer";
       const roleRedirects: Record<string, string> = {
         buyer: "/buyer/dashboard",
         "seller/brand": "/seller/dashboard",
@@ -76,7 +78,9 @@ export default function OnboardingFlow() {
 
       const access_token = sessionData?.session?.access_token;
       if (!user || !access_token) {
-        console.warn("Missing user or access token, aborting onboarding fetch.");
+        console.warn(
+          "Missing user or access token, aborting onboarding fetch.",
+        );
         return;
       }
 
@@ -105,7 +109,7 @@ export default function OnboardingFlow() {
         return;
       }
 
-      const { data: _data, error } = result;
+      const { error } = result;
 
       if (error) {
         console.error("[HANDLE-ONBOARDING ERROR]", error);
@@ -113,8 +117,10 @@ export default function OnboardingFlow() {
         return;
       }
 
-      setOnboardingStatus(_data.status ? { ..._data.status } : null);
-      setCurrentStep(_data?.status?.current_step || STEPS.ROLE);
+      setOnboardingStatus(
+        result.data.status ? { ...result.data.status } : null,
+      );
+      setCurrentStep(result.data?.status?.current_step || STEPS.ROLE);
     } catch (error) {
       console.error("Error fetching onboarding status:", error);
       setError(new Error("Failed to load onboarding status"));
@@ -228,7 +234,7 @@ function VerificationStep({
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `verification/${fileName}`;
 
-      const { data: _data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from("documents")
         .upload(filePath, file);
 

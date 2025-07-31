@@ -1,115 +1,9 @@
 "use client";
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React from "react";
+import { useCart } from "../context/CartContext";
 
-export interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image?: string;
-  store_id?: string;
-}
-
-export interface CartContextType {
-  items: CartItem[];
-  totalCount: number;
-  totalPrice: number;
-  addItem: (item: CartItem) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
-  clearCart: () => void;
-  isOpen: boolean;
-  toggleCart: () => void;
-}
-
-const CartContext = createContext<CartContextType | undefined>(undefined);
-
-export const CartProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const addItem = (item: CartItem) => {
-    setItems((prevItems) => {
-      const existingItem = prevItems.find((i) => i.id === item.id);
-      if (existingItem) {
-        return prevItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i,
-        );
-      }
-      return [...prevItems, item];
-    });
-  };
-
-  const updateQuantity = (id: string, quantity: number) => {
-    setItems((prevItems) =>
-      prevItems.map((it) =>
-        it.id === id ? { ...it, quantity: Math.max(quantity, 1) } : it,
-      ),
-    );
-  };
-
-  const removeItem = (id: string) => {
-    setItems((prevItems) => prevItems.filter((it) => it.id !== id));
-  };
-
-  const clearCart = () => {
-    setItems([]);
-  };
-
-  const toggleCart = () => {
-    setIsOpen((prev) => !prev);
-  };
-
-  const totalCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        totalCount,
-        totalPrice,
-        addItem,
-        updateQuantity,
-        removeItem,
-        clearCart,
-        isOpen,
-        toggleCart,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
-};
-
-export const useCart = (): CartContextType => {
-  const context = useContext(CartContext);
-  if (!context) {
-    return {
-      items: [],
-      totalCount: 0,
-      totalPrice: 0,
-      addItem: () => {},
-      updateQuantity: () => {},
-      removeItem: () => {},
-      clearCart: () => {},
-      isOpen: false,
-      toggleCart: () => {},
-    };
-  }
-  return context;
-};
-
-interface CartDrawerProps {
-  onClose?: () => void;
-}
-
-const CartDrawer: React.FC<CartDrawerProps> = ({ onClose }) => {
+const CartDrawer: React.FC = () => {
+  console.log("CartDrawer rendered");
   const {
     items,
     totalCount,
@@ -120,47 +14,54 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ onClose }) => {
     isOpen,
     toggleCart,
   } = useCart();
+  console.log("isOpen:", isOpen);
+
+  if (!isOpen) return null;
 
   return (
     <>
       <div
         className={`fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
-        onClick={onClose || toggleCart}
+        onClick={toggleCart}
       />
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-white shadow-lg z-50 flex flex-col p-4 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full max-w-md bg-black text-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 ${
+          isOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        <button
-          className="self-end mb-4 text-gray-700 hover:text-gray-900"
-          onClick={onClose || toggleCart}
-        >
-          Close
-        </button>
-        <h2 className="text-xl font-semibold mb-4">
-          Your Cart ({totalCount} items)
-        </h2>
-        <ul className="flex-grow overflow-auto">
+        <div className="flex justify-between items-center p-4 border-b border-yellow-400 bg-black">
+          <h2 className="text-xl font-bold text-yellow-400">Your Cart ({totalCount} items)</h2>
+          <button
+            onClick={toggleCart}
+            className="bg-yellow-400 text-black font-bold px-3 py-1 rounded hover:bg-yellow-300"
+          >
+            Close
+          </button>
+        </div>
+
+        <ul className="flex-grow overflow-auto p-4">
           {items.map((item) => (
             <li key={item.id} className="mb-3">
-              <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center border-b border-gray-700 pb-2">
                 <div>
-                  {item.name} - ${item.price} x {item.quantity}
+                  <p className="font-semibold">{item.name}</p>
+                  <p className="text-sm text-gray-400">${item.price} x {item.quantity}</p>
                 </div>
                 <div className="space-x-1">
                   <button
-                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-2 py-1 bg-yellow-500 text-black rounded hover:bg-yellow-400"
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                   >
                     +
                   </button>
                   <button
-                    className="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    className="px-2 py-1 bg-yellow-500 text-black rounded hover:bg-yellow-400"
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
                   >
                     -
                   </button>
                   <button
-                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                    className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
                     onClick={() => removeItem(item.id)}
                   >
                     Remove
@@ -170,12 +71,26 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ onClose }) => {
             </li>
           ))}
         </ul>
-        <div className="mt-4 font-semibold">Total: ${totalPrice}</div>
+
+        <div className="p-4 border-t border-yellow-400 bg-black flex justify-between items-center">
+          <span className="text-lg">Total:</span>
+          <span className="text-xl font-bold text-yellow-400">${totalPrice}</span>
+        </div>
+
         <button
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-b"
           onClick={clearCart}
         >
           Clear Cart
+        </button>
+        <button
+          className="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-3"
+          onClick={() => {
+            toggleCart(); // close drawer
+            window.location.href = "/buyer/checkout"; // go to checkout
+          }}
+        >
+          Proceed to Checkout
         </button>
       </div>
     </>

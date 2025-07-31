@@ -60,7 +60,6 @@ async function handleRedirect(router: NextRouter) {
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const protectedRoutes = ["/dashboard", "/onboarding"];
-
   const isProtected = protectedRoutes.some((path) =>
     router.pathname.startsWith(path),
   );
@@ -76,7 +75,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     };
 
     runRedirect();
-  }, [router.pathname, router.isReady]);
+  }, [router.pathname, router.isReady, hasHandledRedirect, router]);
 
   return (
     <SupabaseProvider>

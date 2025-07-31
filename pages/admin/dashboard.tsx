@@ -86,7 +86,7 @@ const AdminDashboard = () => {
       }
     };
     checkRole();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const fetchApplications = async () => {

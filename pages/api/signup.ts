@@ -13,8 +13,8 @@ const admin = createServerClient(
       },
       set() {},
       remove() {},
-    }
-  }
+    },
+  },
 );
 
 export default async function handler(
@@ -132,7 +132,10 @@ export default async function handler(
       try {
         await admin.auth.admin.deleteUser(user.id);
       } catch (deleteError) {
-        console.error("❌ Failed to delete user after profile error:", deleteError);
+        console.error(
+          "❌ Failed to delete user after profile error:",
+          deleteError,
+        );
       }
       return res.status(500).json({ error: "Profile creation failed" });
     }
@@ -141,7 +144,16 @@ export default async function handler(
     return res.status(201).json({
       user: data.user,
       session: data.session,
-      redirectTo: "/onboarding",
+      redirectTo:
+        normalizedRole === "buyer"
+          ? "/marketplace"
+          : normalizedRole === "seller"
+          ? "/seller/dashboard"
+          : normalizedRole === "stylist"
+          ? "/stylist/dashboard"
+          : normalizedRole === "driver"
+          ? "/driver/dashboard"
+          : "/onboarding",
       message: "Signup successful",
     });
   } catch (err: any) {

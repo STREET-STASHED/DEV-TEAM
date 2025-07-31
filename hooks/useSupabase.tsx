@@ -23,7 +23,7 @@ export const useSupabase = () => {
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-      }
+      },
     );
     return () => {
       mounted = false;

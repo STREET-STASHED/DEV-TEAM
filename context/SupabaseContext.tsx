@@ -25,12 +25,20 @@ interface SupabaseContextType {
   session: Session | null;
   loading: boolean;
   profile: Profile | null;
-  signIn: (params: { email: string; password: string }) => Promise<{ error: any; data: any }>;
-  signUp: (params: { email: string; password: string }) => Promise<{ error: any; data: any }>;
+  signIn: (params: {
+    email: string;
+    password: string;
+  }) => Promise<{ error: any; data: any }>;
+  signUp: (params: {
+    email: string;
+    password: string;
+  }) => Promise<{ error: any; data: any }>;
   signOut: () => Promise<void>;
 }
 
-const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
+const SupabaseContext = createContext<SupabaseContextType | undefined>(
+  undefined,
+);
 
 type SupabaseProviderProps = {
   children: ReactNode;
@@ -85,7 +93,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
           setProfile(null);
         }
         setLoading(false);
-      }
+      },
     );
 
     return () => {
@@ -95,13 +103,9 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signIn = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
+  const signIn = async (
+    { email, password }: { email: string; password: string }
+  ) => {
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -111,13 +115,9 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     return { data, error };
   };
 
-  const signUp = async ({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }) => {
+  const signUp = async (
+    { email, password }: { email: string; password: string }
+  ) => {
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email,

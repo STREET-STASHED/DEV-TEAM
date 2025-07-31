@@ -49,9 +49,7 @@ export default function Home() {
           content="Your curated fashion delivery experience starts here"
         />
       </Head>
-      <div
-        className="min-h-screen w-full bg-black text-white"
-      >
+      <div className="min-h-screen w-full bg-black text-white">
         <main className="flex flex-col items-center justify-start w-full max-w-screen-xl mx-auto px-4 py-12">
           {/* Header with Logo and Expanded Nav */}
           <SiteHeader />
@@ -104,7 +102,10 @@ export default function Home() {
             <h2 className="text-3xl font-bold mb-6">Trending Items</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {mockProducts.slice(0, 4).map((item) => (
-                <div key={item.id} className="bg-gray-900 p-4 rounded shadow text-white">
+                <div
+                  key={item.id}
+                  className="bg-gray-900 p-4 rounded shadow text-white"
+                >
                   <Image
                     src={item.image}
                     alt={item.name}

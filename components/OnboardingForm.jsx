@@ -29,7 +29,7 @@ export default function OnboardingForm({ supabaseClient }) {
     if (!["/", "/auth"].includes(router.pathname)) {
       getUser();
     }
-  }, [router.pathname]);
+  }, [router.pathname, router]);
 
   async function fetchProfile(userId) {
     try {

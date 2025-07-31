@@ -24,7 +24,7 @@ export default function DriverIndex() {
     }, 100);
 
     return () => clearTimeout(timeout);
-  }, [profile, loading]);
+  }, [profile, loading, router]);
 
   return (
     <div className="flex items-center justify-center min-h-screen text-lg">

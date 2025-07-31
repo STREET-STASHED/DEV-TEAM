@@ -17,7 +17,9 @@ export default function StylistDashboard() {
 
   useEffect(() => {
     const loadProfileData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profile, error } = await supabase
@@ -42,7 +44,7 @@ export default function StylistDashboard() {
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -86,7 +88,6 @@ export default function StylistDashboard() {
     <div className="min-h-screen p-6 space-y-6">
       <h2 className="text-2xl font-bold">StreetStashed Stylist Dashboard</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             name="ownerName"

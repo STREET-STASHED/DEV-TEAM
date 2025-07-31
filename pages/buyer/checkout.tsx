@@ -1,66 +1,73 @@
-import { supabase } from "../../lib/supabaseClient";
-import { useCart, CartItem } from "@/context/CartContext";
-import { useEffect, useState } from "react";
-import CheckoutForm from "@/components/CheckoutForm";
+import React, { useState } from "react";
 
-const CheckoutPage = () => {
-  const [isClient, setIsClient] = useState(false);
+interface CartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity?: number;
+}
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        setIsClient(true); // Allow guests
-      } else {
-        setIsClient(true);
-      }
+interface CheckoutFormProps {
+  items: CartItem[];
+  totalAmount: number;
+}
+
+export default function CheckoutForm({ items, totalAmount }: CheckoutFormProps) {
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [email, setEmail] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Basic validation handled by HTML attributes
+    const orderPayload = {
+      name,
+      address,
+      email,
+      items,
+      totalAmount,
     };
-    checkSession();
-  }, []);
-
-  if (!isClient) return null;
-
-  const { items, totalCount: totalQuantity, totalPrice } = useCart();
+    console.log("Submitting order:", orderPayload);
+    alert("Order submitted successfully!");
+  };
 
   return (
-    <main className="max-w-2xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-
-      {items.length === 0 ? (
-        <p className="text-center text-gray-500">Your cart is empty.</p>
-      ) : (
-        <>
-          <div className="bg-white p-4 rounded-lg shadow mb-6">
-            <ul className="space-y-2 mb-4">
-              {items.map((item: CartItem, index: number) => (
-                <li key={index} className="flex justify-between border-b pb-2">
-                  <span>{item.name}</span>
-                  <span>
-                    ${item.price?.toFixed(2)} x {item.quantity}
-                  </span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="border-t pt-4 mb-4">
-              <p className="text-lg font-medium">
-                Total Items:{" "}
-                <span className="font-normal">{totalQuantity}</span>
-              </p>
-              <p className="text-lg font-medium">
-                Total Cost:{" "}
-                <span className="font-normal">${totalPrice.toFixed(2)}</span>
-              </p>
-            </div>
-
-            <CheckoutForm items={items} totalAmount={totalPrice} mode="cart" />
-          </div>
-        </>
-      )}
-    </main>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium">Full Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium">Email</label>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium">Delivery Address</label>
+        <textarea
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          required
+          className="w-full border px-3 py-2 rounded"
+        />
+      </div>
+      <button
+        type="submit"
+        className="w-full bg-black text-white py-2 rounded hover:bg-primary transition"
+      >
+        Submit Order
+      </button>
+    </form>
   );
-};
-
-export default CheckoutPage;
+}

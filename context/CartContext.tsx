@@ -21,9 +21,11 @@ export interface CartItem {
 
 export interface CartContextType {
   items: CartItem[];
+  cartItems: CartItem[];
   totalCount: number;
   totalPrice: number;
   isOpen: boolean;
+  hydrated: boolean;
   addItem: (item: CartItem, quantity?: number) => void;
   updateQuantity: (id: string, quantity: number) => void;
   removeItem: (id: string) => void;
@@ -42,10 +44,40 @@ type GuestCartPayload = {
   timestamp: number;
 };
 
+
 export const CartProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
+  // On mount, always hydrate cart from localStorage for guests.
+  // This ensures cart state is always consistent, even if empty,
+  // and avoids SSR/client mismatches on checkout.
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const parsed: GuestCartPayload = JSON.parse(stored);
+        if (parsed?.items?.length > 0) {
+          setItems(parsed.items);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse guest cart from localStorage", error);
+    }
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ items, timestamp: Date.now() })
+      );
+    } catch (error) {
+      console.error("Failed to save guest cart to localStorage", error);
+    }
+  }, [items]);
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
@@ -76,7 +108,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
         );
 
         clearGuestCart();
-      } else {
+      } else if (guestItems.length > 0) {
         setItems(guestItems);
       }
     };
@@ -97,11 +129,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const addItem = (item: CartItem, quantity = 1) => {
+    console.log("[CartContext] addItem", item, quantity);
     setItems((prev) => {
-      const exists = prev.find((i) => i.id === item.id);
+      const exists = prev.find((existingItem) => existingItem.id === item.id);
       const next = exists
-        ? prev.map((i) =>
-            i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i,
+        ? prev.map((existingItem) =>
+            existingItem.id === item.id
+              ? { ...existingItem, quantity: existingItem.quantity + quantity }
+              : existingItem
           )
         : [...prev, { ...item, quantity }];
       syncToServer(next).catch(console.error);
@@ -110,9 +145,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const updateQuantity = (id: string, quantity: number) => {
+    console.log("[CartContext] updateQuantity", id, quantity);
     setItems((prev) => {
-      const next = prev.map((i) =>
-        i.id === id ? { ...i, quantity: Math.max(1, quantity) } : i,
+      const next = prev.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
       );
       syncToServer(next).catch(console.error);
       return next;
@@ -120,8 +156,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   const removeItem = (id: string) => {
+    console.log("[CartContext] removeItem", id);
     setItems((prev) => {
-      const next = prev.filter((i) => i.id !== id);
+      const next = prev.filter((item) => item.id !== id);
       syncToServer(next).catch(console.error);
       return next;
     });
@@ -148,15 +185,19 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     () => items.reduce((sum, i) => sum + i.quantity * i.price, 0),
     [items],
   );
-  const hasItem = (id: string) => items.some((i) => i.id === id);
+  const hasItem = (id: string) => {
+    return items.some((item) => item.id === id);
+  };
 
   return (
     <CartContext.Provider
       value={{
         items,
+        cartItems: items,
         totalCount,
         totalPrice,
         isOpen,
+        hydrated,
         addItem,
         updateQuantity,
         removeItem,

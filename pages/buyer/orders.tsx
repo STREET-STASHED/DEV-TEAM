@@ -2,12 +2,17 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import Link from "next/link";
+import { REALTIME_LISTEN_TYPES, REALTIME_POSTGRES_CHANGES_LISTEN_EVENT } from '@supabase/realtime-js';
 
 interface Order {
   id: number;
   total: number;
   status: string;
   created_at: string;
+  driverLocation?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 const OrderHistory: React.FC = () => {
@@ -25,18 +30,72 @@ const OrderHistory: React.FC = () => {
       if (error) {
         console.error("Error loading orders:", error);
       } else {
-        setOrders(
-          (data || []).map((order: any) => ({
+        const enrichedOrders = await Promise.all((data || []).map(async (order: any) => {
+          let driverLocation = undefined;
+          if (order.status === "assigned" && order.driver_id) {
+            const { data: driverData } = await supabase
+              .from("driver_locations")
+              .select("latitude, longitude")
+              .eq("driver_id", order.driver_id)
+              .single();
+            if (driverData) {
+              driverLocation = {
+                lat: driverData.latitude,
+                lng: driverData.longitude,
+              };
+            }
+          }
+          return {
             id: Number(order.id),
             total: Number(order.total) || 0,
             status: order.status ?? "Pending",
             created_at: order.created_at ?? "",
-          })),
-        );
+            driverLocation,
+          };
+        }));
+        setOrders(enrichedOrders);
       }
       setLoading(false);
     };
     fetchOrders();
+  }, []);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('orders-tracking')
+      .on(
+        REALTIME_LISTEN_TYPES.POSTGRES_CHANGES,
+        {
+          event: REALTIME_POSTGRES_CHANGES_LISTEN_EVENT.UPDATE,
+          schema: 'public',
+          table: 'orders',
+        },
+        (payload: { new: any }) => {
+          const updatedOrder: Order = {
+            id: Number(payload.new.id),
+            total: Number(payload.new.total) || 0,
+            status: payload.new.status ?? "Pending",
+            created_at: payload.new.created_at ?? "",
+          };
+          setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+              order.id === updatedOrder.id
+                ? {
+                    ...order,
+                    status: updatedOrder.status,
+                    created_at: updatedOrder.created_at,
+                    total: updatedOrder.total,
+                  }
+                : order
+            )
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   if (loading) {
@@ -101,6 +160,18 @@ const OrderHistory: React.FC = () => {
             <p style={{ fontSize: "0.9rem", color: "#666" }}>
               Placed on {new Date(order.created_at).toLocaleString()}
             </p>
+            {order.driverLocation && (
+              <div style={{ marginTop: "0.5rem", height: "150px", background: "#333" }}>
+                <iframe
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  loading="lazy"
+                  allowFullScreen
+                  src={`https://maps.google.com/maps?q=${order.driverLocation.lat},${order.driverLocation.lng}&z=15&output=embed`}
+                />
+              </div>
+            )}
             <Link href={`/buyer/${order.id}`}>
               <button
                 style={{

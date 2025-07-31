@@ -3,16 +3,15 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
-import CartDrawer from "./CartDrawer";
-import { useCart } from "../context/CartContext";
+import { useCart } from "@/context/CartContext";
 
 const Header = () => {
   const router = useRouter();
-  const { /* totalCount, */ toggleCart } = useCart();
-  // const [menuOpen, setMenuOpen] = useState(false);
-  // const [accountOpen, setAccountOpen] = useState(false);
+  const { toggleCart } = useCart();
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<string | null>(null);
+
+  console.log("Header rendered");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -49,19 +48,6 @@ const Header = () => {
     fetchUser();
   }, []);
 
-  const handleCartOpen = () => toggleCart();
-
-  const handleJoinClick = () => {
-    if (!user) return router.push("/Auth");
-    if (!role) return router.push("/onboarding/role");
-    if (role && !user.details_complete)
-      return router.push("/onboarding/details");
-    if (role && user.details_complete && !user.verified)
-      return router.push("/onboarding/verify");
-    if (role === "buyer") return router.push("/buyer/marketplace");
-    router.push(`/${role}/dashboard`);
-  };
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -69,6 +55,8 @@ const Header = () => {
     localStorage.clear();
     router.replace("/");
   };
+
+  const userGreeting = user?.email?.split("@")[0] || "";
 
   return (
     <>
@@ -80,7 +68,7 @@ const Header = () => {
               <div className="flex items-center gap-2">
                 <Link href="/">
                   <Image
-                    src="/logo.png"
+                    src="/logo-new.png"
                     alt="StreetStashed Logo"
                     width={40}
                     height={40}
@@ -102,34 +90,65 @@ const Header = () => {
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 text-black bg-white"
                 />
               </div>
-              <div className="flex gap-4 mt-2 md:mt-0">
+              <div className="flex gap-4 mt-2 md:mt-0 items-center font-semibold">
+                <Link href="/">
+                  <button className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-primary text-black hover:bg-primary hover:text-black">
+                    Home
+                  </button>
+                </Link>
+                <Link href="/buyer/marketplace">
+                  <button className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-black/50 text-white hover:bg-primary hover:text-black">
+                    Marketplace
+                  </button>
+                </Link>
+                {role === "buyer" && (
+                  <Link href="/track-order">
+                    <button className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-black/50 text-white hover:bg-primary hover:text-black">
+                      Track Order
+                    </button>
+                  </Link>
+                )}
                 <button
-                  onClick={handleCartOpen}
-                  className="text-primary font-semibold hover:underline"
+                  onClick={() => {
+                    console.log("🛒 Cart icon clicked");
+                    toggleCart();
+                  }}
+                  aria-label="Open Cart"
+                  className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-black/50 text-white hover:bg-primary hover:text-black relative"
                 >
-                  View Cart
+                  🛒
                 </button>
-                <button
-                  onClick={handleJoinClick}
-                  className="text-primary font-semibold hover:underline"
-                >
-                  Join Us
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="text-red-500 font-semibold hover:underline"
-                >
-                  Logout
-                </button>
+
+                {/* Show greeting if logged in */}
+                {user && (
+                  <span className="text-white hidden md:inline">
+                    Welcome, {userGreeting}
+                  </span>
+                )}
+
+                {/* Auth buttons */}
+                {user ? (
+                  <button
+                    onClick={handleLogout}
+                    className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-black/50 text-white hover:bg-primary hover:text-black"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => router.push("/signup?ref=header")}
+                    className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-black/50 text-white hover:bg-primary hover:text-black"
+                  >
+                    Join Us
+                  </button>
+                )}
               </div>
             </div>
-            {/* Navigation and Actions */}
-            {/* rest of component remains unchanged */}
           </div>
         </div>
       </header>
-      <CartDrawer />
-      <div className="h-20" /> {/* Push content below the fixed header */}
+      
+      <div className="h-20" /> {/* Spacer for fixed header */}
     </>
   );
 };

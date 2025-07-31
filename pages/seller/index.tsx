@@ -15,7 +15,9 @@ export default function SellerDashboard() {
 
   useEffect(() => {
     const loadProfileData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: profile, error } = await supabase
@@ -76,7 +78,6 @@ export default function SellerDashboard() {
     <div className="min-h-screen p-6 space-y-6">
       <h2 className="text-2xl font-bold">StreetStashed Seller Dashboard</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             name="ownerName"

@@ -31,7 +31,7 @@ export default function SignupPage() {
       userData: {
         full_name: name,
         role,
-        username, // added username field
+        username, // added username field,
       },
     };
 
@@ -84,41 +84,20 @@ export default function SignupPage() {
         return;
       }
 
-      // login successful, now check session and redirect
+      // login successful, fetch session once and redirect based on role
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session;
+
+      if (!session || !session.access_token || !session.user?.id) {
+        console.warn("[SESSION INVALID] Redirecting to onboarding.");
+        await router.replace("/onboarding");
+        return;
+      }
+
+      const access_token = session.access_token;
+      const user_id = session.user.id;
+
       try {
-        const supabase = createBrowserClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        );
-
-        let session;
-        try {
-          const { data: sessionData } = await supabase.auth.getSession();
-          session = sessionData?.session;
-
-          // Retry once after short delay if session is missing
-          if (!session) {
-            await new Promise((res) => setTimeout(res, 500));
-            const retry = await supabase.auth.getSession();
-            session = retry.data?.session;
-          }
-
-          if (!session || !session.access_token || !session.user?.id) {
-            console.warn(
-              "[SESSION MISSING AFTER RETRY] Redirecting to onboarding.",
-            );
-            await router.replace("/onboarding");
-            return;
-          }
-        } catch (err) {
-          console.error("[SESSION CHECK FAILED]", err);
-          await router.replace("/onboarding");
-          return;
-        }
-
-        const access_token = session.access_token;
-        const user_id = session.user.id;
-
         const redirectResponse = await fetch(
           `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/handle-redirect`,
           {
@@ -131,33 +110,13 @@ export default function SignupPage() {
           }
         );
 
-        let redirectData;
-        try {
-          redirectData = await redirectResponse.json();
-        } catch (jsonErr) {
-          console.error("[REDIRECT RESPONSE JSON ERROR]", jsonErr);
-          await router.replace("/onboarding");
-          return;
-        }
+        const redirectData = await redirectResponse.json();
 
-        if (redirectData.requiresAction) {
-          if (redirectData.role === "buyer") {
-            await router.replace("/marketplace");
-          } else {
-            await router.replace(redirectData.redirectTo);
-            if (redirectData.redirectTo === "/onboarding") {
-              router.reload();
-            }
-          }
-        } else {
-          if (redirectData.role === "buyer") {
-            await router.replace("/marketplace");
-          } else {
-            await router.replace(redirectData.redirectTo);
-          }
-        }
+        const path = redirectData?.redirectTo || "/onboarding";
+        await router.replace(path);
+        if (path === "/onboarding") router.reload();
       } catch (err) {
-        console.error("[EDGE REDIRECT ERROR]", err);
+        console.error("[REDIRECT ERROR]", err);
         await router.replace("/onboarding");
       }
     } catch (err) {
@@ -223,7 +182,9 @@ export default function SignupPage() {
             type="button"
             onClick={() => setRole(r as typeof role)}
             className={`p-2 border rounded text-center capitalize ${
-              role === r ? "bg-black text-white border-black" : "border-gray-300"
+              role === r
+                ? "bg-black text-white border-black"
+                : "border-gray-300"
             }`}
             aria-pressed={role === r}
           >
