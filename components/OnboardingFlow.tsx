@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import type { User } from "@supabase/supabase-js";
+// For TypeScript to recognize File
+type File = globalThis.File;
 // Use the DOM File type, no import needed
 import { supabase } from "../lib/supabaseClient.ts";
 
@@ -61,7 +63,7 @@ export default function OnboardingFlow() {
       };
       router.replace(roleRedirects[role] || "/marketplace");
     }
-  }, [currentStep, onboardingStatus, user]);
+  }, [currentStep, onboardingStatus, user, router]);
 
   async function fetchOnboardingStatus() {
     try {
@@ -139,21 +141,18 @@ export default function OnboardingFlow() {
       setLoading(true);
       setError(null);
 
-      const { data: _data, error } = await supabase.functions.invoke(
-        "handle-onboarding",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            documentType,
-            documentUrl,
-            notes,
-          }),
+      const { error } = await supabase.functions.invoke("handle-onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-      );
+        body: JSON.stringify({
+          documentType,
+          documentUrl,
+          notes,
+        }),
+      });
 
       if (error) throw error;
 
@@ -207,7 +206,8 @@ function VerificationStep({
   onSubmit,
   role: _role,
 }: {
-  onSubmit: (documentType: string, documentUrl: string, notes: string) => void;
+  // eslint-disable-next-line no-unused-vars
+  onSubmit: (...args: any[]) => void;
   role: string;
 }) {
   const [documentType, setDocumentType] = useState("");
@@ -253,7 +253,7 @@ function VerificationStep({
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(
       documentType,

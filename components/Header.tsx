@@ -147,7 +147,6 @@ const Header = () => {
           </div>
         </div>
       </header>
-      
       <div className="h-20" /> {/* Spacer for fixed header */}
     </>
   );

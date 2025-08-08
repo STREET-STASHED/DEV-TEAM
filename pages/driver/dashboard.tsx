@@ -1,400 +1,294 @@
-// File: /pages/driver/dashboard.tsx
-import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
-import { createClient } from "@supabase/supabase-js";
-import Map from "@/components/Map";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import Layout from "@/components/Layout";
+import {
+  TruckIcon,
+  CurrencyDollarIcon,
+  StarIcon,
+  ClipboardCheckIcon,
+  MapIcon,
+} from "@heroicons/react/outline";
+import { Progress } from "@/components/ui/progress";
 
-const AvailableOrders = ({ orders, onAccept }: { orders: any[], onAccept: (orderId: string) => void }) => (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold mb-2">Available Orders</h2>
-    {orders.length === 0 ? (
-      <p>No pending orders.</p>
-    ) : (
-      <ul className="space-y-3">
-        {orders.map((order) => (
-          <li key={order.id} className="bg-gray-900 p-4 rounded shadow">
-            <p>Status: {order.status}</p>
-            <p>Dropoff: ({order.dropoff_lat}, {order.dropoff_lng})</p>
-            <p>Distance: {order.distance ?? "N/A"} miles</p>
-            <p>Fee: ${order.fee ?? "N/A"}</p>
-            <p>Items: {order.items?.map((item: any) => item.name).join(", ")}</p>
-            <button
-              onClick={() => onAccept(order.id)}
-              className="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded"
-            >
-              Accept
-            </button>
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
-
-const AssignedOrders = ({ orders, onUpdateStatus, driverLocation }: { orders: any[], onUpdateStatus: (orderId: string, newStatus: string) => void, driverLocation: { lat: number, lng: number } | null }) => (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold mb-2">Assigned Orders</h2>
-    {orders.length === 0 ? (
-      <p>No active deliveries.</p>
-    ) : (
-      <ul className="space-y-3">
-        {orders.map((order) => (
-          <li key={order.id} className="bg-gray-800 p-4 rounded shadow">
-            <p>Status: {order.status}</p>
-            <p>Dropoff: ({order.dropoff_lat}, {order.dropoff_lng})</p>
-            {driverLocation && order.dropoff_lat && order.dropoff_lng && (
-              <p>
-                ETA: {Math.round(
-                  (Math.sqrt(
-                    Math.pow(driverLocation.lat - order.dropoff_lat, 2) +
-                    Math.pow(driverLocation.lng - order.dropoff_lng, 2)
-                  ) * 69) / 0.5
-                )} mins
-              </p>
-            )}
-            {order.status === "accepted" && (
-              <button
-                onClick={() => onUpdateStatus(order.id, "picked_up")}
-                className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
-              >
-                Mark as Picked Up
-              </button>
-            )}
-            {order.status === "picked_up" && (
-              <button
-                onClick={() => onUpdateStatus(order.id, "delivered")}
-                className="mt-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-1 rounded"
-              >
-                Mark as Delivered
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
-    )}
-  </div>
-);
-
-const EarningsChart = ({ earnings }: { earnings: any[] }) => (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold mb-2">Earnings</h2>
-    <ul className="list-disc list-inside">
-      {earnings.length > 0 ? (
-        earnings.map((entry, idx) => (
-          <li key={idx}>
-            ${entry.amount} on {new Date(entry.date).toLocaleDateString()}
-          </li>
-        ))
-      ) : (
-        <li>No earnings data available.</li>
-      )}
-    </ul>
-  </div>
-);
-
-const DriverRatings = ({ ratings }: { ratings: any }) => (
-  <div className="mb-6">
-    <h2 className="text-xl font-semibold mb-2">Driver Rating</h2>
-    {ratings ? (
-      <p>
-        Average Rating: {ratings.average_rating} ({ratings.total_reviews}{" "}
-        reviews)
-      </p>
-    ) : (
-      <p>No ratings yet.</p>
-    )}
-  </div>
-);
-
-const fetchDriverData = async () => {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError || !user) throw new Error("Failed to load user");
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select(
-      "role, details_complete, has_completed_onboarding, verification_complete",
-    )
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile || profile.role !== "driver") {
-    throw new Error("Access denied: Not a driver or profile not found.");
-  }
-
-  const { data: deliveries, error: deliveriesError } = await supabase
-    .from("deliveries")
-    .select("*")
-    .eq("driver_id", user.id);
-
-  const { data: earnings, error: earningsError } = await supabase
-    .from("driver_earnings")
-    .select("*")
-    .eq("driver_id", user.id);
-
-  const { data: ratings, error: ratingsError } = await supabase
-    .from("driver_ratings")
-    .select("*")
-    .eq("driver_id", user.id)
-    .single();
-
-  const { data: availableOrders, error: availableOrdersError } = await supabase
-    .from("orders")
-    .select("*")
-    .is("driver_id", null)
-    .eq("status", "pending_driver");
-
-  const { data: assignedOrders, error: assignedOrdersError } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("driver_id", user.id)
-    .not("status", "eq", "delivered");
-
-  if (deliveriesError || earningsError || ratingsError || availableOrdersError || assignedOrdersError) {
-    throw new Error("Failed to fetch driver data");
-  }
-
-  return { deliveries, earnings, ratings, availableOrders, assignedOrders };
-};
-
-const DriverDashboard = () => {
-  const [earnings, setEarnings] = useState<any[]>([]);
-  const [ratings, setRatings] = useState<any | null>(null);
+export default function DriverDashboard() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // const [driver, setDriver] = useState<any>(null);
+  const [stats, setStats] = useState<any>(null);
+  const [orders, setOrders] = useState<any[]>([]);
   const [availableOrders, setAvailableOrders] = useState<any[]>([]);
-  const [assignedOrders, setAssignedOrders] = useState<any[]>([]);
-  const [deliveries, setDeliveries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [driverLocation, setDriverLocation] = useState<{ lat: number, lng: number } | null>(null);
 
-  useEffect(() => {
-    const loadDriverData = async () => {
-      try {
-        setLoading(true);
-        const data = await fetchDriverData();
-        setEarnings(data.earnings);
-        setRatings(data.ratings);
-        setAvailableOrders(data.availableOrders);
-        setAssignedOrders(data.assignedOrders);
-        setDeliveries(
-          data.deliveries.sort((a, b) => new Date(b.delivered_at).getTime() - new Date(a.delivered_at).getTime())
-        );
-      } catch (err) {
-        setError("Failed to load driver data.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDriverData();
-  }, []);
-
-  useEffect(() => {
-    let watchId: number;
-
-    const startTracking = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) return;
-
-      if ("geolocation" in navigator) {
-        watchId = navigator.geolocation.watchPosition(
-          async (position) => {
-            const { latitude, longitude } = position.coords;
-            setDriverLocation({ lat: latitude, lng: longitude });
-            await supabase
-              .from("driver_locations")
-              .upsert({
-                driver_id: user.id,
-                lat: latitude,
-                lng: longitude,
-                updated_at: new Date().toISOString(),
-              });
-          },
-          (error) => {
-            console.error("Geolocation error:", error);
-          },
-          {
-            enableHighAccuracy: true,
-            maximumAge: 10000,
-            timeout: 5000,
-          }
-        );
-      } else {
-        console.warn("Geolocation is not supported.");
-      }
-    };
-
-    startTracking();
-
-    return () => {
-      if (watchId && navigator.geolocation.clearWatch) {
-        navigator.geolocation.clearWatch(watchId);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const supabaseRealtime = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
-    const channel = supabaseRealtime
-      .channel("orders")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-        },
-        (payload) => {
-          const updatedOrder = payload.new as { id: string; status: string; driver_id: string | null };
-
-          // Update assigned orders if the order was assigned to this driver
-          setAssignedOrders((prev) =>
-            prev.map((o) =>
-              o.id === updatedOrder.id ? { ...o, status: updatedOrder.status } : o
-            )
-          );
-
-          // Add or remove from availableOrders based on new status
-          if (updatedOrder.status === "pending_driver" && !updatedOrder.driver_id) {
-            setAvailableOrders((prev) => {
-              const exists = prev.find((o) => o.id === updatedOrder.id);
-              return exists ? prev : [...prev, updatedOrder];
-            });
-          } else {
-            setAvailableOrders((prev) => prev.filter((o) => o.id !== updatedOrder.id));
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabaseRealtime.removeChannel(channel);
-    };
-  }, []);
-
-  const handleAcceptOrder = async (orderId: string) => {
+  const fetchData = async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-    if (!user) {
-      setError("User not authenticated.");
-      return;
+
+    if (user) {
+      // setDriver(user);
+
+      const { data: statsData } = await supabase
+        .from("driver_stats")
+        .select("*")
+        .eq("driver_id", user.id)
+        .single();
+      setStats(statsData);
+
+      const { data: completedOrders } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("driver_id", user.id)
+        .eq("status", "delivered");
+      setOrders(completedOrders || []);
+
+      const { data: openOrders } = await supabase
+        .from("orders")
+        .select("*")
+        .is("driver_id", null)
+        .eq("status", "pending");
+      setAvailableOrders(openOrders || []);
+
+      const now = new Date();
+      const startOfMonth = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+      ).toISOString();
+      const today = now.toISOString().split("T")[0];
+
+      const { data: monthly } = await supabase
+        .from("orders")
+        .select("driver_pay")
+        .eq("driver_id", user.id)
+        .eq("status", "delivered")
+        .gte("created_at", startOfMonth);
+
+      const { data: daily } = await supabase
+        .from("orders")
+        .select("driver_pay")
+        .eq("driver_id", user.id)
+        .eq("status", "delivered")
+        .gte("created_at", `${today}T00:00:00`);
+
+      const monthlyTotal =
+        monthly?.reduce((sum, o) => sum + o.driver_pay, 0) || 0;
+      const dailyTotal = daily?.reduce((sum, o) => sum + o.driver_pay, 0) || 0;
+
+      setStats((prev: any) => ({
+        ...prev,
+        monthly_earnings: monthlyTotal,
+        daily_earnings: dailyTotal,
+      }));
     }
-
-    const { error } = await supabase.rpc('accept_order', {
-      order_id: orderId,
-      driver: user.id,
-    });
-
-    if (error) {
-      setError("Sorry, this order was just taken.");
-      return;
-    }
-
-    setAvailableOrders((prev) => prev.filter((o) => o.id !== orderId));
-    setAssignedOrders((prev) => [...prev, { id: orderId, driver_id: user.id, status: "assigned" }]);
   };
 
-  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setError("User not authenticated.");
-      return;
-    }
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("id", orderId);
-
-    if (!error) {
-      setAssignedOrders((prev) =>
-        prev.map((o) =>
-          o.id === orderId ? { ...o, status: newStatus } : o
-        )
-      );
-      if (newStatus === "delivered") {
-        await supabase.from("deliveries").insert({
-          driver_id: user.id,
-          order_id: orderId,
-          delivered_at: new Date().toISOString(),
-        });
-        setDeliveries((prev) => {
-          const updated = [...prev, { driver_id: user.id, order_id: orderId, delivered_at: new Date().toISOString() }];
-          return updated.sort((a, b) => new Date(b.delivered_at).getTime() - new Date(a.delivered_at).getTime());
-        });
-      }
-    } else {
-      setError("Failed to update order status.");
-    }
-  };
-
-  if (loading) return <div className="p-4">Loading dashboard...</div>;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Driver Dashboard</h1>
-      <AvailableOrders orders={availableOrders} onAccept={handleAcceptOrder} />
-      <AssignedOrders orders={assignedOrders} onUpdateStatus={handleUpdateOrderStatus} driverLocation={driverLocation} />
-      <EarningsChart earnings={earnings} />
-      <DriverRatings ratings={ratings} />
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Live Driver Location</h2>
-        <Map
-          center={{ lat: 40.4406, lng: -79.9959 }} // Replace with default center if needed
-          zoom={13}
-          markers={
-            [
-              {
-                id: "driver",
-                lat: driverLocation?.lat || 40.4406,
-                lng: driverLocation?.lng || -79.9959,
-                label: "You",
-              }
-            ]
-          }
-          // pseudo code comment: add polyline path between driver and first dropoff
-          polyline={[
-            {
-              lat: driverLocation?.lat || 0,
-              lng: driverLocation?.lng || 0,
-            },
-            {
-              lat: assignedOrders[0]?.dropoff_lat || 0,
-              lng: assignedOrders[0]?.dropoff_lng || 0,
-            }
-          ]}
-        />
-      </div>
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">Delivery History</h2>
-        {deliveries.length > 0 ? (
-          <ul className="list-disc list-inside">
-            {deliveries.map((d, idx) => (
-              <li key={idx}>
-                Order {d.order_id} delivered on {new Date(d.delivered_at).toLocaleString()}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No deliveries yet.</p>
-        )}
-      </div>
-    </div>
-  );
-};
+    <Layout>
+      <div className="p-6 max-w-5xl mx-auto">
+        <header className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex items-center space-x-3">
+            <TruckIcon className="h-10 w-10 text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-extrabold text-gray-900">
+                Driver Dashboard
+              </h1>
+              <p className="text-gray-500 text-sm md:text-base">
+                Manage your deliveries and track your performance
+              </p>
+            </div>
+          </div>
+        </header>
 
-export default DriverDashboard;
+        {stats &&
+          (() => {
+            const getNextTierThreshold = (current: number) => {
+              if (current < 20) return 20;
+              if (current < 40) return 40;
+              if (current < 60) return 60;
+              return null;
+            };
+
+            const nextThreshold = getNextTierThreshold(stats.completed_orders);
+            const progress = nextThreshold
+              ? (stats.completed_orders / nextThreshold) * 100
+              : 100;
+
+            return (
+              <section className="mb-10">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">
+                  Driver Profile
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <p className="text-gray-500 text-sm">Tier</p>
+                    <p className="text-lg font-bold">{stats.tier}</p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <p className="text-gray-500 text-sm">Badge</p>
+                    <p className="text-lg font-bold">{stats.badge}</p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <CurrencyDollarIcon className="h-6 w-6 text-green-500 mb-1" />
+                    <p className="text-gray-500 text-sm">Total Earnings</p>
+                    <p className="text-lg font-bold">
+                      ${stats.total_earnings.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <ClipboardCheckIcon className="h-6 w-6 text-blue-500 mb-1" />
+                    <p className="text-gray-500 text-sm">
+                      Completed Deliveries
+                    </p>
+                    <p className="text-lg font-bold">
+                      {stats.total_deliveries}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <StarIcon className="h-6 w-6 text-yellow-400 mb-1" />
+                    <p className="text-gray-500 text-sm">Rating</p>
+                    <p className="text-lg font-bold">{stats.rating}/5</p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <p className="text-gray-500 text-sm">Earnings Today</p>
+                    <p className="text-lg font-bold">
+                      ${stats.daily_earnings.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
+                    <p className="text-gray-500 text-sm">Earnings This Month</p>
+                    <p className="text-lg font-bold">
+                      ${stats.monthly_earnings.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="p-4 bg-white shadow rounded col-span-full">
+                    <p className="text-gray-500 text-sm mb-2">
+                      Progress to Next Tier
+                    </p>
+                    <Progress
+                      value={progress}
+                      className="w-full h-3 bg-gray-200 rounded-full"
+                    >
+                      <div
+                        className="bg-blue-600 h-full rounded-full"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </Progress>
+                    {nextThreshold && (
+                      <p className="text-sm text-gray-600 mt-1">
+                        {stats.completed_orders}/{nextThreshold} completed
+                        deliveries
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </section>
+            );
+          })()}
+
+        <section className="mb-10">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Completed Orders
+          </h2>
+          <div className="bg-white shadow rounded border border-gray-200 p-4">
+            {orders.length > 0 ? (
+              <ul className="space-y-4">
+                {orders.map((order) => (
+                  <li
+                    key={order.id}
+                    className="flex flex-wrap items-center justify-between border border-gray-100 rounded p-4 hover:shadow transition-shadow bg-gray-50"
+                  >
+                    <div className="flex items-center space-x-4 flex-wrap gap-3">
+                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
+                        <ClipboardCheckIcon className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Order ID:</span>{" "}
+                        <span>{order.id}</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
+                        <MapIcon className="h-5 w-5 text-green-600" />
+                        <span className="font-medium">Distance:</span>{" "}
+                        <span>{order.distance} miles</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-green-700 text-sm md:text-base font-semibold">
+                        <CurrencyDollarIcon className="h-5 w-5" />
+                        <span>Driver Pay: ${order.driver_pay}</span>
+                      </div>
+                    </div>
+                    <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      {order.status.charAt(0).toUpperCase() +
+                        order.status.slice(1)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No completed orders.</p>
+            )}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Available Orders
+          </h2>
+          <div className="bg-white shadow rounded border border-gray-200 p-4">
+            {availableOrders.length > 0 ? (
+              <ul className="space-y-4">
+                {availableOrders.map((order) => (
+                  <li
+                    key={order.id}
+                    className="flex flex-wrap items-center justify-between border border-gray-100 rounded p-4 hover:shadow transition-shadow bg-gray-50"
+                  >
+                    <div className="flex items-center space-x-4 flex-wrap gap-3">
+                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
+                        <ClipboardCheckIcon className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium">Order ID:</span>{" "}
+                        <span>{order.id}</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
+                        <MapIcon className="h-5 w-5 text-green-600" />
+                        <span className="font-medium">Distance:</span>{" "}
+                        <span>{order.distance} miles</span>
+                      </div>
+                      <div className="flex items-center space-x-1 text-yellow-700 text-sm md:text-base font-semibold">
+                        <CurrencyDollarIcon className="h-5 w-5" />
+                        <span>Estimated Pay: ${order.driver_pay}</span>
+                      </div>
+                    </div>
+                    <button
+                      className="mt-2 sm:mt-0 px-5 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors text-sm md:text-base font-semibold"
+                      onClick={async () => {
+                        const {
+                          data: { user },
+                        } = await supabase.auth.getUser();
+                        if (!user) return;
+                        const { error } = await supabase
+                          .from("orders")
+                          .update({ driver_id: user.id, status: "accepted" })
+                          .eq("id", order.id);
+                        if (!error) {
+                          const updated = await supabase
+                            .from("orders")
+                            .select("*")
+                            .eq("driver_id", user.id)
+                            .eq("status", "accepted");
+                          setOrders(updated?.data || []);
+                          fetchData(); // Now it works properly
+                        }
+                      }}
+                    >
+                      Claim Delivery
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No orders available right now.</p>
+            )}
+          </div>
+        </section>
+      </div>
+    </Layout>
+  );
+}

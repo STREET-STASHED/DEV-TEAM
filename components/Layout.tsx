@@ -4,7 +4,6 @@ import { useSupabase } from "../context/SupabaseContext";
 import CartDrawer from "./CartDrawer";
 import Header from "./Header";
 
-
 interface LayoutProps {
   children: ReactNode;
 }
@@ -16,7 +15,6 @@ export default function Layout({ children }: LayoutProps) {
   const hideNav =
     router.pathname.startsWith("/auth") ||
     router.pathname === "/reset-password";
-
 
   return (
     <div

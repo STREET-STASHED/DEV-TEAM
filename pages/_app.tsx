@@ -8,6 +8,7 @@ import { CartProvider } from "../context/CartContext";
 import Layout from "../components/Layout";
 import ProtectedLayout from "../components/ProtectedLayout";
 import { supabase } from "../lib/supabaseClient";
+import CartDrawer from "../components/CartDrawer";
 
 async function handleRedirect(router: NextRouter) {
   try {
@@ -89,6 +90,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             <Component {...pageProps} />
           )}
         </Layout>
+        <CartDrawer />
       </CartProvider>
     </SupabaseProvider>
   );

@@ -16,7 +16,9 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
-  image?: string;
+  image_url: string;
+  category: string;
+  delivery_tier: "local" | "citywide" | "extended";
 }
 
 export interface CartContextType {
@@ -24,14 +26,16 @@ export interface CartContextType {
   cartItems: CartItem[];
   totalCount: number;
   totalPrice: number;
+  totalAmount: number;
   isOpen: boolean;
   hydrated: boolean;
-  addItem: (item: CartItem, quantity?: number) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  removeItem: (id: string) => void;
+  addItem: (_item: CartItem, _quantity?: number) => void;
+  updateQuantity: (_id: string, _quantity: number) => void;
+  removeItem: (_id: string) => void;
   clearCart: () => void;
   toggleCart: () => void;
-  hasItem: (id: string) => boolean;
+  hasItem: (_id: string) => boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -43,7 +47,6 @@ type GuestCartPayload = {
   items: CartItem[];
   timestamp: number;
 };
-
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -72,7 +75,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ items, timestamp: Date.now() })
+        JSON.stringify({ items, timestamp: Date.now() }),
       );
     } catch (error) {
       console.error("Failed to save guest cart to localStorage", error);
@@ -136,7 +139,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
         ? prev.map((existingItem) =>
             existingItem.id === item.id
               ? { ...existingItem, quantity: existingItem.quantity + quantity }
-              : existingItem
+              : existingItem,
           )
         : [...prev, { ...item, quantity }];
       syncToServer(next).catch(console.error);
@@ -148,7 +151,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     console.log("[CartContext] updateQuantity", id, quantity);
     setItems((prev) => {
       const next = prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item,
       );
       syncToServer(next).catch(console.error);
       return next;
@@ -196,6 +199,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
         cartItems: items,
         totalCount,
         totalPrice,
+        totalAmount: totalPrice,
         isOpen,
         hydrated,
         addItem,
@@ -204,6 +208,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
         clearCart,
         toggleCart,
         hasItem,
+        setIsOpen,
       }}
     >
       {children}

@@ -3,17 +3,21 @@ import React from "react";
 import { useCart } from "../context/CartContext";
 
 export default function CartIcon() {
-  console.log("CartIcon rendered");
+  const { toggleCart, items } = useCart();
+
   return (
-    <button
+    <div
       onClick={() => {
-        const { toggleCart } = useCart();
-        console.log("Cart button clicked");
         toggleCart();
       }}
-      className="p-2"
+      className="relative p-2 cursor-pointer"
     >
-      🛒
-    </button>
+      <span className="text-2xl">🛒</span>
+      {items && items.length > 0 && (
+        <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-bounce">
+          {items.length}
+        </span>
+      )}
+    </div>
   );
 }

@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { GetServerSideProps } from "next";
 import ProtectedLayout from "@/components/ProtectedLayout";
 import { supabase } from "@/lib/supabaseClient";
+import { calculateStylistPayoutRPC } from "@/lib/fees";
 
 interface StylistDashboardProps {
   userId: string;
@@ -15,6 +16,8 @@ interface Booking {
   status: string;
   event_type: string;
   outfit_request: string;
+  price: number;
+  payout: number;
 }
 
 const formatDate = (dateString: string) => {
@@ -65,6 +68,13 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const calculateMonthlyEarnings = (bookings: Booking[]) => {
+    const currentMonth = new Date().getMonth();
+    return bookings
+      .filter((b) => new Date(b.date).getMonth() === currentMonth)
+      .reduce((sum, b) => sum + b.price, 0);
+  };
+
   // Use userId from props directly; no need for separate localUserId state or fetching
   useEffect(() => {
     const fetchBookings = async () => {
@@ -73,7 +83,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
       // Check if onboarding is complete
       const { data: userStatus, error: userError } = await supabase
         .from("profiles")
-        .select("has_completed_onboarding")
+        .select("has_completed_onboarding, subscription_tier")
         .eq("id", userId)
         .single();
 
@@ -87,23 +97,38 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
         return;
       }
 
+      const profileData = userStatus;
+
       const { data, error } = await supabase
         .from("bookings")
-        .select("id, client_name, date, status, event_type, outfit_request")
+        .select(
+          "id, client_name, date, status, event_type, outfit_request, price",
+        )
         .eq("stylist_id", userId);
 
       if (error) {
         console.error("Error fetching bookings:", error.message);
         setBookings([]);
       } else {
+        const payouts = await Promise.all(
+          (data || []).map((booking: any) =>
+            calculateStylistPayoutRPC({
+              service_price: booking.price,
+              stylist_tier: profileData?.subscription_tier || "Silver",
+            }),
+          ),
+        );
+
         setBookings(
-          (data || []).map((booking: any) => ({
+          (data || []).map((booking: any, index: number) => ({
             id: booking.id,
             client_name: booking.client_name || "N/A",
             date: booking.date || "",
             status: booking.status || "pending",
             event_type: booking.event_type || "Unknown",
             outfit_request: booking.outfit_request || "None",
+            price: booking.price || 0,
+            payout: payouts[index] || 0,
           })),
         );
       }
@@ -141,6 +166,10 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
         >
           Stylist Dashboard
         </h1>
+        <p>
+          <strong>Monthly Earnings:</strong> $
+          {calculateMonthlyEarnings(bookings).toFixed(2)}
+        </p>
         {bookings.length === 0 ? (
           <p>No bookings found.</p>
         ) : (
@@ -166,6 +195,12 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
                 </p>
                 <p>
                   <strong>Request:</strong> {booking.outfit_request}
+                </p>
+                <p>
+                  <strong>Price:</strong> ${booking.price.toFixed(2)}
+                </p>
+                <p>
+                  <strong>Your Payout:</strong> ${booking.payout.toFixed(2)}
                 </p>
                 <p>
                   <strong>Status:</strong> {booking.status}

@@ -1,34 +1,27 @@
-// components/ProductCard.tsx
-import React from "react";
+import AddToCartButton from "./AddToCartButton";
+import type { CartItem } from "@/context/CartContext";
 
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
+interface ProductCardProps {
+  item: CartItem;
 }
 
-export interface ProductCardProps {
-  product: Product;
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ item }: ProductCardProps) {
   return (
-    <div className="flex flex-col bg-secondary/80 rounded-xl shadow-lg hover:shadow-xl transition-transform transform hover:-translate-y-1 overflow-hidden">
+    <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-transform hover:-translate-y-1">
       <img
-        src={product.image}
-        alt={product.name}
-        className="w-full h-48 object-cover mb-4"
+        src={item.image_url || "/fallback.jpg"}
+        alt={item.name}
+        className="w-full h-48 object-cover"
       />
-      <div className="p-4 flex-1 flex flex-col justify-between">
-        <h3 className="text-lg font-semibold text-white">{product.name}</h3>
-        <p className="text-primary mb-4 font-bold">${product.price}</p>
-        <button
-          onClick={() => {}}
-          className="mt-4 w-full bg-primary text-secondary py-2 rounded-lg font-semibold hover:bg-accent transition"
-        >
-          Buy Now
-        </button>
+      <div className="p-4 flex flex-col justify-between flex-1">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2">
+          {item.name}
+        </h2>
+        <span className="text-xs text-white bg-black px-2 py-1 rounded w-fit mb-2 uppercase">
+          {item.delivery_tier}
+        </span>
+        <p className="text-sm text-gray-600 mb-4">${item.price}</p>
+        <AddToCartButton item={item} />
       </div>
     </div>
   );
