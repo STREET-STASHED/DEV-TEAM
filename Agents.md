@@ -46,3 +46,58 @@ Body must include:
 - Files touched
 - Validation steps + command output
 - Risks & roll-back plan
+
+## Request Flow & File Map
+
+### Request Flow Overview
+
+- **Buyer Checkout**: Buyer selects items and submits an order through the UI.
+- **Order Creation & Payment**: Server validates the order, processes payment, and records order details.
+- **Driver Accepts Order**: Driver views available orders and accepts one to deliver.
+- **Tracking Updates**: Driver updates order status and location; buyer and seller receive real-time updates.
+
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant Buyer
+    participant Server
+    participant Driver
+    participant Database
+
+    Buyer->>Server: Submit Order
+    Server->>Database: Create Order Record
+    Server->>Payment Gateway: Process Payment
+    Payment Gateway-->>Server: Payment Confirmation
+    Server-->>Buyer: Order Confirmation
+
+    Driver->>Server: Request Available Orders
+    Server->>Database: Fetch Pending Orders
+    Server-->>Driver: List of Orders
+
+    Driver->>Server: Accept Order
+    Server->>Database: Update Order Status
+
+    Driver->>Server: Update Location/Status
+    Server->>Database: Save Updates
+    Server-->>Buyer: Notify Status Change
+    Server-->>Seller: Notify Status Change
+```
+
+### Main Files Involved
+
+| Step                     | File(s) Involved              |
+| ------------------------ | ----------------------------- |
+| Buyer Checkout           | `/app/checkout/page.tsx`      |
+| Order Creation & Payment | `/app/api/orders/route.ts`    |
+| Driver Accepts Order     | `/app/driver/orders/page.tsx` |
+| Tracking Updates         | `/app/api/tracking/route.ts`  |
+
+### Database Tables
+
+| Table Name       | Purpose                                      |
+| ---------------- | -------------------------------------------- |
+| `orders`         | Stores order details and statuses            |
+| `order_items`    | Items associated with each order             |
+| `drivers`        | Driver profiles and statuses                 |
+| `order_tracking` | Tracks real-time location and status updates |
