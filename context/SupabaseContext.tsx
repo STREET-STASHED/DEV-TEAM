@@ -103,9 +103,13 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const signIn = async (
-    { email, password }: { email: string; password: string }
-  ) => {
+  const signIn = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
     setLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -115,9 +119,13 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     return { data, error };
   };
 
-  const signUp = async (
-    { email, password }: { email: string; password: string }
-  ) => {
+  const signUp = async ({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }) => {
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email,

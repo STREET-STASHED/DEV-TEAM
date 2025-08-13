@@ -107,7 +107,7 @@ export default function SignupPage() {
               Authorization: `Bearer ${access_token}`,
             },
             body: JSON.stringify({ user_id }),
-          }
+          },
         );
 
         const redirectData = await redirectResponse.json();

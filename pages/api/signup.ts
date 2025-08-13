@@ -148,12 +148,12 @@ export default async function handler(
         normalizedRole === "buyer"
           ? "/marketplace"
           : normalizedRole === "seller"
-          ? "/seller/dashboard"
-          : normalizedRole === "stylist"
-          ? "/stylist/dashboard"
-          : normalizedRole === "driver"
-          ? "/driver/dashboard"
-          : "/onboarding",
+            ? "/seller/dashboard"
+            : normalizedRole === "stylist"
+              ? "/stylist/dashboard"
+              : normalizedRole === "driver"
+                ? "/driver/dashboard"
+                : "/onboarding",
       message: "Signup successful",
     });
   } catch (err: any) {
