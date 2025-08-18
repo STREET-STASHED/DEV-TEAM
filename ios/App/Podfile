@@ -34,6 +34,8 @@ post_install do |installer|
       config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
       # Suppress auto property synthesis warnings for Capacitor plugins
       config.build_settings['CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS'] = 'NO'
+      # Additional warning flags to silence Capacitor plugin warnings
+      config.build_settings['OTHER_WARNING_FLAGS'] = '$(inherited) -Wno-auto-property-synthesis'
     end
   end
 end
