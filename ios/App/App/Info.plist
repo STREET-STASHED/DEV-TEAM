@@ -63,7 +63,7 @@
 				<key>NSIncludesSubdomains</key><true/>
 			</dict>
 			<!-- Add your Mac's LAN IP here for device testing -->
-			<key>192.168.1.23</key>
+			<key>10.0.0.210</key>
 			<dict>
 				<key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
 				<key>NSIncludesSubdomains</key><true/>

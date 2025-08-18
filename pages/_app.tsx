@@ -10,6 +10,9 @@ import ProtectedLayout from "../components/ProtectedLayout";
 import { supabase } from "../lib/supabaseClient";
 import CartDrawer from "../components/CartDrawer";
 
+// Check if running in Capacitor WebView
+const isCapacitor = typeof window !== 'undefined' && window.Capacitor;
+
 async function handleRedirect(router: NextRouter) {
   try {
     const {
@@ -66,6 +69,12 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   );
 
   const [hasHandledRedirect, setHasHandledRedirect] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Handle hydration for Capacitor WebView
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   useEffect(() => {
     const runRedirect = async () => {
@@ -77,6 +86,22 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
     void runRedirect();
   }, [router.pathname, router.isReady, hasHandledRedirect, router]);
+
+  // Show loading state until hydrated in Capacitor
+  if (isCapacitor && !isHydrated) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <SupabaseProvider>
