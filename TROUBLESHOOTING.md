@@ -122,6 +122,18 @@ If this works, the issue is with your dev server connectivity.
 - **Cause**: User Script Sandboxing blocking CocoaPods
 - **Fix**: Disable User Script Sandboxing in Build Settings
 
+### "Command SwiftCompile failed with a nonzero exit code" / "double-quoted include in framework header"
+
+- **Cause**: Capacitor/Cordova header include style conflicts
+- **Fix**: Reinstall CocoaPods dependencies
+```bash
+cd ios/App
+pod deintegrate
+pod install
+cd ../..
+pnpm run native:sync
+```
+
 ### White screen in app
 
 - **Cause**: Network connectivity or ATS blocking
