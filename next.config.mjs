@@ -2,6 +2,11 @@ import process from "process";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // App Router (React 18+ features)
+  experimental: {
+    appDir: true,
+  },
+  
   // Production optimizations
   poweredByHeader: false,
   compress: true,

@@ -42,6 +42,7 @@
     "@supabase/supabase-js": "^2.52.0",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-table": "^8.21.3",
     "@types/google.maps": "^3.58.1",
     "axios": "^1.10.0",
