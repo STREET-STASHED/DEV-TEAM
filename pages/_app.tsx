@@ -42,7 +42,7 @@ async function handleRedirect(router: NextRouter) {
       const text = await response.text();
       console.log("[APP REDIRECT STATUS]", response.status);
       console.log("[APP REDIRECT RAW]", text);
-      data = JSON.parse(text);
+      data = text ? JSON.parse(text) : null;
     } catch (err) {
       console.error("[APP REDIRECT ERROR] Failed to parse JSON:", err);
       return;

@@ -8,7 +8,7 @@ const nextConfig = {
   generateEtags: true,
 
   // Security headers
-  async headers() {
+  headers() {
     return [
       {
         source: "/(.*)",
@@ -84,7 +84,7 @@ const nextConfig = {
   },
 
   // Webpack configuration for production
-  webpack: async (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer }) => {
     // Production optimizations
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
@@ -107,13 +107,9 @@ const nextConfig = {
 
     // Bundle analyzer (optional)
     if (process.env.ANALYZE === "true") {
-      const { BundleAnalyzerPlugin } = await import("webpack-bundle-analyzer");
-      config.plugins.push(
-        new BundleAnalyzerPlugin({
-          analyzerMode: "static",
-          openAnalyzer: false,
-        }),
-      );
+      // Note: BundleAnalyzerPlugin would need to be imported synchronously
+      // For now, we'll skip it to avoid async issues
+      console.log("Bundle analyzer disabled to avoid async config");
     }
 
     // Handle SVG imports
@@ -137,7 +133,7 @@ const nextConfig = {
   },
 
   // Redirects for SEO and user experience
-  async redirects() {
+  redirects() {
     return [
       {
         source: "/home",
@@ -153,7 +149,7 @@ const nextConfig = {
   },
 
   // Rewrites for API proxying (if needed)
-  async rewrites() {
+  rewrites() {
     return [
       {
         source: "/api/health",
@@ -188,6 +184,9 @@ const nextConfig = {
     // number of pages that should be kept simultaneously without being disposed
     pagesBufferLength: 2,
   },
+
+  // Allow Capacitor development origins
+  allowedDevOrigins: ['http://10.0.0.210:3000', 'capacitor://localhost'],
 
   // Trailing slash configuration
   // trailingSlash is set above for export

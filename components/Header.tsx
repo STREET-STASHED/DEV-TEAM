@@ -3,15 +3,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, type NextRouter } from "next/router";
 import { useCart } from "@/context/CartContext";
+import { useIsClient } from "@/lib/useIsClient";
 
 const SiteHeader: React.FC = () => {
   const [user, _setUser] = useState<{ email?: string } | null>(null);
   const [role, _setRole] = useState<string | null>(null);
   const router = useRouter();
-
-  // For SSR safety, don't use cart context during static generation
-  // The cart functionality will be available on the client side
-  const isClient = typeof window !== "undefined";
+  const isClient = useIsClient();
+  
+  // Always call hooks at top level, even if we don't use them during SSR
+  const cart = useCart();
 
   // Simple header for SSR
   if (!isClient) {
@@ -44,7 +45,7 @@ const SiteHeader: React.FC = () => {
   }
 
   // Client-side component with hooks
-  return <ClientHeader user={user} role={role} setUser={_setUser} setRole={_setRole} router={router} />;
+  return <ClientHeader user={user} role={role} setUser={_setUser} setRole={_setRole} router={router} cart={cart} />;
 };
 
 // Separate client component to avoid conditional hooks
@@ -54,9 +55,9 @@ const ClientHeader: React.FC<{
   setUser: (user: { email?: string } | null) => void;
   setRole: (role: string | null) => void;
   router: NextRouter;
-}> = ({ user, role, setUser, setRole, router }) => {
-  // Client-side cart functionality - always call hook at top level
-  const cart = useCart();
+  cart: ReturnType<typeof useCart>; // Pass cart from parent to avoid conditional hook
+}> = ({ user, role, setUser, setRole, router, cart }) => {
+  // Client-side cart functionality - cart passed from parent
   const toggleCart = cart?.toggleCart || (() => console.log("Cart not available"));
 
   console.log("Header rendered");
@@ -70,13 +71,6 @@ const ClientHeader: React.FC<{
     localStorage.clear();
     window.location.href = "/";
   };
-
-  // The original useEffect and handleLogout are removed as they are not in the new_code.
-  // The userGreeting and return block are also removed as they are not in the new_code.
-
-  // The new_code introduces a new component structure and a different header.
-  // The original file's header is replaced by the new_code's header.
-  // The original file's h-20 spacer is removed as the new_code's header has its own height.
 
   return (
     <>
@@ -167,7 +161,6 @@ const ClientHeader: React.FC<{
           </div>
         </div>
       </header>
-      {/* The h-20 spacer is removed as the new_code's header has its own height. */}
     </>
   );
 };

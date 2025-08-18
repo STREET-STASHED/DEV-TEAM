@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { User } from "@supabase/supabase-js";
+import { safeJsonParse } from "@/lib/safeJson";
 
 export interface CartItem {
   id: string;
@@ -63,7 +64,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed: GuestCartPayload = JSON.parse(stored);
+        const parsed: GuestCartPayload = safeJsonParse(stored, { items: [], timestamp: 0 });
         if (parsed?.items?.length > 0) {
           setItems(parsed.items);
         }
@@ -301,7 +302,7 @@ function getGuestCart(): CartItem[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
-    const parsed: GuestCartPayload = JSON.parse(stored);
+    const parsed: GuestCartPayload = safeJsonParse(stored, { items: [], timestamp: 0 });
     const expired = Date.now() - parsed.timestamp > EXPIRY_MS;
     return expired ? [] : parsed.items;
   } catch {
