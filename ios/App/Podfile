@@ -32,6 +32,8 @@ post_install do |installer|
       config.build_settings['CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER'] = 'NO'
       # Don't treat warnings as errors for pods
       config.build_settings['GCC_TREAT_WARNINGS_AS_ERRORS'] = 'NO'
+      # Suppress auto property synthesis warnings for Capacitor plugins
+      config.build_settings['CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS'] = 'NO'
     end
   end
 end
