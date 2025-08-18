@@ -52,7 +52,7 @@ const BookStylist = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-4">Book a Stylist</h1>
-      <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 max-w-md">
         <div>
           <label className="block font-medium mb-1">Choose Stylist:</label>
           <select

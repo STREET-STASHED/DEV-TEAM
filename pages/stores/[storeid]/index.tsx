@@ -1,7 +1,17 @@
 // pages/stores/[store_id]/index.tsx
-import React from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { useCart } from "../../../context/CartContext";
+import CartAnimation from "../../../components/CartAnimation";
+import Link from "next/link";
+import Image from "next/image";
+
+// Disable static generation to prevent context issues
+export const getServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};
 
 const demoStores = [
   {
@@ -100,7 +110,19 @@ const demoProducts = [
 const Storefront: React.FC = () => {
   const router = useRouter();
   const { store_id } = router.query as { store_id?: string };
-  const { addItem, hasItem } = useCart();
+  const cart = useCart();
+  const [showCartAnimation, setShowCartAnimation] = useState(false);
+
+  // Handle case where cart context might not be available during SSR
+  if (!cart) {
+    return (
+      <div style={{ padding: 20 }}>
+        <p>Loading cart...</p>
+      </div>
+    );
+  }
+
+  const { addItem, hasItem } = cart;
 
   if (!store_id) {
     return <p style={{ padding: 20 }}>Loading storefront…</p>;
@@ -114,7 +136,7 @@ const Storefront: React.FC = () => {
         <h1>Store Not Found</h1>
         <p>The store you are looking for does not exist.</p>
         <p style={{ marginTop: 20 }}>
-          <a href="/stores">← Back to all stores</a>
+          <Link href="/stores">← Back to all stores</Link>
         </p>
       </div>
     );
@@ -124,6 +146,10 @@ const Storefront: React.FC = () => {
 
   return (
     <div style={{ padding: 20 }}>
+      <CartAnimation
+        isVisible={showCartAnimation}
+        onAnimationComplete={() => setShowCartAnimation(false)}
+      />
       <h1>{store.name}</h1>
       {store.description && <p>{store.description}</p>}
 
@@ -139,9 +165,11 @@ const Storefront: React.FC = () => {
             key={item.id}
             style={{ border: "1px solid #ddd", borderRadius: 8, padding: 12 }}
           >
-            <img
+            <Image
               src={item.image_url || "/placeholder.png"}
               alt={item.name}
+              width={240}
+              height={240}
               style={{ width: "100%", borderRadius: 6, marginBottom: 8 }}
             />
             <h3>{item.name}</h3>
@@ -149,15 +177,16 @@ const Storefront: React.FC = () => {
               <strong>${item.price.toFixed(2)}</strong>
             </p>
             <button
-              onClick={() =>
+              onClick={() => {
                 addItem({
                   id: item.id,
                   name: item.name,
                   price: item.price,
-                  image: item.image_url,
+                  image_url: item.image_url,
                   quantity: 1,
-                })
-              }
+                });
+                setShowCartAnimation(true);
+              }}
               disabled={hasItem && hasItem(item.id)}
               style={{
                 marginTop: 8,
@@ -177,7 +206,7 @@ const Storefront: React.FC = () => {
       </div>
 
       <p style={{ marginTop: 20 }}>
-        <a href="/stores">← Back to all stores</a>
+        <Link href="/stores">← Back to all stores</Link>
       </p>
     </div>
   );

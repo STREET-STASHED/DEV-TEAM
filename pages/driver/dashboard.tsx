@@ -1,294 +1,493 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import Layout from "@/components/Layout";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   TruckIcon,
+  MapPinIcon,
+  PhoneIcon,
+  ClockIcon,
   CurrencyDollarIcon,
-  StarIcon,
-  ClipboardCheckIcon,
-  MapIcon,
-} from "@heroicons/react/outline";
-import { Progress } from "@/components/ui/progress";
+} from "@heroicons/react/24/outline";
+import Image from "next/image";
+// import PushNotifications, {
+//   useNotifications,
+// } from "../../../components/PushNotifications";
+// import { useNotifications } from "../../../components/PushNotifications";
 
-export default function DriverDashboard() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const [driver, setDriver] = useState<any>(null);
-  const [stats, setStats] = useState<any>(null);
-  const [orders, setOrders] = useState<any[]>([]);
-  const [availableOrders, setAvailableOrders] = useState<any[]>([]);
+interface DriverOrder {
+  id: string;
+  buyer_name: string;
+  buyer_address: string;
+  buyer_phone: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    image?: string;
+    price?: number; // Added price to the item interface
+  }>;
+  total: number;
+  status: "assigned" | "picked_up" | "en_route" | "delivered";
+  estimated_delivery: string;
+  pickup_location: string;
+  delivery_location: string;
+  created_at: string;
+}
 
-  const fetchData = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+const DriverDashboard: React.FC = () => {
+  // const { addNotification } = useNotifications();
+  const [isOnline, setIsOnline] = useState(true);
+  const [currentLocation, setCurrentLocation] = useState({
+    lat: 40.7128,
+    lng: -74.006,
+  });
+  const [orders, setOrders] = useState<DriverOrder[]>([]);
 
-    if (user) {
-      // setDriver(user);
+  // Mock orders data - in production, fetch from API
+  useEffect(() => {
+    setTimeout(() => {
+      const mockOrders: DriverOrder[] = [
+        {
+          id: "order-1",
+          buyer_name: "John Smith",
+          buyer_address: "123 Main St, New York, NY 10001",
+          buyer_phone: "+1 (555) 123-4567",
+          items: [
+            {
+              name: "Nike Air Jordan 1 Retro High OG",
+              quantity: 1,
+              image: "/mock/sneaker1.jpg",
+              price: 89.99, // Added price for mock data
+            },
+          ],
+          total: 89.99,
+          status: "assigned",
+          estimated_delivery: new Date(
+            Date.now() + 45 * 60 * 1000,
+          ).toISOString(),
+          pickup_location: "456 Fashion Ave, New York, NY 10018",
+          delivery_location: "123 Main St, New York, NY 10001",
+          created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+        },
+        {
+          id: "order-2",
+          buyer_name: "Sarah Johnson",
+          buyer_address: "789 Park Ave, New York, NY 10021",
+          buyer_phone: "+1 (555) 987-6543",
+          items: [
+            {
+              name: "Adidas Ultraboost 22",
+              quantity: 1,
+              image: "/mock/default-product.jpg",
+              price: 129.99, // Added price for mock data
+            },
+          ],
+          total: 129.99,
+          status: "picked_up",
+          estimated_delivery: new Date(
+            Date.now() + 20 * 60 * 1000,
+          ).toISOString(),
+          pickup_location: "321 Sneaker St, New York, NY 10016",
+          delivery_location: "789 Park Ave, New York, NY 10021",
+          created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        },
+      ];
 
-      const { data: statsData } = await supabase
-        .from("driver_stats")
-        .select("*")
-        .eq("driver_id", user.id)
-        .single();
-      setStats(statsData);
+      setOrders(mockOrders);
+      // setIsLoading(false); // This line was removed as per the new_code
 
-      const { data: completedOrders } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("driver_id", user.id)
-        .eq("status", "delivered");
-      setOrders(completedOrders || []);
+      // addNotification({
+      //   type: "info",
+      //   title: "New Orders Available",
+      //   message: "You have 2 new delivery assignments",
+      //   action: {
+      //     label: "View Orders",
+      //     onClick: () => console.log("View orders"),
+      //   },
+      // });
+    }, 1000);
+  }, []);
 
-      const { data: openOrders } = await supabase
-        .from("orders")
-        .select("*")
-        .is("driver_id", null)
-        .eq("status", "pending");
-      setAvailableOrders(openOrders || []);
+  // Get current location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCurrentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          // addNotification({
+          //   type: "warning",
+          //   title: "Location Access",
+          //   message: "Please enable location access for better tracking",
+          // });
+        },
+      );
+    }
+  }, []);
 
-      const now = new Date();
-      const startOfMonth = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1,
-      ).toISOString();
-      const today = now.toISOString().split("T")[0];
+  // Simulate location updates
+  useEffect(() => {
+    if (isOnline) {
+      const interval = setInterval(() => {
+        setCurrentLocation((prev) => ({
+          lat: prev.lat + (Math.random() - 0.5) * 0.001,
+          lng: prev.lng + (Math.random() - 0.5) * 0.001,
+        }));
+      }, 10000); // Update every 10 seconds
 
-      const { data: monthly } = await supabase
-        .from("orders")
-        .select("driver_pay")
-        .eq("driver_id", user.id)
-        .eq("status", "delivered")
-        .gte("created_at", startOfMonth);
+      return () => clearInterval(interval);
+    }
+  }, [isOnline]);
 
-      const { data: daily } = await supabase
-        .from("orders")
-        .select("driver_pay")
-        .eq("driver_id", user.id)
-        .eq("status", "delivered")
-        .gte("created_at", `${today}T00:00:00`);
+  const handleStatusUpdate = (
+    orderId: string,
+    newStatus: DriverOrder["status"],
+  ) => {
+    setOrders((prev) =>
+      prev.map((order) =>
+        order.id === orderId ? { ...order, status: newStatus } : order,
+      ),
+    );
 
-      const monthlyTotal =
-        monthly?.reduce((sum, o) => sum + o.driver_pay, 0) || 0;
-      const dailyTotal = daily?.reduce((sum, o) => sum + o.driver_pay, 0) || 0;
-
-      setStats((prev: any) => ({
-        ...prev,
-        monthly_earnings: monthlyTotal,
-        daily_earnings: dailyTotal,
-      }));
+    const order = orders.find((o) => o.id === orderId);
+    if (order) {
+      // addNotification({
+      //   type: "success",
+      //   title: "Status Updated",
+      //   message: `Order #${orderId.slice(0, 8)} status changed to ${newStatus}`,
+      // });
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const handleToggleOnline = () => {
+    setIsOnline(!isOnline);
+    // addNotification({
+    //   type: isOnline ? "warning" : "success",
+    //   title: isOnline ? "Going Offline" : "Going Online",
+    //   message: isOnline
+    //     ? "You are now offline"
+    //     : "You are now available for orders",
+    // });
+  };
+
+  const handleContactBuyer = (_order: DriverOrder) => {
+    // addNotification({
+    //   type: "info",
+    //   title: "Contacting Buyer",
+    //   message: `Calling ${order.buyer_name} at ${order.buyer_phone}`,
+    // });
+  };
+
+  const getStatusColor = (status: DriverOrder["status"]) => {
+    switch (status) {
+      case "assigned":
+        return "bg-yellow-100 text-yellow-800";
+      case "picked_up":
+        return "bg-blue-100 text-blue-800";
+      case "en_route":
+        return "bg-purple-100 text-purple-800";
+      case "delivered":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusIcon = (status: DriverOrder["status"]) => {
+    switch (status) {
+      case "assigned":
+        return <ClockIcon className="h-4 w-4" />;
+      case "picked_up":
+        return <TruckIcon className="h-4 w-4" />;
+      case "en_route":
+        return <MapPinIcon className="h-4 w-4" />;
+      case "delivered":
+        return <CurrencyDollarIcon className="h-4 w-4" />;
+      default:
+        return <ClockIcon className="h-4 w-4" />;
+    }
+  };
+
+  // if (isLoading) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+  //       <motion.div
+  //         initial={{ opacity: 0, scale: 0.8 }}
+  //         animate={{ opacity: 1, scale: 1 }}
+  //         className="text-center"
+  //       >
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+  //         <p className="text-gray-600">Loading driver dashboard...</p>
+  //       </motion.div>
+  //     </div>
+  //   );
+  // }
 
   return (
-    <Layout>
-      <div className="p-6 max-w-5xl mx-auto">
-        <header className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center space-x-3">
-            <TruckIcon className="h-10 w-10 text-blue-600" />
-            <div>
-              <h1 className="text-3xl font-extrabold text-gray-900">
-                Driver Dashboard
-              </h1>
-              <p className="text-gray-500 text-sm md:text-base">
-                Manage your deliveries and track your performance
-              </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                <TruckIcon className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">
+                  Driver Dashboard
+                </h1>
+                <p className="text-sm text-gray-500">Manage your deliveries</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div
+                  className={`w-3 h-3 rounded-full ${isOnline ? "bg-green-500" : "bg-red-500"}`}
+                ></div>
+                <span className="text-sm text-gray-600">
+                  {isOnline ? "Online" : "Offline"}
+                </span>
+              </div>
+
+              <button
+                onClick={handleToggleOnline}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isOnline
+                    ? "bg-red-600 text-white hover:bg-red-700"
+                    : "bg-green-600 text-white hover:bg-green-700"
+                }`}
+              >
+                {isOnline ? "Go Offline" : "Go Online"}
+              </button>
             </div>
           </div>
-        </header>
-
-        {stats &&
-          (() => {
-            const getNextTierThreshold = (current: number) => {
-              if (current < 20) return 20;
-              if (current < 40) return 40;
-              if (current < 60) return 60;
-              return null;
-            };
-
-            const nextThreshold = getNextTierThreshold(stats.completed_orders);
-            const progress = nextThreshold
-              ? (stats.completed_orders / nextThreshold) * 100
-              : 100;
-
-            return (
-              <section className="mb-10">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  Driver Profile
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <p className="text-gray-500 text-sm">Tier</p>
-                    <p className="text-lg font-bold">{stats.tier}</p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <p className="text-gray-500 text-sm">Badge</p>
-                    <p className="text-lg font-bold">{stats.badge}</p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <CurrencyDollarIcon className="h-6 w-6 text-green-500 mb-1" />
-                    <p className="text-gray-500 text-sm">Total Earnings</p>
-                    <p className="text-lg font-bold">
-                      ${stats.total_earnings.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <ClipboardCheckIcon className="h-6 w-6 text-blue-500 mb-1" />
-                    <p className="text-gray-500 text-sm">
-                      Completed Deliveries
-                    </p>
-                    <p className="text-lg font-bold">
-                      {stats.total_deliveries}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <StarIcon className="h-6 w-6 text-yellow-400 mb-1" />
-                    <p className="text-gray-500 text-sm">Rating</p>
-                    <p className="text-lg font-bold">{stats.rating}/5</p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <p className="text-gray-500 text-sm">Earnings Today</p>
-                    <p className="text-lg font-bold">
-                      ${stats.daily_earnings.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded flex flex-col items-center">
-                    <p className="text-gray-500 text-sm">Earnings This Month</p>
-                    <p className="text-lg font-bold">
-                      ${stats.monthly_earnings.toFixed(2)}
-                    </p>
-                  </div>
-                  <div className="p-4 bg-white shadow rounded col-span-full">
-                    <p className="text-gray-500 text-sm mb-2">
-                      Progress to Next Tier
-                    </p>
-                    <Progress
-                      value={progress}
-                      className="w-full h-3 bg-gray-200 rounded-full"
-                    >
-                      <div
-                        className="bg-blue-600 h-full rounded-full"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </Progress>
-                    {nextThreshold && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        {stats.completed_orders}/{nextThreshold} completed
-                        deliveries
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </section>
-            );
-          })()}
-
-        <section className="mb-10">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Completed Orders
-          </h2>
-          <div className="bg-white shadow rounded border border-gray-200 p-4">
-            {orders.length > 0 ? (
-              <ul className="space-y-4">
-                {orders.map((order) => (
-                  <li
-                    key={order.id}
-                    className="flex flex-wrap items-center justify-between border border-gray-100 rounded p-4 hover:shadow transition-shadow bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-4 flex-wrap gap-3">
-                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
-                        <ClipboardCheckIcon className="h-5 w-5 text-blue-600" />
-                        <span className="font-medium">Order ID:</span>{" "}
-                        <span>{order.id}</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
-                        <MapIcon className="h-5 w-5 text-green-600" />
-                        <span className="font-medium">Distance:</span>{" "}
-                        <span>{order.distance} miles</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-green-700 text-sm md:text-base font-semibold">
-                        <CurrencyDollarIcon className="h-5 w-5" />
-                        <span>Driver Pay: ${order.driver_pay}</span>
-                      </div>
-                    </div>
-                    <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                      {order.status.charAt(0).toUpperCase() +
-                        order.status.slice(1)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">No completed orders.</p>
-            )}
-          </div>
-        </section>
-
-        <section>
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Available Orders
-          </h2>
-          <div className="bg-white shadow rounded border border-gray-200 p-4">
-            {availableOrders.length > 0 ? (
-              <ul className="space-y-4">
-                {availableOrders.map((order) => (
-                  <li
-                    key={order.id}
-                    className="flex flex-wrap items-center justify-between border border-gray-100 rounded p-4 hover:shadow transition-shadow bg-gray-50"
-                  >
-                    <div className="flex items-center space-x-4 flex-wrap gap-3">
-                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
-                        <ClipboardCheckIcon className="h-5 w-5 text-blue-600" />
-                        <span className="font-medium">Order ID:</span>{" "}
-                        <span>{order.id}</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-gray-700 text-sm md:text-base">
-                        <MapIcon className="h-5 w-5 text-green-600" />
-                        <span className="font-medium">Distance:</span>{" "}
-                        <span>{order.distance} miles</span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-yellow-700 text-sm md:text-base font-semibold">
-                        <CurrencyDollarIcon className="h-5 w-5" />
-                        <span>Estimated Pay: ${order.driver_pay}</span>
-                      </div>
-                    </div>
-                    <button
-                      className="mt-2 sm:mt-0 px-5 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors text-sm md:text-base font-semibold"
-                      onClick={async () => {
-                        const {
-                          data: { user },
-                        } = await supabase.auth.getUser();
-                        if (!user) return;
-                        const { error } = await supabase
-                          .from("orders")
-                          .update({ driver_id: user.id, status: "accepted" })
-                          .eq("id", order.id);
-                        if (!error) {
-                          const updated = await supabase
-                            .from("orders")
-                            .select("*")
-                            .eq("driver_id", user.id)
-                            .eq("status", "accepted");
-                          setOrders(updated?.data || []);
-                          fetchData(); // Now it works properly
-                        }
-                      }}
-                    >
-                      Claim Delivery
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-500">No orders available right now.</p>
-            )}
-          </div>
-        </section>
+        </div>
       </div>
-    </Layout>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Current Orders */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Active Orders
+              </h2>
+              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                View All Orders
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <AnimatePresence>
+                {orders.map((order, index) => (
+                  <motion.div
+                    key={order.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          Order #{order.id.slice(0, 8)}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {order.buyer_name}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}
+                      >
+                        {getStatusIcon(order.status)}
+                        <span className="ml-1 capitalize">
+                          {order.status.replace("_", " ")}
+                        </span>
+                      </span>
+                    </div>
+
+                    {/* Order Items */}
+                    <div className="mb-4">
+                      {order.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center space-x-3 mb-2"
+                        >
+                          <Image
+                            src={item.image || "/mock/default-product.jpg"}
+                            alt={item.name}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Qty: {item.quantity}
+                            </p>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            ${item.price || "N/A"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Order Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+                      <div>
+                        <p className="text-gray-500">Pickup:</p>
+                        <p className="text-gray-900">{order.pickup_location}</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Delivery:</p>
+                        <p className="text-gray-900">
+                          {order.delivery_location}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center space-x-3">
+                      <button
+                        onClick={() => handleContactBuyer(order)}
+                        className="flex items-center space-x-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                      >
+                        <PhoneIcon className="h-4 w-4" />
+                        <span>Call Buyer</span>
+                      </button>
+
+                      {order.status === "assigned" && (
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(order.id, "picked_up")
+                          }
+                          className="flex items-center space-x-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                        >
+                          <TruckIcon className="h-4 w-4" />
+                          <span>Mark Picked Up</span>
+                        </button>
+                      )}
+
+                      {order.status === "picked_up" && (
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(order.id, "en_route")
+                          }
+                          className="flex items-center space-x-2 bg-purple-600 text-white px-3 py-2 rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                        >
+                          <MapPinIcon className="h-4 w-4" />
+                          <span>Start Delivery</span>
+                        </button>
+                      )}
+
+                      {order.status === "en_route" && (
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(order.id, "delivered")
+                          }
+                          className="flex items-center space-x-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors text-sm"
+                        >
+                          <CurrencyDollarIcon className="h-4 w-4" />
+                          <span>Mark Delivered</span>
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Right Column - Driver Stats & Location */}
+          <div className="space-y-6">
+            {/* Driver Stats */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Today&apos;s Stats
+              </h3>
+              <div className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Orders Completed</span>
+                  <span className="font-semibold text-gray-900">3</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Earnings</span>
+                  <span className="font-semibold text-green-600">$45.00</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Distance Traveled</span>
+                  <span className="font-semibold text-gray-900">12.5 km</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Online Time</span>
+                  <span className="font-semibold text-gray-900">4h 23m</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Current Location */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Current Location
+              </h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Latitude:</span>
+                  <span className="font-mono text-gray-900">
+                    {currentLocation.lat.toFixed(6)}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Longitude:</span>
+                  <span className="font-mono text-gray-900">
+                    {currentLocation.lng.toFixed(6)}
+                  </span>
+                </div>
+                <div className="pt-3">
+                  <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                    Update Location
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Quick Actions
+              </h3>
+              <div className="space-y-3">
+                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm text-left">
+                  View Earnings Report
+                </button>
+                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm text-left">
+                  Update Profile
+                </button>
+                <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm text-left">
+                  Support Chat
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Push Notifications */}
+      {/* <PushNotifications
+        notifications={notifications}
+        onDismiss={dismissNotification}
+      /> */}
+    </div>
   );
-}
+};
+
+export default DriverDashboard;

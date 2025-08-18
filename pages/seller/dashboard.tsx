@@ -94,9 +94,9 @@ export default function SellerDashboard() {
       }
     };
 
-    fetchSellerTier();
+    void fetchSellerTier();
 
-    if (sellerTier) fetchOrders();
+    if (sellerTier) void fetchOrders();
 
     const ordersSubscription = supabase
       .channel("orders_changes")
@@ -104,13 +104,13 @@ export default function SellerDashboard() {
         "postgres_changes",
         { event: "*", schema: "public", table: "orders" },
         () => {
-          fetchOrders();
+          void fetchOrders();
         },
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(ordersSubscription);
+      void supabase.removeChannel(ordersSubscription);
     };
   }, [sellerTier, fetchOrders]);
 

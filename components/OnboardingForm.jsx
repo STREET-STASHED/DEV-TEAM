@@ -3,12 +3,11 @@ import { useRouter } from "next/router";
 import { supabase } from "@/lib/supabaseClient";
 import { useOnboarding } from "../hooks/useOnboarding";
 
-export default function OnboardingForm({ supabaseClient }) {
+export default function OnboardingForm() {
   const router = useRouter();
   const { submitOnboarding, loading, error } = useOnboarding();
 
   const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({
     full_name: "",
     role: "buyer",
@@ -42,7 +41,6 @@ export default function OnboardingForm({ supabaseClient }) {
       if (error) throw error;
 
       if (data) {
-        setProfile(data);
         setFormData({
           full_name: data.full_name || "",
           role: data.role || "buyer",
@@ -59,7 +57,7 @@ export default function OnboardingForm({ supabaseClient }) {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const result = await submitOnboarding(formData);
+      await submitOnboarding(formData);
       alert("Profile updated successfully!");
       router.push("/dashboard");
     } catch (error) {

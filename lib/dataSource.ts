@@ -32,7 +32,7 @@ export async function getStores() {
 
   if (error) return demoStores;
 
-  return data.map((s: any) => ({
+  return data.map((s: { id: string; name: string; category: string; description: string; image: string; products: Array<{ id: string; name: string; price: number; image: string; type: string; description: string }> }) => ({
     ...s,
     products: s.products || [],
   }));

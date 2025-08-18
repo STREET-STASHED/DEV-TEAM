@@ -11,15 +11,15 @@ export default function DriverIndex() {
 
     const timeout = setTimeout(() => {
       if (!profile) {
-        router.replace("/onboarding/role");
+        void router.replace("/onboarding/role");
       } else if (profile.role === "driver") {
         if (profile.has_completed_onboarding) {
-          router.replace("/driver/dashboard");
+          void router.replace("/driver/dashboard");
         } else {
-          router.replace("/onboarding/verify");
+          void router.replace("/onboarding/verify");
         }
       } else {
-        router.replace("/unauthorized");
+        void router.replace("/unauthorized");
       }
     }, 100);
 

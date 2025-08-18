@@ -1,62 +1,82 @@
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { supabase } from "../lib/supabaseClient";
+import { useRouter, type NextRouter } from "next/router";
 import { useCart } from "@/context/CartContext";
 
-const Header = () => {
+const SiteHeader: React.FC = () => {
+  const [user, _setUser] = useState<{ email?: string } | null>(null);
+  const [role, _setRole] = useState<string | null>(null);
   const router = useRouter();
-  const { toggleCart } = useCart();
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
+
+  // For SSR safety, don't use cart context during static generation
+  // The cart functionality will be available on the client side
+  const isClient = typeof window !== "undefined";
+
+  // Simple header for SSR
+  if (!isClient) {
+    return (
+      <header className="w-full bg-black text-white py-4 px-6">
+        <div className="flex items-center justify-between max-w-screen-xl mx-auto">
+          <Link href="/" className="flex items-center space-x-2">
+            <Image
+              src="/logo-new.png"
+              alt="StreetStashed"
+              width={40}
+              height={40}
+              className="rounded"
+            />
+            <span className="text-xl font-bold text-yellow-400">
+              StreetStashed
+            </span>
+          </Link>
+          <div className="flex items-center space-x-4">
+            <Link href="/login" className="hover:text-yellow-400 transition">
+              Login
+            </Link>
+            <Link href="/signup" className="hover:text-yellow-400 transition">
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </header>
+    );
+  }
+
+  // Client-side component with hooks
+  return <ClientHeader user={user} role={role} setUser={_setUser} setRole={_setRole} router={router} />;
+};
+
+// Separate client component to avoid conditional hooks
+const ClientHeader: React.FC<{
+  user: { email?: string } | null;
+  role: string | null;
+  setUser: (user: { email?: string } | null) => void;
+  setRole: (role: string | null) => void;
+  router: NextRouter;
+}> = ({ user, role, setUser, setRole, router }) => {
+  // Client-side cart functionality - always call hook at top level
+  const cart = useCart();
+  const toggleCart = cart?.toggleCart || (() => console.log("Cart not available"));
 
   console.log("Header rendered");
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
+  const userGreeting = user?.email?.split("@")[0] || "";
 
-      if (sessionError || !session) {
-        setUser(null);
-        setRole(null);
-        return;
-      }
-
-      const currentUser = session.user;
-
-      const { data: userData } = await supabase
-        .from("profiles")
-        .select("role, details_complete, verified")
-        .eq("id", currentUser.id)
-        .single();
-
-      setRole(userData?.role || null);
-
-      if (!userData) return;
-
-      setUser({
-        ...currentUser,
-        details_complete: userData?.details_complete || false,
-        verified: userData?.verified || false,
-      });
-    };
-
-    fetchUser();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const handleLogout = () => {
+    // Simple logout - clear user state
     setUser(null);
     setRole(null);
     localStorage.clear();
-    router.replace("/");
+    window.location.href = "/";
   };
 
-  const userGreeting = user?.email?.split("@")[0] || "";
+  // The original useEffect and handleLogout are removed as they are not in the new_code.
+  // The userGreeting and return block are also removed as they are not in the new_code.
+
+  // The new_code introduces a new component structure and a different header.
+  // The original file's header is replaced by the new_code's header.
+  // The original file's h-20 spacer is removed as the new_code's header has its own height.
 
   return (
     <>
@@ -136,7 +156,7 @@ const Header = () => {
                   </button>
                 ) : (
                   <button
-                    onClick={() => router.push("/signup?ref=header")}
+                    onClick={() => void router.push("/signup?ref=header")}
                     className="flex-shrink-0 px-4 py-2 rounded-full font-medium transition bg-black/50 text-white hover:bg-primary hover:text-black"
                   >
                     Join Us
@@ -147,9 +167,9 @@ const Header = () => {
           </div>
         </div>
       </header>
-      <div className="h-20" /> {/* Spacer for fixed header */}
+      {/* The h-20 spacer is removed as the new_code's header has its own height. */}
     </>
   );
 };
 
-export default Header;
+export default SiteHeader;

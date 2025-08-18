@@ -31,8 +31,8 @@ export default async function handler(
       return res.status(400).json({ error: "Invalid item format" });
     }
 
-    const totalAmount = items.reduce((sum: number, item: any) => {
-      return sum + parseFloat(item.price) * item.quantity;
+    const totalAmount = items.reduce((sum: number, item: { price: number; quantity: number }) => {
+      return sum + parseFloat(item.price.toString()) * item.quantity;
     }, 0);
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -71,10 +71,11 @@ export default async function handler(
       paymentIntentId: paymentIntent.id,
       amount: paymentIntent.amount,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Internal server error";
     console.error("Charge error:", err);
     return res.status(500).json({
-      error: err?.message || "Internal server error",
+      error: errorMessage,
     });
   }
 }

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useOnboarding } from "../hooks/useOnboarding";
+import PropTypes from "prop-types";
 
 export default function OnboardingLayout({ children }) {
   const router = useRouter();
@@ -79,3 +80,7 @@ export default function OnboardingLayout({ children }) {
     </div>
   );
 }
+
+OnboardingLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};

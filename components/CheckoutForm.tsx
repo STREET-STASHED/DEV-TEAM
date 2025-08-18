@@ -2,7 +2,7 @@
 /* eslint-env browser */
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useRouter } from "next/router";
+import { useRouter } from "next/router"; // Pages Router
 import { useCart } from "../context/CartContext";
 import type { CartItem } from "../context/CartContext";
 import { supabase } from "../lib/supabaseClient";
@@ -64,10 +64,10 @@ export default function CheckoutForm({
       }
     };
 
-    fetchProfile();
+    void fetchProfile();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<any>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
@@ -76,71 +76,41 @@ export default function CheckoutForm({
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccess(false);
 
     try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) throw new Error("No user session found");
+      // Build payload for /api/orders
+      const payload = {
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image_url: (item as { image_url?: string; image?: string }).image_url ?? (item as { image?: string }).image ?? null,
+        })),
+        total: totalAmount,
+        city: form.city || undefined,
+        seller_id: (form as { seller_id?: string }).seller_id || undefined,
+      };
 
-      let guestId = null;
-      let buyerId = null;
-      let isGuest = false;
+      const response = await axios.post("/api/orders", payload);
+      const data = response.data;
 
-      if (user) {
-        buyerId = user.id;
-      } else {
-        isGuest = true;
-        guestId = localStorage.getItem("guest_id");
-        if (!guestId) {
-          guestId = crypto.randomUUID();
-          localStorage.setItem("guest_id", guestId);
-        }
-      }
-
-      const endpoint = mode === "cart" ? "/api/orders" : "/api/checkout";
-      const payload =
-        mode === "cart" || mode === "buyer"
-          ? {
-              items,
-              ...form,
-              total: totalAmount,
-              guest_id: guestId,
-              buyer_id: buyerId,
-              is_guest: isGuest,
-            }
-          : {
-              items: [{ ...items[0], quantity: 1 }],
-              ...form,
-              totalAmount,
-              guest_id: guestId,
-              buyer_id: buyerId,
-              is_guest: isGuest,
-            };
-
-      const { data } = await axios.post(endpoint, payload);
-
-      if (data.success) {
+      if (response.status === 201 && data?.id) {
         setSuccess(true);
-      } else {
-        throw new Error(data.message || "Payment failed on server");
-      }
-
-      if (data.orderId) {
-        if (mode === "cart") clearCart();
-        router.push(`/order/${data.orderId}`);
+        if (mode === "cart" || mode === "buyer") clearCart?.();
+        await router.push(`/buyer/order-tracking/${data.id}`);
         return;
       }
-    } catch (err: any) {
-      console.error("Full payment error object:", JSON.stringify(err, null, 2));
-      const errorResponse = err?.response?.data;
+
+      throw new Error(data?.error || "Order creation failed");
+    } catch (err: unknown) {
+      const errorResponse = (err as { response?: { data?: { error?: string; message?: string } } })?.response?.data;
       const message =
         errorResponse?.error ||
         errorResponse?.message ||
-        err?.message ||
-        "An unexpected error occurred";
-      setError(`Payment failed: ${message}`);
+        (err instanceof Error ? err.message : "An unexpected error occurred");
+      setError(`Order failed: ${message}`);
     }
 
     setLoading(false);
@@ -148,68 +118,103 @@ export default function CheckoutForm({
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={(e) => void handleSubmit(e)}
       className="max-w-md mx-auto p-8 border-2 border-black rounded-lg bg-black text-white"
     >
       <h2 className="text-yellow-400 text-2xl font-bold mb-4">
         Secure Checkout
       </h2>
 
+      <label htmlFor="firstName" className="block text-sm font-medium mb-1">
+        First Name
+      </label>
       <input
+        id="firstName"
         name="firstName"
         placeholder="First Name"
         onChange={handleChange}
         value={form.firstName}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
+      <label htmlFor="lastName" className="block text-sm font-medium mb-1">
+        Last Name
+      </label>
       <input
+        id="lastName"
         name="lastName"
         placeholder="Last Name"
         onChange={handleChange}
         value={form.lastName}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
+      <label htmlFor="email" className="block text-sm font-medium mb-1">
+        Email Address
+      </label>
       <input
+        id="email"
         name="email"
         type="email"
         placeholder="Email Address"
         onChange={handleChange}
         value={form.email}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
+      <label htmlFor="address" className="block text-sm font-medium mb-1">
+        Shipping Address
+      </label>
       <input
+        id="address"
         name="address"
         placeholder="Shipping Address"
         onChange={handleChange}
         value={form.address}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
+      <label htmlFor="city" className="block text-sm font-medium mb-1">
+        City
+      </label>
       <input
+        id="city"
         name="city"
         placeholder="City"
         onChange={handleChange}
         value={form.city}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
+      <label htmlFor="state" className="block text-sm font-medium mb-1">
+        State
+      </label>
       <input
+        id="state"
         name="state"
         placeholder="State"
         onChange={handleChange}
         value={form.state}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
+      <label htmlFor="zip" className="block text-sm font-medium mb-1">
+        Zip Code
+      </label>
       <input
+        id="zip"
         name="zip"
         placeholder="Zip Code"
         onChange={handleChange}
         value={form.zip}
         required
+        aria-required="true"
         className="block w-full p-2 mb-3 rounded border border-gray-300"
       />
 

@@ -14,7 +14,6 @@ export default function OnboardingFlow() {
     error,
     navigateToCurrentStep,
     hasCompletedOnboarding,
-    ONBOARDING_STEPS,
   } = useOnboarding();
 
   // Redirect to the appropriate step if user tries to access onboarding directly
@@ -25,7 +24,7 @@ export default function OnboardingFlow() {
         navigateToCurrentStep(); // This will navigate to dashboard
       }
     }
-  }, [loading, profile]);
+  }, [loading, profile, hasCompletedOnboarding, navigateToCurrentStep]);
 
   if (loading) {
     return (

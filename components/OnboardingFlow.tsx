@@ -42,13 +42,13 @@ export default function OnboardingFlow() {
       if (_user) setUser(_user);
     };
 
-    fetchUser();
+    void fetchUser();
   }, [router.pathname, router]);
 
   useEffect(() => {
     if (!user || !router.pathname.startsWith("/onboarding")) return;
-    if ((user as any)?.role !== "authenticated") return;
-    fetchOnboardingStatus();
+    if ((user as { role?: string })?.role !== "authenticated") return;
+    void fetchOnboardingStatus();
   }, [user, router.pathname]);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function OnboardingFlow() {
         stylist: "/stylist/dashboard",
         driver: "/driver/dashboard",
       };
-      router.replace(roleRedirects[role] || "/marketplace");
+      void router.replace(roleRedirects[role] || "/marketplace");
     }
   }, [currentStep, onboardingStatus, user, router]);
 
@@ -176,7 +176,7 @@ export default function OnboardingFlow() {
       case STEPS.VERIFICATION:
         return (
           <VerificationStep
-            onSubmit={handleVerificationSubmission}
+            onSubmit={(documentType, documentUrl, notes) => void handleVerificationSubmission(documentType, documentUrl, notes)}
             role={onboardingStatus?.role ?? ""}
           />
         );
@@ -206,8 +206,7 @@ function VerificationStep({
   onSubmit,
   role: _role,
 }: {
-  // eslint-disable-next-line no-unused-vars
-  onSubmit: (...args: any[]) => void;
+  onSubmit: (documentType: string, documentUrl: string, notes: string) => void;
   role: string;
 }) {
   const [documentType, setDocumentType] = useState("");
@@ -298,7 +297,7 @@ function VerificationStep({
       <h2>Verification Required</h2>
       {renderInstructions(_role)}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => void handleSubmit(e)}>
         <div>
           <label>Document Type</label>
           <select
@@ -319,7 +318,7 @@ function VerificationStep({
           <label>Upload Document</label>
           <input
             type="file"
-            onChange={(e) => uploadDocument(e.target.files![0])}
+            onChange={(e) => void uploadDocument(e.target.files![0])}
             disabled={uploading}
           />
           {uploading && <p>Uploading...</p>}
@@ -356,7 +355,7 @@ function VerificationPendingStep() {
     <div>
       <h2>Verification Pending</h2>
       <p>Your documents have been submitted and are pending review.</p>
-      <p>We'll notify you once your account has been verified.</p>
+      <p>We&apos;ll notify you once your account has been verified.</p>
     </div>
   );
 }

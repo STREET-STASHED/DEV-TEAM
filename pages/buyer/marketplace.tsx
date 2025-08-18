@@ -26,21 +26,29 @@ type Stylist = {
   image_url: string;
 };
 
+// Disable static generation to prevent context issues
+export const getServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};
+
 export default function Marketplace() {
-  const { addItem, hasItem } = useCart();
+  const cart = useCart();
+  // All hooks must be called at the top level, before any conditional returns
   const [stores, setStores] = useState<Store[]>([]);
   const [stylists, setStylists] = useState<Stylist[]>([]);
-  const [selectedTab, setSelectedTab] = useState<"All" | "Stylists" | string>(
-    "All",
-  );
-  const [page, setPage] = useState(1);
+  const [selectedTab, setSelectedTab] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
-  const pageSize = 4;
+  const [page, setPage] = useState(1);
+  const [pageSize] = useState(6);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // All hooks must be called at the top level, before any conditional returns
+  const { addItem, hasItem } = cart;
 
   const categories = [
     "All",
-    "Stylists",
     "Streetwear",
     "Luxury",
     "Essentials",
@@ -62,7 +70,7 @@ export default function Marketplace() {
           },
         );
         const json = await res.json();
-        photoUrls = json.photos.map((p: any) => p.src.medium);
+        photoUrls = json.photos.map((p: { src: { medium: string } }) => p.src.medium);
       } catch (err) {
         console.error("Pexels API error:", err);
       }
@@ -91,7 +99,7 @@ export default function Marketplace() {
       setStores(mock);
     }
 
-    fetchStores();
+    void fetchStores();
   }, []);
 
   useEffect(() => {
@@ -117,8 +125,27 @@ export default function Marketplace() {
       }
     }
 
-    fetchStylists();
+    void fetchStylists();
   }, [selectedTab]);
+
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => entry.isIntersecting && setPage((p) => p + 1),
+      { rootMargin: "200px" },
+    );
+    obs.observe(loadMoreRef.current);
+    return () => obs.disconnect();
+  }, [selectedTab]);
+
+  // Handle case where cart context might not be available during SSR
+  if (!cart) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>Loading cart...</p>
+      </div>
+    );
+  }
 
   const filteredStores =
     selectedTab === "All"
@@ -149,16 +176,6 @@ export default function Marketplace() {
   const filteredStylists = stylists.filter((stylist) =>
     stylist.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-
-  useEffect(() => {
-    if (!loadMoreRef.current) return;
-    const obs = new IntersectionObserver(
-      ([entry]) => entry.isIntersecting && setPage((p) => p + 1),
-      { rootMargin: "200px" },
-    );
-    obs.observe(loadMoreRef.current);
-    return () => obs.disconnect();
-  }, [selectedTab]);
 
   return (
     <Layout>

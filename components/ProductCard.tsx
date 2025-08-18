@@ -1,3 +1,4 @@
+import Image from "next/image";
 import AddToCartButton from "./AddToCartButton";
 import type { CartItem } from "@/context/CartContext";
 
@@ -8,9 +9,11 @@ interface ProductCardProps {
 export default function ProductCard({ item }: ProductCardProps) {
   return (
     <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-transform hover:-translate-y-1">
-      <img
+      <Image
         src={item.image_url || "/fallback.jpg"}
         alt={item.name}
+        width={400}
+        height={192}
         className="w-full h-48 object-cover"
       />
       <div className="p-4 flex flex-col justify-between flex-1">

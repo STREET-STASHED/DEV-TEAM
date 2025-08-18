@@ -34,7 +34,7 @@ const OrderHistory: React.FC = () => {
         console.error("Error loading orders:", error);
       } else {
         const enrichedOrders = await Promise.all(
-          (data || []).map(async (order: any) => {
+          (data || []).map(async (order: { id: string; total: number; status: string; created_at: string; driver_id?: string }) => {
             let driverLocation = undefined;
             if (order.status === "assigned" && order.driver_id) {
               const { data: driverData } = await supabase
@@ -62,7 +62,7 @@ const OrderHistory: React.FC = () => {
       }
       setLoading(false);
     };
-    fetchOrders();
+    void fetchOrders();
   }, []);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ const OrderHistory: React.FC = () => {
           schema: "public",
           table: "orders",
         },
-        (payload: { new: any }) => {
+        (payload: { new: { id: string; total: number; status: string; created_at: string } }) => {
           const updatedOrder: Order = {
             id: Number(payload.new.id),
             total: Number(payload.new.total) || 0,
@@ -99,7 +99,7 @@ const OrderHistory: React.FC = () => {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      void supabase.removeChannel(channel);
     };
   }, []);
 

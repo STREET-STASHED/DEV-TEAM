@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import Image from "next/image";
 import { useCart } from "../context/CartContext";
 
 const CartDrawer: React.FC = () => {
@@ -48,9 +49,11 @@ const CartDrawer: React.FC = () => {
                   key={index}
                   className="flex items-center gap-4 border-b border-gray-700 pb-4"
                 >
-                  <img
+                  <Image
                     src={item.image_url}
                     alt={item.name}
+                    width={80}
+                    height={80}
                     className="w-20 h-20 object-cover rounded"
                   />
                   <div className="flex-1">

@@ -1,19 +1,51 @@
 import haversine from "haversine-distance";
-import React, { useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useCart } from "@/context/CartContext";
 import { calculateStashedSupportFee } from "@/lib/fees";
+import { CartItem } from "@/types/cart";
 
-export default function CheckoutForm() {
-  const { items, totalAmount } = useCart();
+// Disable static generation to prevent context issues
+export const getServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};
+
+export default function Checkout() {
+  const cart = useCart();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   const [email, setEmail] = useState("");
-
-  const [estimatedTime, setEstimatedTime] = useState("");
-  const [fakeDistance, setFakeDistance] = useState(0);
   const [tip, setTip] = useState(0);
+  const [fakeDistance, setFakeDistance] = useState(0);
+  const [estimatedTime, setEstimatedTime] = useState("");
 
-  React.useEffect(() => {
+  // All hooks must be called at the top level, before any conditional returns
+  const { items, totalAmount, stashedFee, setStashedFee } = cart;
+
+  // Subtotal (without fee or tip)
+  const subtotal = useMemo(
+    () =>
+      (items ?? []).reduce(
+        (sum: number, it: CartItem) => sum + (it.price || 0) * (it.quantity ?? 1),
+        0,
+      ),
+    [items],
+  );
+
+  // Helper: recompute the stashed fee from distance + subtotal
+  const recomputeFee = useCallback(
+    (distanceMiles: number) => {
+      const { buyerFee } = calculateStashedSupportFee({
+        distance: distanceMiles,
+        orderTotal: subtotal,
+      });
+      setStashedFee(buyerFee);
+    },
+    [subtotal, setStashedFee],
+  );
+
+  useEffect(() => {
     const buyerCoords = { lat: 40.4406, lng: -79.9959 }; // Replace with dynamic geolocation later
     const storeCoords = { lat: 40.456, lng: -79.9801 }; // Example coordinates; replace with actual seller/store coords
 
@@ -25,14 +57,26 @@ export default function CheckoutForm() {
     else if (distance <= 5) setEstimatedTime("35–55 min");
     else if (distance <= 8) setEstimatedTime("55–70 min");
     else setEstimatedTime("70–90 min");
-  }, []);
 
-  // Updated supportFee model
-  const { buyerFee } = calculateStashedSupportFee({
-    distance: fakeDistance,
-    orderTotal: totalAmount ?? 0,
-  });
-  const supportFee = buyerFee;
+    // Seed fee on initial mount
+    recomputeFee(rounded);
+  }, [recomputeFee]);
+
+  // Keep fee in sync when items or distance change
+  useEffect(() => {
+    recomputeFee(fakeDistance);
+  }, [fakeDistance, items, recomputeFee]);
+
+  if (!cart) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-white text-black dark:bg-black dark:text-white rounded shadow">
+        <p>Loading cart...</p>
+      </div>
+    );
+  }
+
+  // Fee displayed comes from context; totalAmount already includes stashedFee
+  const supportFee = stashedFee ?? 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,8 +87,13 @@ export default function CheckoutForm() {
       address,
       email,
       items,
-      totalAmount,
+      subtotal,
+      supportFee,
+      totalAmount, // subtotal + stashedFee
       tip,
+      grandTotal: (totalAmount ?? 0) + tip,
+      distanceMiles: fakeDistance,
+      eta: estimatedTime,
     };
     console.log("Submitting order:", orderPayload);
     alert("Order submitted successfully!");
@@ -55,7 +104,7 @@ export default function CheckoutForm() {
       <h2 className="text-2xl font-bold">Review and Checkout</h2>
 
       <div className="space-y-4 border-b pb-4">
-        {items?.map((item: any) => (
+        {items?.map((item: CartItem) => (
           <div key={item.id} className="flex justify-between text-sm">
             <span>
               {item.name} x{item.quantity ?? 1}
@@ -67,78 +116,98 @@ export default function CheckoutForm() {
 
       <div className="text-sm space-y-1">
         <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span>${(totalAmount ?? 0).toFixed(2)}</span>
+          <span>Subtotal:</span>
+          <span>${subtotal.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between items-start relative group">
-          <div>
-            <div className="flex items-center space-x-1">
-              <span className="block font-medium">Stashed Support Fee</span>
-              <div className="relative">
-                <span className="text-xs cursor-pointer">ℹ️</span>
-                <div className="absolute left-0 mt-1 w-56 bg-black text-white text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                  Bundled fee covers driver delivery, order support, and
-                  platform operations.
-                </div>
-              </div>
-            </div>
-            <span className="text-xs text-gray-500">
-              Estimated delivery: {estimatedTime}
-            </span>
-          </div>
-          <span className="text-right">${supportFee.toFixed(2)}</span>
+        <div className="flex justify-between">
+          <span>Support Fee:</span>
+          <span>${supportFee.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between items-center">
-          <label className="text-sm">Tip (optional)</label>
-          <input
-            type="number"
-            value={tip}
-            onChange={(e) => setTip(Number(e.target.value))}
-            min={0}
-            step={0.5}
-            className="w-24 border border-gray-300 dark:border-white bg-white dark:bg-black text-black dark:text-white px-2 py-1 rounded text-sm"
-          />
+        <div className="flex justify-between">
+          <span>Tip:</span>
+          <span>${tip.toFixed(2)}</span>
         </div>
-        <div className="flex justify-between font-bold border-t pt-2">
-          <span>Total</span>
-          <span>${((totalAmount ?? 0) + supportFee + tip).toFixed(2)}</span>
+        <div className="flex justify-between font-bold">
+          <span>Total:</span>
+          <span>${((totalAmount ?? 0) + tip).toFixed(2)}</span>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 pt-4">
-        <h3 className="text-lg font-semibold">Shipping Info</h3>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium">Full Name</label>
+          <label htmlFor="name" className="block text-sm font-medium mb-1">
+            Full Name
+          </label>
           <input
             type="text"
+            id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full border border-gray-300 dark:border-white bg-white dark:bg-black text-black dark:text-white px-3 py-2 rounded"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
         <div>
-          <label className="block text-sm font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border border-gray-300 dark:border-white bg-white dark:bg-black text-black dark:text-white px-3 py-2 rounded"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium">Delivery Address</label>
+          <label htmlFor="address" className="block text-sm font-medium mb-1">
+            Delivery Address
+          </label>
           <textarea
+            id="address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             required
-            className="w-full border border-gray-300 dark:border-white bg-white dark:bg-black text-black dark:text-white px-3 py-2 rounded"
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="tip" className="block text-sm font-medium mb-1">
+            Tip (Optional)
+          </label>
+          <select
+            id="tip"
+            value={tip}
+            onChange={(e) => setTip(Number(e.target.value))}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value={0}>No tip</option>
+            <option value={2}>$2</option>
+            <option value={5}>$5</option>
+            <option value={10}>$10</option>
+            <option value={15}>$15</option>
+            <option value={20}>$20</option>
+          </select>
+        </div>
+
+        <div className="bg-gray-50 p-4 rounded-md">
+          <h3 className="font-medium mb-2">Delivery Details</h3>
+          <p className="text-sm text-gray-600">
+            Distance: {fakeDistance} miles
+          </p>
+          <p className="text-sm text-gray-600">
+            Estimated delivery: {estimatedTime}
+          </p>
+        </div>
+
         <button
           type="submit"
-          className="w-full bg-black text-white py-3 rounded text-lg hover:bg-yellow-500 transition"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Place Order
         </button>

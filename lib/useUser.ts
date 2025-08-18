@@ -4,7 +4,7 @@ import { supabase } from "./supabaseClient";
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export function useUser() {
       setIsLoading(false);
     };
 
-    getUserAndProfile();
+    void getUserAndProfile();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {

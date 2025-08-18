@@ -36,7 +36,7 @@ export default function SellerDashboard() {
       }
     };
 
-    loadProfileData();
+    void loadProfileData();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +77,7 @@ export default function SellerDashboard() {
   return (
     <div className="min-h-screen p-6 space-y-6">
       <h2 className="text-2xl font-bold">StreetStashed Seller Dashboard</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             name="ownerName"

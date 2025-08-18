@@ -7,6 +7,8 @@ type Item = {
   name: string;
   price: number;
   image_url: string;
+  category?: string;
+  delivery_tier?: string;
 };
 
 export default function AddToCartButton({ item }: { item: Item }) {
@@ -14,7 +16,12 @@ export default function AddToCartButton({ item }: { item: Item }) {
   const [isAnimating, setIsAnimating] = useState(false);
 
   const handleAdd = () => {
-    addItem({ ...item, quantity: 1 });
+    addItem({
+      ...item,
+      quantity: 1,
+      category: item.category ?? "general",
+      delivery_tier: item.delivery_tier ?? "standard",
+    });
     setIsOpen(true);
     console.log("Cart drawer should now be open");
     setIsAnimating(true);

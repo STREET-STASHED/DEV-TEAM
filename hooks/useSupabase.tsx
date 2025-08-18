@@ -9,15 +9,26 @@ export const useSupabase = () => {
 
   useEffect(() => {
     let mounted = true;
-    // Get initial session
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (error) console.error("getSession error:", error);
-      if (mounted) {
-        setSession(data?.session ?? null);
-        setUser(data?.session?.user ?? null);
-        setLoading(false);
+    
+    const getInitialSession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) console.error("getSession error:", error);
+        if (mounted) {
+          setSession(data?.session ?? null);
+          setUser(data?.session?.user ?? null);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to get initial session:", error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    });
+    };
+    
+    void getInitialSession();
+    
     // Subscribe to auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
@@ -25,6 +36,7 @@ export const useSupabase = () => {
         setUser(newSession?.user ?? null);
       },
     );
+    
     return () => {
       mounted = false;
       listener?.subscription.unsubscribe();

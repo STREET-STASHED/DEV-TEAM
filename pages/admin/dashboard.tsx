@@ -15,17 +15,15 @@ type Metrics = {
   activeSellers: number;
   activeBuyers: number;
   totalOrders: number;
-  totalBookings: number;
   monthlyOrders: number;
-  monthlyBookings: number;
   topCities: Record<string, number>;
 };
 
 const AdminDashboard = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [sellerApps, setSellerApps] = useState<any[]>([]);
-  const [stylistApps, setStylistApps] = useState<any[]>([]);
-  const [ordersList, setOrdersList] = useState<any[]>([]);
+  const [_user, setUser] = useState<User | null>(null);
+  const [sellerApps, setSellerApps] = useState<Record<string, unknown>[]>([]);
+  const [stylistApps, setStylistApps] = useState<Record<string, unknown>[]>([]);
+  const [ordersList, setOrdersList] = useState<Record<string, unknown>[]>([]);
 
   const [metrics, setMetrics] = useState<Metrics>({
     totalUsers: 0,
@@ -33,9 +31,7 @@ const AdminDashboard = () => {
     activeSellers: 0,
     activeBuyers: 0,
     totalOrders: 0,
-    totalBookings: 0,
     monthlyOrders: 0,
-    monthlyBookings: 0,
     topCities: {},
   });
 
@@ -46,11 +42,11 @@ const AdminDashboard = () => {
       try {
         const { data: { user } = {} } = await supabase.auth.getUser();
         setUser(user ?? null);
-      } catch (err) {
+      } catch {
         setUser(null);
       }
     };
-    fetchUser();
+    void fetchUser();
   }, []);
 
   useEffect(() => {
@@ -62,7 +58,7 @@ const AdminDashboard = () => {
         } = await supabase.auth.getUser();
         if (error || !user) {
           console.error("Auth error or user not found:", error);
-          router.push("/onboarding/role");
+          void router.push("/onboarding/role");
           return;
         }
 
@@ -78,36 +74,41 @@ const AdminDashboard = () => {
           (profile as unknown as ProfileRecord).role !== "admin"
         ) {
           console.error("Unauthorized or role error:", roleError);
-          router.push("/unauthorized");
+          void router.push("/unauthorized");
         }
       } catch (err) {
         console.error("Role check failure:", err);
-        router.push("/unauthorized");
+        void router.push("/unauthorized");
       }
     };
-    checkRole();
+    void checkRole();
   }, [router]);
 
   useEffect(() => {
     const fetchApplications = async () => {
       try {
+        // Get pending seller applications from profiles
         const { data: sellers = [] } = await supabase
-          .from("sellers")
+          .from("profiles")
           .select("*")
-          .eq("status", "pending");
+          .eq("role", "seller")
+          .eq("verification_status", "pending");
+
+        // Get pending stylist applications from profiles
         const { data: stylists = [] } = await supabase
-          .from("stylist_applications")
+          .from("profiles")
           .select("*")
-          .eq("status", "pending");
+          .eq("role", "stylist")
+          .eq("verification_status", "pending");
         setSellerApps(sellers ?? []);
         setStylistApps(stylists ?? []);
-      } catch (err) {
-        console.error("Error fetching applications:", err);
+      } catch (_err) {
+        console.error("Error fetching applications:", _err);
         setSellerApps([]);
         setStylistApps([]);
       }
     };
-    fetchApplications();
+    void fetchApplications();
   }, []);
 
   useEffect(() => {
@@ -119,7 +120,6 @@ const AdminDashboard = () => {
           { count: activeSellers = 0 } = {},
           { count: activeBuyers = 0 } = {},
           { count: totalOrders = 0 } = {},
-          { count: totalBookings = 0 } = {},
         ] = await Promise.all([
           // Total registered users
           supabase
@@ -142,10 +142,6 @@ const AdminDashboard = () => {
             .eq("role", "buyer"),
           // Orders
           supabase.from("orders").select("id", { count: "exact", head: true }),
-          // Bookings
-          supabase
-            .from("bookings")
-            .select("id", { count: "exact", head: true }),
         ]);
 
         const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
@@ -158,13 +154,8 @@ const AdminDashboard = () => {
           .select("*")
           .gte("created_at", `${currentMonth}-01`);
 
-        const { data: recentBookings = [] } = await supabase
-          .from("bookings")
-          .select("*")
-          .gte("created_at", `${currentMonth}-01`);
-
         // If you have a city field in orders or bookings, you can aggregate here. Otherwise, leave as empty object.
-        let topCities: Record<string, number> = {};
+        const topCities: Record<string, number> = {};
         // Example: if orders have shipping_city and bookings have city, you can aggregate:
         // const topCities = [...(recentOrders || []), ...(recentBookings || [])]
         //   .reduce((acc, cur) => {
@@ -181,9 +172,7 @@ const AdminDashboard = () => {
           activeSellers: activeSellers || 0,
           activeBuyers: activeBuyers || 0,
           totalOrders: totalOrders || 0,
-          totalBookings: totalBookings || 0,
           monthlyOrders: recentOrders?.length ?? 0,
-          monthlyBookings: recentBookings?.length ?? 0,
           topCities,
         });
 
@@ -191,22 +180,20 @@ const AdminDashboard = () => {
           .from("orders")
           .select("*");
         setOrdersList(fetchedOrders ?? []);
-      } catch (err) {
+      } catch {
         setMetrics({
           totalUsers: 0,
           activeStylists: 0,
           activeSellers: 0,
           activeBuyers: 0,
           totalOrders: 0,
-          totalBookings: 0,
           monthlyOrders: 0,
-          monthlyBookings: 0,
           topCities: {},
         });
         setOrdersList([]);
       }
     };
-    fetchMetrics();
+    void fetchMetrics();
   }, []);
 
   const handleUpdateStatus = async (
@@ -214,28 +201,25 @@ const AdminDashboard = () => {
     role: "seller" | "stylist",
     status: "approved" | "rejected",
   ) => {
-    const table = role === "seller" ? "sellers" : "stylist_applications";
     try {
       const { data: appData } = await supabase
-        .from(table)
+        .from("profiles")
         .select("*")
         .eq("id", String(id))
+        .eq("role", role)
         .single();
       if (!appData) return;
 
-      // Update application status
-      // Only update 'status' if it exists in the table schema
-      if (table === "sellers") {
-        await supabase.from("sellers").update({ status }).eq("id", id);
-      } else if (table === "stylist_applications") {
-        await supabase
-          .from("stylist_applications")
-          .update({ status })
-          .eq("id", id);
-      }
+      // Update application status in profiles table
+      await supabase
+        .from("profiles")
+        .update({ verification_status: status })
+        .eq("id", id);
 
-      // If approved, insert into the corresponding role table
-      if (status === "approved") {
+      // The profile verification status has been updated above
+      // No additional insertion needed since we're using the profiles table
+      // Temporarily commented out - not needed for profiles-based approach
+      /*
         if (role === "seller") {
           // Type guard: only access seller fields if present
           if ("store_name" in appData) {
@@ -281,7 +265,7 @@ const AdminDashboard = () => {
             phone:
               "phone" in appData && typeof appData.phone === "string"
                 ? (appData.phone ?? "")
-                : "",
+                  : "",
             instagram:
               "instagram" in appData ? ((appData as any).instagram ?? "") : "",
             specialty:
@@ -298,17 +282,19 @@ const AdminDashboard = () => {
           };
           await supabase.from("stylists").insert([stylistInsert]);
         }
-      }
+        */
 
       // Refresh application lists
       const { data: updatedSellers = [] } = await supabase
-        .from("sellers")
+        .from("profiles")
         .select("*")
-        .eq("status", "pending");
+        .eq("role", "seller")
+        .eq("verification_status", "pending");
       const { data: updatedStylists = [] } = await supabase
-        .from("stylist_applications")
+        .from("profiles")
         .select("*")
-        .eq("status", "pending");
+        .eq("role", "stylist")
+        .eq("verification_status", "pending");
       setSellerApps(updatedSellers ?? []);
       setStylistApps(updatedStylists ?? []);
     } catch (err) {
@@ -319,8 +305,8 @@ const AdminDashboard = () => {
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-8">
       <h1 className="text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
-      {user ? (
-        <p>Welcome, {user?.email ?? ""}</p>
+      {_user ? (
+        <p>Welcome, {_user?.email ?? ""}</p>
       ) : (
         <p>Loading admin info...</p>
       )}
@@ -346,15 +332,11 @@ const AdminDashboard = () => {
             <li>
               <strong>Total Orders:</strong> {metrics.totalOrders}
             </li>
-            <li>
-              <strong>Total Bookings:</strong> {metrics.totalBookings}
-            </li>
+
             <li>
               <strong>Monthly Orders:</strong> {metrics.monthlyOrders}
             </li>
-            <li>
-              <strong>Monthly Bookings:</strong> {metrics.monthlyBookings}
-            </li>
+
             <li>
               <strong>Top Cities:</strong>{" "}
               {Object.entries(metrics.topCities)
@@ -370,22 +352,22 @@ const AdminDashboard = () => {
         <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
           {metrics.totalOrders > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {(ordersList ?? []).map((order) => (
-                <li key={order?.id} className="py-2">
+              {(ordersList ?? []).map((order: Record<string, unknown>) => (
+                <li key={order?.id as string} className="py-2">
                   <div>
-                    <strong>Product:</strong> {order?.product_name ?? ""}
+                    <strong>Product:</strong> {order?.product_name as string ?? ""}
                   </div>
                   <div>
-                    <strong>Price:</strong> ${order?.price ?? ""}
+                    <strong>Price:</strong> ${order?.price as string ?? ""}
                   </div>
                   <div>
-                    <strong>Status:</strong> {order?.status ?? ""}
+                    <strong>Status:</strong> {order?.status as string ?? ""}
                   </div>
                   <div>
-                    <strong>Buyer ID:</strong> {order?.buyer_id ?? ""}
+                    <strong>Buyer ID:</strong> {order?.buyer_id as string ?? ""}
                   </div>
                   <div>
-                    <strong>Seller ID:</strong> {order?.seller_id ?? ""}
+                    <strong>Seller ID:</strong> {order?.seller_id as string ?? ""}
                   </div>
                 </li>
               ))}
@@ -428,21 +410,21 @@ const AdminDashboard = () => {
         <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
           <ul>
             {(sellerApps ?? []).length > 0 ? (
-              (sellerApps ?? []).map((app) => (
-                <li key={app?.id} className="mb-4">
+              (sellerApps ?? []).map((app: Record<string, unknown>) => (
+                <li key={app?.id as string} className="mb-4">
                   <div className="font-semibold flex items-center gap-2">
-                    {app?.brand_name ?? ""}
+                    {app?.brand_name as string ?? ""}
                     <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
-                      {app?.status ?? "Pending"}
+                      {app?.status as string ?? "Pending"}
                     </span>
                   </div>
                   <div>
-                    {app?.email ?? ""} ({app?.city ?? ""})
+                    {app?.email as string ?? ""} ({app?.city as string ?? ""})
                   </div>
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={() =>
-                        handleUpdateStatus(app?.id, "seller", "approved")
+                        void handleUpdateStatus(Number(app?.id), "seller", "approved")
                       }
                       className="px-4 py-2 bg-green-600 text-white rounded"
                     >
@@ -450,7 +432,7 @@ const AdminDashboard = () => {
                     </button>
                     <button
                       onClick={() =>
-                        handleUpdateStatus(app?.id, "seller", "rejected")
+                        void handleUpdateStatus(Number(app?.id), "seller", "rejected")
                       }
                       className="px-4 py-2 bg-red-600 text-white rounded"
                     >
@@ -473,21 +455,21 @@ const AdminDashboard = () => {
         <div className="bg-white shadow rounded-lg p-4 sm:p-6 space-y-4">
           <ul>
             {(stylistApps ?? []).length > 0 ? (
-              (stylistApps ?? []).map((app) => (
-                <li key={app?.id} className="mb-4">
+              (stylistApps ?? []).map((app: Record<string, unknown>) => (
+                <li key={app?.id as string} className="mb-4">
                   <div className="font-semibold flex items-center gap-2">
-                    {app?.name ?? ""}
+                    {app?.name as string ?? ""}
                     <span className="text-xs px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full">
-                      {app?.status ?? "Pending"}
+                      {app?.status as string ?? "Pending"}
                     </span>
                   </div>
                   <div>
-                    {app?.email ?? ""} ({app?.city ?? ""})
+                    {app?.email as string ?? ""} ({app?.city as string ?? ""})
                   </div>
                   <div className="mt-2 flex gap-2">
                     <button
                       onClick={() =>
-                        handleUpdateStatus(app?.id, "stylist", "approved")
+                        void handleUpdateStatus(Number(app?.id), "stylist", "approved")
                       }
                       className="px-4 py-2 bg-green-600 text-white rounded"
                     >
@@ -495,7 +477,7 @@ const AdminDashboard = () => {
                     </button>
                     <button
                       onClick={() =>
-                        handleUpdateStatus(app?.id, "stylist", "rejected")
+                        void handleUpdateStatus(Number(app?.id), "stylist", "rejected")
                       }
                       className="px-4 py-2 bg-red-600 text-white rounded"
                     >

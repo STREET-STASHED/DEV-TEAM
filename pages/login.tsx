@@ -62,7 +62,7 @@ export default function LoginPage() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto p-4">
+    <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 max-w-md mx-auto p-4">
       <div>
         <label className="block mb-1 font-medium">Email</label>
         <input

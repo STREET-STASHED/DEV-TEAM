@@ -50,11 +50,12 @@ export default function Auth() {
 
       if (data.session) {
         // Redirect to dashboard directly
-        router.push("/dashboard");
+        await router.push("/dashboard");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An error occurred during sign in";
       console.error("Error signing in:", error);
-      setError(error.message || "An error occurred during sign in");
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -94,9 +95,10 @@ export default function Auth() {
 
       setMessage("Success! Please check your email for the confirmation link.");
       setView("sign-in");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An error occurred during sign up";
       console.error("Error signing up:", error);
-      setError(error.message || "An error occurred during sign up");
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -128,9 +130,10 @@ export default function Auth() {
       if (error) throw error;
 
       setMessage("Check your email for the password reset link!");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An error occurred during password reset";
       console.error("Error resetting password:", error);
-      setError(error.message || "An error occurred during password reset");
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -151,9 +154,11 @@ export default function Auth() {
       });
 
       if (error) throw error;
-    } catch (error: any) {
-      console.error(`Error signing in with ${provider}:`, error);
-      setError(error.message || `An error occurred during ${provider} sign in`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "An error occurred during OAuth sign in";
+      console.error("Error signing in with OAuth:", error);
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };
@@ -166,7 +171,7 @@ export default function Auth() {
         {message && <div className="message success">{message}</div>}
         {error && <div className="message error">{error}</div>}
 
-        <form onSubmit={view === "sign-in" ? handleSignIn : handleSignUp}>
+        <form onSubmit={(e) => void (view === "sign-in" ? handleSignIn(e) : handleSignUp(e))}>
           <div className="form-field">
             <label htmlFor="email">Email</label>
             <input
@@ -211,13 +216,13 @@ export default function Auth() {
           <div className="auth-links">
             <button
               className="link"
-              onClick={handlePasswordReset}
+              onClick={() => void handlePasswordReset()}
               disabled={loading || !email}
             >
               Forgot your password?
             </button>
             <p>
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <button className="link" onClick={() => setView("sign-up")}>
                 Sign up
               </button>
@@ -242,20 +247,26 @@ export default function Auth() {
         <p>Or continue with</p>
         <div className="social-buttons">
           <button
-            onClick={() => handleOAuthSignIn("google")}
+            onClick={() => void handleOAuthSignIn("google")}
             className="social-button google"
             disabled={loading}
           >
             Google
           </button>
           <button
-            onClick={() => handleOAuthSignIn("github")}
+            onClick={() => void handleOAuthSignIn("github")}
             className="social-button github"
             disabled={loading}
           >
             GitHub
           </button>
-          {/* Add more social providers as needed */}
+          <button
+            onClick={() => void handleOAuthSignIn("facebook")}
+            className="social-button facebook"
+            disabled={loading}
+          >
+            Facebook
+          </button>
         </div>
       </div>
     </div>

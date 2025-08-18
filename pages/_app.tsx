@@ -75,7 +75,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       }
     };
 
-    runRedirect();
+    void runRedirect();
   }, [router.pathname, router.isReady, hasHandledRedirect, router]);
 
   return (

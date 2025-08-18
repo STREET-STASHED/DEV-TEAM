@@ -21,18 +21,11 @@ const Dashboard: React.FC = () => {
         } = await supabase.auth.getUser();
         if (!user) return;
 
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("id", user.id)
-          .single();
-
-        if (!profile) return;
-
+        // Use the authenticated user's ID directly since orders.buyer_id references users.id
         const { data, error } = await supabase
           .from("orders")
-          .select("id, status, total_price, created_at")
-          .eq("buyer_id", profile.id);
+          .select("id, status, total, created_at")
+          .eq("buyer_id", user.id);
 
         if (error) throw error;
 
@@ -40,8 +33,8 @@ const Dashboard: React.FC = () => {
           (data || []).map((order) => ({
             id: order.id,
             status: order.status ?? undefined,
-            total_price: order.total_price,
-            created_at: order.created_at,
+            total_price: order.total ?? undefined,
+            created_at: order.created_at ?? undefined,
           })),
         );
       } catch (err) {
@@ -51,7 +44,7 @@ const Dashboard: React.FC = () => {
       }
     };
 
-    fetchOrders();
+    void fetchOrders();
   }, []);
 
   return (
@@ -69,7 +62,7 @@ const Dashboard: React.FC = () => {
         </p>
       ) : orders.length === 0 ? (
         <p className="text-gray-500 italic text-center">
-          You haven't placed any orders yet. Start shopping to see them here!
+          You haven&apos;t placed any orders yet. Start shopping to see them here!
         </p>
       ) : (
         orders.map((order) => (

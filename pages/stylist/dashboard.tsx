@@ -111,7 +111,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
         setBookings([]);
       } else {
         const payouts = await Promise.all(
-          (data || []).map((booking: any) =>
+          (data || []).map((booking: { price: number }) =>
             calculateStylistPayoutRPC({
               service_price: booking.price,
               stylist_tier: profileData?.subscription_tier || "Silver",
@@ -120,7 +120,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
         );
 
         setBookings(
-          (data || []).map((booking: any, index: number) => ({
+          (data || []).map((booking: { id: string; client_name?: string; date?: string; status?: string; event_type?: string; outfit_request?: string; price: number }, index: number) => ({
             id: booking.id,
             client_name: booking.client_name || "N/A",
             date: booking.date || "",
@@ -135,7 +135,7 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
       setLoading(false);
     };
 
-    fetchBookings();
+    void fetchBookings();
   }, [userId]);
 
   const updateStatus = async (bookingId: string, status: string) => {
@@ -208,14 +208,14 @@ const Dashboard: React.FC<StylistDashboardProps> = ({ userId }) => {
                 {booking.status === "pending" && (
                   <div style={{ marginTop: "0.5rem" }}>
                     <button
-                      onClick={() => updateStatus(booking.id, "accepted")}
+                      onClick={() => void updateStatus(booking.id, "accepted")}
                       aria-label={`Accept booking for ${booking.client_name}`}
                       style={{ marginRight: "0.5rem" }}
                     >
                       Accept
                     </button>
                     <button
-                      onClick={() => updateStatus(booking.id, "declined")}
+                      onClick={() => void updateStatus(booking.id, "declined")}
                       aria-label={`Decline booking for ${booking.client_name}`}
                     >
                       Decline

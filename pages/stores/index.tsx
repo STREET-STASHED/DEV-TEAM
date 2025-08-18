@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const demoStores = [
   {
@@ -61,9 +62,11 @@ export default function StoresIndex() {
               transition: "box-shadow 0.2s",
             }}
           >
-            <img
+            <Image
               src={store.image}
               alt={store.name}
+              width={260}
+              height={140}
               style={{
                 width: "100%",
                 height: 140,

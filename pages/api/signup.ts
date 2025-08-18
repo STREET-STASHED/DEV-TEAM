@@ -156,10 +156,11 @@ export default async function handler(
                 : "/onboarding",
       message: "Signup successful",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Unknown error";
     console.error(
       "[SIGNUP] Unexpected error:",
-      err instanceof Error ? err.message : err,
+      errorMessage,
     );
     return res.status(500).json({ error: "Server error during signup" });
   }

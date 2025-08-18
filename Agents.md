@@ -1,103 +1,128 @@
-# StreetStashed – AGENTS Guide
+# StreetStashed MVP: Agents and Their Roles
 
-## Scope & Stack
+This document outlines the main agents in the StreetStashed MVP project, describing their purpose, key API endpoints, relevant Supabase tables and RLS (Row-Level Security) policies, and any currently missing features or TODOs.
 
-- Framework: Next.js (App Router where applicable), TypeScript, Tailwind, shadcn/ui
-- Data: Supabase (auth, RLS, Postgres), Edge Functions
-- Roles: buyer, seller, stylist, driver
-- Branch: `master` is default
+---
 
-## What to work on
+## Buyer
 
-- `/app` and `/components` for UI
-- `/lib/supabase` for client/server clients
-- `/supabase` for SQL, policies, and edge functions
-- `/pages/api` or `/app/api` for route handlers (project-appropriate)
+**Purpose:**  
+Buyers are users who browse and purchase items listed on the platform.
 
-## Style & Conventions
+**Key API Endpoints:**
 
-- Type-safe: prefer Zod for input validation
-- Server-first: move secret logic to server/Edge Functions
-- UI: shadcn/ui components, Tailwind classes; mobile-first
-- Commits: conventional style; small diffs
+- `GET /api/items` – Browse available items
+- `POST /api/orders` – Place an order
+- `GET /api/orders/:id` – View order status/history
 
-## How to validate changes
+**Supabase Tables & RLS:**
 
-- Install: `pnpm install`
-- Lint: `pnpm lint`
-- Typecheck: `pnpm tsc --noEmit`
-- Test: `pnpm test` (if present)
-- Build: `pnpm build`
-- Run: `pnpm dev`
+- `items` – Buyers can read all active listings (RLS: public read)
+- `orders` – Buyers can insert (create) and read their own orders (RLS: user_id = auth.uid())
+- `users` – Read-only access to their own profile
 
-## Commands Codex should run
+**Missing Features / TODOs:**
 
-1. `pnpm install`
-2. `pnpm lint && pnpm tsc --noEmit`
-3. `pnpm build`
-4. (if UI-only change) ensure no type/lint errors remain
+- Wishlist/favorites functionality
+- Enhanced order tracking (e.g., notifications)
+- Buyer reviews/ratings for sellers
 
-## PR format
+---
 
-Title: `[MVP] <short change>`
-Body must include:
+## Seller
 
-- Summary
-- Files touched
-- Validation steps + command output
-- Risks & roll-back plan
+**Purpose:**  
+Sellers list items for sale and manage their inventory.
 
-## Request Flow & File Map
+**Key API Endpoints:**
 
-### Request Flow Overview
+- `POST /api/items` – Create new item listing
+- `PATCH /api/items/:id` – Update listing
+- `GET /api/orders?seller_id=...` – View orders for their items
 
-- **Buyer Checkout**: Buyer selects items and submits an order through the UI.
-- **Order Creation & Payment**: Server validates the order, processes payment, and records order details.
-- **Driver Accepts Order**: Driver views available orders and accepts one to deliver.
-- **Tracking Updates**: Driver updates order status and location; buyer and seller receive real-time updates.
+**Supabase Tables & RLS:**
 
-### Sequence Diagram
+- `items` – Sellers can insert and update their own listings (RLS: user_id = auth.uid())
+- `orders` – Read orders where their item is involved (RLS: seller_id = auth.uid())
+- `users` – Read/write own profile
 
-```mermaid
-sequenceDiagram
-    participant Buyer
-    participant Server
-    participant Driver
-    participant Database
+**Missing Features / TODOs:**
 
-    Buyer->>Server: Submit Order
-    Server->>Database: Create Order Record
-    Server->>Payment Gateway: Process Payment
-    Payment Gateway-->>Server: Payment Confirmation
-    Server-->>Buyer: Order Confirmation
+- Bulk upload/editing of items
+- Sales analytics/dashboard
+- Automated payout integration
 
-    Driver->>Server: Request Available Orders
-    Server->>Database: Fetch Pending Orders
-    Server-->>Driver: List of Orders
+---
 
-    Driver->>Server: Accept Order
-    Server->>Database: Update Order Status
+## Stylist
 
-    Driver->>Server: Update Location/Status
-    Server->>Database: Save Updates
-    Server-->>Buyer: Notify Status Change
-    Server-->>Seller: Notify Status Change
-```
+**Purpose:**  
+Stylists provide curation, recommendations, and may manage special inventory.
 
-### Main Files Involved
+**Key API Endpoints:**
 
-| Step                     | File(s) Involved              |
-| ------------------------ | ----------------------------- |
-| Buyer Checkout           | `/app/checkout/page.tsx`      |
-| Order Creation & Payment | `/app/api/orders/route.ts`    |
-| Driver Accepts Order     | `/app/driver/orders/page.tsx` |
-| Tracking Updates         | `/app/api/tracking/route.ts`  |
+- `GET /api/items/recommended` – Fetch stylist-curated items
+- `POST /api/stylist/looks` – Create new curated looks or collections
+- `GET /api/stylist/orders` – View orders involving their curated looks
 
-### Database Tables
+**Supabase Tables & RLS:**
 
-| Table Name       | Purpose                                      |
-| ---------------- | -------------------------------------------- |
-| `orders`         | Stores order details and statuses            |
-| `order_items`    | Items associated with each order             |
-| `drivers`        | Driver profiles and statuses                 |
-| `order_tracking` | Tracks real-time location and status updates |
+- `looks` – Stylists can create and manage their own looks (RLS: stylist_id = auth.uid())
+- `items` – Read access to all items for curation
+- `orders` – Read access to orders involving their looks
+
+**Missing Features / TODOs:**
+
+- Direct messaging between stylists and buyers
+- Stylist analytics (e.g., engagement with looks)
+- Commission tracking or payouts
+
+---
+
+## Driver
+
+**Purpose:**  
+Drivers handle pickup and delivery of items between sellers and buyers.
+
+**Key API Endpoints:**
+
+- `GET /api/driver/assignments` – View assigned pickups/deliveries
+- `PATCH /api/driver/assignments/:id` – Update assignment status (e.g., picked up, delivered)
+
+**Supabase Tables & RLS:**
+
+- `assignments` – Drivers can read/update their own assignments (RLS: driver_id = auth.uid())
+- `orders` – Read-only access to orders related to their assignments
+
+**Missing Features / TODOs:**
+
+- Route optimization
+- Real-time location tracking
+- Proof-of-delivery uploads (e.g., photo, signature)
+
+---
+
+## Admin
+
+**Purpose:**  
+Admins oversee the platform, manage users, listings, and resolve issues.
+
+**Key API Endpoints:**
+
+- `GET /api/admin/users` – Manage user accounts
+- `GET /api/admin/items` – Moderate listings
+- `GET /api/admin/orders` – View/manage all orders
+- `PATCH /api/admin/settings` – Platform configuration
+
+**Supabase Tables & RLS:**
+
+- All tables – Full read/write access (RLS: admin role bypass)
+- `logs` – Access to audit logs
+
+**Missing Features / TODOs:**
+
+- Automated fraud detection
+- Advanced analytics dashboard
+- Bulk moderation tools
+
+---

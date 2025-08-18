@@ -1,23 +1,30 @@
 // components/CartIcon.tsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
+import CartBadge from "./CartBadge";
 
 export default function CartIcon() {
   const { toggleCart, items } = useCart();
+  const [showBadge, setShowBadge] = useState(false);
+
+  // Show badge animation when items change
+  useEffect(() => {
+    if (items && items.length > 0) {
+      setShowBadge(true);
+      const timer = setTimeout(() => setShowBadge(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [items]);
 
   return (
     <div
       onClick={() => {
         toggleCart();
       }}
-      className="relative p-2 cursor-pointer"
+      className="relative p-2 cursor-pointer hover:bg-gray-100 rounded-full transition-colors"
     >
       <span className="text-2xl">🛒</span>
-      {items && items.length > 0 && (
-        <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full animate-bounce">
-          {items.length}
-        </span>
-      )}
+      <CartBadge count={items?.length || 0} isVisible={showBadge} />
     </div>
   );
 }

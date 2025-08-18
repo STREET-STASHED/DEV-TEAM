@@ -1,22 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/router";
 import { supabase } from "../lib/supabaseClient";
+import PropTypes from "prop-types";
 
 export default function ProtectedLayout({ children }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [profileError, setProfileError] = useState(null);
 
-  const publicRoutes = [
+  const publicRoutes = useMemo(() => [
     "/",
     "/welcome",
     "/marketplace",
     "/stores",
     "/stylist-booking",
-  ];
+  ], []);
 
-  const redirectToDashboard = (role) => {
+  const redirectToDashboard = useCallback((role) => {
     switch (role) {
       case "buyer":
         router.replace("/buyer/dashboard");
@@ -33,62 +33,61 @@ export default function ProtectedLayout({ children }) {
       default:
         router.replace("/dashboard");
     }
-  };
+  }, [router]);
+
+  const fetchUserAndRedirect = useCallback(async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setIsLoading(false);
+      if (
+        !router.pathname.startsWith("/auth") &&
+        !publicRoutes.includes(router.pathname)
+      ) {
+        router.replace(`/auth?redirectedFrom=${router.pathname}`);
+      }
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role, onboarding_step")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!data || error) {
+      console.error("Error fetching role from profiles table:", error);
+      setProfileError(error);
+      setIsLoading(false);
+      return;
+    }
+
+    const { role, onboarding_step } = data;
+    setIsLoading(false);
+
+    if (
+      onboarding_step !== "completed" &&
+      router.pathname !== "/onboarding"
+    ) {
+      router.replace("/onboarding");
+      return;
+    }
+
+    if (onboarding_step === "completed") {
+      if (
+        router.pathname === "/onboarding" ||
+        router.pathname === "/dashboard" ||
+        router.pathname === "/"
+      ) {
+        redirectToDashboard(role);
+      }
+    }
+  }, [router, publicRoutes, redirectToDashboard]);
 
   useEffect(() => {
-    const fetchUserAndRedirect = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-
-      if (!user) {
-        setIsLoading(false);
-        if (
-          !router.pathname.startsWith("/auth") &&
-          !publicRoutes.includes(router.pathname)
-        ) {
-          router.replace(`/auth?redirectedFrom=${router.pathname}`);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("role, onboarding_step")
-        .eq("user_id", user.id)
-        .single();
-
-      if (!data || error) {
-        console.error("Error fetching role from profiles table:", error);
-        setProfileError(error);
-        setIsLoading(false);
-        return;
-      }
-
-      const { role, onboarding_step } = data;
-      setIsLoading(false);
-
-      if (
-        onboarding_step !== "completed" &&
-        router.pathname !== "/onboarding"
-      ) {
-        router.replace("/onboarding");
-        return;
-      }
-
-      if (onboarding_step === "completed") {
-        if (
-          router.pathname === "/onboarding" ||
-          router.pathname === "/dashboard" ||
-          router.pathname === "/"
-        ) {
-          redirectToDashboard(role);
-        }
-      }
-    };
-
-    fetchUserAndRedirect();
+    void fetchUserAndRedirect();
 
     const {
       data: { subscription },
@@ -96,20 +95,17 @@ export default function ProtectedLayout({ children }) {
       if (event === "SIGNED_IN") {
         await fetchUserAndRedirect();
       } else if (event === "SIGNED_OUT") {
-        setUser(null);
         if (
           !router.pathname.startsWith("/auth") &&
           !publicRoutes.includes(router.pathname)
         ) {
-          router.replace("/auth");
+          router.replace(`/auth?redirectedFrom=${router.pathname}`);
         }
       }
     });
 
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [router.pathname]);
+    return () => subscription.unsubscribe();
+  }, [fetchUserAndRedirect, router, publicRoutes]);
 
   if (isLoading) {
     return (
@@ -132,3 +128,7 @@ export default function ProtectedLayout({ children }) {
 
   return <>{children}</>;
 }
+
+ProtectedLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+};

@@ -28,11 +28,11 @@ interface SupabaseContextType {
   signIn: (params: {
     email: string;
     password: string;
-  }) => Promise<{ error: any; data: any }>;
+  }) => Promise<{ error: Error | null; data: { user: User | null; session: Session | null } | null }>;
   signUp: (params: {
     email: string;
     password: string;
-  }) => Promise<{ error: any; data: any }>;
+  }) => Promise<{ error: Error | null; data: { user: User | null; session: Session | null } | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -52,47 +52,65 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
 
   // Fetch profile from the database
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    if (error) {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (error) {
+        setProfile(null);
+        return;
+      }
+      setProfile(data);
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
       setProfile(null);
-      return;
     }
-    setProfile(data);
   };
 
   useEffect(() => {
     let mounted = true;
     const getSessionAndProfile = async () => {
-      setLoading(true);
-      const {
-        data: { session: activeSession },
-      } = await supabase.auth.getSession();
-      if (!mounted) return;
-      setSession(activeSession);
-      setUser(activeSession?.user ?? null);
-      if (activeSession?.user) {
-        await fetchProfile(activeSession.user.id);
-      } else {
-        setProfile(null);
-      }
-      setLoading(false);
-    };
-    getSessionAndProfile();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        if (newSession?.user) {
-          await fetchProfile(newSession.user.id);
+      try {
+        setLoading(true);
+        const {
+          data: { session: activeSession },
+        } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSession(activeSession);
+        setUser(activeSession?.user ?? null);
+        if (activeSession?.user) {
+          await fetchProfile(activeSession.user.id);
         } else {
           setProfile(null);
         }
         setLoading(false);
+      } catch (error) {
+        console.error("Failed to get session:", error);
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+    
+    void getSessionAndProfile();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (_event, newSession) => {
+        try {
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
+          if (newSession?.user) {
+            await fetchProfile(newSession.user.id);
+          } else {
+            setProfile(null);
+          }
+          setLoading(false);
+        } catch (error) {
+          console.error("Auth state change error:", error);
+          setLoading(false);
+        }
       },
     );
 
@@ -100,7 +118,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
       mounted = false;
       authListener.subscription.unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const signIn = async ({
@@ -111,12 +129,17 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     password: string;
   }) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
-    return { data, error };
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      setLoading(false);
+      return { data, error };
+    } catch (error) {
+      setLoading(false);
+      return { error: error as Error, data: null };
+    }
   };
 
   const signUp = async ({
@@ -127,12 +150,17 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     password: string;
   }) => {
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-    setLoading(false);
-    return { data, error };
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      setLoading(false);
+      return { data, error };
+    } catch (error) {
+      setLoading(false);
+      return { error: error as Error, data: null };
+    }
   };
 
   const signOut = async () => {

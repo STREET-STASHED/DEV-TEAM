@@ -1,46 +1,31 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
-import Head from "next/head";
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import Head from 'next/head';
+import type { Database } from '@/lib/supabase/database.types';
 
-export default function AdminTransactionsPage() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
+type OrderRow = Database['public']['Tables']['orders']['Row'];
+
+export default function AdminTransactions() {
+  const [rows, setRows] = useState<OrderRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const { data: orderData } = await supabase
-        .from("orders")
-        .select("*, buyer_id, seller_id")
-        .order("created_at", { ascending: false });
+    void (async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      const { data: bookingData } = await supabase
-        .from("bookings")
-        .select("*, buyer_id, stylist_id")
-        .order("created_at", { ascending: false });
-
-      setOrders(orderData || []);
-      setBookings(bookingData || []);
-    };
-
-    fetchData();
+      if (error) {
+        console.error('load orders failed', error);
+        return;
+      }
+      setRows(data ?? []);
+      setLoading(false);
+    })();
   }, []);
 
-  type PayoutInfo = {
-    total: number;
-    count: number;
-  };
-
-  const sellerPayouts: Record<string, PayoutInfo> = orders.reduce(
-    (acc, order) => {
-      if (!acc[order.seller_id]) {
-        acc[order.seller_id] = { total: 0, count: 0 };
-      }
-      acc[order.seller_id].total += Number(order.price || 0);
-      acc[order.seller_id].count += 1;
-      return acc;
-    },
-    {} as Record<string, PayoutInfo>,
-  );
+  if (loading) return <div>Loading…</div>;
 
   return (
     <>
@@ -56,8 +41,8 @@ export default function AdminTransactionsPage() {
             <table className="min-w-full bg-white border">
               <thead>
                 <tr className="bg-gray-100 border-b">
-                  <th className="py-2 px-4 text-left">Product</th>
-                  <th className="py-2 px-4 text-left">Price</th>
+                  <th className="py-2 px-4 text-left">Order Name</th>
+                  <th className="py-2 px-4 text-left">Total</th>
                   <th className="py-2 px-4 text-left">Buyer ID</th>
                   <th className="py-2 px-4 text-left">Seller ID</th>
                   <th className="py-2 px-4 text-left">Status</th>
@@ -65,15 +50,15 @@ export default function AdminTransactionsPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {rows.map((order) => (
                   <tr key={order.id} className="border-b">
-                    <td className="py-2 px-4">{order.product_name}</td>
-                    <td className="py-2 px-4">${order.price}</td>
-                    <td className="py-2 px-4">{order.buyer_id}</td>
-                    <td className="py-2 px-4">{order.seller_id}</td>
-                    <td className="py-2 px-4">{order.status}</td>
+                    <td className="py-2 px-4">{order.name || 'N/A'}</td>
+                    <td className="py-2 px-4">${order.total || 0}</td>
+                    <td className="py-2 px-4">{order.buyer_id || 'N/A'}</td>
+                    <td className="py-2 px-4">{order.seller_id || 'N/A'}</td>
+                    <td className="py-2 px-4">{order.status || 'N/A'}</td>
                     <td className="py-2 px-4">
-                      {new Date(order.created_at).toLocaleString()}
+                      {order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}
                     </td>
                   </tr>
                 ))}
@@ -82,37 +67,6 @@ export default function AdminTransactionsPage() {
           </div>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-2">All Bookings</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border">
-              <thead>
-                <tr className="bg-gray-100 border-b">
-                  <th className="py-2 px-4 text-left">Event</th>
-                  <th className="py-2 px-4 text-left">Budget</th>
-                  <th className="py-2 px-4 text-left">Buyer ID</th>
-                  <th className="py-2 px-4 text-left">Stylist ID</th>
-                  <th className="py-2 px-4 text-left">Status</th>
-                  <th className="py-2 px-4 text-left">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {bookings.map((booking) => (
-                  <tr key={booking.id} className="border-b">
-                    <td className="py-2 px-4">{booking.event_type}</td>
-                    <td className="py-2 px-4">${booking.budget}</td>
-                    <td className="py-2 px-4">{booking.buyer_id}</td>
-                    <td className="py-2 px-4">{booking.stylist_id}</td>
-                    <td className="py-2 px-4">{booking.status}</td>
-                    <td className="py-2 px-4">
-                      {new Date(booking.created_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
         {/* --- Payout Management Section --- */}
         <section className="mt-12">
           <h2 className="text-xl font-semibold mb-2">Payout Management</h2>
@@ -127,7 +81,18 @@ export default function AdminTransactionsPage() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(sellerPayouts).map(([sellerId, info]) => (
+                {Object.entries(
+                  rows.reduce((acc, order) => {
+                    const sellerId = order.seller_id;
+                    if (!sellerId) return acc;
+                    if (!acc[sellerId]) {
+                      acc[sellerId] = { total: 0, count: 0 };
+                    }
+                    acc[sellerId].total += Number(order.total || 0);
+                    acc[sellerId].count += 1;
+                    return acc;
+                  }, {} as Record<string, { total: number; count: number }>)
+                ).map(([sellerId, info]) => (
                   <tr key={sellerId} className="border-b">
                     <td className="py-2 px-4">{sellerId}</td>
                     <td className="py-2 px-4">{info.count}</td>
@@ -163,16 +128,16 @@ export default function AdminTransactionsPage() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {rows.map((order) => (
                   <tr key={order.id} className="border-b">
-                    <td className="py-2 px-4">{order.seller_id}</td>
+                    <td className="py-2 px-4">{order.seller_id || 'N/A'}</td>
                     <td className="py-2 px-4">
-                      ${Number(order.price || 0).toFixed(2)}
+                      ${Number(order.total || 0).toFixed(2)}
                     </td>
                     <td className="py-2 px-4">Pending</td>
                     <td className="py-2 px-4">Manual</td>
                     <td className="py-2 px-4">
-                      {new Date(order.created_at).toLocaleDateString()}
+                      {order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}
                     </td>
                   </tr>
                 ))}

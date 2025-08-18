@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 export async function callEdge(
   path: string,
-  payload: any = {},
+  payload: Record<string, unknown> = {},
   method = "POST",
 ) {
   const {

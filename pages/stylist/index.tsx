@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import type { FormEvent } from "react";
 
 export default function StylistDashboard() {
   const [form, setForm] = useState({
@@ -40,16 +41,14 @@ export default function StylistDashboard() {
       }
     };
 
-    loadProfileData();
+    void loadProfileData();
   }, []);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus("Submitting...");
 
@@ -87,7 +86,7 @@ export default function StylistDashboard() {
   return (
     <div className="min-h-screen p-6 space-y-6">
       <h2 className="text-2xl font-bold">StreetStashed Stylist Dashboard</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             name="ownerName"

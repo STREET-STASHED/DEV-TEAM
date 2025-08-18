@@ -1,14 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useCart } from "../../context/CartContext";
 import { supabase } from "@/lib/supabase/client";
+import CartAnimation from "../../components/CartAnimation";
+import Image from "next/image";
 
-const ProductList = () => {
-  const { addItem } = useCart();
+// Disable static generation to prevent context issues
+export const getServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};
+
+export default function BuyerIndex() {
+  const cart = useCart();
   const [products, setProducts] = useState<
-    { id: string; name: string; price: number; image_url: string }[]
+    { id: string; name: string; price: number; image_url: string | null }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCartAnimation, setShowCartAnimation] = useState(false);
+
+  // All hooks must be called at the top level, before any conditional returns
+  const { addItem } = cart;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -26,8 +39,17 @@ const ProductList = () => {
       setLoading(false);
     };
 
-    fetchProducts();
+    void fetchProducts();
   }, []);
+
+  // Handle case where cart context might not be available during SSR
+  if (!cart) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p>Loading cart...</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return <div className="p-4 text-center">Loading products...</div>;
@@ -43,6 +65,10 @@ const ProductList = () => {
 
   return (
     <div className="p-4 sm:p-6 bg-black min-h-screen text-gold">
+      <CartAnimation
+        isVisible={showCartAnimation}
+        onAnimationComplete={() => setShowCartAnimation(false)}
+      />
       <h2 className="text-4xl font-extrabold mb-8 text-center uppercase tracking-wide graffiti-text">
         Explore the Drip
       </h2>
@@ -52,9 +78,11 @@ const ProductList = () => {
             key={product.id}
             className="bg-zinc-900 border border-gold rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition duration-300"
           >
-            <img
-              src={product.image_url}
+            <Image
+              src={product.image_url || "/mock/default-product.jpg"}
               alt={product.name}
+              width={400}
+              height={208}
               className="w-full h-52 object-cover"
             />
             <div className="p-4">
@@ -65,15 +93,16 @@ const ProductList = () => {
                 ${product.price}
               </p>
               <button
-                onClick={() =>
+                onClick={() => {
                   addItem({
                     id: product.id,
                     name: product.name,
                     price: product.price,
-                    image: product.image_url,
+                    image_url: product.image_url || "",
                     quantity: 1,
-                  })
-                }
+                  });
+                  setShowCartAnimation(true);
+                }}
                 className="bg-gold text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-400 w-full transition shadow-md"
               >
                 Add to Cart
@@ -84,6 +113,4 @@ const ProductList = () => {
       </div>
     </div>
   );
-};
-
-export default ProductList;
+}

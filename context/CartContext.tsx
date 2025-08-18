@@ -17,8 +17,9 @@ export interface CartItem {
   price: number;
   quantity: number;
   image_url: string;
-  category: string;
-  delivery_tier: "local" | "citywide" | "extended";
+  /** Optional: keep for backward-compat; fee is computed at checkout */
+  category?: string;
+  delivery_tier?: string;
 }
 
 export interface CartContextType {
@@ -29,6 +30,8 @@ export interface CartContextType {
   totalAmount: number;
   isOpen: boolean;
   hydrated: boolean;
+  stashedFee: number;
+  setStashedFee: (_fee: number) => void;
   addItem: (_item: CartItem, _quantity?: number) => void;
   updateQuantity: (_id: string, _quantity: number) => void;
   removeItem: (_id: string) => void;
@@ -83,40 +86,77 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   }, [items]);
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  // "Stashed" service fee is determined at checkout; keep it out of CartItem shape
+  const [stashedFee, setStashedFee] = useState<number>(0);
 
   const isAuthenticated = !!user;
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data?.session?.user ?? null);
-    });
+    const loadUserSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        setUser(data?.session?.user ?? null);
+      } catch (error) {
+        console.error("Failed to load user session:", error);
+        setUser(null);
+      }
+    };
+    
+    void loadUserSession();
   }, []);
 
   useEffect(() => {
     const loadCart = async () => {
-      const guestItems = getGuestCart();
+      try {
+        const guestItems = getGuestCart();
 
-      if (isAuthenticated && user?.id) {
-        const { data: serverItems } = await supabase
-          .from("cart_items")
-          .select("*")
-          .eq("user_id", user.id);
+        if (isAuthenticated && user?.id) {
+          const { data: serverRows } = await supabase
+            .from("cart_items")
+            .select("*")
+            .eq("user_id", user.id);
 
-        const mergedItems = mergeItems(serverItems ?? [], guestItems ?? []);
-        setItems(mergedItems);
+          // Map DB rows -> client CartItem (image -> image_url)
+          const serverItems: CartItem[] = (serverRows ?? []).map(
+            (row: { image: string | null; id: string; name: string; price: number; quantity: number; [key: string]: unknown }) => ({
+              id: row.id,
+              name: row.name,
+              price: row.price,
+              quantity: row.quantity,
+              image_url: row.image ?? "/mock/default-product.jpg",
+              category: (row.category as string) ?? "general",
+              delivery_tier: (row.delivery_tier as string) ?? "standard",
+            }),
+          );
 
-        await supabase.from("cart_items").upsert(
-          mergedItems.map((item) => ({ ...item, user_id: user.id })),
-          { onConflict: "id" },
-        );
+          const mergedItems = mergeItems(serverItems ?? [], guestItems ?? []);
+          setItems(mergedItems);
 
-        clearGuestCart();
-      } else if (guestItems.length > 0) {
-        setItems(guestItems);
+          // Map client -> DB and upsert with composite conflict target
+          await supabase.from("cart_items").upsert(
+            mergedItems.map((item) => ({
+              ...item,
+              image: item.image_url ?? null,
+              user_id: user.id,
+            })),
+            { onConflict: "user_id,id" },
+          );
+
+          clearGuestCart();
+        } else if (guestItems.length > 0) {
+          setItems(guestItems);
+        }
+      } catch (error) {
+        console.error("Failed to load cart:", error);
+        // Fallback to guest cart on error
+        const guestItems = getGuestCart();
+        if (guestItems.length > 0) {
+          setItems(guestItems);
+        }
       }
     };
 
-    loadCart();
+    void loadCart();
   }, [isAuthenticated, user]);
 
   useEffect(() => {
@@ -125,24 +165,44 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
 
   const syncToServer = async (nextItems: CartItem[]): Promise<void> => {
     if (!isAuthenticated || !user?.id) return;
-    await supabase.from("cart_items").upsert(
-      nextItems.map((item) => ({ ...item, user_id: user.id })),
-      { onConflict: "id" },
-    );
+    
+    try {
+      await supabase.from("cart_items").upsert(
+        nextItems.map((item) => ({
+          ...item,
+          image: item.image_url ?? null,
+          user_id: user.id,
+        })),
+        { onConflict: "user_id,id" },
+      );
+    } catch (error) {
+      console.error("Failed to sync cart to server:", error);
+    }
   };
 
   const addItem = (item: CartItem, quantity = 1) => {
     console.log("[CartContext] addItem", item, quantity);
+    const withDefaults: CartItem = {
+      ...item,
+      quantity,
+      category: item.category ?? "general",
+      delivery_tier: item.delivery_tier ?? "standard",
+    };
+
     setItems((prev) => {
-      const exists = prev.find((existingItem) => existingItem.id === item.id);
+      const exists = prev.find(
+        (existingItem) => existingItem.id === withDefaults.id,
+      );
       const next = exists
         ? prev.map((existingItem) =>
-            existingItem.id === item.id
+            existingItem.id === withDefaults.id
               ? { ...existingItem, quantity: existingItem.quantity + quantity }
               : existingItem,
           )
-        : [...prev, { ...item, quantity }];
-      syncToServer(next).catch(console.error);
+        : [...prev, withDefaults];
+      
+      // Handle promise properly
+      void syncToServer(next);
       return next;
     });
   };
@@ -153,7 +213,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
       const next = prev.map((item) =>
         item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item,
       );
-      syncToServer(next).catch(console.error);
+      
+      // Handle promise properly
+      void syncToServer(next);
       return next;
     });
   };
@@ -178,6 +240,13 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const clearCartSync = () => {
+    setItems([]);
+    if (isAuthenticated && user?.id) {
+      void clearCart();
+    }
+  };
+
   const toggleCart = () => setIsOpen((prev) => !prev);
 
   const totalCount = useMemo(
@@ -187,6 +256,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   const totalPrice = useMemo(
     () => items.reduce((sum, i) => sum + i.quantity * i.price, 0),
     [items],
+  );
+  const totalAmount = useMemo(
+    () => totalPrice + stashedFee,
+    [totalPrice, stashedFee],
   );
   const hasItem = (id: string) => {
     return items.some((item) => item.id === id);
@@ -199,13 +272,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
         cartItems: items,
         totalCount,
         totalPrice,
-        totalAmount: totalPrice,
+        totalAmount,
         isOpen,
         hydrated,
+        stashedFee,
+        setStashedFee,
         addItem,
         updateQuantity,
         removeItem,
-        clearCart,
+        clearCart: clearCartSync,
         toggleCart,
         hasItem,
         setIsOpen,

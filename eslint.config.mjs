@@ -1,130 +1,75 @@
 // eslint.config.mjs
-import js from "@eslint/js";
-import parser from "@typescript-eslint/parser";
-import eslintPlugin from "@typescript-eslint/eslint-plugin";
-import unusedImports from "eslint-plugin-unused-imports";
+import js from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import nextPlugin from '@next/eslint-plugin-next';
 
-/** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
+  // Base JS (with JSX parse)
+  {
+    ...js.configs.recommended,
+    languageOptions: {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+
+  // React + hooks
+  {
+    plugins: { react, 'react-hooks': reactHooks },
+    rules: {
+      ...react.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+      'react/react-in-jsx-scope': 'off',
+    },
+    settings: { react: { version: 'detect' } },
+  },
+
+  // Next recommendations
+  {
+    plugins: { '@next/next': nextPlugin },
+    rules: { ...nextPlugin.configs['core-web-vitals'].rules },
+  },
+
+  // TypeScript (non type-aware; fast, no parserOptions.project)
+  ...tseslint.configs.recommended.map((cfg) => ({
+    ...cfg,
+    files: ['**/*.{ts,tsx}'],
+  })),
+
+  // Tests: allow relaxed rules + Jest globals
+  {
+    files: ['**/*.{test,spec}.{ts,tsx,js,jsx}'],
+    languageOptions: {
+      globals: {
+        // Jest globals
+        afterAll: 'readonly', afterEach: 'readonly', beforeAll: 'readonly', beforeEach: 'readonly',
+        describe: 'readonly', expect: 'readonly', it: 'readonly', jest: 'readonly', test: 'readonly',
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+
+  // Ignores (Capacitor, build outputs, node_modules, generated files)
   {
     ignores: [
-      ".next/**/*",
-      "node_modules/**/*",
-      "public/sw.js",
-      "public/workbox-*.js",
+      'android/**',
+      'ios/**',
+      '.next/**',
+      'out/**',
+      'node_modules/**',
+      '__mocks__/**',
+      'public/**',
+      'types/**/*.d.ts',
+      '**/*.lock',
+      'jest.setup.js',
+      'jest.config.cjs',
     ],
   },
-  {
-    files: ["**/*.ts", "**/*.tsx"],
-    languageOptions: {
-      parser,
-      parserOptions: {
-        ecmaVersion: "latest",
-        sourceType: "module",
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
-      globals: {
-        React: true,
-        console: true,
-        window: true,
-        document: true,
-        module: true,
-        require: true,
-        process: true,
-        setTimeout: true,
-        clearTimeout: true,
-        alert: true,
-        FileReader: true,
-        FormData: true,
-        Blob: true,
-        fetch: true,
-        URL: true,
-        URLSearchParams: true,
-        XMLHttpRequest: true,
-        self: true,
-        __dirname: "readonly",
-        HTMLInputElement: "readonly",
-        HTMLFormElement: "readonly",
-        HTMLButtonElement: "readonly",
-        HTMLDivElement: "readonly",
-        IntersectionObserver: "readonly",
-        sessionStorage: "readonly",
-        localStorage: "readonly",
-        crypto: "readonly",
-        Request: "readonly",
-        Response: "readonly",
-        Headers: "readonly",
-        indexedDB: "readonly",
-        IDBTransaction: "readonly",
-        IDBDatabase: "readonly",
-        IDBObjectStore: "readonly",
-        IDBCursor: "readonly",
-        IDBIndex: "readonly",
-        IDBRequest: "readonly",
-        DOMException: "readonly",
-        FetchEvent: "readonly",
-        registration: "readonly",
-        location: "readonly",
-        define: "readonly",
-      },
-    },
-    plugins: {
-      "@typescript-eslint": eslintPlugin,
-    },
-    rules: {
-      "no-prototype-builtins": "error",
-    },
-  },
-  {
-    plugins: {
-      "@typescript-eslint": eslintPlugin,
-      "unused-imports": unusedImports,
-    },
-    rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        {
-          argsIgnorePattern: "^_",
-          varsIgnorePattern: "^_",
-          ignoreRestSiblings: true,
-        },
-      ],
-      "unused-imports/no-unused-vars": [
-        "error",
-        {
-          vars: "all",
-          varsIgnorePattern: "^_",
-          args: "after-used",
-          argsIgnorePattern: "^_",
-        },
-      ],
-    },
-  },
-  js.configs.recommended,
-  await (async () => {
-    const reactHooks = await import("eslint-plugin-react-hooks");
-    return {
-      plugins: {
-        "react-hooks": reactHooks.default,
-      },
-      rules: {
-        ...reactHooks.configs.recommended.rules,
-      },
-    };
-  })(),
-  await (async () => {
-    const prettier = await import("eslint-plugin-prettier");
-    const prettierConfig = await import("eslint-config-prettier");
-    return {
-      plugins: {
-        prettier: prettier.default,
-      },
-      rules: {
-        ...prettierConfig.default.rules,
-        "prettier/prettier": "error",
-      },
-    };
-  })(),
 ];

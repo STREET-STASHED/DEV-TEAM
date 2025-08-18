@@ -13,7 +13,7 @@ export function useProfile() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchProfile() {
+    const fetchProfile = async () => {
       setLoading(true);
       try {
         const {
@@ -41,9 +41,9 @@ export function useProfile() {
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    fetchProfile();
+    void fetchProfile();
   }, []);
 
   const updateProfile = async (updates: Partial<Profile>) => {
