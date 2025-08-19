@@ -6,15 +6,15 @@ import {
   ShoppingBagIcon, 
   UserIcon, 
   HomeIcon, 
-  PlusIcon,
   ChartBarIcon 
 } from '@heroicons/react/24/outline'
+import { StreetStashedLogo } from '@/components/StreetStashedLogo'
 
 export function SellerHeader() {
   const pathname = usePathname()
 
   const navigation = [
-    { name: 'Dashboard', href: '/seller/dashboard', icon: HomeIcon },
+    { name: 'Dashboard', href: '/seller/seller-dashboard', icon: HomeIcon },
     { name: 'Products', href: '/seller/upload', icon: ShoppingBagIcon },
     { name: 'Analytics', href: '/seller/analytics', icon: ChartBarIcon },
   ]
@@ -25,9 +25,7 @@ export function SellerHeader() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <span className="text-xl font-bold text-gray-900">StreetStashed</span>
-            </Link>
+            <StreetStashedLogo href="/" size="md" variant="dark" />
           </div>
 
           {/* Navigation */}
@@ -54,7 +52,7 @@ export function SellerHeader() {
           {/* User menu */}
           <div className="flex items-center space-x-4">
             <Link
-              href="/seller/dashboard"
+              href="/seller/seller-dashboard"
               className="p-2 text-gray-400 hover:text-gray-500"
             >
               <UserIcon className="h-6 w-6" />

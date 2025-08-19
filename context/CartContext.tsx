@@ -11,6 +11,7 @@ import React, {
 import { supabase } from "@/lib/supabaseClient";
 import { User } from "@supabase/supabase-js";
 import { safeJsonParse } from "@/lib/safeJson";
+import { computeStashedSupportFee } from '@/lib/feeConfig';
 
 export interface CartItem {
   id: string;
@@ -57,40 +58,44 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [stashedFee, setStashedFee] = useState<number>(0);
+
+  const isAuthenticated = !!user;
+
   // On mount, always hydrate cart from localStorage for guests.
   // This ensures cart state is always consistent, even if empty,
   // and avoids SSR/client mismatches on checkout.
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed: GuestCartPayload = safeJsonParse(stored, { items: [], timestamp: 0 });
-        if (parsed?.items?.length > 0) {
-          setItems(parsed.items);
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed: GuestCartPayload = safeJsonParse(stored, { items: [], timestamp: 0 });
+          if (parsed?.items?.length > 0) {
+            setItems(parsed.items);
+          }
         }
+      } catch (error) {
+        console.error("Failed to parse guest cart from localStorage", error);
       }
-    } catch (error) {
-      console.error("Failed to parse guest cart from localStorage", error);
+      setHydrated(true);
     }
-    setHydrated(true);
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ items, timestamp: Date.now() }),
-      );
-    } catch (error) {
-      console.error("Failed to save guest cart to localStorage", error);
+    if (typeof window !== 'undefined' && hydrated) {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ items, timestamp: Date.now() }),
+        );
+      } catch (error) {
+        console.error("Failed to save guest cart to localStorage", error);
+      }
     }
-  }, [items]);
-  const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  // "Stashed" service fee is determined at checkout; keep it out of CartItem shape
-  const [stashedFee, setStashedFee] = useState<number>(0);
-
-  const isAuthenticated = !!user;
+  }, [items, hydrated]);
 
   useEffect(() => {
     const loadUserSession = async () => {
@@ -107,6 +112,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
+    
     const loadCart = async () => {
       try {
         const guestItems = getGuestCart();
@@ -158,11 +165,11 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     };
 
     void loadCart();
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, hydrated]);
 
   useEffect(() => {
-    if (!isAuthenticated) saveGuestCart(items);
-  }, [items, isAuthenticated]);
+    if (!isAuthenticated && hydrated) saveGuestCart(items);
+  }, [items, isAuthenticated, hydrated]);
 
   const syncToServer = async (nextItems: CartItem[]): Promise<void> => {
     if (!isAuthenticated || !user?.id) return;
@@ -258,6 +265,33 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     () => items.reduce((sum, i) => sum + i.quantity * i.price, 0),
     [items],
   );
+
+  // Calculate Stashed Support Fee automatically when items change
+  const calculatedStashedFee = useMemo(() => {
+    if (items.length === 0) return 0;
+    
+    // Use default distance for cart preview (will be recalculated at checkout with actual address)
+    const defaultDistanceMiles = 8.0;
+    const currentHour = new Date().getHours();
+    
+          try {
+        const feeBreakdown = computeStashedSupportFee({
+          distanceMiles: defaultDistanceMiles,
+          cartSubtotal: totalPrice,
+          localHour: currentHour
+        });
+        return feeBreakdown.buyer;
+    } catch (error) {
+      console.error("Failed to calculate Stashed Support Fee:", error);
+      return 0;
+    }
+  }, [items.length, totalPrice]);
+
+  // Update stashedFee when calculated fee changes
+  useEffect(() => {
+    setStashedFee(calculatedStashedFee);
+  }, [calculatedStashedFee]);
+
   const totalAmount = useMemo(
     () => totalPrice + stashedFee,
     [totalPrice, stashedFee],
@@ -299,6 +333,8 @@ export const useCart = (): CartContextType => {
 };
 
 function getGuestCart(): CartItem[] {
+  if (typeof window === 'undefined') return [];
+  
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
@@ -311,6 +347,8 @@ function getGuestCart(): CartItem[] {
 }
 
 function saveGuestCart(items: CartItem[]) {
+  if (typeof window === 'undefined') return;
+  
   localStorage.setItem(
     STORAGE_KEY,
     JSON.stringify({ items, timestamp: Date.now() }),
@@ -318,6 +356,8 @@ function saveGuestCart(items: CartItem[]) {
 }
 
 function clearGuestCart() {
+  if (typeof window === 'undefined') return;
+  
   localStorage.removeItem(STORAGE_KEY);
 }
 

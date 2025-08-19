@@ -19,6 +19,11 @@ const PUBLIC_PATHS = [
   "/favicon.ico",
 ];
 
+// 👇 Admin-only routes
+const ADMIN_PATHS = [
+  "/admin",
+];
+
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`),
@@ -76,7 +81,7 @@ export async function middleware(req: NextRequest) {
     const { data, error } = await supabase
       .from("profiles")
       .select("has_completed_onboarding, role")
-      .eq("user_id", user?.id)
+      .eq("id", user?.id)
       .single();
     if (error) {
       console.warn("[MIDDLEWARE] Profile fetch error:", error.message);
@@ -85,6 +90,16 @@ export async function middleware(req: NextRequest) {
     }
   } catch (e) {
     console.error("[MIDDLEWARE] Failed to load profile:", e);
+  }
+
+  // 🔒 Admin route access control
+  if (ADMIN_PATHS.some(path => pathname.startsWith(path))) {
+    if (!profile || profile.role !== 'admin') {
+      console.log("[MIDDLEWARE] Non-admin user attempting to access admin route");
+      const url = req.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
   }
 
   // 🚧 Not onboarded = force to /onboarding
@@ -114,13 +129,13 @@ export async function middleware(req: NextRequest) {
   if (profile?.has_completed_onboarding && pathname === "/dashboard") {
     const url = req.nextUrl.clone();
     if (profile.role === "driver") {
-      url.pathname = "/driver";
+      url.pathname = "/driver/dashboard";
     } else if (profile.role === "stylist") {
-      url.pathname = "/stylist";
+      url.pathname = "/stylist/dashboard";
     } else if (profile.role === "seller" || profile.role === "seller/brand") {
-      url.pathname = "/seller";
+      url.pathname = "/seller-dashboard";
     } else {
-      url.pathname = "/marketplace";
+      url.pathname = "/buyer/marketplace";
     }
     return NextResponse.redirect(url);
   }

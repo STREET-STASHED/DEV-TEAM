@@ -135,8 +135,18 @@ class RedisStore implements RateLimitStore {
   constructor() {
     // Initialize Redis client if available
     try {
-      const Redis = require("ioredis");
-      this.redis = new Redis(process.env.REDIS_URL);
+      // Use dynamic import instead of require
+      import("ioredis").then((Redis) => {
+        if (process.env.REDIS_URL) {
+          this.redis = new Redis.default(process.env.REDIS_URL);
+        } else {
+          console.warn("REDIS_URL not provided, falling back to Supabase store");
+          this.redis = null;
+        }
+      }).catch(() => {
+        console.warn("Redis not available, falling back to Supabase store");
+        this.redis = null;
+      });
     } catch {
       console.warn("Redis not available, falling back to Supabase store");
       this.redis = null;

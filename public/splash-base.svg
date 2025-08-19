@@ -1,0 +1,60 @@
+<svg width="1024" height="1366" viewBox="0 0 1024 1366" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f3f4f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Full background -->
+  <rect width="1024" height="1366" fill="url(#bgGradient)"/>
+  
+  <!-- Central icon area -->
+  <circle cx="512" cy="500" r="200" fill="url(#iconGradient)" opacity="0.95"/>
+  
+  <!-- StreetStashed Icon Design (simplified for splash) -->
+  <!-- S for Street -->
+  <path d="M 412 400 Q 412 375 437 375 L 487 375 Q 512 375 512 400 Q 512 425 487 425 L 437 425 Q 412 425 412 450 Q 412 475 437 475 L 487 475 Q 512 475 512 500 Q 512 525 487 525 L 437 525 Q 412 525 412 550" 
+        fill="none" stroke="#3b82f6" stroke-width="12" stroke-linecap="round"/>
+  
+  <!-- Stylized hanger/rack -->
+  <path d="M 562 400 L 562 500 M 537 400 L 587 400 M 537 500 L 587 500" 
+        fill="none" stroke="#3b82f6" stroke-width="10" stroke-linecap="round"/>
+  
+  <!-- Small clothing items -->
+  <circle cx="537" cy="450" r="8" fill="#3b82f6"/>
+  <circle cx="587" cy="450" r="8" fill="#3b82f6"/>
+  <circle cx="562" cy="475" r="8" fill="#3b82f6"/>
+  
+  <!-- App name text -->
+  <text x="512" y="800" font-family="Arial, sans-serif" font-size="72" font-weight="bold" 
+        text-anchor="middle" fill="#ffffff">STREETSTASHED</text>
+  
+  <!-- Tagline -->
+  <text x="512" y="880" font-family="Arial, sans-serif" font-size="36" 
+        text-anchor="middle" fill="#e5e7eb">The First Marketplace</text>
+  <text x="512" y="930" font-family="Arial, sans-serif" font-size="36" 
+        text-anchor="middle" fill="#e5e7eb">Connecting Buyers, Sellers & Stylists</text>
+  
+  <!-- Loading indicator -->
+  <circle cx="512" cy="1100" r="4" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="0s"/>
+  </circle>
+  <circle cx="532" cy="1100" r="4" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="0.3s"/>
+  </circle>
+  <circle cx="552" cy="1100" r="4" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="0.6s"/>
+  </circle>
+  <circle cx="572" cy="1100" r="4" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="0.9s"/>
+  </circle>
+  <circle cx="592" cy="1100" r="4" fill="#ffffff" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite" begin="1.2s"/>
+  </circle>
+</svg>

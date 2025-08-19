@@ -1,354 +1,253 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from 'react';
 
-interface GPSLocation {
-  lat: number;
-  lng: number;
-  accuracy: number;
-  heading: number;
-  speed: number;
-  timestamp: number;
+interface Location {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+  timestamp?: number;
+  speed?: number;
+  heading?: number;
 }
 
 interface GPSTrackingOptions {
   enableHighAccuracy?: boolean;
   timeout?: number;
   maximumAge?: number;
-  updateInterval?: number;
-  onLocationUpdate?: (location: GPSLocation) => void;
-  onError?: (error: GeolocationPositionError) => void;
-  onAccuracyChange?: (accuracy: number) => void;
+  intervalMs?: number;
+  onLocationUpdate?: (location: Location) => void;
+  onError?: (error: string) => void;
 }
 
-interface GPSTrackingReturn {
-  location: GPSLocation | null;
+interface GPSTrackingState {
   isTracking: boolean;
-  accuracy: number;
+  currentLocation: Location | null;
   error: string | null;
+  accuracy: number | null;
+  speed: number | null;
+  heading: number | null;
+}
+
+const defaultOptions: Required<GPSTrackingOptions> = {
+  enableHighAccuracy: true,
+  timeout: 10000,
+  maximumAge: 30000,
+  intervalMs: 5000,
+  onLocationUpdate: () => {},
+  onError: () => {},
+};
+
+export function useGPSTracking(options: GPSTrackingOptions = {}): GPSTrackingState & {
   startTracking: () => void;
   stopTracking: () => void;
-  getCurrentLocation: () => Promise<GPSLocation>;
-  isSupported: boolean;
-  // Additional utility methods
-  calculateDistance: (
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number,
-  ) => number;
-  calculateETA: (distance: number, speed: number) => number;
-  getLocationQuality: () => "excellent" | "good" | "fair" | "poor";
-}
-
-export const useGPSTracking = ({
-  enableHighAccuracy = true,
-  timeout = 10000,
-  maximumAge = 0,
-  updateInterval = 5000,
-  onLocationUpdate,
-  onError,
-  onAccuracyChange,
-}: GPSTrackingOptions = {}): GPSTrackingReturn => {
-  const [location, setLocation] = useState<GPSLocation | null>(null);
-  const [isTracking, setIsTracking] = useState(false);
-  const [accuracy, setAccuracy] = useState(0);
-  const [error, setError] = useState<string | null>(null);
-  const [isSupported, setIsSupported] = useState(false);
+  getCurrentLocation: () => Promise<Location>;
+} {
+  const config = { ...defaultOptions, ...options };
+  
+  const [state, setState] = useState<GPSTrackingState>({
+    isTracking: false,
+    currentLocation: null,
+    error: null,
+    accuracy: null,
+    speed: null,
+    heading: null,
+  });
 
   const watchIdRef = useRef<number | null>(null);
-  const intervalIdRef = useRef<number | null>(null);
-  const lastLocationRef = useRef<GPSLocation | null>(null);
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
+  const lastLocationRef = useRef<Location | null>(null);
 
-  // Check if geolocation is supported
-  useEffect(() => {
-    setIsSupported("geolocation" in navigator);
+  const clearTracking = useCallback(() => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current);
+      intervalIdRef.current = null;
+    }
   }, []);
 
-  // Success callback for geolocation
-  const handleSuccess = useCallback(
-    (position: GeolocationPosition) => {
-      const newLocation: GPSLocation = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy || 0,
-        heading: position.coords.heading || 0,
-        speed: position.coords.speed || 0,
-        timestamp: position.timestamp,
-      };
+  const handleSuccess = useCallback((position: GeolocationPosition) => {
+    const location: Location = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      timestamp: position.timestamp,
+      speed: position.coords.speed || undefined,
+      heading: position.coords.heading || undefined,
+    };
 
-      setLocation(newLocation);
-      setAccuracy(newLocation.accuracy);
-      setError(null);
-      lastLocationRef.current = newLocation;
+    lastLocationRef.current = location;
 
-      // Call callback if provided
-      onLocationUpdate?.(newLocation);
+    setState(prev => ({
+      ...prev,
+      currentLocation: location,
+      error: null,
+      accuracy: position.coords.accuracy,
+      speed: position.coords.speed,
+      heading: position.coords.heading,
+    }));
 
-      // Update accuracy callback
-      onAccuracyChange?.(newLocation.accuracy);
-    },
-    [onLocationUpdate, onAccuracyChange],
-  );
+    config.onLocationUpdate(location);
+  }, [config]);
 
-  // Success callback for interval updates (expects GPSLocation)
-  const handleIntervalSuccess = useCallback(
-    (location: GPSLocation) => {
-      setLocation(location);
-      setAccuracy(location.accuracy);
-      setError(null);
-      lastLocationRef.current = location;
+  const handleError = useCallback((error: GeolocationPositionError) => {
+    let errorMessage = 'Unknown GPS error';
+    
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        errorMessage = 'GPS permission denied. Please enable location services.';
+        break;
+      case error.POSITION_UNAVAILABLE:
+        errorMessage = 'GPS position unavailable. Please check your location settings.';
+        break;
+      case error.TIMEOUT:
+        errorMessage = 'GPS timeout. Please try again.';
+        break;
+    }
 
-      // Call callback if provided
-      onLocationUpdate?.(location);
+    setState(prev => ({
+      ...prev,
+      error: errorMessage,
+    }));
 
-      // Update accuracy callback
-      onAccuracyChange?.(location.accuracy);
-    },
-    [onLocationUpdate, onAccuracyChange],
-  );
+    config.onError(errorMessage);
+  }, [config]);
 
-  // Error callback for geolocation
-  const handleError = useCallback(
-    (error: GeolocationPositionError) => {
-      let errorMessage = "Unknown error occurred";
-
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          errorMessage =
-            "Location access denied. Please enable location permissions.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          errorMessage = "Location information unavailable.";
-          break;
-        case error.TIMEOUT:
-          errorMessage = "Location request timed out.";
-          break;
+  const handleIntervalSuccess = useCallback((location: Location) => {
+    // Only update if we have a new location with better accuracy or significant movement
+    if (lastLocationRef.current) {
+      const last = lastLocationRef.current;
+      const distance = calculateDistance(
+        last.latitude, last.longitude,
+        location.latitude, location.longitude
+      );
+      
+      // Update if moved more than 5 meters or if accuracy improved significantly
+      if (distance > 5 || (location.accuracy && last.accuracy && location.accuracy < last.accuracy * 0.8)) {
+        handleSuccess({
+          coords: {
+            latitude: location.latitude,
+            longitude: location.longitude,
+            accuracy: location.accuracy || null,
+            altitude: null,
+            altitudeAccuracy: null,
+            heading: location.heading || null,
+            speed: location.speed || null,
+          },
+          timestamp: location.timestamp || Date.now(),
+        } as GeolocationPosition);
       }
+    }
+  }, [handleSuccess]);
 
-      setError(errorMessage);
-      onError?.(error);
-    },
-    [onError],
-  );
-
-  // Get current location once
-  const getCurrentLocation = useCallback((): Promise<GPSLocation> => {
+  const getCurrentLocation = useCallback((): Promise<Location> => {
     return new Promise((resolve, reject) => {
-      if (!isSupported) {
-        reject(new Error("Geolocation not supported"));
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation is not supported by this browser.'));
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const location: GPSLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            accuracy: position.coords.accuracy || 0,
-            heading: position.coords.heading || 0,
-            speed: position.coords.speed || 0,
+          const location: Location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy,
             timestamp: position.timestamp,
+            speed: position.coords.speed || undefined,
+            heading: position.coords.heading || undefined,
           };
           resolve(location);
         },
         (error) => {
-          reject(new Error(error.message || 'Geolocation error'));
+          reject(new Error(`GPS Error: ${error.message}`));
         },
         {
-          enableHighAccuracy,
-          timeout,
-          maximumAge,
-        },
+          enableHighAccuracy: config.enableHighAccuracy,
+          timeout: config.timeout,
+          maximumAge: config.maximumAge,
+        }
       );
     });
-  }, [isSupported, enableHighAccuracy, timeout, maximumAge]);
+  }, [config]);
 
-  // Start continuous tracking
   const startTracking = useCallback(() => {
-    if (!isSupported || isTracking) return;
-
-    try {
-      // Start watching position
-      watchIdRef.current = navigator.geolocation.watchPosition(
-        handleSuccess,
-        handleError,
-        {
-          enableHighAccuracy,
-          timeout,
-          maximumAge,
-        },
-      );
-
-      // Set up interval for additional updates (useful for speed/heading changes)
-      intervalIdRef.current = setInterval(() => {
-        if (lastLocationRef.current) {
-          // Get fresh location data
-          getCurrentLocation().then(handleIntervalSuccess).catch(handleError);
-        }
-      }, updateInterval);
-
-      setIsTracking(true);
-      setError(null);
-
-      console.log("GPS tracking started");
-    } catch (err) {
-      console.error("Error starting GPS tracking:", err);
-      setError("Failed to start GPS tracking");
+    if (!navigator.geolocation) {
+      setState(prev => ({
+        ...prev,
+        error: 'Geolocation is not supported by this browser.',
+      }));
+      return;
     }
-  }, [
-    isSupported,
-    isTracking,
-    enableHighAccuracy,
-    timeout,
-    maximumAge,
-    updateInterval,
-    handleSuccess,
-    handleError,
-    getCurrentLocation,
-    handleIntervalSuccess,
-  ]);
 
-  // Stop tracking
+    if (state.isTracking) {
+      return; // Already tracking
+    }
+
+    setState(prev => ({
+      ...prev,
+      isTracking: true,
+      error: null,
+    }));
+
+    // Start watching position
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      handleSuccess,
+      handleError,
+      {
+        enableHighAccuracy: config.enableHighAccuracy,
+        timeout: config.timeout,
+        maximumAge: config.maximumAge,
+      }
+    );
+
+    // Set up interval for additional updates (useful for speed/heading changes)
+    intervalIdRef.current = setInterval(() => {
+      if (lastLocationRef.current) {
+        // Get fresh location data
+        getCurrentLocation().then(handleIntervalSuccess).catch(handleError);
+      }
+    }, config.intervalMs);
+  }, [state.isTracking, handleSuccess, handleError, handleIntervalSuccess, getCurrentLocation, config]);
+
   const stopTracking = useCallback(() => {
-    if (watchIdRef.current !== null) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
-
-    if (intervalIdRef.current !== null) {
-      clearInterval(intervalIdRef.current);
-      intervalIdRef.current = null;
-    }
-
-    setIsTracking(false);
-    console.log("GPS tracking stopped");
-  }, []);
+    clearTracking();
+    
+    setState(prev => ({
+      ...prev,
+      isTracking: false,
+    }));
+  }, [clearTracking]);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopTracking();
+      clearTracking();
     };
-  }, [stopTracking]);
-
-  // Calculate distance between two points
-  const calculateDistance = useCallback(
-    (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-      const R = 6371; // Earth's radius in km
-      const dLat = ((lat2 - lat1) * Math.PI) / 180;
-      const dLng = ((lng2 - lng1) * Math.PI) / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-          Math.cos((lat2 * Math.PI) / 180) *
-          Math.sin(dLng / 2) *
-          Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    },
-    [],
-  );
-
-  // Calculate ETA based on distance and speed
-  const calculateETA = useCallback(
-    (distance: number, speed: number): number => {
-      if (speed <= 0) return 0;
-      return (distance / speed) * 60; // Returns minutes
-    },
-    [],
-  );
-
-  // Get location quality indicator
-  const getLocationQuality = useCallback(():
-    | "excellent"
-    | "good"
-    | "fair"
-    | "poor" => {
-    if (accuracy <= 5) return "excellent";
-    if (accuracy <= 10) return "good";
-    if (accuracy <= 20) return "fair";
-    return "poor";
-  }, [accuracy]);
+  }, [clearTracking]);
 
   return {
-    location,
-    isTracking,
-    accuracy,
-    error,
+    ...state,
     startTracking,
     stopTracking,
     getCurrentLocation,
-    isSupported,
-    // Additional utility methods
-    calculateDistance,
-    calculateETA,
-    getLocationQuality,
   };
-};
+}
 
-// Hook for tracking specific coordinates (useful for delivery tracking)
-export const useDeliveryTracking = (
-  targetLocation: { lat: number; lng: number },
-  options?: Omit<GPSTrackingOptions, "onLocationUpdate">,
-) => {
-  const [distance, setDistance] = useState<number>(0);
-  const [eta, setEta] = useState<number>(0);
-  const [isApproaching, setIsApproaching] = useState(false);
+// Helper function to calculate distance between two points
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-  const { location, ...gpsTracking } = useGPSTracking({
-    ...options,
-    onLocationUpdate: (currentLocation) => {
-      // Calculate distance to target
-      const currentDistance = calculateDistance(
-        currentLocation.lat,
-        currentLocation.lng,
-        targetLocation.lat,
-        targetLocation.lng,
-      );
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-      setDistance(currentDistance);
-
-      // Calculate ETA (assuming average speed of 30 km/h for driving)
-      const currentEta = calculateETA(currentDistance, 30);
-      setEta(currentEta);
-
-      // Check if approaching (within 100m)
-      setIsApproaching(currentDistance <= 0.1);
-
-      // Note: onLocationUpdate is omitted from options type to avoid conflicts
-    },
-  });
-
-  // Utility functions
-  const calculateDistance = (
-    lat1: number,
-    lng1: number,
-    lat2: number,
-    lng2: number,
-  ): number => {
-    const R = 6371; // Earth's radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
-
-  const calculateETA = (distance: number, speed: number): number => {
-    if (speed <= 0) return 0;
-    return (distance / speed) * 60; // Returns minutes
-  };
-
-  return {
-    ...gpsTracking,
-    location,
-    distance,
-    eta,
-    isApproaching,
-    targetLocation,
-  };
-};
+  return R * c;
+}

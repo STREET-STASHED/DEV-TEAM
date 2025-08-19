@@ -45,30 +45,5 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
-	<!-- Dev-only: allow http for local dev server -->
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key><true/>
-		<key>NSAllowsArbitraryLoadsInWebContent</key><true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
-				<key>NSIncludesSubdomains</key><true/>
-			</dict>
-			<key>127.0.0.1</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
-				<key>NSIncludesSubdomains</key><true/>
-			</dict>
-			<!-- Add your Mac's LAN IP here for device testing -->
-			<key>10.0.0.210</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key><true/>
-				<key>NSIncludesSubdomains</key><true/>
-			</dict>
-		</dict>
-	</dict>
 </dict>
 </plist>

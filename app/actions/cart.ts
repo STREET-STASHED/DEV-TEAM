@@ -1,38 +1,27 @@
-'use server'
+	'use server'
 
-import { revalidatePath } from 'next/cache'
-import { supabase } from '@/lib/supabase/client'
+	import { revalidatePath } from 'next/cache'
+	import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function addToCart(productId: string, quantity: number = 1) {
   try {
-    // Get current user
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
       return { error: 'User not authenticated' }
     }
 
-    // Validate product exists
-    const { data: product, error: productError } = await supabase
-      .from('products')
-      .select('id, name, price, stock')
-      .eq('id', productId)
-      .single()
-
-    if (productError || !product) {
-      return { error: 'Product not found' }
-    }
-
-    if (product.stock < quantity) {
-      return { error: 'Insufficient stock' }
-    }
-
-    // Check if item already in cart
+    // Check if item already exists in cart
     const { data: existingItem } = await supabase
       .from('cart_items')
       .select('id, quantity')
       .eq('user_id', user.id)
-      .eq('product_id', productId)
+      .eq('id', productId)
       .single()
 
     if (existingItem) {
@@ -43,27 +32,47 @@ export async function addToCart(productId: string, quantity: number = 1) {
         .eq('id', existingItem.id)
 
       if (error) {
+        console.error('Update cart error:', error)
         return { error: 'Failed to update cart' }
       }
     } else {
-      // Add new item
+      // Look up the item details from items table
+      const { data: item, error: itemError } = await supabase
+        .from('items')
+        .select('id,name,price,image,category,active')
+        .eq('id', productId)
+        .single()
+
+      if (itemError || !item) {
+        console.error('Fetch item error:', itemError)
+        return { error: 'Item not found' }
+      }
+
+      if (item.active === false) {
+        return { error: 'Item is not available' }
+      }
+
+      // Add new item with real details
       const { error } = await supabase
         .from('cart_items')
         .insert({
           user_id: user.id,
-          product_id: productId,
+          id: item.id,
           quantity,
-          price: product.price
+          price: item.price ?? 0,
+          name: item.name ?? 'Product',
+          image: item.image ?? '',
+          category: item.category ?? 'General'
         })
 
       if (error) {
+        console.error('Add to cart error:', error)
         return { error: 'Failed to add to cart' }
       }
     }
 
-    revalidatePath('/buyer/marketplace')
-    revalidatePath('/buyer/dashboard')
-    
+    revalidatePath('/marketplace')
+    revalidatePath('/dashboard')
     return { success: true, message: 'Added to cart' }
   } catch (error) {
     console.error('Add to cart error:', error)
@@ -86,12 +95,12 @@ export async function removeFromCart(cartItemId: string) {
       .eq('user_id', user.id)
 
     if (error) {
+      console.error('Remove from cart error:', error)
       return { error: 'Failed to remove from cart' }
     }
 
-    revalidatePath('/buyer/marketplace')
-    revalidatePath('/buyer/dashboard')
-    
+    revalidatePath('/marketplace')
+    revalidatePath('/dashboard')
     return { success: true, message: 'Removed from cart' }
   } catch (error) {
     console.error('Remove from cart error:', error)
@@ -118,16 +127,16 @@ export async function updateCartQuantity(cartItemId: string, quantity: number) {
       .eq('user_id', user.id)
 
     if (error) {
-      return { error: 'Failed to update cart' }
+      console.error('Update cart quantity error:', error)
+      return { error: 'Failed to update quantity' }
     }
 
-    revalidatePath('/buyer/marketplace')
-    revalidatePath('/buyer/dashboard')
-    
-    return { success: true, message: 'Cart updated' }
+    revalidatePath('/marketplace')
+    revalidatePath('/dashboard')
+    return { success: true, message: 'Quantity updated' }
   } catch (error) {
-    console.error('Update cart error:', error)
-    return { error: 'Failed to update cart' }
+    console.error('Update cart quantity error:', error)
+    return { error: 'Failed to update quantity' }
   }
 }
 
@@ -145,12 +154,12 @@ export async function clearCart() {
       .eq('user_id', user.id)
 
     if (error) {
+      console.error('Clear cart error:', error)
       return { error: 'Failed to clear cart' }
     }
 
-    revalidatePath('/buyer/marketplace')
-    revalidatePath('/buyer/dashboard')
-    
+    revalidatePath('/marketplace')
+    revalidatePath('/dashboard')
     return { success: true, message: 'Cart cleared' }
   } catch (error) {
     console.error('Clear cart error:', error)

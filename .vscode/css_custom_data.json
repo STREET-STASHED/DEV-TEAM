@@ -1,0 +1,99 @@
+{
+  "version": 1.1,
+  "atDirectives": [
+    {
+      "name": "@tailwind",
+      "description": "Use the @tailwind directive to insert Tailwind's base, components, utilities and variants styles into your CSS.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#tailwind"
+        }
+      ]
+    },
+    {
+      "name": "@apply",
+      "description": "Use @apply to inline any existing utility classes into your own custom CSS.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#apply"
+        }
+      ]
+    },
+    {
+      "name": "@layer",
+      "description": "Use the @layer directive to tell Tailwind which \"bucket\" a set of custom styles belong to.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#layer"
+        }
+      ]
+    },
+    {
+      "name": "@variants",
+      "description": "You can generate responsive, hover, focus, and other variants of your own utilities by wrapping their definitions in the @variants directive.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#variants"
+        }
+      ]
+    },
+    {
+      "name": "@responsive",
+      "description": "You can generate responsive variants of your own classes by wrapping their definitions in the @responsive directive.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#responsive"
+        }
+      ]
+    },
+    {
+      "name": "@screen",
+      "description": "The @screen directive allows you to create media queries that reference your breakpoints by name instead of duplicating their values in your own CSS.",
+      "references": [
+        {
+          "name": "Tailwind CSS Documentation",
+          "url": "https://tailwindcss.com/docs/functions-and-directives#screen"
+        }
+      ]
+    }
+  ],
+  "properties": [
+    {
+      "name": "scroll-behavior",
+      "description": "The scroll-behavior CSS property sets the behavior for a scrolling box when scrolling is triggered by the navigation or CSSOM scrolling APIs.",
+      "references": [
+        {
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-behavior"
+        }
+      ]
+    },
+    {
+      "name": "backdrop-filter",
+      "description": "The backdrop-filter CSS property lets you apply graphical effects such as blurring or color shifting to the area behind an element.",
+      "references": [
+        {
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/backdrop-filter"
+        }
+      ]
+    }
+  ],
+  "pseudoClasses": [
+    {
+      "name": ":focus-visible",
+      "description": "The :focus-visible pseudo-class applies while an element matches the :focus pseudo-class and the user agent determines via heuristics that the focus should be made evident on the element.",
+      "references": [
+        {
+          "name": "MDN Web Docs",
+          "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible"
+        }
+      ]
+    }
+  ]
+}

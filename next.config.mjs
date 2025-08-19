@@ -42,8 +42,8 @@ const nextConfig = {
             key: "Content-Security-Policy",
             value:
               process.env.NODE_ENV === "production"
-                ? "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com wss://*.supabase.co; frame-src https://js.stripe.com; object-src 'none'; base-uri 'self'; form-action 'self';"
-                : "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;",
+                ? "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob: https://images.unsplash.com; connect-src 'self' https://*.supabase.co https://api.stripe.com https://maps.googleapis.com wss://*.supabase.co; frame-src https://js.stripe.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+                : "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' data: https: blob: https://images.unsplash.com;",
           },
         ],
       },
@@ -80,6 +80,7 @@ const nextConfig = {
       "*.supabase.co",
       "stripe.com",
       "maps.googleapis.com",
+      "images.unsplash.com",
     ],
     formats: ["image/webp", "image/avif"],
     minimumCacheTTL: 60,
@@ -181,6 +182,8 @@ const nextConfig = {
 
   // React strict mode
   reactStrictMode: true,
+
+
 
   // Handle hydration errors in WebView
   onDemandEntries: {

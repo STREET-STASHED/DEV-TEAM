@@ -9,13 +9,13 @@ export const metadata: Metadata = {
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-ink-900">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-3xl font-extrabold text-white">
             Create your account
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-ink-300">
             Join StreetStashed and start your fashion journey
           </p>
         </div>
@@ -23,11 +23,11 @@ export default function SignupPage() {
         <SignupForm />
         
         <div className="text-center">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-300">
             Already have an account?{' '}
             <Link 
               href="/login" 
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium text-brand-400 hover:text-brand-300 transition-colors"
             >
               Sign in here
             </Link>

@@ -1,16 +1,20 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import './globals.css'
+import '../styles/globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'], 
+  display: 'swap',
+  variable: '--font-inter'
+})
 
 export const metadata: Metadata = {
   title: {
-    default: 'StreetStashed - Fashion Forward',
-    template: '%s | StreetStashed'
+    template: '%s | StreetStashed',
+    default: 'StreetStashed - Premium Streetwear Marketplace',
   },
-  description: 'Discover unique streetwear from local stylists. Get personalized fashion delivered to your door.',
-  keywords: ['streetwear', 'fashion', 'stylists', 'delivery', 'local fashion'],
+  description: 'Discover unique streetwear from local stylists. Shop the latest trends with premium quality and authentic style.',
+  keywords: 'streetwear, fashion, marketplace, local stylists, premium clothing',
   authors: [{ name: 'StreetStashed Team' }],
   creator: 'StreetStashed',
   publisher: 'StreetStashed',
@@ -23,27 +27,24 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
   },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'StreetStashed',
+  },
   openGraph: {
-    title: 'StreetStashed - Fashion Forward',
-    description: 'Discover unique streetwear from local stylists. Get personalized fashion delivered to your door.',
-    url: 'https://streetstashed.com',
-    siteName: 'StreetStashed',
-    images: [
-      {
-        url: '/logo-new.png',
-        width: 1200,
-        height: 630,
-        alt: 'StreetStashed - Fashion Forward',
-      },
-    ],
-    locale: 'en_US',
     type: 'website',
+    locale: 'en_US',
+    url: 'https://streetstashed.com',
+    title: 'StreetStashed - Premium Streetwear Marketplace',
+    description: 'Discover unique streetwear from local stylists',
+    siteName: 'StreetStashed',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'StreetStashed - Fashion Forward',
-    description: 'Discover unique streetwear from local stylists. Get personalized fashion delivered to your door.',
-    images: ['/logo-new.png'],
+    title: 'StreetStashed - Premium Streetwear Marketplace',
+    description: 'Discover unique streetwear from local stylists',
   },
   robots: {
     index: true,
@@ -56,9 +57,15 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#3b82f6',
 }
 
 export default function RootLayout({
@@ -67,8 +74,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
-      <body className={`${inter.className} h-full antialiased`}>
+    <html lang="en" className={`h-full ${inter.variable}`}>
+      <body className="bg-ink-black text-white h-full font-sans">
         {children}
       </body>
     </html>
