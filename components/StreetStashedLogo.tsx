@@ -38,49 +38,30 @@ export function StreetStashedLogo({
 
   const LogoContent = () => (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Graffiti Style "S" Logo */}
-      <div className={`${sizeClasses[size]} relative flex items-center justify-center`}>
-        {/* Graffiti background with depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-lg shadow-xl"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-pink-400 via-pink-500 to-purple-600 rounded-lg transform scale-95"></div>
-        <div className="absolute inset-0 bg-gradient-to-bl from-yellow-300 via-yellow-400 to-orange-500 rounded-lg transform scale-90"></div>
+      {/* Clean, Simple Logo - Actually Looks Like Something! */}
+      <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 rounded-lg shadow-lg`}>
+        {/* Simple, bold "S" letter */}
+        <span className="text-white font-black text-4xl drop-shadow-lg">
+          S
+        </span>
         
-        {/* Simple, Reliable Graffiti "S" */}
-        <svg 
-          className="relative z-10 w-full h-full p-1 text-white font-bold drop-shadow-lg" 
-          fill="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          {/* Simple S shape that will definitely render */}
-          <path d="M8 4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2c0 .83-.67 1.5-1.5 1.5H14c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5h-2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5h-2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5.67 1.5 1.5V20c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2v-2c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2c-.83 0-1.5-.67-1.5-1.5v-2c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2c-.83 0-1.5-.67-1.5-1.5v-2c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2c-.83 0-1.5-.67-1.5-1.5V6c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5S10.83 3 10 3H8c-.83 0-1.5.67-1.5 1.5V4z"/>
-        </svg>
-        
-        {/* Graffiti paint drips effect */}
-        <div className="absolute bottom-0 left-1/4 w-1 h-2 bg-purple-600 transform -translate-x-1/2"></div>
-        <div className="absolute bottom-0 right-1/4 w-1 h-3 bg-pink-500 transform translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-1/2 w-1 h-1 bg-orange-500 transform -translate-x-1/2"></div>
+        {/* Add a subtle border for definition */}
+        <div className="absolute inset-0 border-2 border-white/20 rounded-lg"></div>
       </div>
       
-      {/* StreetStashed Text - Graffiti Style */}
+      {/* StreetStashed Text - Clean and Visible */}
       {showText && (
         <span className={`
           ${textSizeClasses[size]} 
-          ${variantClasses[variant]} 
           font-bold tracking-wider
-          bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 
-          bg-clip-text text-transparent
-          drop-shadow-sm
+          text-white
+          drop-shadow-lg
         `}>
           STREETSTASHED
         </span>
       )}
       
-      {/* Fallback: Simple text logo if SVG fails */}
-      {!showText && (
-        <div className="text-center">
-          <div className="text-2xl font-bold text-white">S</div>
-        </div>
-      )}
+
     </div>
   )
 
