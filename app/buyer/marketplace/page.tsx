@@ -4,11 +4,22 @@ import { useState, useEffect } from 'react'
 import { mockProducts, mockCategories, mockStores, searchProducts, filterProductsByCategory } from '@/lib/mockData'
 import { StreetStashedLogo } from '@/components/StreetStashedLogo'
 
+interface CartItem {
+  id: string
+  name: string
+  price: number
+  image: string
+  storeName: string
+  quantity: number
+}
+
 export default function MarketplacePage() {
   const [products, setProducts] = useState(mockProducts)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('trending')
+  const [cart, setCart] = useState<CartItem[]>([])
+  const [showCart, setShowCart] = useState(false)
 
   // Filter products based on search and category
   useEffect(() => {
@@ -42,46 +53,96 @@ export default function MarketplacePage() {
     setProducts(filtered)
   }, [searchQuery, selectedCategory, sortBy])
 
-  const handleAddToCart = (productId: string) => {
-    // TODO: Implement add to cart functionality
-    console.log(`Added product ${productId} to cart`)
-    alert('Product added to cart!')
+  const handleAddToCart = (product: any) => {
+    const existingItem = cart.find(item => item.id === product.id)
+    
+    if (existingItem) {
+      setCart(cart.map(item => 
+        item.id === product.id 
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      ))
+    } else {
+      setCart([...cart, {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.images[0] || '/mock/default-product.jpg',
+        storeName: product.storeName,
+        quantity: 1
+      }])
+    }
+    
+    // Show cart briefly
+    setShowCart(true)
+    setTimeout(() => setShowCart(false), 2000)
+  }
+
+  const removeFromCart = (productId: string) => {
+    setCart(cart.filter(item => item.id !== productId))
+  }
+
+  const updateQuantity = (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      removeFromCart(productId)
+    } else {
+      setCart(cart.map(item => 
+        item.id === productId 
+          ? { ...item, quantity: newQuantity }
+          : item
+      ))
+    }
+  }
+
+  const getTotalPrice = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
+  }
+
+  const getTotalItems = () => {
+    return cart.reduce((total, item) => total + item.quantity, 0)
   }
 
   return (
     <div className="min-h-screen bg-ink-black text-white">
       {/* Header */}
-      <header className="bg-ink-900 border-b border-ink-800 p-4">
+      <header className="bg-ink-900 border-b border-ink-800 p-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <StreetStashedLogo size="md" />
-          <div className="flex items-center space-x-4">
-            <button className="bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-lg font-medium transition-colors">
-              Cart (0)
-            </button>
-            <button className="bg-ink-800 hover:bg-ink-700 px-4 py-2 rounded-lg font-medium transition-colors">
-              Sign In
-            </button>
+          
+          {/* Search Bar */}
+          <div className="flex-1 max-w-2xl mx-8">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search for products, stores, or categories..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-400">
+                🔍
+              </div>
+            </div>
           </div>
+
+          {/* Cart Button */}
+          <button 
+            onClick={() => setShowCart(!showCart)}
+            className="relative bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            🛒 Cart ({getTotalItems()})
+            {cart.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {cart.length}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
       {/* Search and Filters */}
       <div className="bg-ink-900 border-b border-ink-800 p-4">
         <div className="max-w-7xl mx-auto space-y-4">
-          {/* Search Bar */}
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for products, stores, or categories..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-400">
-              🔍
-            </div>
-          </div>
-
           {/* Category Tabs */}
           <div className="flex space-x-2 overflow-x-auto pb-2">
             <button
@@ -127,113 +188,194 @@ export default function MarketplacePage() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto p-4">
-        {/* Results Count */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">
-            {selectedCategory === 'all' ? 'All Products' : mockCategories.find(c => c.id === selectedCategory)?.name}
-          </h1>
-          <p className="text-ink-400">
-            {products.length} products found
-            {searchQuery && ` for "${searchQuery}"`}
-          </p>
-        </div>
-
+      <div className="max-w-7xl mx-auto p-4 flex gap-6">
         {/* Products Grid */}
-        {products.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <div key={product.id} className="bg-ink-900 rounded-lg overflow-hidden border border-ink-800 hover:border-brand-500 transition-colors group">
-                {/* Product Image */}
-                <div className="relative h-64 bg-ink-800 overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-ink-700 to-ink-800 flex items-center justify-center">
-                    <span className="text-4xl text-ink-500">
-                      {product.category === 'clothing' && '👕'}
-                      {product.category === 'shoes' && '👟'}
-                      {product.category === 'jewelry' && '💍'}
-                      {product.category === 'accessories' && '👜'}
-                      {product.category === 'watches' && '⌚'}
-                    </span>
-                  </div>
-                  
-                  {/* Trending Badge */}
-                  {product.isTrending && (
-                    <div className="absolute top-2 left-2 bg-brand-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                      🔥 Trending
-                    </div>
-                  )}
-                  
-                  {/* Sale Badge */}
-                  {product.originalPrice && (
-                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                      SALE
-                    </div>
-                  )}
-                </div>
+        <div className="flex-1">
+          {/* Results Count */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-white mb-2">
+              {selectedCategory === 'all' ? 'All Products' : mockCategories.find(c => c.id === selectedCategory)?.name}
+            </h1>
+            <p className="text-ink-400">
+              {products.length} products found
+              {searchQuery && ` for "${searchQuery}"`}
+            </p>
+          </div>
 
-                {/* Product Info */}
-                <div className="p-4 space-y-3">
-                  {/* Store Name */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-ink-400">{product.storeName}</span>
-                    <span className="text-xs bg-brand-500 text-white px-2 py-1 rounded-full">Verified</span>
-                  </div>
-
-                  {/* Product Name */}
-                  <h3 className="font-semibold text-white group-hover:text-brand-400 transition-colors line-clamp-2">
-                    {product.name}
-                  </h3>
-
-                  {/* Rating */}
-                  <div className="flex items-center space-x-2">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-brand-400">
-                          {i < Math.floor(product.rating) ? '★' : '☆'}
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-sm text-ink-400">({product.reviewCount})</span>
-                  </div>
-
-                  {/* Price */}
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xl font-bold text-brand-400">
-                      ${product.price.toFixed(2)}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="text-sm text-ink-400 line-through">
-                        ${product.originalPrice.toFixed(2)}
+          {/* Products Grid */}
+          {products.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((product) => (
+                <div key={product.id} className="bg-ink-900 rounded-lg overflow-hidden border border-ink-800 hover:border-brand-500 transition-all duration-300 hover:shadow-lg hover:shadow-brand-500/20 group">
+                  {/* Product Image */}
+                  <div className="relative h-64 bg-gradient-to-br from-ink-700 to-ink-800 overflow-hidden">
+                    <div className="w-full h-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <span className="text-6xl text-ink-500">
+                        {product.category === 'clothing' && '👕'}
+                        {product.category === 'shoes' && '👟'}
+                        {product.category === 'jewelry' && '💍'}
+                        {product.category === 'accessories' && '👜'}
+                        {product.category === 'watches' && '⌚'}
                       </span>
+                    </div>
+                    
+                    {/* Trending Badge */}
+                    {product.isTrending && (
+                      <div className="absolute top-2 left-2 bg-brand-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
+                        🔥 Trending
+                      </div>
+                    )}
+                    
+                    {/* Sale Badge */}
+                    {product.originalPrice && (
+                      <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium shadow-lg">
+                        SALE
+                      </div>
                     )}
                   </div>
 
-                  {/* Delivery Info */}
-                  <div className="text-sm text-ink-400">
-                    🚚 {mockStores.find(s => s.id === product.storeId)?.deliveryTime}
-                  </div>
+                  {/* Product Info */}
+                  <div className="p-4 space-y-3">
+                    {/* Store Name */}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-ink-400">{product.storeName}</span>
+                      <span className="text-xs bg-brand-500 text-white px-2 py-1 rounded-full">Verified</span>
+                    </div>
 
-                  {/* Add to Cart Button */}
-                  <button
-                    onClick={() => handleAddToCart(product.id)}
-                    className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Add to Cart
+                    {/* Product Name */}
+                    <h3 className="font-semibold text-white group-hover:text-brand-400 transition-colors line-clamp-2">
+                      {product.name}
+                    </h3>
+
+                    {/* Rating */}
+                    <div className="flex items-center space-x-2">
+                      <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                          <span key={i} className="text-brand-400">
+                            {i < Math.floor(product.rating) ? '★' : '☆'}
+                          </span>
+                        ))}
+                      </div>
+                      <span className="text-sm text-ink-400">({product.reviewCount})</span>
+                    </div>
+
+                    {/* Price */}
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xl font-bold text-brand-400">
+                        ${product.price.toFixed(2)}
+                      </span>
+                      {product.originalPrice && (
+                        <span className="text-sm text-ink-400 line-through">
+                          ${product.originalPrice.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Delivery Info */}
+                    <div className="text-sm text-ink-400">
+                      🚚 {mockStores.find(s => s.id === product.storeId)?.deliveryTime}
+                    </div>
+
+                    {/* Add to Cart Button */}
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-2 px-4 rounded-lg transition-colors transform hover:scale-105 active:scale-95"
+                    >
+                      Add to Cart
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🛍️</div>
+              <h3 className="text-xl font-semibold text-white mb-2">No products found</h3>
+              <p className="text-ink-400">
+                Try adjusting your search or category filters
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Shopping Cart Sidebar */}
+        {showCart && (
+          <div className="w-80 bg-ink-900 border-l border-ink-800 p-4 h-screen sticky top-20">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Shopping Cart</h2>
+              <button 
+                onClick={() => setShowCart(false)}
+                className="text-ink-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+
+            {cart.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-4xl mb-4">🛒</div>
+                <p className="text-ink-400 mb-4">Your cart is empty</p>
+                <button 
+                  onClick={() => setShowCart(false)}
+                  className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg"
+                >
+                  Browse products
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {cart.map((item) => (
+                  <div key={item.id} className="bg-ink-800 rounded-lg p-3 border border-ink-700">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-ink-700 rounded-lg flex items-center justify-center">
+                        <span className="text-lg">🛍️</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-white text-sm truncate">{item.name}</h4>
+                        <p className="text-xs text-ink-400">{item.storeName}</p>
+                        <p className="text-brand-400 font-semibold">${item.price.toFixed(2)}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          className="w-6 h-6 bg-ink-700 rounded-full flex items-center justify-center text-white hover:bg-ink-600"
+                        >
+                          -
+                        </button>
+                        <span className="text-white font-medium w-6 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          className="w-6 h-6 bg-ink-700 rounded-full flex items-center justify-center text-white hover:bg-ink-600"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Cart Total */}
+                <div className="border-t border-ink-700 pt-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-white font-semibold">Total:</span>
+                    <span className="text-brand-400 font-bold text-xl">${getTotalPrice().toFixed(2)}</span>
+                  </div>
+                  <button className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                    Proceed to Checkout
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🛍️</div>
-            <h3 className="text-xl font-semibold text-white mb-2">No products found</h3>
-            <p className="text-ink-400">
-              Try adjusting your search or category filters
-            </p>
+            )}
           </div>
         )}
-      </main>
+      </div>
+
+      {/* Cart Notification */}
+      {showCart && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          🛒 Cart updated! ({getTotalItems()} items)
+        </div>
+      )}
     </div>
   )
 }
