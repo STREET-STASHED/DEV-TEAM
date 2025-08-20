@@ -249,7 +249,7 @@ export default function DriverDashboardPage() {
 
   const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
     try {
-      const updateData: any = { status: newStatus }
+      const updateData: { status: string; picked_up_at?: string; delivered_at?: string } = { status: newStatus }
       
       switch (newStatus) {
         case 'picked_up':
@@ -398,7 +398,7 @@ export default function DriverDashboardPage() {
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-ink-800 rounded-lg p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-2">Today's Orders</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">Today&apos;s Orders</h3>
             <p className="text-3xl font-bold text-brand-500">{stats.activeOrders}</p>
             <p className="text-ink-400 text-sm">Active deliveries</p>
           </div>
