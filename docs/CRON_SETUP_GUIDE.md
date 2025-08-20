@@ -5,7 +5,8 @@ Your driver system is now ready to run automatically! Here's how to set it up:
 ## ✅ What's Already Done
 
 - ✅ Auto-assign orders API route (`/api/cron/auto-assign-orders`)
-- ✅ Vercel cron configuration in `vercel.json`
+- ✅ Vercel cron configuration in `vercel.json` (daily at 9 AM)
+- ✅ GitHub Actions workflow (every 3 minutes) - **RECOMMENDED**
 - ✅ Driver scoring algorithm
 - ✅ Order assignment logic
 - ✅ Notification system
@@ -52,18 +53,32 @@ git push
 vercel --prod
 ```
 
+## ⚙️ Step 4: Set Up GitHub Actions (RECOMMENDED)
+
+Since Vercel Hobby plan only allows daily cron jobs, we've set up GitHub Actions to run every 3 minutes for free:
+
+1. **Go to your GitHub repository**
+2. **Click Settings → Secrets and variables → Actions**
+3. **Add these repository secrets:**
+   - `CRON_URL`: `https://yourdomain.com/api/cron/auto-assign-orders`
+   - `CRON_SECRET`: `your-generated-secret-here`
+
+4. **The workflow will automatically start running every 3 minutes**
+
 ## ⏰ How It Works
 
-- **Every 3 minutes**, Vercel will automatically call `/api/cron/auto-assign-orders`
-- The system finds orders with status `ready_for_pickup`
-- Available drivers are scored based on:
-  - Rating (40% weight)
-  - Completion rate (30% weight)
-  - Recent activity (20% weight)
-  - Location proximity (10% weight)
-- Best drivers get assigned to orders
-- Notifications are sent to drivers and buyers
-- All activity is logged for monitoring
+### Option 1: Vercel Cron (Daily at 9 AM)
+
+- **Once per day at 9 AM**, Vercel calls your API
+- Good for daily maintenance tasks
+
+### Option 2: GitHub Actions (Every 3 Minutes) - **RECOMMENDED**
+
+- **Every 3 minutes**, GitHub Actions calls your API
+- Completely free and unlimited
+- Perfect for real-time order assignment
+
+The system finds orders with status `ready_for_pickup`, scores available drivers, and assigns the best matches automatically.
 
 ## 🧪 Testing
 
@@ -92,6 +107,7 @@ LIMIT 10;
 - Check Vercel deployment logs
 - Verify `vercel.json` has cron configuration
 - Ensure environment variable is set
+- **For GitHub Actions**: Check Actions tab in your repo
 
 ### Orders not being assigned?
 
@@ -106,16 +122,17 @@ LIMIT 10;
 
 ## 🎯 Next Steps
 
-1. **Monitor the first few runs** to ensure everything works
-2. **Adjust the interval** if needed (currently 3 minutes)
+1. **Set up GitHub Actions secrets** for 3-minute intervals
+2. **Monitor the first few runs** to ensure everything works
 3. **Set up alerts** for failed cron jobs
 4. **Optimize driver scoring** based on real data
 
 ## 🚨 Important Notes
 
 - **Keep your cron secret secure** - never commit it to version control
-- **Monitor costs** - more frequent runs = more API calls
+- **GitHub Actions is free** and runs every 3 minutes
+- **Vercel cron is daily** (Hobby plan limitation)
 - **Test thoroughly** before going live
 - **Backup your database** before enabling
 
-Your driver system will now automatically assign orders every 3 minutes! 🎉
+Your driver system will now automatically assign orders every 3 minutes via GitHub Actions! 🎉

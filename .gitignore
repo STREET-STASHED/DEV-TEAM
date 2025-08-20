@@ -32,3 +32,4 @@ yarn.lock
 # ESLint ignore
 public/sw.js
 **/*.d.ts
+.vercel

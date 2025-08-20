@@ -12,14 +12,9 @@
   "crons": [
     {
       "path": "/api/cron/auto-assign-orders",
-      "schedule": "*/3 * * * *"
+      "schedule": "0 9 * * *"
     }
   ],
-  "functions": {
-    "pages/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",

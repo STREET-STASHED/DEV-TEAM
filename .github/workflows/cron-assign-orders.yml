@@ -1,0 +1,23 @@
+name: Auto-Assign Orders
+on:
+  schedule:
+    - cron: "*/3 * * * *" # Every 3 minutes
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  assign:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Cron Endpoint
+        run: |
+          curl -X POST "${{ secrets.CRON_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json"
+        env:
+          CRON_URL: ${{ secrets.CRON_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+
+      - name: Log Execution
+        run: |
+          echo "Cron job executed at $(date)"
+          echo "Called endpoint: ${{ secrets.CRON_URL }}"
