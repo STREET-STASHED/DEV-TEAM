@@ -2,24 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { mockProducts, mockCategories, mockStores, searchProducts, filterProductsByCategory } from '@/lib/mockData'
-import { StreetStashedLogo } from '@/components/StreetStashedLogo'
-
-interface CartItem {
-  id: string
-  name: string
-  price: number
-  image: string
-  storeName: string
-  quantity: number
-}
+import { useCart } from '@/context/CartContext'
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState(mockProducts)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('trending')
-  const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
+  
+  const { items: cart, addItem, updateQuantity, removeItem, totalCount, totalPrice } = useCart()
 
   // Filter products based on search and category
   useEffect(() => {
@@ -54,52 +46,26 @@ export default function MarketplacePage() {
   }, [searchQuery, selectedCategory, sortBy])
 
   const handleAddToCart = (product: any) => {
-    const existingItem = cart.find(item => item.id === product.id)
-    
-    if (existingItem) {
-      setCart(cart.map(item => 
-        item.id === product.id 
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ))
-    } else {
-      setCart([...cart, {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0] || '/mock/default-product.jpg',
-        storeName: product.storeName,
-        quantity: 1
-      }])
-    }
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0] || '/mock/default-product.jpg',
+      storeName: product.storeName,
+      quantity: 1
+    })
     
     // Show cart briefly
     setShowCart(true)
     setTimeout(() => setShowCart(false), 2000)
   }
 
-  const removeFromCart = (productId: string) => {
-    setCart(cart.filter(item => item.id !== productId))
-  }
-
-  const updateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeFromCart(productId)
+      removeItem(productId)
     } else {
-      setCart(cart.map(item => 
-        item.id === productId 
-          ? { ...item, quantity: newQuantity }
-          : item
-      ))
+      updateQuantity(productId, newQuantity)
     }
-  }
-
-  const getTotalPrice = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
-  }
-
-  const getTotalItems = () => {
-    return cart.reduce((total, item) => total + item.quantity, 0)
   }
 
   return (
@@ -128,10 +94,10 @@ export default function MarketplacePage() {
             onClick={() => setShowCart(!showCart)}
             className="relative bg-brand-500 hover:bg-brand-600 px-6 py-3 rounded-lg font-medium transition-colors ml-6"
           >
-            🛒 Cart ({getTotalItems()})
-            {cart.length > 0 && (
+            🛒 Cart ({totalCount})
+            {totalCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {cart.length}
+                {totalCount}
               </span>
             )}
           </button>
@@ -309,7 +275,7 @@ export default function MarketplacePage() {
               </button>
             </div>
 
-            {cart.length === 0 ? (
+            {totalCount === 0 ? (
               <div className="text-center py-8">
                 <div className="text-4xl mb-4">🛒</div>
                 <p className="text-ink-400 mb-4">Your cart is empty</p>
@@ -335,14 +301,14 @@ export default function MarketplacePage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                           className="w-6 h-6 bg-ink-700 rounded-full flex items-center justify-center text-white hover:bg-ink-600"
                         >
                           -
                         </button>
                         <span className="text-white font-medium w-6 text-center">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                           className="w-6 h-6 bg-ink-700 rounded-full flex items-center justify-center text-white hover:bg-ink-600"
                         >
                           +
@@ -356,7 +322,7 @@ export default function MarketplacePage() {
                 <div className="border-t border-ink-700 pt-4">
                   <div className="flex justify-between items-center mb-4">
                     <span className="text-white font-semibold">Total:</span>
-                    <span className="text-brand-400 font-bold text-xl">${getTotalPrice().toFixed(2)}</span>
+                    <span className="text-brand-400 font-bold text-xl">${totalPrice.toFixed(2)}</span>
                   </div>
                   <button className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
                     Proceed to Checkout
@@ -371,7 +337,7 @@ export default function MarketplacePage() {
       {/* Cart Notification */}
       {showCart && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
-          🛒 Cart updated! ({getTotalItems()} items)
+          🛒 Cart updated! ({totalCount} items)
         </div>
       )}
     </div>
