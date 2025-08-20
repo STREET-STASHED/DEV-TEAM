@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 
 interface Order {
   id: string
-  status: 'pending_payment' | 'ready_for_pickup' | 'assigned_to_driver' | 'picked_up' | 'in_transit' | 'delivered' | 'cancelled'
+  status: string
   buyer_id: string
   seller_id: string
   pickup_address: string
@@ -22,7 +22,12 @@ interface Order {
   buyer_phone?: string
   seller_name?: string
   seller_phone?: string
-  items: any[]
+  items: Array<{
+    id: string
+    name: string
+    quantity: number
+    price: number
+  }>
 }
 
 interface DriverStats {
@@ -49,7 +54,6 @@ export default function DriverDashboardPage() {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [stats, setStats] = useState<DriverStats>({
     totalOrders: 0,
     totalEarnings: 0,
@@ -464,7 +468,7 @@ export default function DriverDashboardPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-ink-200 mb-2">No orders found</h3>
-              <p className="text-ink-400">Check back later for new delivery opportunities</p>
+              <p className="text-ink-400">Don&apos;t see any orders? Make sure you&apos;re online and available!</p>
             </div>
           ) : (
             filteredOrders.map((order) => {

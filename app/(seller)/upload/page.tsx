@@ -185,8 +185,8 @@ export default function SellerUploadPage() {
   }
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     
     if (!validateStep(currentStep)) return
     

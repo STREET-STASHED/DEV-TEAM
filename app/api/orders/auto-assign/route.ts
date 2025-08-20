@@ -23,7 +23,7 @@ interface OrderData {
   driver_id?: string;
 }
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Rate limiting
     const { success } = await rateLimit(request);

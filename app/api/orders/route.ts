@@ -5,24 +5,24 @@ import { rateLimit } from '@/lib/rateLimitApp';
 
 const orderSchema = z.object({
   items: z.array(z.object({
-    id: string,
-    name: string,
-    price: number,
-    quantity: number,
-    image_url: string,
-    category: string,
+    id: z.string(),
+    name: z.string(),
+    price: z.number(),
+    quantity: z.number(),
+    image_url: z.string(),
+    category: z.string(),
   })),
   pickupAddress: z.object({
-    street: string,
-    city: string,
-    state: string,
-    zipCode: string,
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zipCode: z.string(),
   }),
   deliveryAddress: z.object({
-    street: string,
-    city: string,
-    state: string,
-    zipCode: string,
+    street: z.string(),
+    city: z.string(),
+    state: z.string(),
+    zipCode: z.string(),
   }),
   distanceMiles: z.number(),
   totalPrice: z.number(),
@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const supabase = await createRouteHandlerClient();
     
