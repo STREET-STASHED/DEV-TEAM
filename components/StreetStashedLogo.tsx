@@ -45,14 +45,14 @@ export function StreetStashedLogo({
         <div className="absolute inset-0 bg-gradient-to-tr from-pink-400 via-pink-500 to-purple-600 rounded-lg transform scale-95"></div>
         <div className="absolute inset-0 bg-gradient-to-bl from-yellow-300 via-yellow-400 to-orange-500 rounded-lg transform scale-90"></div>
         
-        {/* Custom Graffiti "S" - Completely Original Design */}
+        {/* Clean Graffiti "S" - Street Style */}
         <svg 
           className="relative z-10 w-full h-full p-1 text-white font-bold drop-shadow-lg" 
           fill="currentColor" 
           viewBox="0 0 24 24"
         >
-          {/* Custom S shape - Unique design inspired by graffiti but completely original */}
-          <path d="M6 4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v1.5c0 .83-.67 1.5-1.5 1.5H16c-.83 0-1.5.67-1.5 1.5S15.17 10 16 10h.5c.83 0 1.5.67 1.5 1.5V13c0 .83-.67 1.5-1.5 1.5H16c-.83 0-1.5.67-1.5 1.5S15.17 17 16 17h.5c.83 0 1.5.67 1.5 1.5V20c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-1.5c0-.83.67-1.5 1.5-1.5H8c.83 0 1.5-.67 1.5-1.5S8.83 14 8 14h-.5c-.83 0-1.5-.67-1.5-1.5V11c0-.83.67-1.5 1.5-1.5H8c.83 0 1.5-.67 1.5-1.5S8.83 7 8 7h-.5C6.67 7 6 6.33 6 5.5V4z"/>
+          {/* Simple, clean S shape that looks like graffiti */}
+          <path d="M8 4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2c0 .83-.67 1.5-1.5 1.5H14c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5h-2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5h-2c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5h2c.83 0 1.5.67 1.5 1.5V20c0 1.1-.9 2-2 2h-4c-1.1 0-2-.9-2-2v-2c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2c-.83 0-1.5-.67-1.5-1.5v-2c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5h-2c-.83 0-1.5-.67-1.5-1.5V6c0-.83.67-1.5 1.5-1.5h2c.83 0 1.5-.67 1.5-1.5S10.83 3 10 3H8c-.83 0-1.5.67-1.5 1.5V4z"/>
         </svg>
         
         {/* Graffiti paint drips effect */}
