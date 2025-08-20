@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
 import { BuyerHeader } from './BuyerHeader'
+import { WishlistProvider } from '@/context/WishlistContext'
+import { NotificationsProvider } from '@/context/NotificationsContext'
 
 export const metadata: Metadata = {
   title: {
@@ -16,10 +18,14 @@ export default function BuyerLayout({
 }) {
   return (
     <div className="min-h-screen bg-ink-black">
-      <BuyerHeader />
-      <main className="pt-16">
-        {children}
-      </main>
+      <WishlistProvider>
+        <NotificationsProvider>
+          <BuyerHeader />
+          <main className="pt-16">
+            {children}
+          </main>
+        </NotificationsProvider>
+      </WishlistProvider>
     </div>
   )
 }

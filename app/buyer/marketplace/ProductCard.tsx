@@ -1,7 +1,10 @@
 'use client'
 
 import { useCart } from '@/context/CartContext'
+import { useWishlist } from '@/context/WishlistContext'
 import { useState } from 'react'
+import { HeartIcon } from '@heroicons/react/24/outline'
+import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 
 type Product = {
   id: string
@@ -12,6 +15,7 @@ type Product = {
   seller_id: string
   category: string
   created_at: string
+  storeName?: string
 }
 
 interface ProductCardProps {
@@ -22,6 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const [isAdding, setIsAdding] = useState(false)
   const [message, setMessage] = useState('')
   const { addItem, hasItem } = useCart()
+  const { addItem: addToWishlist, removeItem: removeFromWishlist, hasItem: hasWishlistItem } = useWishlist()
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation
@@ -57,6 +62,30 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   }
 
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (hasWishlistItem(product.id)) {
+      removeFromWishlist(product.id)
+      setMessage('Removed from wishlist')
+    } else {
+      addToWishlist({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image_url: product.image_url || '/mock/default-product.jpg',
+        storeName: product.storeName || 'Unknown Store',
+        category: product.category,
+      })
+      setMessage('Added to wishlist')
+    }
+    
+    setTimeout(() => setMessage(''), 2000)
+  }
+
+  const isInWishlist = hasWishlistItem(product.id)
+
   return (
     <div className="bg-ink-black rounded-3xl shadow-card border border-ink-800 hover:shadow-hover transition-all duration-500 hover:scale-[1.02] overflow-hidden relative group">
       {/* Product Image */}
@@ -75,6 +104,23 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         )}
         
+        {/* Wishlist Button */}
+        <button
+          type="button"
+          onClick={handleWishlistToggle}
+          className={`absolute top-3 right-3 w-10 h-10 rounded-full shadow-card transition-all duration-300 transform scale-0 group-hover:scale-100 focus-visible:shadow-ring ${
+            isInWishlist 
+              ? 'bg-red-500 text-white hover:bg-red-600' 
+              : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-red-500 hover:text-white'
+          }`}
+        >
+          {isInWishlist ? (
+            <HeartSolidIcon className="w-5 h-5 mx-auto mt-2.5" />
+          ) : (
+            <HeartIcon className="w-5 h-5 mx-auto mt-2.5" />
+          )}
+        </button>
+
         {/* Quick Add Button */}
         <button
           type="button"
@@ -108,7 +154,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
         {/* New Badge */}
         {new Date(product.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) && (
-          <div className="absolute top-3 right-3">
+          <div className="absolute top-3 left-3 ml-16">
             <span className="badge badge-success text-xs font-medium px-2 py-1">
               NEW
             </span>
@@ -136,6 +182,8 @@ export function ProductCard({ product }: ProductCardProps) {
             <div className={`text-sm px-3 py-1 rounded-full ${
               message.includes('Added') || message.includes('Already')
                 ? 'bg-success-500/20 text-success-400 border border-success-500/30'
+                : message.includes('wishlist')
+                ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
                 : 'bg-error-500/20 text-error-400 border border-error-500/30'
             }`}>
               {message}

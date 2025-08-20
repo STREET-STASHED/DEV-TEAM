@@ -38,15 +38,15 @@ export function StreetStashedLogo({
 
   const LogoContent = () => (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Clean, Simple Logo - Actually Looks Like Something! */}
-      <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600 rounded-lg shadow-lg`}>
-        {/* Simple, bold "S" letter */}
-        <span className="text-white font-black text-4xl drop-shadow-lg">
+      {/* Black and Gold Logo */}
+      <div className={`${sizeClasses[size]} relative flex items-center justify-center bg-gradient-to-br from-ink-900 via-ink-800 to-ink-700 rounded-lg shadow-lg border-2 border-brand-500`}>
+        {/* Bold "S" letter in gold */}
+        <span className="font-black text-4xl drop-shadow-lg text-[#facc15]">
           S
         </span>
         
-        {/* Add a subtle border for definition */}
-        <div className="absolute inset-0 border-2 border-white/20 rounded-lg"></div>
+        {/* Subtle gold accent */}
+        <div className="absolute inset-0 border-2 border-brand-500/30 rounded-lg"></div>
       </div>
       
       {/* StreetStashed Text - Clean and Visible */}
