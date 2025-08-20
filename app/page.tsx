@@ -35,7 +35,7 @@ export default function HomePage() {
       <section className="py-20 px-4">
         <div className="max-w-7xl mx-auto text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight mb-8">
-            Discover Unique Streetwear
+            Discover Unique Brands
           </h1>
           <p className="text-xl text-ink-400 max-w-4xl mx-auto leading-relaxed mb-12">
             Shop curated collections from local fashion stylists and discover your next favorite piece

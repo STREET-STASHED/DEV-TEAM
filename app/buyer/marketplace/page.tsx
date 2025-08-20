@@ -104,13 +104,11 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-ink-black text-white">
-      {/* Header */}
-      <header className="bg-ink-900 border-b border-ink-800 p-4 sticky top-0 z-50">
+      {/* Search and Cart Bar */}
+      <div className="bg-ink-900 border-b border-ink-800 p-4 sticky top-16 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <StreetStashedLogo size="md" />
-          
           {/* Search Bar */}
-          <div className="flex-1 max-w-2xl mx-8">
+          <div className="flex-1 max-w-2xl">
             <div className="relative">
               <input
                 type="text"
@@ -128,7 +126,7 @@ export default function MarketplacePage() {
           {/* Cart Button */}
           <button 
             onClick={() => setShowCart(!showCart)}
-            className="relative bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-lg font-medium transition-colors"
+            className="relative bg-brand-500 hover:bg-brand-600 px-6 py-3 rounded-lg font-medium transition-colors ml-6"
           >
             🛒 Cart ({getTotalItems()})
             {cart.length > 0 && (
@@ -138,19 +136,19 @@ export default function MarketplacePage() {
             )}
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* Search and Filters */}
-      <div className="bg-ink-900 border-b border-ink-800 p-4">
-        <div className="max-w-7xl mx-auto space-y-4">
+      {/* Category and Sort Bar */}
+      <div className="bg-ink-800 border-b border-ink-700 p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Category Tabs */}
-          <div className="flex space-x-2 overflow-x-auto pb-2">
+          <div className="flex space-x-2 overflow-x-auto">
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
                 selectedCategory === 'all'
                   ? 'bg-brand-500 text-white'
-                  : 'bg-ink-800 text-ink-300 hover:bg-ink-700'
+                  : 'bg-ink-900 text-ink-300 hover:bg-ink-700'
               }`}
             >
               All Categories
@@ -162,7 +160,7 @@ export default function MarketplacePage() {
                 className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === category.id
                     ? 'bg-brand-500 text-white'
-                    : 'bg-ink-800 text-ink-300 hover:bg-ink-700'
+                    : 'bg-ink-900 text-ink-300 hover:bg-ink-700'
                 }`}
               >
                 {category.icon} {category.name}
@@ -171,12 +169,12 @@ export default function MarketplacePage() {
           </div>
 
           {/* Sort Options */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ml-6">
             <span className="text-ink-400">Sort by:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="bg-ink-900 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="trending">Trending</option>
               <option value="price-low">Price: Low to High</option>
