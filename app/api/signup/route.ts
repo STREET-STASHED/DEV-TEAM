@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
+import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rateLimitApp';
 
@@ -30,6 +31,18 @@ export async function POST(request: NextRequest) {
     const validatedData = signupSchema.parse(body);
 
     const supabase = await createRouteHandlerClient();
+    
+    // Create admin client for user creation
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
 
     // Check if username is taken
     const { data: existingUsername } = await supabase
@@ -45,20 +58,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, return a message indicating manual user creation is needed
-    // In production, you would use Supabase Auth UI or implement proper admin flow
+    // Create user account in Supabase Auth
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: validatedData.email,
+      password: validatedData.password,
+      email_confirm: true,
+    });
+
+    if (authError) {
+      console.error('Auth user creation error:', authError);
+      return NextResponse.json(
+        { error: 'Failed to create user account', details: authError.message },
+        { status: 500 }
+      );
+    }
+
+    if (!authData.user) {
+      return NextResponse.json(
+        { error: 'User creation failed - no user data returned' },
+        { status: 500 }
+      );
+    }
+
+    // Create profile record
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        email: validatedData.email,
+        full_name: validatedData.userData.full_name,
+        username: validatedData.userData.username,
+        role: validatedData.userData.role,
+        has_completed_onboarding: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (profileError) {
+      console.error('Profile creation error:', profileError);
+      // Try to clean up the auth user if profile creation fails
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      return NextResponse.json(
+        { error: 'Failed to create user profile', details: profileError.message },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
-      message: 'Signup endpoint working - manual user creation required',
-      note: 'Due to Supabase configuration, users must be created manually in the dashboard for now',
-      validatedData,
-      nextSteps: [
-        '1. Create user account in Supabase Auth dashboard',
-        '2. Use the email and password provided',
-        '3. Create profile record in profiles table',
-        '4. Set has_completed_onboarding to false',
-      ],
+      message: 'User created successfully',
+      user: {
+        id: authData.user.id,
+        email: validatedData.email,
+        role: validatedData.userData.role,
+      },
+      profile: profileData,
       timestamp: new Date().toISOString(),
-    }, { status: 200 });
+    }, { status: 201 });
 
   } catch (error) {
     if (error instanceof z.ZodError) {
