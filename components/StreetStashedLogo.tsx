@@ -32,35 +32,44 @@ export function StreetStashedLogo({
   const variantClasses = {
     light: 'text-white',
     dark: 'text-gray-900',
-    gold: 'text-yellow-500'
+    gold: 'text-yellow-500',
+    graffiti: 'text-transparent bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text'
   }
 
   const LogoContent = () => (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Golden Dollar Sign Logo */}
+      {/* Graffiti Style "S" Logo */}
       <div className={`${sizeClasses[size]} relative flex items-center justify-center`}>
-        {/* Golden glitter effect background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 via-yellow-500 to-yellow-600 rounded-lg shadow-lg"></div>
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-yellow-300/30 to-transparent rounded-lg"></div>
+        {/* Graffiti background with depth */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 rounded-lg shadow-xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-tr from-pink-400 via-pink-500 to-purple-600 rounded-lg transform scale-95"></div>
+        <div className="absolute inset-0 bg-gradient-to-bl from-yellow-300 via-yellow-400 to-orange-500 rounded-lg transform scale-90"></div>
         
-        {/* Dollar sign */}
+        {/* Custom Graffiti "S" - Completely Original Design */}
         <svg 
-          className="relative z-10 w-full h-full p-1 text-black font-bold" 
+          className="relative z-10 w-full h-full p-1 text-white font-bold drop-shadow-lg" 
           fill="currentColor" 
           viewBox="0 0 24 24"
         >
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.5 6c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3c-.28 0-.5.22-.5.5s.22.5.5.5h3c1.93 0 3.5 1.57 3.5 3.5S15.43 18 13.5 18v1c0 .55-.45 1-1 1s-1-.45-1-1v-1c-1.93 0-3.5-1.57-3.5-3.5 0-.55.45-1 1-1s1 .45 1 1c0 .28.22.5.5.5h3c.28 0 .5-.22.5-.5s-.22-.5-.5-.5h-3c-1.93 0-3.5-1.57-3.5-3.5S8.57 6 10.5 6V5c0-.55.45-1 1-1s1 .45 1 1v1z"/>
+          {/* Custom S shape - Unique design inspired by graffiti but completely original */}
+          <path d="M6 4c0-1.1.9-2 2-2h8c1.1 0 2 .9 2 2v1.5c0 .83-.67 1.5-1.5 1.5H16c-.83 0-1.5.67-1.5 1.5S15.17 10 16 10h.5c.83 0 1.5.67 1.5 1.5V13c0 .83-.67 1.5-1.5 1.5H16c-.83 0-1.5.67-1.5 1.5S15.17 17 16 17h.5c.83 0 1.5.67 1.5 1.5V20c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2v-1.5c0-.83.67-1.5 1.5-1.5H8c.83 0 1.5-.67 1.5-1.5S8.83 14 8 14h-.5c-.83 0-1.5-.67-1.5-1.5V11c0-.83.67-1.5 1.5-1.5H8c.83 0 1.5-.67 1.5-1.5S8.83 7 8 7h-.5C6.67 7 6 6.33 6 5.5V4z"/>
         </svg>
+        
+        {/* Graffiti paint drips effect */}
+        <div className="absolute bottom-0 left-1/4 w-1 h-2 bg-purple-600 transform -translate-x-1/2"></div>
+        <div className="absolute bottom-0 right-1/4 w-1 h-3 bg-pink-500 transform translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-1/2 w-1 h-1 bg-orange-500 transform -translate-x-1/2"></div>
       </div>
       
-      {/* StreetStashed Text */}
+      {/* StreetStashed Text - Graffiti Style */}
       {showText && (
         <span className={`
           ${textSizeClasses[size]} 
           ${variantClasses[variant]} 
-          font-bold tracking-tight
-          bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 
+          font-bold tracking-wider
+          bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 
           bg-clip-text text-transparent
+          drop-shadow-sm
         `}>
           STREETSTASHED
         </span>
