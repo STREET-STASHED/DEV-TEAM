@@ -11,7 +11,7 @@ import {
 interface BuyerRewardsProps {
   totalSpent: number
   currentPoints: number
-  onRedeemPoints: (points: number, credit: number) => void
+  onRedeemPoints: (_points: number, _credit: number) => void
 }
 
 export function BuyerRewards({ totalSpent, currentPoints, onRedeemPoints }: BuyerRewardsProps) {

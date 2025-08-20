@@ -3,10 +3,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 interface WebSocketOptions {
   url: string;
   protocols?: string | string[];
-  onOpen?: (event: Event) => void;
-  onMessage?: (event: MessageEvent) => void;
-  onClose?: (event: CloseEvent) => void;
-  onError?: (event: Event) => void;
+  onOpen?: (_event: Event) => void;
+  onMessage?: (_event: MessageEvent) => void;
+  onClose?: (_event: CloseEvent) => void;
+  onError?: (_event: Event) => void;
   reconnectInterval?: number;
   maxReconnectAttempts?: number;
   shouldReconnect?: boolean;
@@ -32,7 +32,7 @@ const defaultOptions: Required<WebSocketOptions> = {
 };
 
 export function useWebSocket(options: WebSocketOptions) {
-  const config = { ...defaultOptions, ...options };
+  const config = useMemo(() => ({ ...defaultOptions, ...options }), [options]);
   
   const [state, setState] = useState<WebSocketState>({
     isConnected: false,

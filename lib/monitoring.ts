@@ -5,7 +5,7 @@
 declare global {
   interface Window {
     __STREETSTASHED_MONITORING__?: {
-      trackError: (error: unknown, component?: string) => void;
+      trackError: (_error: unknown, _component?: string) => void;
     };
   }
 }

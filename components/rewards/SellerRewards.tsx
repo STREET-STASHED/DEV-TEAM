@@ -12,7 +12,7 @@ interface SellerRewardsProps {
   currentTier: string
   monthlySales: number
   currentPoints: number
-  onUpgradeTier: (tier: string) => void
+  onUpgradeTier: (_tier: string) => void
 }
 
 export function SellerRewards({ currentTier, monthlySales, currentPoints, onUpgradeTier }: SellerRewardsProps) {

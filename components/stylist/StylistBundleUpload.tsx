@@ -25,7 +25,7 @@ interface StylistBundle {
 }
 
 interface StylistBundleUploadProps {
-  onBundleCreate: (bundle: StylistBundle) => void
+  onBundleCreate: (_bundle: StylistBundle) => void
 }
 
 export function StylistBundleUpload({ onBundleCreate }: StylistBundleUploadProps) {

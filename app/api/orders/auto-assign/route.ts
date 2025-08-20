@@ -238,7 +238,7 @@ function findBestDriverForOrder(availableDrivers: DriverProfile[], order: OrderD
 }
 
 // GET endpoint to check auto-assignment status
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
     

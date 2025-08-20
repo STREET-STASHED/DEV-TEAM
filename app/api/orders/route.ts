@@ -31,8 +31,8 @@ const orderSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const { success } = await rateLimit(request);
-    if (!success) {
+    const rateLimitResult = await rateLimit(request);
+    if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
         { status: 429 }

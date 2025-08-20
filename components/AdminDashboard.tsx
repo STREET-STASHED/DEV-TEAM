@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { StreetStashedLogo } from '@/components/StreetStashedLogo';
+import AIMonitoringDashboard from '@/components/admin/AIMonitoringDashboard';
 
 interface Metrics {
   totalUsers: number;
@@ -52,7 +53,7 @@ interface User {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'disputes' | 'orders' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'disputes' | 'orders' | 'users' | 'monitoring'>('overview');
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -166,7 +167,8 @@ export default function AdminDashboard() {
     { id: 'overview', name: 'Overview', icon: '📊' },
     { id: 'disputes', name: 'Disputes', icon: '⚠️' },
     { id: 'orders', name: 'Orders', icon: '📦' },
-    { id: 'users', name: 'Users', icon: '👥' }
+    { id: 'users', name: 'Users', icon: '👥' },
+    { id: 'monitoring', name: 'AI Monitor', icon: '🤖' }
   ];
 
   if (loading) {
@@ -195,7 +197,7 @@ export default function AdminDashboard() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'overview' | 'disputes' | 'orders' | 'users')}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'disputes' | 'orders' | 'users' | 'monitoring')}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-blue-500 text-blue-600'
@@ -420,6 +422,21 @@ export default function AdminDashboard() {
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* Monitoring Tab */}
+      {activeTab === 'monitoring' && (
+        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h3 className="text-lg font-medium text-gray-900">AI Production Monitoring</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Real-time monitoring and AI-powered insights for production sustainability
+            </p>
+          </div>
+          <div className="p-6">
+            <AIMonitoringDashboard />
+          </div>
         </div>
       )}
 

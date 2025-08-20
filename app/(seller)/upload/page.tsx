@@ -272,7 +272,7 @@ export default function SellerUploadPage() {
       try {
         const parsed = JSON.parse(saved)
         setFormData(parsed)
-      } catch (e) {
+      } catch (_e) {
         console.error('Failed to parse saved draft')
       }
     }

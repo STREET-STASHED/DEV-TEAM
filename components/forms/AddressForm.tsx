@@ -8,15 +8,15 @@ interface Address {
 }
 
 interface AddressFormProps {
-  address: Address
-  onChange: (address: Address) => void
+  _address: Address
+  onChange: (_address: Address) => void
   title?: string
 }
 
-export function AddressForm({ address, onChange, title }: AddressFormProps) {
+export function AddressForm({ _address, onChange, title }: AddressFormProps) {
   const handleChange = (field: keyof Address, value: string) => {
     onChange({
-      ...address,
+      ..._address,
       [field]: value
     })
   }
@@ -35,7 +35,7 @@ export function AddressForm({ address, onChange, title }: AddressFormProps) {
           <input
             id="street"
             type="text"
-            value={address.street}
+            value={_address.street}
             onChange={(e) => handleChange('street', e.target.value)}
             className="w-full px-3 py-2 border border-ink-600 bg-ink-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
             placeholder="Enter street address"
@@ -50,7 +50,7 @@ export function AddressForm({ address, onChange, title }: AddressFormProps) {
             <input
               id="city"
               type="text"
-              value={address.city}
+              value={_address.city}
               onChange={(e) => handleChange('city', e.target.value)}
               className="w-full px-3 py-2 border border-ink-600 bg-ink-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
               placeholder="City"
@@ -64,7 +64,7 @@ export function AddressForm({ address, onChange, title }: AddressFormProps) {
             <input
               id="state"
               type="text"
-              value={address.state}
+              value={_address.state}
               onChange={(e) => handleChange('state', e.target.value)}
               className="w-full px-3 py-2 border border-ink-600 bg-ink-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
               placeholder="State"
@@ -78,7 +78,7 @@ export function AddressForm({ address, onChange, title }: AddressFormProps) {
             <input
               id="zipCode"
               type="text"
-              value={address.zipCode}
+              value={_address.zipCode}
               onChange={(e) => handleChange('zipCode', e.target.value)}
               className="w-full px-3 py-2 border border-ink-600 bg-ink-900 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent"
               placeholder="ZIP Code"

@@ -13,7 +13,7 @@ interface ReviewFormProps {
   subjectType: 'seller' | 'stylist' | 'driver';
   subjectId: string;
   subjectName: string;
-  onSubmit: (data: ReviewSubmission) => Promise<void>;
+  onSubmit: (_data: ReviewSubmission) => Promise<void>;
   onCancel: () => void;
 }
 

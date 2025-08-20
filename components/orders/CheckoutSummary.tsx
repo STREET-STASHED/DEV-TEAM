@@ -14,7 +14,7 @@ interface CartItem {
 interface CheckoutSummaryProps {
   items: CartItem[];
   distanceMiles: number;
-  onSummaryChange: (summary: {
+  onSummaryChange: (_summary: {
     subtotal: number;
     stashedSupportFee: number;
     total: number;

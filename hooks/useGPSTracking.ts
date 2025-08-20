@@ -14,8 +14,8 @@ interface GPSTrackingOptions {
   timeout?: number;
   maximumAge?: number;
   intervalMs?: number;
-  onLocationUpdate?: (location: Location) => void;
-  onError?: (error: string) => void;
+  onLocationUpdate?: (_location: Location) => void;
+  onError?: (_error: string) => void;
 }
 
 interface GPSTrackingState {
@@ -41,7 +41,7 @@ export function useGPSTracking(options: GPSTrackingOptions = {}): GPSTrackingSta
   stopTracking: () => void;
   getCurrentLocation: () => Promise<Location>;
 } {
-  const config = { ...defaultOptions, ...options };
+  const config = useMemo(() => ({ ...defaultOptions, ...options }), [options]);
   
   const [state, setState] = useState<GPSTrackingState>({
     isTracking: false,

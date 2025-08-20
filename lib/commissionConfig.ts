@@ -366,7 +366,7 @@ export function compareCommissionScenarios(
 
 export function getCommissionSavings(
   monthlyRevenue: number,
-  _isPilot: boolean = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+  _isPilot: boolean = false,
   subscriptionTier?: 'silver' | 'gold' | 'platinum' | 'diamond',
   userType: 'seller' | 'stylist' = 'seller'
 ): {

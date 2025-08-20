@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import '../styles/globals.css'
+import { AuthProvider } from '@/context/AuthContext'
+import { CartProvider } from '@/context/CartContext'
+import { SupabaseProvider } from '@/context/SupabaseContext'
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -76,7 +79,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full ${inter.variable}`}>
       <body className="bg-ink-black text-white h-full font-sans">
-        {children}
+        <SupabaseProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </AuthProvider>
+        </SupabaseProvider>
       </body>
     </html>
   )

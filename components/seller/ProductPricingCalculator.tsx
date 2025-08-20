@@ -10,7 +10,7 @@ import {
 } from '@/lib/sellerPricing'
 
 interface ProductPricingCalculatorProps {
-  onPricingSelect: (pricing: ProductPricing) => void
+  onPricingSelect: (_pricing: ProductPricing) => void
   defaultBasePrice?: number
   defaultCategory?: string
 }

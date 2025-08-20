@@ -150,7 +150,7 @@ export function calculateSellerPoints(salesTotal: number): number {
 export function calculateSellerDiscount(
   tier: string,
   monthlySales: number,
-  _currentPoints: number // eslint-disable-line @typescript-eslint/no-unused-vars
+  _currentPoints: number
 ): {
   baseSubscription: number
   maxDiscount: number

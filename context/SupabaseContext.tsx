@@ -1,3 +1,5 @@
+'use client'
+
 import React, {
   createContext,
   useContext,
@@ -25,11 +27,11 @@ interface SupabaseContextType {
   session: Session | null;
   loading: boolean;
   profile: Profile | null;
-  signIn: (params: {
+  signIn: (_params: {
     email: string;
     password: string;
   }) => Promise<{ error: Error | null; data: { user: User | null; session: Session | null } | null }>;
-  signUp: (params: {
+  signUp: (_params: {
     email: string;
     password: string;
   }) => Promise<{ error: Error | null; data: { user: User | null; session: Session | null } | null }>;

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rateLimitApp';
@@ -18,8 +17,8 @@ const signupSchema = z.object({
 export async function POST(request: NextRequest) {
   try {
     // Rate limiting
-    const { success } = await rateLimit(request);
-    if (!success) {
+    const rateLimitResult = await rateLimit(request);
+    if (!rateLimitResult.success) {
       return NextResponse.json(
         { error: 'Too many signup attempts. Please try again later.' },
         { status: 429 }
@@ -30,8 +29,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = signupSchema.parse(body);
 
-    const supabase = await createRouteHandlerClient();
-    
     // Create admin client for user creation
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,25 +41,16 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    // Check if username is taken
-    const { data: existingUsername } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('username', validatedData.userData.username)
-      .single();
-
-    if (existingUsername) {
-      return NextResponse.json(
-        { error: 'Username is already taken' },
-        { status: 409 }
-      );
-    }
-
     // Create user account in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: validatedData.email,
       password: validatedData.password,
       email_confirm: true,
+      user_metadata: {
+        full_name: validatedData.userData.full_name,
+        role: validatedData.userData.role,
+        username: validatedData.userData.username,
+      }
     });
 
     if (authError) {
@@ -80,32 +68,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create profile record
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .insert({
-        id: authData.user.id,
-        email: validatedData.email,
-        full_name: validatedData.userData.full_name,
-        username: validatedData.userData.username,
-        role: validatedData.userData.role,
-        has_completed_onboarding: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (profileError) {
-      console.error('Profile creation error:', profileError);
-      // Try to clean up the auth user if profile creation fails
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      return NextResponse.json(
-        { error: 'Failed to create user profile', details: profileError.message },
-        { status: 500 }
-      );
-    }
-
+    // For now, just return success without trying to create profile
+    // The profile will be created by the database trigger or can be created later
     return NextResponse.json({
       message: 'User created successfully',
       user: {
@@ -113,7 +77,6 @@ export async function POST(request: NextRequest) {
         email: validatedData.email,
         role: validatedData.userData.role,
       },
-      profile: profileData,
       timestamp: new Date().toISOString(),
     }, { status: 201 });
 

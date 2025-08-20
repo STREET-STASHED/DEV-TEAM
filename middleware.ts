@@ -17,6 +17,9 @@ const PUBLIC_PATHS = [
   "/brands",
   "/search",
   "/favicon.ico",
+  "/test-context",
+  "/test-simple",
+  "/test-auth",
 ];
 
 // 👇 Admin-only routes

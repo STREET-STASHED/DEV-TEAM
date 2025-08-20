@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import React, {
   createContext,
@@ -40,7 +40,7 @@ export interface CartContextType {
   clearCart: () => void;
   toggleCart: () => void;
   hasItem: (_id: string) => boolean;
-  setIsOpen: (open: boolean) => void;
+  setIsOpen: (_open: boolean) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);

@@ -145,7 +145,7 @@ export class WebSocketServer {
   }
 
   private handleAuthentication(
-    socket: { id: string; join: (room: string) => void; emit: (event: string, data: unknown) => void },
+    socket: { id: string; join: (_room: string) => void; emit: (_event: string, _data: unknown) => void },
     data: { userId: string; userType: string },
   ) {
     this.connectedUsers.set(data.userId, socket.id);
@@ -212,7 +212,7 @@ export class WebSocketServer {
   }
 
   private handleChatMessage(
-    socket: { id: string; emit: (event: string, data: unknown) => void },
+    socket: { id: string; emit: (_event: string, _data: unknown) => void },
     data: WebSocketEvents["chat:message"],
   ) {
     // Send message to specific user

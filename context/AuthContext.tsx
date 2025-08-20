@@ -1,3 +1,5 @@
+'use client'
+
 import React, {
   createContext,
   useContext,
@@ -7,7 +9,7 @@ import React, {
 } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 interface Profile {
   id: string;
@@ -44,21 +46,21 @@ interface AuthContextType {
   isBuyer: boolean;
 
   // Auth methods
-  signIn: (email: string, password: string) => Promise<{ error?: string }>;
+  signIn: (_email: string, _password: string) => Promise<{ error?: string }>;
   signUp: (
-    email: string,
-    password: string,
-    profile: Partial<Profile>,
+    _email: string,
+    _password: string,
+    _profile: Partial<Profile>,
   ) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error?: string }>;
+  resetPassword: (_email: string) => Promise<{ error?: string }>;
 
   // Profile methods
-  updateProfile: (updates: Partial<Profile>) => Promise<{ error?: string }>;
-  uploadAvatar: (file: File) => Promise<{ error?: string; url?: string }>;
+  updateProfile: (_updates: Partial<Profile>) => Promise<{ error?: string }>;
+  uploadAvatar: (_file: File) => Promise<{ error?: string; url?: string }>;
 
   // Role-based access control
-  requireAuth: (requiredRole?: Profile["role"]) => boolean;
+  requireAuth: (_requiredRole?: Profile["role"]) => boolean;
   requireVerification: () => boolean;
 
   // Session management

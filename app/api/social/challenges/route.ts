@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+
+export async function GET(_request:NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const type = searchParams.get('type') // 'active' | 'all'
+    const limit = parseInt(searchParams.get('limit') || '10')
+
+    const supabase = await createRouteHandlerClient()
+
+    if (type === 'active') {
+      const { data, error } = await supabase
+        .from('social_challenges')
+        .select('*')
+        .eq('is_active', true)
+        .gte('end_date', new Date().toISOString())
+        .order('participants', { ascending: false })
+        .limit(limit)
+      
+      if (error) throw error
+      
+      return NextResponse.json({ challenges: data })
+    }
+
+    // Get all challenges
+    const { data, error } = await supabase
+      .from('social_challenges')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit)
+    
+    if (error) throw error
+    
+    return NextResponse.json({ challenges: data })
+  } catch (error) {
+    console.error('Error fetching challenges:', error)
+    return NextResponse.json({ error: 'Failed to fetch challenges' }, { status: 500 })
+  }
+}
+
+export async function POST(_request:NextRequest) {
+  try {
+    const body = await request.json()
+    const { title, description, hashtag, startDate, endDate, prize, rules } = body
+
+    const supabase = await createRouteHandlerClient()
+    
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Check if user is influencer/admin
+    const { data: profile } = await supabase
+      .from('user_social_profiles')
+      .select('is_influencer')
+      .eq('user_id', user.id)
+      .single()
+
+    if (!profile?.is_influencer) {
+      return NextResponse.json({ error: 'Only influencers can create challenges' }, { status: 403 })
+    }
+
+    // Create challenge
+    const { data, error } = await supabase
+      .from('social_challenges')
+      .insert({
+        title,
+        description,
+        hashtag,
+        start_date: startDate,
+        end_date: endDate,
+        prize,
+        rules
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    return NextResponse.json({ challenge: data })
+  } catch (error) {
+    console.error('Error creating challenge:', error)
+    return NextResponse.json({ error: 'Failed to create challenge' }, { status: 500 })
+  }
+}

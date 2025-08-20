@@ -1,0 +1,172 @@
+{
+  "timestamp": "2025-08-20T20:13:15.838Z",
+  "summary": {
+    "total": 25,
+    "passed": 18,
+    "failed": 4,
+    "warnings": 0
+  },
+  "results": [
+    {
+      "category": "Health Check",
+      "status": "PASS",
+      "message": "App is running and accessible",
+      "timestamp": "2025-08-20T20:13:08.278Z"
+    },
+    {
+      "category": "Signup Page",
+      "status": "PASS",
+      "message": "Route accessible with content (24638 chars)",
+      "timestamp": "2025-08-20T20:13:08.736Z"
+    },
+    {
+      "category": "Login Page",
+      "status": "PASS",
+      "message": "Route accessible with content (22583 chars)",
+      "timestamp": "2025-08-20T20:13:10.848Z"
+    },
+    {
+      "category": "Marketplace",
+      "status": "PASS",
+      "message": "Route accessible with content (133951 chars)",
+      "timestamp": "2025-08-20T20:13:11.615Z"
+    },
+    {
+      "category": "Checkout Page",
+      "status": "PASS",
+      "message": "Route accessible with content (30486 chars)",
+      "timestamp": "2025-08-20T20:13:12.625Z"
+    },
+    {
+      "category": "Guest Checkout Flow",
+      "status": "PASS",
+      "message": "All flow steps accessible",
+      "timestamp": "2025-08-20T20:13:12.840Z"
+    },
+    {
+      "category": "User Registration Flow",
+      "status": "PASS",
+      "message": "All flow steps accessible",
+      "timestamp": "2025-08-20T20:13:12.973Z"
+    },
+    {
+      "category": "Seller Onboarding Flow",
+      "status": "FAIL",
+      "message": "Flow broken: Upload Page: Status 307, Dashboard Access: Status 307",
+      "timestamp": "2025-08-20T20:13:13.015Z"
+    },
+    {
+      "category": "Signup API",
+      "status": "FAIL",
+      "message": "API returned status 500",
+      "timestamp": "2025-08-20T20:13:14.330Z"
+    },
+    {
+      "category": "Orders API",
+      "status": "FAIL",
+      "message": "API returned status 401",
+      "timestamp": "2025-08-20T20:13:14.669Z"
+    },
+    {
+      "category": "Items API",
+      "status": "PASS",
+      "message": "API endpoint accessible (200)",
+      "timestamp": "2025-08-20T20:13:14.783Z"
+    },
+    {
+      "category": "Distance API",
+      "status": "FAIL",
+      "message": "API returned status 500",
+      "timestamp": "2025-08-20T20:13:15.008Z"
+    },
+    {
+      "category": "/ Performance",
+      "status": "PASS",
+      "message": "Load time: 314ms",
+      "timestamp": "2025-08-20T20:13:15.323Z"
+    },
+    {
+      "category": "/signup Performance",
+      "status": "PASS",
+      "message": "Load time: 72ms",
+      "timestamp": "2025-08-20T20:13:15.395Z"
+    },
+    {
+      "category": "/login Performance",
+      "status": "PASS",
+      "message": "Load time: 68ms",
+      "timestamp": "2025-08-20T20:13:15.463Z"
+    },
+    {
+      "category": "/buyer/marketplace Performance",
+      "status": "PASS",
+      "message": "Load time: 268ms",
+      "timestamp": "2025-08-20T20:13:15.731Z"
+    },
+    {
+      "category": "/buyer/checkout Performance",
+      "status": "PASS",
+      "message": "Load time: 73ms",
+      "timestamp": "2025-08-20T20:13:15.804Z"
+    },
+    {
+      "category": "/seller/upload Performance",
+      "status": "PASS",
+      "message": "Load time: 4ms",
+      "timestamp": "2025-08-20T20:13:15.808Z"
+    },
+    {
+      "category": "/stylist/dashboard Performance",
+      "status": "PASS",
+      "message": "Load time: 3ms",
+      "timestamp": "2025-08-20T20:13:15.811Z"
+    },
+    {
+      "category": "/driver-dashboard Performance",
+      "status": "PASS",
+      "message": "Load time: 5ms",
+      "timestamp": "2025-08-20T20:13:15.816Z"
+    },
+    {
+      "category": "Route Protection",
+      "status": "PASS",
+      "message": "Route properly protected",
+      "timestamp": "2025-08-20T20:13:15.824Z"
+    },
+    {
+      "category": "Admin Route Protection",
+      "status": "PASS",
+      "message": "Route properly protected",
+      "timestamp": "2025-08-20T20:13:15.832Z"
+    },
+    {
+      "category": "HTML Structure",
+      "status": "INFO",
+      "message": "Accessibility testing requires HTML parsing (implemented in full version)",
+      "timestamp": "2025-08-20T20:13:15.833Z"
+    },
+    {
+      "category": "Meta Tags",
+      "status": "INFO",
+      "message": "Accessibility testing requires HTML parsing (implemented in full version)",
+      "timestamp": "2025-08-20T20:13:15.833Z"
+    },
+    {
+      "category": "Responsive Design",
+      "status": "INFO",
+      "message": "Accessibility testing requires HTML parsing (implemented in full version)",
+      "timestamp": "2025-08-20T20:13:15.833Z"
+    }
+  ],
+  "performance": {
+    "/": 314,
+    "/signup": 72,
+    "/login": 68,
+    "/buyer/marketplace": 268,
+    "/buyer/checkout": 73,
+    "/seller/upload": 4,
+    "/stylist/dashboard": 3,
+    "/driver-dashboard": 5
+  },
+  "errors": []
+}

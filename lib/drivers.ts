@@ -142,7 +142,6 @@ export class DriverService {
   }
 
   // Assign driver to order
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async assignDriverToOrder(driverId: string, _orderId: string): Promise<boolean> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 600))
@@ -187,7 +186,6 @@ export class DriverService {
   }
 
   // Get nearby drivers
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async getNearbyDrivers(_location: { lat: number; lng: number }, _radiusMiles: number = 10): Promise<Driver[]> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500))
@@ -197,7 +195,6 @@ export class DriverService {
   }
 
   // Get driver earnings history
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   static async getDriverEarningsHistory(_driverId: string, _startDate?: string, _endDate?: string): Promise<Array<{
     date: string
     orders: number

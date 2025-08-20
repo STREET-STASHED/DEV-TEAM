@@ -6,6 +6,37 @@ import { createBrowserClient } from '@supabase/ssr'
 
 type Role = 'buyer' | 'seller' | 'stylist' | 'driver'
 
+const roleOptions = [
+  {
+    value: 'buyer',
+    label: 'Buyer',
+    description: 'Shop for fashion and discover unique streetwear',
+    icon: '🛍️',
+    color: 'from-blue-500 to-blue-600'
+  },
+  {
+    value: 'seller',
+    label: 'Seller',
+    description: 'Sell your products and grow your business',
+    icon: '🏪',
+    color: 'from-green-500 to-green-600'
+  },
+  {
+    value: 'stylist',
+    label: 'Stylist',
+    description: 'Create curated collections and style clients',
+    icon: '👔',
+    color: 'from-purple-500 to-purple-600'
+  },
+  {
+    value: 'driver',
+    label: 'Driver (Stasher)',
+    description: 'Deliver orders and earn money',
+    icon: '🚚',
+    color: 'from-orange-500 to-orange-600'
+  }
+]
+
 export function SignupForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -96,39 +127,37 @@ export function SignupForm() {
         return
       }
 
-      const access_token = session.access_token
-      const user_id = session.user.id
+      const _access_token = session.access_token
+      const _user_id = session.user.id
 
-      try {
-        const redirectResponse = await fetch('/functions/v1/handle-redirect', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${access_token}`,
-          },
-          body: JSON.stringify({ user_id }),
-        })
-
-        const redirectData = await redirectResponse.json()
-        if (redirectData.redirectTo) {
-          await router.replace(redirectData.redirectTo)
-        } else {
-          await router.replace('/onboarding')
-        }
-      } catch (redirectError) {
-        console.error('[ROUTING FALLBACK ERROR]', redirectError)
-        await router.replace('/onboarding')
+      // Redirect based on role
+      switch (role) {
+        case 'buyer':
+          await router.push('/buyer/dashboard')
+          break
+        case 'seller':
+          await router.push('/seller-dashboard')
+          break
+        case 'stylist':
+          await router.push('/stylist/dashboard')
+          break
+        case 'driver':
+          await router.push('/driver-dashboard')
+          break
+        default:
+          await router.push('/onboarding')
       }
-    } catch (err) {
-      console.error('Signup error:', err)
-      setError('An unexpected error occurred')
+
+    } catch (error) {
+      console.error('[SIGNUP ERROR]', error)
+      setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-white">
@@ -138,6 +167,7 @@ export function SignupForm() {
             id="name"
             name="name"
             type="text"
+            autoComplete="name"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -197,23 +227,43 @@ export function SignupForm() {
         </div>
 
         <div>
-          <label htmlFor="role" className="block text-sm font-medium text-white">
+          <label className="block text-sm font-medium text-white mb-3">
             I want to join as
           </label>
-          <select
-            id="role"
-            name="role"
-            required
-            value={role}
-            onChange={(e) => setRole(e.target.value as Role)}
-            className="mt-1 block w-full px-3 py-2 border border-ink-600 bg-ink-800 text-white rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 sm:text-sm transition-all duration-200"
-          >
-            <option value="">Select your role</option>
-            <option value="buyer">Buyer - Shop for fashion</option>
-            <option value="seller">Seller - Sell your products</option>
-            <option value="stylist">Stylist - Create collections</option>
-            <option value="driver">Driver - Deliver orders</option>
-          </select>
+          <div className="grid grid-cols-1 gap-3">
+            {roleOptions.map((option) => (
+              <div
+                key={option.value}
+                className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 ${
+                  role === option.value
+                    ? 'border-brand-400 bg-brand-500/10 shadow-lg'
+                    : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
+                }`}
+                onClick={() => setRole(option.value as Role)}
+              >
+                <input
+                  type="radio"
+                  name="role"
+                  value={option.value}
+                  checked={role === option.value}
+                  onChange={() => setRole(option.value as Role)}
+                  className="sr-only"
+                />
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">{option.icon}</div>
+                  <div className="flex-1">
+                    <div className="font-medium text-white">{option.label}</div>
+                    <div className="text-sm text-ink-300">{option.description}</div>
+                  </div>
+                  {role === option.value && (
+                    <div className="w-5 h-5 bg-brand-400 rounded-full flex items-center justify-center">
+                      <div className="w-2 h-2 bg-ink-black rounded-full"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
