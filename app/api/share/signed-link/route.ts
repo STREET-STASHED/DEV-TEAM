@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
 import { z } from 'zod';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimit } from '@/lib/rateLimitApp';
 import { flags } from '@/lib/flags';
 import { shareLinkSchema } from '@/lib/schemas/viral';
 import { analytics } from '@/lib/analytics';
 import { generateUniversalLink } from '@/lib/deeplink';
-
-// Rate limiting: 20 share link generations per minute per user
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
 
 export async function POST(request: NextRequest) {
   if (!flags.share) {
@@ -23,9 +17,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createRouteHandlerClient();
     const { data: { user } } = await supabase.auth.getUser();
     
-    // Rate limiting (use IP if no user, user ID if authenticated)
-    const identifier = user?.id || request.headers.get('x-forwarded-for') || 'anonymous';
-    const { success } = await limiter.check(identifier, 20);
+    // Rate limiting
+    const { success } = await rateLimit(request);
     
     if (!success) {
       return NextResponse.json(

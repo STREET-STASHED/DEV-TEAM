@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
 import { z } from 'zod';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimit } from '@/lib/rateLimitApp';
 import { audit } from '@/lib/audit';
 import { flags } from '@/lib/flags';
 import { reviewSchema, reviewsQuerySchema } from '@/lib/schemas/viral';
 import { analytics } from '@/lib/analytics';
-
-// Rate limiting: 5 reviews per minute per user
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
 
 export async function POST(request: NextRequest) {
   if (!flags.reviews) {
@@ -20,8 +14,7 @@ export async function POST(request: NextRequest) {
 
   try {
     // Rate limiting
-    const identifier = request.headers.get('x-forwarded-for') || 'anonymous';
-    const { success } = await limiter.check(identifier, 5);
+    const { success } = await rateLimit(request);
     
     if (!success) {
       return NextResponse.json(
@@ -86,10 +79,7 @@ export async function POST(request: NextRequest) {
         rating: validatedData.rating,
         comment: validatedData.comment,
       })
-      .select(`
-        *,
-        reviewer:profiles!reviews_reviewer_id_fkey(full_name, avatar_url)
-      `)
+      .select('*')
       .single();
 
     if (insertError) {
@@ -144,13 +134,10 @@ export async function GET(request: NextRequest) {
 
     const supabase = await createRouteHandlerClient();
 
-    // Build query
+    // Build query - simplified to avoid foreign key issues
     let queryBuilder = supabase
       .from('reviews')
-      .select(`
-        *,
-        reviewer:profiles!reviews_reviewer_id_fkey(full_name, avatar_url)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     // Apply filters

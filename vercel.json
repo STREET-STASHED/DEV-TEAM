@@ -9,6 +9,12 @@
   "env": {
     "NODE_ENV": "production"
   },
+  "crons": [
+    {
+      "path": "/api/cron/auto-assign-orders",
+      "schedule": "*/3 * * * *"
+    }
+  ],
   "functions": {
     "pages/api/**/*.ts": {
       "maxDuration": 30

@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
-import { z } from 'zod';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimit } from '@/lib/rateLimitApp';
 import { flags } from '@/lib/flags';
 import { leaderboardQuerySchema } from '@/lib/schemas/viral';
 import { analytics } from '@/lib/analytics';
-
-// Rate limiting: 30 requests per minute per IP
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
 
 export async function GET(request: NextRequest) {
   if (!flags.leaderboard) {
@@ -19,8 +12,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // Rate limiting
-    const identifier = request.headers.get('x-forwarded-for') || 'anonymous';
-    const { success } = await limiter.check(identifier, 30);
+    const { success } = await rateLimit(request);
     
     if (!success) {
       return NextResponse.json(
@@ -64,9 +56,9 @@ export async function GET(request: NextRequest) {
         // Fallback to regular query
         throw new Error('Materialized view not available');
       }
-          } catch {
-        // Fallback: compute leaderboard on the fly
-        console.log('[Leaderboard] Using fallback query');
+    } catch {
+      // Fallback: compute leaderboard on the fly - simplified to avoid foreign key issues
+              // Using fallback query
       
       const offset = validatedQuery.offset;
       const limit = validatedQuery.limit;
@@ -78,26 +70,20 @@ export async function GET(request: NextRequest) {
 
       totalCount = count || 0;
 
-      // Get leaderboard data
-      const { data: leaderboardData, error: leaderboardError } = await supabase
+      // Get leaderboard data - simplified query
+      const { data: referralsData, error: referralsError } = await supabase
         .from('referrals')
-        .select(`
-          referrer_id,
-          profiles!referrals_referrer_id_fkey(
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('referrer_id, created_at')
         .order('created_at', { ascending: false });
 
-      if (leaderboardError) {
-        throw leaderboardError;
+      if (referralsError) {
+        throw referralsError;
       }
 
-              // Process and aggregate data
-        const referrerMap = new Map<string, { referrerId: string; referredCount: number; profile: Record<string, unknown> }>();
+      // Process and aggregate data
+      const referrerMap = new Map<string, { referrerId: string; referredCount: number }>();
       
-      leaderboardData?.forEach(referral => {
+      referralsData?.forEach(referral => {
         const referrerId = referral.referrer_id;
         const existing = referrerMap.get(referrerId);
         
@@ -107,28 +93,21 @@ export async function GET(request: NextRequest) {
           referrerMap.set(referrerId, {
             referrerId,
             referredCount: 1,
-            profile: referral.profiles,
           });
         }
       });
 
-      // Convert to array and sort
+      // Convert to array and sort by referral count
       leaderboardData = Array.from(referrerMap.values())
         .sort((a, b) => b.referredCount - a.referredCount)
-        .slice(offset, offset + limit)
-        .map(item => ({
-          referrer_id: item.referrerId,
-          full_name: item.profile?.full_name,
-          avatar_url: item.profile?.avatar_url,
-          referred_orders: item.referredCount,
-          completed_orders: item.referredCount, // Simplified for fallback
-        }));
+        .slice(offset, offset + limit);
     }
 
     // Analytics tracking
     analytics.track('leaderboard_viewed', {
       limit: validatedQuery.limit,
       offset: validatedQuery.offset,
+      totalCount,
     });
 
     return NextResponse.json({
@@ -137,17 +116,11 @@ export async function GET(request: NextRequest) {
         limit: validatedQuery.limit,
         offset: validatedQuery.offset,
         total: totalCount,
-        hasMore: (validatedQuery.offset + validatedQuery.limit) < totalCount,
+        hasMore: validatedQuery.offset + validatedQuery.limit < totalCount,
       },
     });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Invalid query parameters', details: error.errors },
-        { status: 400 }
-      );
-    }
 
+  } catch (error) {
     console.error('Leaderboard fetch error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

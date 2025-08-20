@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
 import { z } from 'zod';
-import { rateLimit } from '@/lib/rateLimit';
+import { rateLimit } from '@/lib/rateLimitApp';
 import { audit } from '@/lib/audit';
 import { flags } from '@/lib/flags';
 import { pushSubscriptionSchema } from '@/lib/schemas/viral';
 import { analytics } from '@/lib/analytics';
-
-// Rate limiting: 10 subscriptions per minute per user
-const limiter = rateLimit({
-  interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 500,
-});
 
 export async function POST(request: NextRequest) {
   if (!flags.push) {
@@ -28,8 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Rate limiting
-    const identifier = user.id;
-    const { success } = await limiter.check(identifier, 10);
+    const { success } = await rateLimit(request);
     
     if (!success) {
       return NextResponse.json(
