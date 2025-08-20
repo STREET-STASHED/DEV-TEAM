@@ -1,5 +1,7 @@
 name: Auto-Assign Orders
 on:
+  push:
+    branches: [ master ]
   schedule:
     - cron: "*/3 * * * *"
   workflow_dispatch:

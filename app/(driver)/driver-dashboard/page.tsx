@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { useRouter } from 'next/navigation'
 
 interface Order {
   id: string
@@ -50,7 +49,6 @@ interface EarningsBreakdown {
 }
 
 export default function DriverDashboardPage() {
-  const router = useRouter()
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -583,12 +581,6 @@ export default function DriverDashboardPage() {
                     </div>
 
                     <div className="flex space-x-2">
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="px-3 py-2 border border-ink-600 text-ink-300 rounded-lg hover:bg-ink-700 transition-colors text-sm"
-                      >
-                        View Details
-                      </button>
                       <button
                         onClick={() => window.open(`https://maps.google.com/?saddr=${order.pickup_address}&daddr=${order.delivery_address}`, '_blank')}
                         className="px-3 py-2 bg-ink-700 text-white rounded-lg hover:bg-ink-600 transition-colors text-sm"
