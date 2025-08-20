@@ -1,0 +1,15 @@
+name: Simple Test
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Step
+        run: |
+          echo "GitHub Actions is working!"
+          echo "Current time: $(date)"
+          echo "This workflow was triggered by a push to master"
