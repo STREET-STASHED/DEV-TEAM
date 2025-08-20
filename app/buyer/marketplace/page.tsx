@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { mockProducts, mockCategories, mockStores, searchProducts, filterProductsByCategory } from '@/lib/mockData'
+import { mockProducts, mockCategories, searchProducts } from '@/lib/mockData'
 import { useCart } from '@/context/CartContext'
 import { ProductCard } from './ProductCard'
 
@@ -12,7 +12,7 @@ export default function MarketplacePage() {
   const [sortBy, setSortBy] = useState('trending')
   const [showCart, setShowCart] = useState(false)
   
-  const { items: cart, addItem, updateQuantity, removeItem, totalCount, totalPrice } = useCart()
+  const { items: cart, updateQuantity, removeItem, totalCount, totalPrice } = useCart()
 
   // Filter products based on search and category
   useEffect(() => {
@@ -46,26 +46,11 @@ export default function MarketplacePage() {
     setProducts(filtered)
   }, [searchQuery, selectedCategory, sortBy])
 
-  const handleAddToCart = (product: any) => {
-    addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.images[0] || '/mock/default-product.jpg',
-      storeName: product.storeName,
-      quantity: 1
-    })
-    
-    // Show cart briefly
-    setShowCart(true)
-    setTimeout(() => setShowCart(false), 2000)
-  }
-
-  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+  const handleUpdateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      removeItem(productId)
+      removeItem(id)
     } else {
-      updateQuantity(productId, newQuantity)
+      updateQuantity(id, newQuantity)
     }
   }
 
@@ -153,11 +138,11 @@ export default function MarketplacePage() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto p-4 flex gap-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 flex gap-6 lg:gap-8">
         {/* Products Grid */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {/* Results Count */}
-          <div className="mb-6">
+          <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl font-bold text-white mb-2">
               {selectedCategory === 'all' ? 'All Products' : mockCategories.find(c => c.id === selectedCategory)?.name}
             </h1>
@@ -169,7 +154,7 @@ export default function MarketplacePage() {
 
           {/* Products Grid */}
           {products.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -232,7 +217,6 @@ export default function MarketplacePage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-white text-sm truncate">{item.name}</h4>
-                        <p className="text-xs text-ink-400">{item.storeName}</p>
                         <p className="text-brand-400 font-semibold">${item.price.toFixed(2)}</p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -260,9 +244,23 @@ export default function MarketplacePage() {
                     <span className="text-white font-semibold">Total:</span>
                     <span className="text-brand-400 font-bold text-xl">${totalPrice.toFixed(2)}</span>
                   </div>
-                  <button className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
-                    Proceed to Checkout
-                  </button>
+                  <div className="space-y-3">
+                    <button 
+                      onClick={() => {
+                        // TODO: Implement checkout functionality
+                        console.log('Proceeding to checkout...')
+                      }}
+                      className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-3 px-4 rounded-lg transition-colors transform hover:scale-105 active:scale-95"
+                    >
+                      Proceed to Checkout
+                    </button>
+                    <button 
+                      onClick={() => setShowCart(false)}
+                      className="w-full bg-ink-800 hover:bg-ink-700 text-white font-medium py-3 px-4 rounded-lg transition-colors border border-ink-700 transform hover:scale-105 active:scale-95"
+                    >
+                      Keep Shopping
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
