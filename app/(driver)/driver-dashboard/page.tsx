@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 interface Order {
@@ -67,14 +67,9 @@ export default function DriverDashboardPage() {
   const [isOnline, setIsOnline] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null)
 
-  // Load driver data
-  useEffect(() => {
-    loadDriverData()
-    loadOrders()
-    startLocationTracking()
-  }, [])
 
-  const loadDriverData = async () => {
+
+  const loadDriverData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -92,9 +87,9 @@ export default function DriverDashboardPage() {
     } catch (error) {
       console.error('Failed to load driver data:', error)
     }
-  }
+  }, [supabase])
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -129,7 +124,7 @@ export default function DriverDashboardPage() {
       console.error('Failed to load orders:', error)
       setIsLoading(false)
     }
-  }
+  }, [supabase])
 
   const calculateStats = (ordersData: Order[]) => {
     const totalOrders = ordersData.length
@@ -168,7 +163,7 @@ export default function DriverDashboardPage() {
     })
   }
 
-  const startLocationTracking = () => {
+  const startLocationTracking = useCallback(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -182,7 +177,7 @@ export default function DriverDashboardPage() {
         }
       )
     }
-  }
+  }, [])
 
   const toggleOnlineStatus = async () => {
     try {
@@ -350,6 +345,13 @@ export default function DriverDashboardPage() {
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     }
   })
+
+  // Load driver data
+  useEffect(() => {
+    loadDriverData()
+    loadOrders()
+    startLocationTracking()
+  }, [loadDriverData, loadOrders, startLocationTracking])
 
   if (isLoading) {
     return (
