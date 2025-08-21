@@ -192,8 +192,8 @@ export function SignupForm() {
             <h3 className="text-3xl font-bold text-white mb-4">Join 50,000+ Fashion Enthusiasts</h3>
             <p className="text-ink-300 text-lg">See what others are saying about StreetStashed</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between">
+          <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
+            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between flex-1 max-w-sm">
               <div>
                 <div className="flex items-center mb-4">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
@@ -202,7 +202,7 @@ export function SignupForm() {
               </div>
               <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between">
+            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between flex-1 max-w-sm">
               <div>
                 <div className="flex items-center mb-4">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
@@ -211,7 +211,7 @@ export function SignupForm() {
               </div>
               <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between">
+            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between flex-1 max-w-sm">
               <div>
                 <div className="flex items-center mb-4">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
