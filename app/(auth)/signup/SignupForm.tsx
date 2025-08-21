@@ -274,10 +274,6 @@ export function SignupForm() {
                 ))}
               </div>
             </div>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* User Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
