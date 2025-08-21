@@ -12,28 +12,32 @@ const roleOptions = [
     label: 'Buyer',
     description: 'Shop for fashion and discover unique streetwear',
     icon: '🛍️',
-    color: 'from-blue-500 to-blue-600'
+    color: 'from-blue-500 to-blue-600',
+    benefits: ['Exclusive drops', 'Early access', 'Reward points', 'Social features']
   },
   {
     value: 'seller',
     label: 'Seller',
     description: 'Sell your products and grow your business',
     icon: '🏪',
-    color: 'from-green-500 to-green-600'
+    color: 'from-green-500 to-green-600',
+    benefits: ['0% commission', 'Analytics dashboard', 'Marketing tools', 'Customer insights']
   },
   {
     value: 'stylist',
     label: 'Stylist',
     description: 'Create curated collections and style clients',
     icon: '👔',
-    color: 'from-purple-500 to-purple-600'
+    color: 'from-purple-500 to-purple-600',
+    benefits: ['Commission earnings', 'Client management', 'Portfolio showcase', 'Booking system']
   },
   {
     value: 'driver',
     label: 'Driver (Stasher)',
     description: 'Deliver orders and earn money',
     icon: '🚚',
-    color: 'from-orange-500 to-orange-600'
+    color: 'from-orange-500 to-orange-600',
+    benefits: ['Flexible hours', 'Instant payouts', 'Performance bonuses', 'Route optimization']
   }
 ]
 
@@ -153,144 +157,241 @@ export function SignupForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-white">
-            Full Name
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            autoComplete="name"
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 appearance-none relative block w-full px-3 py-2 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:z-10 sm:text-sm transition-all duration-200"
-            placeholder="Enter your full name"
-          />
+    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-6xl">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
+            Join the Revolution
+          </h1>
+          <p className="text-xl text-ink-300 max-w-2xl mx-auto">
+            StreetStashed isn't just a marketplace - it's a social commerce platform where fashion meets community, 
+            creativity earns rewards, and every interaction builds your influence.
+          </p>
         </div>
 
-        <div>
-          <label htmlFor="username" className="block text-sm font-medium text-white">
-            Username
-          </label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            required
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="mt-1 appearance-none relative block w-full px-3 py-2 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:z-10 sm:text-sm transition-all duration-200"
-            placeholder="Choose a username"
-          />
+        {/* Features Showcase */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-6 border border-brand-400/30">
+            <h3 className="text-xl font-bold text-white mb-2">Viral Challenges</h3>
+            <p className="text-ink-300">Participate in trending challenges, win prizes, and build your following</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-6 border border-purple-400/30">
+            <h3 className="text-xl font-bold text-white mb-2">Rewards System</h3>
+            <p className="text-ink-300">Earn points for every action, unlock exclusive perks and cash rewards</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-6 border border-green-400/30">
+            <h3 className="text-xl font-bold text-white mb-2">Social Commerce</h3>
+            <p className="text-ink-300">Share your style, discover trends, and connect with fashion enthusiasts</p>
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-white">
-            Email address
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 appearance-none relative block w-full px-3 py-2 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:z-10 sm:text-sm transition-all duration-200"
-            placeholder="Enter your email"
-          />
+        {/* Social Proof */}
+        <div className="bg-ink-800/50 rounded-2xl p-8 mb-12 border border-ink-700">
+          <div className="text-center mb-6">
+            <h3 className="text-2xl font-bold text-white mb-2">Join 50,000+ Fashion Enthusiasts</h3>
+            <p className="text-ink-300">See what others are saying about StreetStashed</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-ink-700 rounded-xl p-6">
+              <div className="flex items-center mb-3">
+                <span className="text-white ml-2 font-semibold">4.9/5</span>
+              </div>
+              <p className="text-ink-200 text-sm">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
+              <p className="text-brand-400 text-xs mt-2">- Sarah M., Fashion Influencer</p>
+            </div>
+            <div className="bg-ink-700 rounded-xl p-6">
+              <div className="flex items-center mb-3">
+                <span className="text-white ml-2 font-semibold">4.9/5</span>
+              </div>
+              <p className="text-ink-200 text-sm">"As a seller, the analytics and marketing tools are game-changing."</p>
+              <p className="text-brand-400 text-xs mt-2">- Mike R., Streetwear Brand Owner</p>
+            </div>
+            <div className="bg-ink-700 rounded-xl p-6">
+              <div className="flex items-center mb-3">
+                <span className="text-white ml-2 font-semibold">4.9/5</span>
+              </div>
+              <p className="text-ink-200 text-sm">"The social features make shopping so much fun and engaging!"</p>
+              <p className="text-brand-400 text-xs mt-2">- Alex K., Style Blogger</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-white">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 appearance-none relative block w-full px-3 py-2 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 focus:z-10 sm:text-sm transition-all duration-200"
-            placeholder="Create a password"
-          />
-        </div>
+        {/* Signup Form */}
+        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 shadow-2xl">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-2">Choose Your Path</h2>
+            <p className="text-ink-300">Select your role and unlock exclusive benefits</p>
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-white mb-3">
-            I want to join as
-          </label>
-          <div className="grid grid-cols-1 gap-3">
-            {roleOptions.map((option) => (
-              <div
-                key={option.value}
-                className={`relative cursor-pointer rounded-lg border-2 p-4 transition-all duration-200 ${
-                  role === option.value
-                    ? 'border-brand-400 bg-brand-500/10 shadow-lg'
-                    : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
-                }`}
-                onClick={() => setRole(option.value as Role)}
-              >
-                <input
-                  type="radio"
-                  name="role"
-                  value={option.value}
-                  checked={role === option.value}
-                  onChange={() => setRole(option.value as Role)}
-                  className="sr-only"
-                />
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl">{option.icon}</div>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Role Selection */}
+            <div className="space-y-4">
+              <label className="block text-lg font-semibold text-white mb-4">
+                I want to join as
+              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {roleOptions.map((option) => (
+                  <div
+                    key={option.value}
+                    className={`relative cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 transform hover:scale-105 ${
+                      role === option.value
+                        ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
+                        : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
+                    }`}
+                    onClick={() => setRole(option.value as Role)}
+                  >
+                    <input
+                      type="radio"
+                      name="role"
+                      value={option.value}
+                      checked={role === option.value}
+                      onChange={() => setRole(option.value as Role)}
+                      className="sr-only"
+                    />
+                                    <div className="flex items-start space-x-4">
                   <div className="flex-1">
-                    <div className="font-medium text-white">{option.label}</div>
-                    <div className="text-sm text-ink-300">{option.description}</div>
-                  </div>
-                  {role === option.value && (
-                    <div className="w-5 h-5 bg-brand-400 rounded-full flex items-center justify-center">
-                      <div className="w-2 h-2 bg-ink-black rounded-full"></div>
+                        <div className="font-bold text-white text-lg mb-1">{option.label}</div>
+                        <div className="text-ink-300 text-sm mb-3">{option.description}</div>
+                        <div className="space-y-1">
+                          {option.benefits.map((benefit, index) => (
+                            <div key={index} className="flex items-center text-xs text-brand-300">
+                              <div className="w-1.5 h-1.5 bg-brand-400 rounded-full mr-2"></div>
+                              {benefit}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* User Information */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="name" className="block text-sm font-semibold text-white mb-2">
+                  Full Name
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  autoComplete="name"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="username" className="block text-sm font-semibold text-white mb-2">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  placeholder="Choose a unique username"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-semibold text-white mb-2">
+                  Email Address
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  placeholder="Enter your email"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-white mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  placeholder="Create a strong password"
+                />
+              </div>
+            </div>
+
+            {/* Error Display */}
+            {error && (
+              <div className="bg-error-500/20 border border-error-500/30 rounded-lg p-4">
+                <p className="text-error-400 text-sm">{error}</p>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <div className="pt-6">
+                              <button
+                  type="submit"
+                  disabled={loading || !role}
+                  className="w-full bg-gradient-to-r from-brand-500 to-brand-600 text-ink-black py-4 px-6 rounded-xl font-bold text-lg hover:from-brand-600 hover:to-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-500/25"
+                >
+                  {loading ? 'Creating Your Account...' : 'Launch Your Fashion Journey'}
+                </button>
+            </div>
+
+            {/* Additional Benefits */}
+            <div className="text-center space-y-4">
+              <div className="flex items-center justify-center space-x-6 text-sm text-ink-400">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-brand-400 rounded-full mr-2"></div>
+                  Instant access to viral challenges
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-brand-400 rounded-full mr-2"></div>
+                  500 bonus points on signup
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-brand-400 rounded-full mr-2"></div>
+                  Exclusive member benefits
                 </div>
               </div>
-            ))}
-          </div>
+              
+              <div className="text-center text-sm text-ink-400">
+                <p>Already have an account? <a href="/login" className="text-brand-400 hover:text-brand-300 font-medium">Sign in</a></p>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="text-center mt-12">
+          <p className="text-ink-400 text-sm">
+            By creating an account, you agree to our{' '}
+            <a href="/terms" className="text-brand-400 hover:text-brand-300">Terms of Service</a>
+            {' '}and{' '}
+            <a href="/privacy" className="text-brand-400 hover:text-brand-300">Privacy Policy</a>
+          </p>
         </div>
       </div>
-
-      {error && (
-        <div className="rounded-lg bg-error-500/20 border border-error-500/30 p-4">
-          <div className="flex">
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-error-400">
-                {error}
-              </h3>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-ink-black bg-brand-600 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-card hover:shadow-hover transform hover:scale-105"
-        >
-          {loading ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-ink-black mr-2"></div>
-              Creating account...
-            </div>
-          ) : (
-            'Create account'
-          )}
-        </button>
-      </div>
-    </form>
+    </div>
   )
 }

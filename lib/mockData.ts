@@ -33,6 +33,7 @@ export interface MockProduct {
   inStock: boolean
   isTrending: boolean
   tags: string[]
+  created_at: string
 }
 
 export interface MockCategory {
@@ -177,7 +178,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 156,
     inStock: true,
     isTrending: true,
-    tags: ['hoodie', 'streetwear', 'cotton', 'graphics']
+    tags: ['hoodie', 'streetwear', 'cotton', 'graphics'],
+    created_at: '2023-10-27T10:00:00Z'
   },
   {
     id: 'prod-2',
@@ -195,7 +197,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 89,
     inStock: true,
     isTrending: false,
-    tags: ['vintage', 'denim', 'jacket', 'distressed']
+    tags: ['vintage', 'denim', 'jacket', 'distressed'],
+    created_at: '2023-10-26T14:30:00Z'
   },
   {
     id: 'prod-3',
@@ -213,7 +216,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 234,
     inStock: true,
     isTrending: true,
-    tags: ['leggings', 'athletic', 'performance', 'moisture-wicking']
+    tags: ['leggings', 'athletic', 'performance', 'moisture-wicking'],
+    created_at: '2023-10-25T09:15:00Z'
   },
   
   // 👟 Shoes
@@ -234,7 +238,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 567,
     inStock: true,
     isTrending: true,
-    tags: ['sneakers', 'limited edition', 'collaboration', 'premium']
+    tags: ['sneakers', 'limited edition', 'collaboration', 'premium'],
+    created_at: '2023-10-24T11:00:00Z'
   },
   {
     id: 'prod-5',
@@ -252,7 +257,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 123,
     inStock: true,
     isTrending: false,
-    tags: ['boots', 'leather', 'classic', 'timeless']
+    tags: ['boots', 'leather', 'classic', 'timeless'],
+    created_at: '2023-10-23T16:45:00Z'
   },
   
   // 💍 Jewelry
@@ -273,7 +279,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 89,
     inStock: true,
     isTrending: true,
-    tags: ['necklace', 'diamond', 'gold', 'luxury']
+    tags: ['necklace', 'diamond', 'gold', 'luxury'],
+    created_at: '2023-10-22T10:30:00Z'
   },
   {
     id: 'prod-7',
@@ -291,7 +298,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 67,
     inStock: true,
     isTrending: false,
-    tags: ['ring', 'sterling silver', 'handcrafted', 'unique']
+    tags: ['ring', 'sterling silver', 'handcrafted', 'unique'],
+    created_at: '2023-10-21T15:15:00Z'
   },
   
   // 👜 Accessories
@@ -311,7 +319,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 234,
     inStock: true,
     isTrending: true,
-    tags: ['belt', 'leather', 'handcrafted', 'brass buckle']
+    tags: ['belt', 'leather', 'handcrafted', 'brass buckle'],
+    created_at: '2023-10-20T09:00:00Z'
   },
   {
     id: 'prod-9',
@@ -329,7 +338,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 89,
     inStock: true,
     isTrending: false,
-    tags: ['bag', 'crossbody', 'designer', 'multi-compartment']
+    tags: ['bag', 'crossbody', 'designer', 'multi-compartment'],
+    created_at: '2023-10-19T11:30:00Z'
   },
   
   // ⌚ Watches
@@ -350,7 +360,8 @@ export const mockProducts: MockProduct[] = [
     reviewCount: 156,
     inStock: true,
     isTrending: true,
-    tags: ['watch', 'automatic', 'swiss-made', 'luxury']
+    tags: ['watch', 'automatic', 'swiss-made', 'luxury'],
+    created_at: '2023-10-18T14:00:00Z'
   }
 ]
 

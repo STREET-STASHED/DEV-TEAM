@@ -10,7 +10,10 @@ import {
   HeartIcon,
   BellIcon,
   XMarkIcon,
-  TrashIcon
+  TrashIcon,
+  SparklesIcon,
+  UserGroupIcon,
+  TrophyIcon
 } from '@heroicons/react/24/outline'
 import { StreetStashedLogo } from '@/components/StreetStashedLogo'
 import { useWishlist } from '@/context/WishlistContext'
@@ -28,6 +31,8 @@ export function BuyerHeader() {
   const navigation = [
     { name: 'Home', href: '/', icon: HomeIcon },
     { name: 'Marketplace', href: '/buyer/marketplace', icon: ShoppingBagIcon },
+    { name: 'Challenges', href: '/challenges', icon: TrophyIcon },
+    { name: 'Stylists', href: '/stylists', icon: UserGroupIcon },
     { name: 'Dashboard', href: '/buyer/dashboard', icon: UserIcon },
   ]
 
@@ -54,11 +59,14 @@ export function BuyerHeader() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'order_update': return '📦'
-      case 'price_drop': return '💰'
-      case 'new_arrival': return '🆕'
-      case 'sale': return '🏷️'
-      default: return '🔔'
+      case 'challenge':
+        return <TrophyIcon className="w-5 h-5 text-yellow-500" />
+      case 'stylist':
+        return <UserGroupIcon className="w-5 h-5 text-purple-500" />
+      case 'reward':
+        return <SparklesIcon className="w-5 h-5 text-green-500" />
+      default:
+        return <BellIcon className="w-5 h-5 text-brand-500" />
     }
   }
 
@@ -87,7 +95,7 @@ export function BuyerHeader() {
             <div className="search-premium w-full relative">
               <input
                 type="text"
-                placeholder="Search for products..."
+                placeholder="Search for products, stylists, or challenges..."
                 className="w-full px-4 py-2 bg-transparent border-none outline-none text-sm text-white placeholder-ink-400"
               />
               <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-400 hover:text-brand-500 transition-colors duration-200">
@@ -97,7 +105,7 @@ export function BuyerHeader() {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (
@@ -119,141 +127,153 @@ export function BuyerHeader() {
 
           {/* User Actions */}
           <div className="flex items-center space-x-4">
+            {/* Challenges Badge */}
+            <Link
+              href="/challenges"
+              className="relative p-2 text-ink-300 hover:text-brand-400 transition-colors"
+            >
+              <TrophyIcon className="w-6 h-6" />
+              <span className="absolute -top-1 -right-1 bg-yellow-500 text-ink-black text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                3
+              </span>
+            </Link>
+
             {/* Wishlist */}
             <div className="relative" ref={wishlistRef}>
-              <button 
+              <button
                 data-wishlist-toggle
                 onClick={toggleWishlist}
-                className="p-2 text-ink-300 hover:text-brand-500 hover:bg-ink-800/50 rounded-xl transition-all duration-200 relative"
+                className="relative p-2 text-ink-300 hover:text-brand-400 transition-colors"
               >
-                <HeartIcon className="w-5 h-5" />
+                <HeartIcon className="w-6 h-6" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-brand-500 rounded-full"></span>
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {wishlistCount}
+                  </span>
                 )}
               </button>
 
               {/* Wishlist Dropdown */}
               {wishlistOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-ink-900 rounded-xl shadow-2xl border border-ink-800 p-4 z-50">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white">Wishlist ({wishlistCount})</h3>
-                    <button 
-                      onClick={toggleWishlist}
-                      className="text-ink-400 hover:text-white"
-                    >
-                      <XMarkIcon className="w-5 h-5" />
-                    </button>
+                <div className="absolute right-0 mt-2 w-80 bg-ink-900 rounded-xl shadow-xl border border-ink-700 z-50">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Wishlist</h3>
+                      <button
+                        onClick={toggleWishlist}
+                        className="text-ink-400 hover:text-white transition-colors"
+                      >
+                        <XMarkIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                    
+                    {wishlistItems.length === 0 ? (
+                      <div className="text-center py-8">
+                        <HeartIcon className="w-12 h-12 text-ink-600 mx-auto mb-3" />
+                        <p className="text-ink-400">Your wishlist is empty</p>
+                        <p className="text-ink-500 text-sm">Start adding items you love!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                        {wishlistItems.map((item) => (
+                          <div key={item.id} className="flex items-center space-x-3 p-3 bg-ink-800 rounded-lg">
+                            <img
+                              src={item.image_url || '/mock/default-product.jpg'}
+                              alt={item.name}
+                              className="w-12 h-12 rounded-lg object-cover"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-white font-medium text-sm truncate">{item.name}</h4>
+                              <p className="text-brand-400 font-semibold text-sm">${item.price}</p>
+                            </div>
+                            <button
+                              onClick={() => removeItem(item.id)}
+                              className="text-ink-400 hover:text-red-400 transition-colors p-1"
+                            >
+                              <TrashIcon className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-
-                  {wishlistCount === 0 ? (
-                    <div className="text-center py-8">
-                      <HeartIcon className="w-12 h-12 text-ink-500 mx-auto mb-3" />
-                      <p className="text-ink-400 mb-2">Your wishlist is empty</p>
-                      <p className="text-sm text-ink-500">Start adding items you love!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {wishlistItems.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-3 p-3 bg-ink-800 rounded-lg">
-                          <div className="w-12 h-12 bg-ink-700 rounded-lg flex items-center justify-center">
-                            <span className="text-lg">🛍️</span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white text-sm truncate">{item.name}</h4>
-                            <p className="text-xs text-ink-400">{item.storeName}</p>
-                            <p className="text-brand-400 font-semibold">${item.price.toFixed(2)}</p>
-                          </div>
-                          <button
-                            onClick={() => removeItem(item.id)}
-                            className="p-1 text-ink-400 hover:text-red-400 hover:bg-ink-700 rounded"
-                          >
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
 
             {/* Notifications */}
             <div className="relative" ref={notificationsRef}>
-              <button 
+              <button
                 data-notifications-toggle
                 onClick={toggleNotifications}
-                className="p-2 text-ink-300 hover:text-brand-500 hover:bg-ink-800/50 rounded-xl transition-all duration-200 relative"
+                className="relative p-2 text-ink-300 hover:text-brand-400 transition-colors"
               >
-                <BellIcon className="w-5 h-5" />
+                <BellIcon className="w-6 h-6" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-error-500 rounded-full"></span>
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                    {unreadCount}
+                  </span>
                 )}
               </button>
 
               {/* Notifications Dropdown */}
               {notificationsOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-ink-900 rounded-xl shadow-2xl border border-ink-800 p-4 z-50">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-white">Notifications</h3>
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={markAllAsRead}
-                        className="text-xs text-brand-400 hover:text-brand-300"
-                      >
-                        Mark all read
-                      </button>
-                      <button 
-                        onClick={toggleNotifications}
-                        className="text-ink-400 hover:text-white"
-                      >
-                        <XMarkIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {notifications.length === 0 ? (
-                    <div className="text-center py-8">
-                      <BellIcon className="w-12 h-12 text-ink-500 mx-auto mb-3" />
-                      <p className="text-ink-400 mb-2">No notifications</p>
-                      <p className="text-sm text-ink-500">You're all caught up!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-96 overflow-y-auto">
-                      {notifications.map((notification) => (
-                        <div 
-                          key={notification.id} 
-                          className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                            notification.read ? 'bg-ink-800' : 'bg-brand-500/20 border border-brand-500/30'
-                          }`}
-                          onClick={() => markAsRead(notification.id)}
+                <div className="absolute right-0 mt-2 w-80 bg-ink-900 rounded-xl shadow-xl border border-ink-700 z-50">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-white">Notifications</h3>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={markAllAsRead}
+                          className="text-brand-400 hover:text-brand-300 text-sm font-medium"
                         >
-                          <div className="flex items-start space-x-3">
-                            <span className="text-lg">{getNotificationIcon(notification.type)}</span>
-                            <div className="flex-1 min-w-0">
-                              <h4 className={`font-medium text-sm ${notification.read ? 'text-ink-300' : 'text-white'}`}>
-                                {notification.title}
-                              </h4>
-                              <p className={`text-xs ${notification.read ? 'text-ink-400' : 'text-ink-300'} mt-1`}>
-                                {notification.message}
-                              </p>
-                              <p className="text-xs text-ink-500 mt-2">
-                                {formatTimeAgo(notification.created_at)}
-                              </p>
-                            </div>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeNotification(notification.id)
-                              }}
-                              className="p-1 text-ink-400 hover:text-red-400 hover:bg-ink-700 rounded"
-                            >
-                              <TrashIcon className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                          Mark all read
+                        </button>
+                        <button
+                          onClick={toggleNotifications}
+                          className="text-ink-400 hover:text-white transition-colors"
+                        >
+                          <XMarkIcon className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  )}
+                    
+                    {notifications.length === 0 ? (
+                      <div className="text-center py-8">
+                        <BellIcon className="w-12 h-12 text-ink-600 mx-auto mb-3" />
+                        <p className="text-ink-400">No notifications</p>
+                        <p className="text-ink-500 text-sm">You're all caught up!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                        {notifications.map((notification) => (
+                          <div
+                            key={notification.id}
+                            className={`p-3 rounded-lg transition-colors ${
+                              notification.read ? 'bg-ink-800' : 'bg-brand-500/10'
+                            }`}
+                          >
+                            <div className="flex items-start space-x-3">
+                              {getNotificationIcon(notification.type)}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white text-sm font-medium">{notification.title}</p>
+                                <p className="text-ink-300 text-xs mt-1">{notification.message}</p>
+                                <p className="text-ink-400 text-xs mt-2">{formatTimeAgo(notification.created_at)}</p>
+                              </div>
+                              {!notification.read && (
+                                <button
+                                  onClick={() => markAsRead(notification.id)}
+                                  className="text-brand-400 hover:text-brand-300 text-xs font-medium"
+                                >
+                                  Mark read
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -261,34 +281,11 @@ export function BuyerHeader() {
             {/* User Menu */}
             <Link
               href="/buyer/dashboard"
-              className="p-2 text-ink-300 hover:text-brand-500 hover:bg-ink-800/50 rounded-xl transition-all duration-200"
+              className="p-2 text-ink-300 hover:text-brand-400 transition-colors"
             >
-              <UserIcon className="w-5 h-5" />
+              <UserIcon className="w-6 h-6" />
             </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile Navigation */}
-      <div className="md:hidden border-t border-ink-800">
-        <div className="flex items-center justify-around py-2">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex flex-col items-center space-y-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                  isActive
-                    ? 'text-brand-400'
-                    : 'text-ink-400 hover:text-ink-300'
-                }`}
-              >
-                <item.icon className="w-5 h-5" />
-                <span>{item.name}</span>
-              </Link>
-            )
-          })}
         </div>
       </div>
     </header>

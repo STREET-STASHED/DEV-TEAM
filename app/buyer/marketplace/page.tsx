@@ -5,6 +5,18 @@ import { mockProducts, mockCategories, searchProducts } from '@/lib/mockData'
 import { useCart } from '@/context/CartContext'
 import { ProductCard } from './ProductCard'
 import { useRouter } from 'next/navigation'
+import { 
+  FireIcon, 
+  StarIcon, 
+  ClockIcon, 
+  MapPinIcon,
+  ChatBubbleLeftRightIcon,
+  BellIcon,
+  TrophyIcon,
+  GiftIcon,
+  UsersIcon,
+  ArrowTrendingUpIcon
+} from '@heroicons/react/24/outline'
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState(mockProducts)
@@ -12,6 +24,15 @@ export default function MarketplacePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [sortBy, setSortBy] = useState('trending')
   const [showCart, setShowCart] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
+  const [priceRange, setPriceRange] = useState([0, 2000])
+  const [selectedStores, setSelectedStores] = useState<string[]>([])
+  const [showLiveChat, setShowLiveChat] = useState(false)
+  const [liveUpdates, setLiveUpdates] = useState([
+    { id: 1, message: "🔥 New drop: Limited Edition Sneakers just added!", time: "2 min ago" },
+    { id: 2, message: "⭐ StyleMaster Pro just restocked their collection", time: "5 min ago" },
+    { id: 3, message: "🎉 50+ new products added this hour", time: "12 min ago" }
+  ])
   
   const { items: cart, updateQuantity, removeItem, totalCount, totalPrice } = useCart()
   const router = useRouter()
@@ -28,6 +49,16 @@ export default function MarketplacePage() {
       filtered = filtered.filter(product => product.category === selectedCategory)
     }
 
+    // Filter by price range
+    filtered = filtered.filter(product => 
+      product.price >= priceRange[0] && product.price <= priceRange[1]
+    )
+
+    // Filter by selected stores
+    if (selectedStores.length > 0) {
+      filtered = filtered.filter(product => selectedStores.includes(product.storeId))
+    }
+
     // Sort products
     switch (sortBy) {
       case 'price-low':
@@ -39,6 +70,9 @@ export default function MarketplacePage() {
       case 'rating':
         filtered = filtered.sort((a, b) => b.rating - a.rating)
         break
+      case 'newest':
+        filtered = filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        break
       case 'trending':
       default:
         filtered = filtered.sort((a, b) => (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0))
@@ -46,7 +80,7 @@ export default function MarketplacePage() {
     }
 
     setProducts(filtered)
-  }, [searchQuery, selectedCategory, sortBy])
+  }, [searchQuery, selectedCategory, sortBy, priceRange, selectedStores])
 
   const handleUpdateQuantity = (id: string, newQuantity: number) => {
     if (newQuantity <= 0) {
@@ -56,8 +90,41 @@ export default function MarketplacePage() {
     }
   }
 
+  // Simulate live updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveUpdates(prev => [
+        {
+          id: Date.now(),
+          message: `🆕 ${Math.floor(Math.random() * 20) + 1} new products just dropped!`,
+          time: "Just now"
+        },
+        ...prev.slice(0, 2)
+      ])
+    }, 30000) // Update every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="min-h-screen bg-ink-black text-white">
+      {/* Live Updates Bar */}
+      <div className="bg-gradient-to-r from-brand-500 to-purple-600 p-2">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center space-x-4 text-sm font-medium">
+            <FireIcon className="w-4 h-4 animate-pulse" />
+            <span>LIVE UPDATES</span>
+            <div className="flex space-x-4">
+              {liveUpdates.slice(0, 2).map((update) => (
+                <span key={update.id} className="text-xs opacity-90">
+                  {update.message}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Search and Cart Bar */}
       <div className="bg-ink-900 border-b border-ink-800 p-4 sticky top-16 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -72,23 +139,125 @@ export default function MarketplacePage() {
                 className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-ink-400">
-                🔍
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
             </div>
           </div>
 
-          {/* Cart Button */}
-          <button 
-            onClick={() => setShowCart(!showCart)}
-            className="relative bg-brand-500 hover:bg-brand-600 px-6 py-3 rounded-lg font-medium transition-colors ml-6"
-          >
-            🛒 Cart ({totalCount})
-            {totalCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                {totalCount}
+          {/* Action Buttons */}
+          <div className="flex items-center space-x-3 ml-6">
+            {/* Live Chat */}
+            <button 
+              onClick={() => setShowLiveChat(!showLiveChat)}
+              className="relative bg-purple-600 hover:bg-purple-700 p-3 rounded-lg transition-colors"
+            >
+              <ChatBubbleLeftRightIcon className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 bg-green-500 w-3 h-3 rounded-full animate-pulse"></span>
+            </button>
+
+            {/* Notifications */}
+            <button className="relative bg-ink-800 hover:bg-ink-700 p-3 rounded-lg transition-colors">
+              <BellIcon className="w-5 h-5" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                3
               </span>
-            )}
-          </button>
+            </button>
+
+            {/* Cart Button */}
+            <button 
+              onClick={() => setShowCart(!showCart)}
+              className="relative bg-brand-500 hover:bg-brand-600 px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Cart ({totalCount})
+              {totalCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {totalCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Section - Viral Challenges & Trending */}
+      <div className="bg-gradient-to-r from-brand-500/10 to-purple-500/10 border-b border-brand-400/20">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Trending Challenge */}
+            <div className="bg-gradient-to-r from-brand-500/20 to-brand-600/20 rounded-xl p-6 border border-brand-400/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-white">Trending Challenge</h3>
+                  <span className="bg-brand-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">Live</span>
+                </div>
+                <h4 className="text-xl font-semibold text-white mb-2">Streetwear Showdown</h4>
+                <p className="text-ink-300 text-sm mb-4">Show off your best streetwear fit and win up to $1000 in prizes</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <UsersIcon className="w-4 h-4 text-brand-400" />
+                    <span className="text-brand-400 text-sm">2,847 participants</span>
+                  </div>
+                  <button className="bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors transform hover:scale-105">
+                    Join Now
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Stylist */}
+            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 rounded-xl p-6 border border-purple-400/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-white">Featured Stylist</h3>
+                  <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">Verified</span>
+                </div>
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-12 h-12 bg-purple-400 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">S</span>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold">StyleMaster Pro</h4>
+                    <div className="flex items-center space-x-1">
+                      <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
+                      <span className="text-ink-300 text-sm">4.9 (2.1k reviews)</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-ink-300 text-sm mb-4">Curated collections from top streetwear brands</p>
+                <button className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors transform hover:scale-105">
+                  View Collection
+                </button>
+              </div>
+            </div>
+
+            {/* Rewards Status */}
+            <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-xl p-6 border border-green-400/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-bold text-white">Your Rewards</h3>
+                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Gold</span>
+                </div>
+                <div className="mb-3">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-ink-300">Points</span>
+                    <span className="text-white font-semibold">2,847</span>
+                  </div>
+                  <div className="w-full bg-ink-700 rounded-full h-2">
+                    <div className="bg-green-400 h-2 rounded-full transition-all duration-500" style={{ width: '75%' }}></div>
+                  </div>
+                </div>
+                <p className="text-ink-300 text-sm mb-4">Earn 2x points on your next purchase</p>
+                <button className="w-full bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors transform hover:scale-105">
+                  Redeem Points
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -117,37 +286,131 @@ export default function MarketplacePage() {
                     : 'bg-ink-900 text-ink-300 hover:bg-ink-700'
                 }`}
               >
-                {category.icon} {category.name}
+                {category.name}
               </button>
             ))}
           </div>
 
-          {/* Sort Options */}
+          {/* Sort and Filter Options */}
           <div className="flex items-center space-x-4 ml-6">
-            <span className="text-ink-400">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="bg-ink-900 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+            {/* Advanced Filters Toggle */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="bg-ink-900 hover:bg-ink-700 px-4 py-2 rounded-lg text-ink-300 transition-colors"
             >
-              <option value="trending">Trending</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-            </select>
+              Filters
+            </button>
+
+            {/* Sort Options */}
+            <div className="flex items-center space-x-2">
+              <span className="text-ink-400">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-ink-900 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="trending">🔥 Trending</option>
+                <option value="newest">🆕 Newest</option>
+                <option value="price-low">💰 Price: Low to High</option>
+                <option value="price-high">💰 Price: High to Low</option>
+                <option value="rating">⭐ Highest Rated</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Advanced Filters Panel */}
+      {showFilters && (
+        <div className="bg-ink-800 border-b border-ink-700 p-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Price Range */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Price Range</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={priceRange[0]}
+                    onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                    className="w-20 bg-ink-900 border border-ink-700 rounded px-2 py-1 text-white text-sm"
+                  />
+                  <span className="text-ink-400">-</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 2000])}
+                    className="w-20 bg-ink-900 border border-ink-700 rounded px-2 py-1 text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Store Filter */}
+              <div>
+                <label className="block text-sm font-medium text-white mb-2">Stores</label>
+                <select
+                  multiple
+                  value={selectedStores}
+                  onChange={(e) => {
+                    const values = Array.from(e.target.selectedOptions, option => option.value)
+                    setSelectedStores(values)
+                  }}
+                  className="w-full bg-ink-900 border border-ink-700 rounded px-3 py-2 text-white text-sm"
+                >
+                  <option value="store-1">Urban Threads Collective</option>
+                  <option value="store-2">Sneaker Haven</option>
+                  <option value="store-3">Luxe Jewelry Co.</option>
+                  <option value="store-4">Vintage Vault</option>
+                  <option value="store-5">Athletic Edge</option>
+                </select>
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex items-end space-x-2">
+                <button
+                  onClick={() => {
+                    setPriceRange([0, 2000])
+                    setSelectedStores([])
+                  }}
+                  className="bg-ink-700 hover:bg-ink-600 px-4 py-2 rounded text-sm transition-colors"
+                >
+                  Clear All
+                </button>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded text-sm transition-colors"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto p-4 sm:p-6 flex gap-6 lg:gap-8">
         {/* Products Grid */}
         <div className="flex-1 min-w-0">
-          {/* Results Count */}
+          {/* Results Count and Stats */}
           <div className="mb-6 sm:mb-8">
-            <h1 className="text-2xl font-bold text-white mb-2">
-              {selectedCategory === 'all' ? 'All Products' : mockCategories.find(c => c.id === selectedCategory)?.name}
-            </h1>
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-white">
+                {selectedCategory === 'all' ? 'All Products' : mockCategories.find(c => c.id === selectedCategory)?.name}
+              </h1>
+              <div className="flex items-center space-x-4 text-sm text-ink-400">
+                <span className="flex items-center space-x-1">
+                  <ClockIcon className="w-4 h-4" />
+                  <span>Updated 2 min ago</span>
+                </span>
+                <span className="flex items-center space-x-1">
+                  <ArrowTrendingUpIcon className="w-4 h-4" />
+                  <span>Trending now</span>
+                </span>
+              </div>
+            </div>
             <p className="text-ink-400">
               {products.length} products found
               {searchQuery && ` for "${searchQuery}"`}
@@ -168,7 +431,7 @@ export default function MarketplacePage() {
                     image_url: product.images[0] || '/mock/default-product.jpg',
                     seller_id: product.storeId,
                     category: product.category,
-                    created_at: new Date().toISOString(), // Mock creation date
+                    created_at: product.created_at,
                     storeName: product.storeName,
                   }}
                 />
@@ -176,7 +439,7 @@ export default function MarketplacePage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🛍️</div>
+              <div className="text-6xl mb-4 text-ink-600">●</div>
               <h3 className="text-xl font-semibold text-white mb-2">No products found</h3>
               <p className="text-ink-400">
                 Try adjusting your search or category filters
@@ -194,7 +457,9 @@ export default function MarketplacePage() {
                 onClick={() => setShowCart(false)}
                 className="text-ink-400 hover:text-white"
               >
-                ✕
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
@@ -248,7 +513,7 @@ export default function MarketplacePage() {
                   </div>
                   <div className="space-y-3">
                     <button 
-                      onClick={() => router.push('/checkout')}
+                      onClick={() => router.push('/buyer/checkout')}
                       className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-3 px-4 rounded-lg transition-colors transform hover:scale-105 active:scale-95"
                     >
                       Proceed to Checkout
@@ -263,6 +528,42 @@ export default function MarketplacePage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Live Chat Panel */}
+        {showLiveChat && (
+          <div className="w-80 bg-ink-900 border-l border-ink-800 p-4 h-screen sticky top-20">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white">Live Chat</h2>
+              <button 
+                onClick={() => setShowLiveChat(false)}
+                className="text-ink-400 hover:text-white"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="bg-green-500 text-white text-center py-2 rounded-lg mb-4 text-sm">
+              🟢 Online - Response time: &lt; 2 min
+            </div>
+            <div className="space-y-3 mb-4">
+              <div className="bg-ink-800 rounded-lg p-3">
+                <p className="text-sm text-ink-300">Hi! How can I help you today?</p>
+                <span className="text-xs text-ink-500">2 min ago</span>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="Type your message..."
+                className="flex-1 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <button className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-white text-sm">
+                Send
+              </button>
+            </div>
           </div>
         )}
       </div>
