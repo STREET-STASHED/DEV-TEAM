@@ -224,28 +224,27 @@ export function SignupForm() {
         </div>
 
         {/* Signup Form */}
-        <div className="bg-ink-900 rounded-2xl p-20 border border-ink-700 shadow-2xl w-full">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-white mb-4">Choose Your Path</h2>
-            <p className="text-ink-300 text-lg">Select your role and unlock exclusive benefits</p>
+        <div className="bg-ink-900 rounded-2xl p-16 border border-ink-700 shadow-2xl">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-3">Choose Your Path</h2>
+            <p className="text-ink-300">Select your role and unlock exclusive benefits</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-12">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Role Selection */}
-            <div className="space-y-8">
-              <label className="block text-2xl font-semibold text-white mb-8 text-center">
+            <div className="space-y-6">
+              <label className="block text-xl font-semibold text-white mb-6 text-center">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+              <div className="space-y-6">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-8 transition-all duration-300 transform hover:scale-105 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
                     }`}
-                    style={{ aspectRatio: '1 / 1' }}
                     onClick={() => setRole(option.value as Role)}
                   >
                     <input
@@ -256,18 +255,18 @@ export function SignupForm() {
                       onChange={() => setRole(option.value as Role)}
                       className="sr-only"
                     />
-                    <div className="flex flex-col h-full justify-between">
-                      <div>
-                        <div className="font-bold text-white text-xl mb-4">{option.label}</div>
-                        <div className="text-ink-300 text-sm mb-6 leading-relaxed">{option.description}</div>
-                      </div>
-                      <div className="space-y-3">
-                        {option.benefits.map((benefit, index) => (
-                          <div key={index} className="flex items-center text-xs text-brand-300">
-                            <div className="w-2 h-2 bg-brand-400 rounded-full mr-2 flex-shrink-0"></div>
-                            <span className="leading-relaxed">{benefit}</span>
-                          </div>
-                        ))}
+                    <div className="flex items-start space-x-4">
+                      <div className="flex-1">
+                        <div className="font-bold text-white text-xl mb-2">{option.label}</div>
+                        <div className="text-ink-300 text-sm mb-3 leading-relaxed">{option.description}</div>
+                        <div className="grid grid-cols-2 gap-2">
+                          {option.benefits.map((benefit, index) => (
+                            <div key={index} className="flex items-center text-xs text-brand-300">
+                              <div className="w-2 h-2 bg-brand-400 rounded-full mr-2 flex-shrink-0"></div>
+                              <span className="leading-relaxed">{benefit}</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
