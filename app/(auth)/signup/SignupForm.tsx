@@ -236,15 +236,16 @@ export function SignupForm() {
               <label className="block text-2xl font-semibold text-white mb-8 text-center">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-10 transition-all duration-300 transform hover:scale-105 aspect-square ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-12 transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
                     }`}
+                    style={{ aspectRatio: '1 / 1', minHeight: '400px' }}
                     onClick={() => setRole(option.value as Role)}
                   >
                     <input
@@ -257,13 +258,13 @@ export function SignupForm() {
                     />
                     <div className="flex flex-col h-full justify-between">
                       <div>
-                        <div className="font-bold text-white text-xl mb-4">{option.label}</div>
-                        <div className="text-ink-300 text-sm mb-6 leading-relaxed">{option.description}</div>
+                        <div className="font-bold text-white text-2xl mb-6">{option.label}</div>
+                        <div className="text-ink-300 text-base mb-8 leading-relaxed">{option.description}</div>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {option.benefits.map((benefit, index) => (
-                          <div key={index} className="flex items-center text-xs text-brand-300">
-                            <div className="w-2 h-2 bg-brand-400 rounded-full mr-2 flex-shrink-0"></div>
+                          <div key={index} className="flex items-center text-sm text-brand-300">
+                            <div className="w-3 h-3 bg-brand-400 rounded-full mr-3 flex-shrink-0"></div>
                             <span className="leading-relaxed">{benefit}</span>
                           </div>
                         ))}
