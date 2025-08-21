@@ -13,17 +13,18 @@ import {
   TrashIcon,
   SparklesIcon,
   UserGroupIcon,
-  TrophyIcon
+  TrophyIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 import { StreetStashedLogo } from '@/components/StreetStashedLogo'
 import { useWishlist } from '@/context/WishlistContext'
 import { useNotifications } from '@/context/NotificationsContext'
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 
 export function BuyerHeader() {
   const pathname = usePathname()
   const { items: wishlistItems, totalCount: wishlistCount, isOpen: wishlistOpen, toggleWishlist, removeItem } = useWishlist()
-  const { notifications, unreadCount, isOpen: notificationsOpen, toggleNotifications, markAsRead, markAllAsRead, removeNotification } = useNotifications()
+  const { notifications, unreadCount, isOpen: notificationsOpen, toggleNotifications, markAsRead, markAllAsRead } = useNotifications()
   
   const wishlistRef = useRef<HTMLDivElement>(null)
   const notificationsRef = useRef<HTMLDivElement>(null)
@@ -201,6 +202,12 @@ export function BuyerHeader() {
               )}
             </div>
 
+            {/* Live Chat */}
+            <button className="relative p-2 text-ink-300 hover:text-brand-400 transition-colors">
+              <ChatBubbleLeftRightIcon className="w-6 h-6" />
+              <span className="absolute -top-1 -right-1 bg-green-500 w-3 h-3 rounded-full animate-pulse"></span>
+            </button>
+
             {/* Notifications */}
             <div className="relative" ref={notificationsRef}>
               <button
@@ -242,7 +249,7 @@ export function BuyerHeader() {
                       <div className="text-center py-8">
                         <BellIcon className="w-12 h-12 text-ink-600 mx-auto mb-3" />
                         <p className="text-ink-400">No notifications</p>
-                        <p className="text-ink-500 text-sm">You're all caught up!</p>
+                        <p className="text-ink-500 text-sm">You&apos;re all caught up!</p>
                       </div>
                     ) : (
                       <div className="space-y-3 max-h-64 overflow-y-auto">

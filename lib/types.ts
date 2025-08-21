@@ -1,4 +1,4 @@
-// 🚀 StreetStashed Type Definitions
+// StreetStashed Type Definitions
 // Core types for the application
 
 export interface User {

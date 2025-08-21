@@ -1,5 +1,5 @@
 // lib/sellerPricing.ts
-// 🚀 StreetStashed Seller Pricing & Markup System
+// StreetStashed Seller Pricing & Markup System
 // Helps sellers automatically price products to account for support fees
 
 import { computeStashedSupportFee } from './feeConfig';

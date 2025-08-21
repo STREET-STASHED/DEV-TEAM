@@ -157,84 +157,90 @@ export function SignupForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 flex items-center justify-center py-20 px-6">
       <div className="w-full max-w-6xl">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
+        <div className="text-center mb-20">
+          <h1 className="text-6xl font-bold text-white mb-8 bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
             Join the Revolution
           </h1>
-          <p className="text-xl text-ink-300 max-w-2xl mx-auto">
+          <p className="text-2xl text-ink-300 max-w-4xl mx-auto">
             StreetStashed isn't just a marketplace - it's a social commerce platform where fashion meets community, 
             creativity earns rewards, and every interaction builds your influence.
           </p>
         </div>
 
         {/* Features Showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-6 border border-brand-400/30">
-            <h3 className="text-xl font-bold text-white mb-2">Viral Challenges</h3>
-            <p className="text-ink-300">Participate in trending challenges, win prizes, and build your following</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-24">
+          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-8 border border-brand-400/30">
+            <h3 className="text-2xl font-bold text-white mb-4">Viral Challenges</h3>
+            <p className="text-ink-300 text-lg">Participate in trending challenges, win prizes, and build your following</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-6 border border-purple-400/30">
-            <h3 className="text-xl font-bold text-white mb-2">Rewards System</h3>
-            <p className="text-ink-300">Earn points for every action, unlock exclusive perks and cash rewards</p>
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-8 border border-purple-400/30">
+            <h3 className="text-2xl font-bold text-white mb-4">Rewards System</h3>
+            <p className="text-ink-300 text-lg">Earn points for every action, unlock exclusive perks and cash rewards</p>
           </div>
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-6 border border-green-400/30">
-            <h3 className="text-xl font-bold text-white mb-2">Social Commerce</h3>
-            <p className="text-ink-300">Share your style, discover trends, and connect with fashion enthusiasts</p>
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-8 border border-green-400/30">
+            <h3 className="text-2xl font-bold text-white mb-4">Social Commerce</h3>
+            <p className="text-ink-300 text-lg">Share your style, discover trends, and connect with fashion enthusiasts</p>
           </div>
         </div>
 
         {/* Social Proof */}
-        <div className="bg-ink-800/50 rounded-2xl p-8 mb-12 border border-ink-700">
-          <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold text-white mb-2">Join 50,000+ Fashion Enthusiasts</h3>
-            <p className="text-ink-300">See what others are saying about StreetStashed</p>
+        <div className="bg-ink-800/50 rounded-2xl p-12 mb-24 border border-ink-700">
+          <div className="text-center mb-10">
+            <h3 className="text-3xl font-bold text-white mb-4">Join 50,000+ Fashion Enthusiasts</h3>
+            <p className="text-ink-300 text-lg">See what others are saying about StreetStashed</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-ink-700 rounded-xl p-6">
-              <div className="flex items-center mb-3">
-                <span className="text-white ml-2 font-semibold">4.9/5</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center mb-4">
+                  <span className="text-white font-semibold text-2xl">4.9/5</span>
+                </div>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
               </div>
-              <p className="text-ink-200 text-sm">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
-              <p className="text-brand-400 text-xs mt-2">- Sarah M., Fashion Influencer</p>
+              <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-6">
-              <div className="flex items-center mb-3">
-                <span className="text-white ml-2 font-semibold">4.9/5</span>
+            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center mb-4">
+                  <span className="text-white font-semibold text-2xl">4.9/5</span>
+                </div>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
               </div>
-              <p className="text-ink-200 text-sm">"As a seller, the analytics and marketing tools are game-changing."</p>
-              <p className="text-brand-400 text-xs mt-2">- Mike R., Streetwear Brand Owner</p>
+              <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-6">
-              <div className="flex items-center mb-3">
-                <span className="text-white ml-2 font-semibold">4.9/5</span>
+            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center mb-4">
+                  <span className="text-white font-semibold text-2xl">4.9/5</span>
+                </div>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
               </div>
-              <p className="text-ink-200 text-sm">"The social features make shopping so much fun and engaging!"</p>
-              <p className="text-brand-400 text-xs mt-2">- Alex K., Style Blogger</p>
+              <p className="text-brand-400 text-sm font-medium">- Alex K., Style Blogger</p>
             </div>
           </div>
         </div>
 
         {/* Signup Form */}
-        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 shadow-2xl">
-          <div className="text-center mb-8">
+        <div className="bg-ink-900 rounded-2xl p-12 border border-ink-700 shadow-2xl">
+          <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-2">Choose Your Path</h2>
             <p className="text-ink-300">Select your role and unlock exclusive benefits</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-10">
             {/* Role Selection */}
-            <div className="space-y-4">
-              <label className="block text-lg font-semibold text-white mb-4">
+            <div className="space-y-6">
+              <label className="block text-xl font-semibold text-white mb-6">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-6 transition-all duration-300 transform hover:scale-105 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-10 transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
@@ -251,9 +257,9 @@ export function SignupForm() {
                     />
                                     <div className="flex items-start space-x-4">
                   <div className="flex-1">
-                        <div className="font-bold text-white text-lg mb-1">{option.label}</div>
-                        <div className="text-ink-300 text-sm mb-3">{option.description}</div>
-                        <div className="space-y-1">
+                        <div className="font-bold text-white text-xl mb-3">{option.label}</div>
+                        <div className="text-ink-300 text-sm mb-4">{option.description}</div>
+                        <div className="space-y-2">
                           {option.benefits.map((benefit, index) => (
                             <div key={index} className="flex items-center text-xs text-brand-300">
                               <div className="w-1.5 h-1.5 bg-brand-400 rounded-full mr-2"></div>
@@ -269,9 +275,9 @@ export function SignupForm() {
             </div>
 
             {/* User Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-white mb-2">
+                <label htmlFor="name" className="block text-lg font-semibold text-white mb-3">
                   Full Name
                 </label>
                 <input
@@ -282,13 +288,13 @@ export function SignupForm() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  className="w-full px-6 py-4 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200 text-lg"
                   placeholder="Enter your full name"
                 />
               </div>
 
               <div>
-                <label htmlFor="username" className="block text-sm font-semibold text-white mb-2">
+                <label htmlFor="username" className="block text-lg font-semibold text-white mb-3">
                   Username
                 </label>
                 <input
@@ -298,15 +304,15 @@ export function SignupForm() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  className="w-full px-6 py-4 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200 text-lg"
                   placeholder="Choose a unique username"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-white mb-2">
+                <label htmlFor="email" className="block text-lg font-semibold text-white mb-3">
                   Email Address
                 </label>
                 <input
@@ -317,13 +323,13 @@ export function SignupForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  className="w-full px-6 py-4 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200 text-lg"
                   placeholder="Enter your email"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-white mb-2">
+                <label htmlFor="password" className="block text-lg font-semibold text-white mb-3">
                   Password
                 </label>
                 <input
@@ -334,7 +340,7 @@ export function SignupForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200"
+                  className="w-full px-6 py-4 border border-ink-600 bg-ink-800 placeholder-ink-400 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-400 transition-all duration-200 text-lg"
                   placeholder="Create a strong password"
                 />
               </div>
@@ -359,8 +365,8 @@ export function SignupForm() {
             </div>
 
             {/* Additional Benefits */}
-            <div className="text-center space-y-4">
-              <div className="flex items-center justify-center space-x-6 text-sm text-ink-400">
+            <div className="text-center space-y-6">
+              <div className="flex items-center justify-center space-x-8 text-base text-ink-400">
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-brand-400 rounded-full mr-2"></div>
                   Instant access to viral challenges

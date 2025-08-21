@@ -1,4 +1,4 @@
-// 🛍️ Comprehensive Mock Data for StreetStashed
+// Comprehensive Mock Data for StreetStashed
 // Fashion marketplace with stores, products, and categories
 
 export interface MockStore {
@@ -45,7 +45,7 @@ export interface MockCategory {
   image: string
 }
 
-// 🏪 Mock Stores
+// Mock Stores
 export const mockStores: MockStore[] = [
   {
     id: 'store-1',
@@ -114,12 +114,12 @@ export const mockStores: MockStore[] = [
   }
 ]
 
-// 🏷️ Mock Categories
+// Mock Categories
 export const mockCategories: MockCategory[] = [
   {
     id: 'clothing',
     name: 'Clothing',
-    icon: '👕',
+    icon: 'Clothing',
     description: 'Trendy streetwear and urban fashion',
     productCount: 156,
     image: 'https://picsum.photos/400/400?random=25'
@@ -127,7 +127,7 @@ export const mockCategories: MockCategory[] = [
   {
     id: 'shoes',
     name: 'Shoes',
-    icon: '👟',
+    icon: 'Shoes',
     description: 'Sneakers, boots, and casual footwear',
     productCount: 89,
     image: 'https://picsum.photos/400/400?random=26'
@@ -135,7 +135,7 @@ export const mockCategories: MockCategory[] = [
   {
     id: 'jewelry',
     name: 'Jewelry',
-    icon: '💍',
+    icon: 'Jewelry',
     description: 'Necklaces, rings, and luxury accessories',
     productCount: 67,
     image: 'https://picsum.photos/400/400?random=27'
@@ -143,7 +143,7 @@ export const mockCategories: MockCategory[] = [
   {
     id: 'accessories',
     name: 'Accessories',
-    icon: '👜',
+    icon: 'Accessories',
     description: 'Bags, belts, hats, and more',
     productCount: 94,
     image: 'https://picsum.photos/400/400?random=28'
@@ -151,16 +151,16 @@ export const mockCategories: MockCategory[] = [
   {
     id: 'watches',
     name: 'Watches',
-    icon: '⌚',
+    icon: 'Watches',
     description: 'Luxury timepieces and smartwatches',
     productCount: 34,
     image: 'https://picsum.photos/400/400?random=29'
   }
 ]
 
-// 🛍️ Mock Products
+// Mock Products
 export const mockProducts: MockProduct[] = [
-  // 👕 Clothing
+      // Clothing
   {
     id: 'prod-1',
     name: 'Urban Street Hoodie',
@@ -220,7 +220,7 @@ export const mockProducts: MockProduct[] = [
     created_at: '2023-10-25T09:15:00Z'
   },
   
-  // 👟 Shoes
+      // Shoes
   {
     id: 'prod-4',
     name: 'Limited Edition Sneakers',
@@ -261,7 +261,7 @@ export const mockProducts: MockProduct[] = [
     created_at: '2023-10-23T16:45:00Z'
   },
   
-  // 💍 Jewelry
+      // Jewelry
   {
     id: 'prod-6',
     name: 'Diamond Pendant Necklace',
@@ -302,7 +302,7 @@ export const mockProducts: MockProduct[] = [
     created_at: '2023-10-21T15:15:00Z'
   },
   
-  // 👜 Accessories
+      // Accessories
   {
     id: 'prod-8',
     name: 'Premium Leather Belt',
@@ -342,7 +342,7 @@ export const mockProducts: MockProduct[] = [
     created_at: '2023-10-19T11:30:00Z'
   },
   
-  // ⌚ Watches
+      // Watches
   {
     id: 'prod-10',
     name: 'Luxury Automatic Watch',
@@ -365,10 +365,10 @@ export const mockProducts: MockProduct[] = [
   }
 ]
 
-// 🎯 Featured Products for Homepage
+// Featured Products for Homepage
 export const featuredProducts = mockProducts.filter(p => p.isTrending).slice(0, 6)
 
-// 🏪 Featured Stores for Homepage
+// Featured Stores for Homepage
 export const featuredStores = mockStores.filter(s => s.isVerified).slice(0, 4)
 
 // 🔍 Search and Filter Functions

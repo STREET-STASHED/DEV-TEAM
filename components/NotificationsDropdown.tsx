@@ -99,18 +99,18 @@ export default function NotificationsDropdown() {
 
   const getNotificationIcon = (type: string) => {
     const iconMap: Record<string, string> = {
-      order_placed: '📦',
-      driver_accepted: '🚗',
-      driver_enroute: '🛣️',
-      delivered: '✅',
-      dispute_opened: '⚠️',
-      dispute_resolved: '✅',
-      dispute_escalated: '🚨',
-      referral_completed: '🎁',
-      verification_approved: '✓',
-      verification_rejected: '✗'
+      order_placed: 'Package',
+      driver_accepted: 'Car',
+      driver_enroute: 'Road',
+      delivered: 'Check',
+      dispute_opened: 'Warning',
+      dispute_resolved: 'Check',
+      dispute_escalated: 'Alert',
+      referral_completed: 'Gift',
+      verification_approved: 'Check',
+      verification_rejected: 'X'
     };
-    return iconMap[type] || '🔔';
+    return iconMap[type] || 'Bell';
   };
 
   const getNotificationColor = (type: string) => {

@@ -20,6 +20,12 @@ const PUBLIC_PATHS = [
   "/test-context",
   "/test-simple",
   "/test-auth",
+  "/ai-stylist",
+  "/blockchain-rewards",
+  "/ar-tryon",
+  "/live-shows",
+  "/nft-marketplace",
+  "/smart-contracts",
 ];
 
 // 👇 Admin-only routes

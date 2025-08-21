@@ -195,7 +195,7 @@ export default function ReferralPage() {
                 onClick={shareReferral}
                 className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md font-medium hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                📱 Share
+                Share
               </button>
               <button
                 onClick={generateReferralCode}

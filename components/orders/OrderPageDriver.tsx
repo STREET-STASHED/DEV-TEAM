@@ -153,7 +153,7 @@ export function OrderPageDriver({ driverId }: OrderPageDriverProps) {
       <div className="bg-ink-900 min-h-screen p-6">
         <div className="max-w-4xl mx-auto">
           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-            <div className="text-red-400 text-lg mb-2">⚠️ Error</div>
+            <div className="text-red-400 text-lg mb-2">Error</div>
             <div className="text-ink-300 mb-4">{error}</div>
             <button 
               onClick={loadAvailableOrders}
@@ -223,7 +223,7 @@ export function OrderPageDriver({ driverId }: OrderPageDriverProps) {
                     
                     {bonuses.length > 0 && (
                       <div className="mt-3 text-sm text-brand-400">
-                        🎯 {bonuses.join(', ')}
+                        {bonuses.join(', ')}
                       </div>
                     )}
                   </div>
@@ -321,7 +321,7 @@ export function OrderPageDriver({ driverId }: OrderPageDriverProps) {
                       
                       {bonuses.length > 0 && (
                         <div className="mt-2 text-xs text-brand-400">
-                          🎯 {bonuses.join(', ')}
+                          {bonuses.join(', ')}
                         </div>
                       )}
                     </div>

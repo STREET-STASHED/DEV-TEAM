@@ -164,11 +164,11 @@ export default function AdminDashboard() {
   };
 
   const tabs = [
-    { id: 'overview', name: 'Overview', icon: '📊' },
-    { id: 'disputes', name: 'Disputes', icon: '⚠️' },
-    { id: 'orders', name: 'Orders', icon: '📦' },
-    { id: 'users', name: 'Users', icon: '👥' },
-    { id: 'monitoring', name: 'AI Monitor', icon: '🤖' }
+    { id: 'overview', name: 'Overview', icon: 'Chart' },
+    { id: 'disputes', name: 'Disputes', icon: 'Warning' },
+    { id: 'orders', name: 'Orders', icon: 'Package' },
+    { id: 'users', name: 'Users', icon: 'Users' },
+    { id: 'monitoring', name: 'AI Monitor', icon: 'AI' }
   ];
 
   if (loading) {
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                    <span className="text-white text-lg">👥</span>
+                    <span className="text-white text-lg">Users</span>
                   </div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
               <div className="flex items-center">
                 <div className="flex-shrink-0">
                   <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                    <span className="text-white text-lg">📦</span>
+                    <span className="text-white text-lg">Orders</span>
                   </div>
                 </div>
                 <div className="ml-5 w-0 flex-1">
