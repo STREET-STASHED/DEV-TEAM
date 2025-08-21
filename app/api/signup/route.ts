@@ -29,10 +29,17 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = signupSchema.parse(body);
 
+    // Debug environment variables
+    console.log('Environment variables check:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING',
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
+    });
+
     // Create admin client for user creation
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         auth: {
           autoRefreshToken: false,
