@@ -172,15 +172,15 @@ export function SignupForm() {
 
         {/* Features Showcase */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-20">
-          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-8 border border-brand-400/30">
+          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-8 border border-brand-400/30" style={{ aspectRatio: '1 / 1' }}>
             <h3 className="text-xl font-bold text-white mb-3">Viral Challenges</h3>
             <p className="text-ink-300 text-base">Participate in trending challenges, win prizes, and build your following</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-8 border border-purple-400/30">
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-8 border border-purple-400/30" style={{ aspectRatio: '1 / 1' }}>
             <h3 className="text-xl font-bold text-white mb-3">Rewards System</h3>
             <p className="text-ink-300 text-base">Earn points for every action, unlock exclusive perks and cash rewards</p>
           </div>
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-8 border border-green-400/30">
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-8 border border-green-400/30" style={{ aspectRatio: '1 / 1' }}>
             <h3 className="text-xl font-bold text-white mb-3">Social Commerce</h3>
             <p className="text-ink-300 text-base">Share your style, discover trends, and connect with fashion enthusiasts</p>
           </div>
@@ -193,32 +193,32 @@ export function SignupForm() {
             <p className="text-ink-300 text-lg">See what others are saying about StreetStashed</p>
           </div>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
-            <div className="bg-ink-700 rounded-xl p-10 min-h-[280px] w-full md:w-80 flex flex-col justify-between">
+            <div className="bg-ink-700 rounded-xl p-8 w-full md:w-80 flex flex-col justify-between" style={{ aspectRatio: '1 / 1' }}>
               <div>
-                <div className="flex items-center mb-6">
-                  <span className="text-white font-semibold text-3xl">4.9/5</span>
+                <div className="flex items-center mb-4">
+                  <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-lg mb-4 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
+                <p className="text-ink-200 text-base mb-4 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
               </div>
-              <p className="text-brand-400 text-base font-medium">- Sarah M., Fashion Influencer</p>
+              <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-10 min-h-[280px] w-full md:w-80 flex flex-col justify-between">
+            <div className="bg-ink-700 rounded-xl p-8 w-full md:w-80 flex flex-col justify-between" style={{ aspectRatio: '1 / 1' }}>
               <div>
-                <div className="flex items-center mb-6">
-                  <span className="text-white font-semibold text-3xl">4.9/5</span>
+                <div className="flex items-center mb-4">
+                  <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-lg mb-4 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
+                <p className="text-ink-200 text-base mb-4 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
               </div>
-              <p className="text-brand-400 text-base font-medium">- Mike R., Streetwear Brand Owner</p>
+              <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-10 min-h-[280px] w-full md:w-80 flex flex-col justify-between">
+            <div className="bg-ink-700 rounded-xl p-8 w-full md:w-80 flex flex-col justify-between" style={{ aspectRatio: '1 / 1' }}>
               <div>
-                <div className="flex items-center mb-6">
-                  <span className="text-white font-semibold text-3xl">4.9/5</span>
+                <div className="flex items-center mb-4">
+                  <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-lg mb-4 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
+                <p className="text-ink-200 text-base mb-4 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
               </div>
-              <p className="text-brand-400 text-base font-medium">- Alex K., Style Blogger</p>
+              <p className="text-brand-400 text-sm font-medium">- Alex K., Style Blogger</p>
             </div>
           </div>
         </div>
