@@ -193,32 +193,32 @@ export function SignupForm() {
             <p className="text-ink-300 text-lg">See what others are saying about StreetStashed</p>
           </div>
           <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
-            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between flex-1 max-w-sm">
+            <div className="bg-ink-700 rounded-xl p-10 min-h-[280px] w-full md:w-80 flex flex-col justify-between">
               <div>
-                <div className="flex items-center mb-4">
-                  <span className="text-white font-semibold text-2xl">4.9/5</span>
+                <div className="flex items-center mb-6">
+                  <span className="text-white font-semibold text-3xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
+                <p className="text-ink-200 text-lg mb-4 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
               </div>
-              <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
+              <p className="text-brand-400 text-base font-medium">- Sarah M., Fashion Influencer</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between flex-1 max-w-sm">
+            <div className="bg-ink-700 rounded-xl p-10 min-h-[280px] w-full md:w-80 flex flex-col justify-between">
               <div>
-                <div className="flex items-center mb-4">
-                  <span className="text-white font-semibold text-2xl">4.9/5</span>
+                <div className="flex items-center mb-6">
+                  <span className="text-white font-semibold text-3xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-3 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
+                <p className="text-ink-200 text-lg mb-4 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
               </div>
-              <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
+              <p className="text-brand-400 text-base font-medium">- Mike R., Streetwear Brand Owner</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-8 min-h-[200px] flex flex-col justify-between flex-1 max-w-sm">
+            <div className="bg-ink-700 rounded-xl p-10 min-h-[280px] w-full md:w-80 flex flex-col justify-between">
               <div>
-                <div className="flex items-center mb-4">
-                  <span className="text-white font-semibold text-2xl">4.9/5</span>
+                <div className="flex items-center mb-6">
+                  <span className="text-white font-semibold text-3xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
+                <p className="text-ink-200 text-lg mb-4 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
               </div>
-              <p className="text-brand-400 text-sm font-medium">- Alex K., Style Blogger</p>
+              <p className="text-brand-400 text-base font-medium">- Alex K., Style Blogger</p>
             </div>
           </div>
         </div>
