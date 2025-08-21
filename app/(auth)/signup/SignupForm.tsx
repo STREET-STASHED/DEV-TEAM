@@ -236,7 +236,7 @@ export function SignupForm() {
               <label className="block text-2xl font-semibold text-white mb-8 text-center">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 w-full">
+              <div className="flex flex-wrap justify-center gap-16">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
@@ -245,7 +245,7 @@ export function SignupForm() {
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
                     }`}
-                    style={{ aspectRatio: '1 / 1', minHeight: '400px' }}
+                    style={{ width: '500px', height: '500px' }}
                     onClick={() => setRole(option.value as Role)}
                   >
                     <input
