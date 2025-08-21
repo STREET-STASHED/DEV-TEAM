@@ -157,30 +157,30 @@ export function SignupForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 py-20 px-8">
-      <div className="w-full">
+    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 py-20 px-4">
+      <div className="w-full max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-white mb-6 bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
             Join the Revolution
           </h1>
-          <p className="text-xl text-ink-300 max-w-4xl mx-auto">
+          <p className="text-xl text-ink-300 max-w-5xl mx-auto">
             StreetStashed isn't just a marketplace - it's a social commerce platform where fashion meets community, 
             creativity earns rewards, and every interaction builds your influence.
           </p>
         </div>
 
         {/* Features Showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-20">
-          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-8 border border-brand-400/30" style={{ aspectRatio: '1 / 1' }}>
+        <div className="space-y-6 mb-20">
+          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-8 border border-brand-400/30">
             <h3 className="text-xl font-bold text-white mb-3">Viral Challenges</h3>
             <p className="text-ink-300 text-base">Participate in trending challenges, win prizes, and build your following</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-8 border border-purple-400/30" style={{ aspectRatio: '1 / 1' }}>
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-8 border border-purple-400/30">
             <h3 className="text-xl font-bold text-white mb-3">Rewards System</h3>
             <p className="text-ink-300 text-base">Earn points for every action, unlock exclusive perks and cash rewards</p>
           </div>
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-8 border border-green-400/30" style={{ aspectRatio: '1 / 1' }}>
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-8 border border-green-400/30">
             <h3 className="text-xl font-bold text-white mb-3">Social Commerce</h3>
             <p className="text-ink-300 text-base">Share your style, discover trends, and connect with fashion enthusiasts</p>
           </div>
@@ -192,33 +192,33 @@ export function SignupForm() {
             <h3 className="text-3xl font-bold text-white mb-4">Join 50,000+ Fashion Enthusiasts</h3>
             <p className="text-ink-300 text-lg">See what others are saying about StreetStashed</p>
           </div>
-          <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch">
-            <div className="bg-ink-700 rounded-xl p-8 w-full md:w-80 flex flex-col justify-between" style={{ aspectRatio: '1 / 1' }}>
-              <div>
-                <div className="flex items-center mb-4">
+          <div className="space-y-6">
+            <div className="bg-ink-700 rounded-xl p-8 flex items-start space-x-4">
+              <div className="flex-1">
+                <div className="flex items-center mb-3">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-4 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
+                <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
               </div>
-              <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-8 w-full md:w-80 flex flex-col justify-between" style={{ aspectRatio: '1 / 1' }}>
-              <div>
-                <div className="flex items-center mb-4">
+            <div className="bg-ink-700 rounded-xl p-8 flex items-start space-x-4">
+              <div className="flex-1">
+                <div className="flex items-center mb-3">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-4 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
+                <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
               </div>
-              <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
             </div>
-            <div className="bg-ink-700 rounded-xl p-8 w-full md:w-80 flex flex-col justify-between" style={{ aspectRatio: '1 / 1' }}>
-              <div>
-                <div className="flex items-center mb-4">
+            <div className="bg-ink-700 rounded-xl p-8 flex items-start space-x-4">
+              <div className="flex-1">
+                <div className="flex items-center mb-3">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-4 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
+                <p className="text-brand-400 text-sm font-medium">- Alex K., Style Blogger</p>
               </div>
-              <p className="text-brand-400 text-sm font-medium">- Alex K., Style Blogger</p>
             </div>
           </div>
         </div>
