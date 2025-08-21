@@ -158,7 +158,7 @@ export function SignupForm() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 py-20 px-8">
-      <div className="w-full max-w-none mx-auto">
+      <div className="w-full">
         {/* Hero Section */}
         <div className="text-center mb-20">
           <h1 className="text-6xl font-bold text-white mb-8 bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
