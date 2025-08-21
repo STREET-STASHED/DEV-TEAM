@@ -236,11 +236,11 @@ export function SignupForm() {
               <label className="block text-xl font-semibold text-white mb-6">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
+              <div className="flex flex-col md:flex-row gap-16 justify-center items-stretch">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-12 w-full min-h-[320px] transition-all duration-300 transform hover:scale-105 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-10 w-full md:w-80 h-80 transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
@@ -257,13 +257,13 @@ export function SignupForm() {
                     />
                     <div className="flex flex-col h-full justify-between">
                       <div>
-                        <div className="font-bold text-white text-2xl mb-4">{option.label}</div>
-                        <div className="text-ink-300 text-base mb-6 leading-relaxed">{option.description}</div>
+                        <div className="font-bold text-white text-xl mb-3">{option.label}</div>
+                        <div className="text-ink-300 text-sm mb-4 leading-relaxed">{option.description}</div>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-2">
                         {option.benefits.map((benefit, index) => (
-                          <div key={index} className="flex items-center text-sm text-brand-300">
-                            <div className="w-2.5 h-2.5 bg-brand-400 rounded-full mr-3 flex-shrink-0"></div>
+                          <div key={index} className="flex items-center text-xs text-brand-300">
+                            <div className="w-2 h-2 bg-brand-400 rounded-full mr-2 flex-shrink-0"></div>
                             <span className="leading-relaxed">{benefit}</span>
                           </div>
                         ))}
