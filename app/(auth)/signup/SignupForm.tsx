@@ -224,7 +224,7 @@ export function SignupForm() {
         </div>
 
         {/* Signup Form */}
-        <div className="bg-ink-900 rounded-2xl p-16 border border-ink-700 shadow-2xl w-full max-w-none">
+        <div className="bg-ink-900 rounded-2xl p-16 border border-ink-700 shadow-2xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-2">Choose Your Path</h2>
             <p className="text-ink-300">Select your role and unlock exclusive benefits</p>
@@ -236,15 +236,16 @@ export function SignupForm() {
               <label className="block text-xl font-semibold text-white mb-6">
                 I want to join as
               </label>
-              <div className="flex flex-col md:flex-row gap-16 justify-center items-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-10 w-full md:w-80 h-80 transition-all duration-300 transform hover:scale-105 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-8 transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
                     }`}
+                    style={{ aspectRatio: '1 / 1' }}
                     onClick={() => setRole(option.value as Role)}
                   >
                     <input
@@ -269,6 +270,10 @@ export function SignupForm() {
                         ))}
                       </div>
                     </div>
+                  </div>
+                ))}
+              </div>
+            </div>
                   </div>
                 ))}
               </div>
