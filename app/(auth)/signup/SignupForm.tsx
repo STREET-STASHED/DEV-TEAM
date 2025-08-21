@@ -157,30 +157,30 @@ export function SignupForm() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 flex items-center justify-center py-20 px-6">
-      <div className="w-full max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-ink-black to-ink-900 py-20 px-6">
+      <div className="w-full max-w-7xl mx-auto">
         {/* Hero Section */}
         <div className="text-center mb-20">
           <h1 className="text-6xl font-bold text-white mb-8 bg-gradient-to-r from-brand-400 to-brand-600 bg-clip-text text-transparent">
             Join the Revolution
           </h1>
-          <p className="text-2xl text-ink-300 max-w-4xl mx-auto">
+          <p className="text-2xl text-ink-300 max-w-5xl mx-auto">
             StreetStashed isn't just a marketplace - it's a social commerce platform where fashion meets community, 
             creativity earns rewards, and every interaction builds your influence.
           </p>
         </div>
 
         {/* Features Showcase */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-24">
-          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-8 border border-brand-400/30">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-20 mb-24">
+          <div className="bg-gradient-to-br from-brand-500/20 to-brand-600/20 rounded-2xl p-10 border border-brand-400/30">
             <h3 className="text-2xl font-bold text-white mb-4">Viral Challenges</h3>
             <p className="text-ink-300 text-lg">Participate in trending challenges, win prizes, and build your following</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-8 border border-purple-400/30">
+          <div className="bg-gradient-to-br from-purple-500/20 to-purple-600/20 rounded-2xl p-10 border border-purple-400/30">
             <h3 className="text-2xl font-bold text-white mb-4">Rewards System</h3>
             <p className="text-ink-300 text-lg">Earn points for every action, unlock exclusive perks and cash rewards</p>
           </div>
-          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-8 border border-green-400/30">
+          <div className="bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-2xl p-10 border border-green-400/30">
             <h3 className="text-2xl font-bold text-white mb-4">Social Commerce</h3>
             <p className="text-ink-300 text-lg">Share your style, discover trends, and connect with fashion enthusiasts</p>
           </div>
@@ -236,11 +236,11 @@ export function SignupForm() {
               <label className="block text-xl font-semibold text-white mb-6">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 w-full">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-8 w-full aspect-square transition-all duration-300 transform hover:scale-105 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-12 w-full min-h-[320px] transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
@@ -257,13 +257,13 @@ export function SignupForm() {
                     />
                     <div className="flex flex-col h-full justify-between">
                       <div>
-                        <div className="font-bold text-white text-xl mb-3">{option.label}</div>
-                        <div className="text-ink-300 text-sm mb-4 leading-relaxed">{option.description}</div>
+                        <div className="font-bold text-white text-2xl mb-4">{option.label}</div>
+                        <div className="text-ink-300 text-base mb-6 leading-relaxed">{option.description}</div>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {option.benefits.map((benefit, index) => (
-                          <div key={index} className="flex items-center text-xs text-brand-300">
-                            <div className="w-2 h-2 bg-brand-400 rounded-full mr-2 flex-shrink-0"></div>
+                          <div key={index} className="flex items-center text-sm text-brand-300">
+                            <div className="w-2.5 h-2.5 bg-brand-400 rounded-full mr-3 flex-shrink-0"></div>
                             <span className="leading-relaxed">{benefit}</span>
                           </div>
                         ))}
