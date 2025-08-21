@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { mockProducts, mockCategories, searchProducts } from '@/lib/mockData'
 import { useCart } from '@/context/CartContext'
 import { ProductCard } from './ProductCard'
+import { useRouter } from 'next/navigation'
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState(mockProducts)
@@ -13,6 +14,7 @@ export default function MarketplacePage() {
   const [showCart, setShowCart] = useState(false)
   
   const { items: cart, updateQuantity, removeItem, totalCount, totalPrice } = useCart()
+  const router = useRouter()
 
   // Filter products based on search and category
   useEffect(() => {
@@ -246,10 +248,7 @@ export default function MarketplacePage() {
                   </div>
                   <div className="space-y-3">
                     <button 
-                      onClick={() => {
-                        // TODO: Implement checkout functionality
-                        console.log('Proceeding to checkout...')
-                      }}
+                      onClick={() => router.push('/checkout')}
                       className="w-full bg-brand-500 hover:bg-brand-600 text-white font-medium py-3 px-4 rounded-lg transition-colors transform hover:scale-105 active:scale-95"
                     >
                       Proceed to Checkout

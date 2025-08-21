@@ -55,7 +55,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '45-75 min',
     minOrder: 25,
     categories: ['clothing', 'shoes', 'accessories'],
-    image: '/mock/urban-threads.jpg',
+    image: 'https://picsum.photos/400/400?random=20',
     location: 'Downtown District',
     isVerified: true
   },
@@ -68,7 +68,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '30-60 min',
     minOrder: 50,
     categories: ['shoes', 'clothing'],
-    image: '/mock/sneaker-haven.jpg',
+    image: 'https://picsum.photos/400/400?random=21',
     location: 'Sports District',
     isVerified: true
   },
@@ -81,7 +81,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '60-90 min',
     minOrder: 75,
     categories: ['jewelry', 'accessories'],
-    image: '/mock/luxe-jewelry.jpg',
+    image: 'https://picsum.photos/400/400?random=22',
     location: 'Fashion Quarter',
     isVerified: true
   },
@@ -94,7 +94,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '45-75 min',
     minOrder: 30,
     categories: ['clothing', 'accessories'],
-    image: '/mock/vintage-vault.jpg',
+    image: 'https://picsum.photos/400/400?random=23',
     location: 'Arts District',
     isVerified: false
   },
@@ -107,7 +107,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '30-60 min',
     minOrder: 40,
     categories: ['clothing', 'shoes', 'accessories'],
-    image: '/mock/athletic-edge.jpg',
+    image: 'https://picsum.photos/400/400?random=24',
     location: 'Fitness District',
     isVerified: true
   }
@@ -121,7 +121,7 @@ export const mockCategories: MockCategory[] = [
     icon: '👕',
     description: 'Trendy streetwear and urban fashion',
     productCount: 156,
-    image: '/mock/clothing-category.jpg'
+    image: 'https://picsum.photos/400/400?random=25'
   },
   {
     id: 'shoes',
@@ -129,7 +129,7 @@ export const mockCategories: MockCategory[] = [
     icon: '👟',
     description: 'Sneakers, boots, and casual footwear',
     productCount: 89,
-    image: '/mock/shoes-category.jpg'
+    image: 'https://picsum.photos/400/400?random=26'
   },
   {
     id: 'jewelry',
@@ -137,7 +137,7 @@ export const mockCategories: MockCategory[] = [
     icon: '💍',
     description: 'Necklaces, rings, and luxury accessories',
     productCount: 67,
-    image: '/mock/jewelry-category.jpg'
+    image: 'https://picsum.photos/400/400?random=27'
   },
   {
     id: 'accessories',
@@ -145,7 +145,7 @@ export const mockCategories: MockCategory[] = [
     icon: '👜',
     description: 'Bags, belts, hats, and more',
     productCount: 94,
-    image: '/mock/accessories-category.jpg'
+    image: 'https://picsum.photos/400/400?random=28'
   },
   {
     id: 'watches',
@@ -153,7 +153,7 @@ export const mockCategories: MockCategory[] = [
     icon: '⌚',
     description: 'Luxury timepieces and smartwatches',
     productCount: 34,
-    image: '/mock/watches-category.jpg'
+    image: 'https://picsum.photos/400/400?random=29'
   }
 ]
 
@@ -170,7 +170,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'hoodies',
     storeId: 'store-1',
     storeName: 'Urban Threads Collective',
-    images: ['/mock/hoodie-1.jpg', '/mock/hoodie-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=1', 'https://picsum.photos/400/400?random=2'],
     sizes: ['S', 'M', 'L', 'XL'],
     colors: ['Black', 'Navy', 'Gray'],
     rating: 4.8,
@@ -188,7 +188,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'jackets',
     storeId: 'store-4',
     storeName: 'Vintage Vault',
-    images: ['/mock/denim-jacket-1.jpg'],
+    images: ['https://picsum.photos/400/400?random=3'],
     sizes: ['M', 'L', 'XL'],
     colors: ['Blue'],
     rating: 4.7,
@@ -206,7 +206,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'activewear',
     storeId: 'store-5',
     storeName: 'Athletic Edge',
-    images: ['/mock/leggings-1.jpg', '/mock/leggings-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=4', 'https://picsum.photos/400/400?random=5'],
     sizes: ['XS', 'S', 'M', 'L', 'XL'],
     colors: ['Black', 'Navy', 'Gray', 'Pink'],
     rating: 4.9,
@@ -227,7 +227,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'sneakers',
     storeId: 'store-2',
     storeName: 'Sneaker Haven',
-    images: ['/mock/sneakers-1.jpg', '/mock/sneakers-2.jpg', '/mock/sneakers-3.jpg'],
+    images: ['https://picsum.photos/400/400?random=6', 'https://picsum.photos/400/400?random=7', 'https://picsum.photos/400/400?random=8'],
     sizes: ['7', '8', '9', '10', '11', '12'],
     colors: ['White/Black', 'Red/White'],
     rating: 4.9,
@@ -245,7 +245,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'boots',
     storeId: 'store-1',
     storeName: 'Urban Threads Collective',
-    images: ['/mock/boots-1.jpg', '/mock/boots-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=9', 'https://picsum.photos/400/400?random=10'],
     sizes: ['8', '9', '10', '11'],
     colors: ['Brown', 'Black'],
     rating: 4.6,
@@ -266,7 +266,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'necklaces',
     storeId: 'store-3',
     storeName: 'Luxe Jewelry Co.',
-    images: ['/mock/necklace-1.jpg', '/mock/necklace-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=11', 'https://picsum.photos/400/400?random=12'],
     sizes: ['16"', '18"', '20"'],
     colors: ['Yellow Gold', 'White Gold'],
     rating: 4.8,
@@ -284,7 +284,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'rings',
     storeId: 'store-3',
     storeName: 'Luxe Jewelry Co.',
-    images: ['/mock/ring-1.jpg'],
+    images: ['https://picsum.photos/400/400?random=13'],
     sizes: ['6', '7', '8', '9', '10'],
     colors: ['Silver'],
     rating: 4.7,
@@ -304,7 +304,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'belts',
     storeId: 'store-1',
     storeName: 'Urban Threads Collective',
-    images: ['/mock/belt-1.jpg', '/mock/belt-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=14', 'https://picsum.photos/400/400?random=15'],
     sizes: ['32"', '34"', '36"', '38"', '40"'],
     colors: ['Brown', 'Black', 'Tan'],
     rating: 4.8,
@@ -322,7 +322,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'bags',
     storeId: 'store-4',
     storeName: 'Vintage Vault',
-    images: ['/mock/bag-1.jpg', '/mock/bag-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=16', 'https://picsum.photos/400/400?random=17'],
     sizes: ['One Size'],
     colors: ['Black', 'Brown', 'Navy'],
     rating: 4.6,
@@ -343,7 +343,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'automatic',
     storeId: 'store-3',
     storeName: 'Luxe Jewelry Co.',
-    images: ['/mock/watch-1.jpg', '/mock/watch-2.jpg'],
+    images: ['https://picsum.photos/400/400?random=18', 'https://picsum.photos/400/400?random=19'],
     sizes: ['42mm'],
     colors: ['Silver/Black', 'Gold/White'],
     rating: 4.9,
