@@ -224,7 +224,7 @@ export function SignupForm() {
         </div>
 
         {/* Signup Form */}
-        <div className="bg-ink-900 rounded-2xl p-20 border border-ink-700 shadow-2xl">
+        <div className="bg-ink-900 rounded-2xl p-20 border border-ink-700 shadow-2xl w-full">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">Choose Your Path</h2>
             <p className="text-ink-300 text-lg">Select your role and unlock exclusive benefits</p>
@@ -236,7 +236,7 @@ export function SignupForm() {
               <label className="block text-2xl font-semibold text-white mb-8 text-center">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 w-full">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
