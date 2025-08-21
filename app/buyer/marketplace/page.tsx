@@ -207,55 +207,154 @@ export default function MarketplacePage() {
               </div>
             </div>
 
-            {/* Top Stylist */}
-            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 rounded-xl p-6 border border-purple-400/30 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -translate-y-16 translate-x-16"></div>
+            {/* AI Stylist */}
+            <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-xl p-6 border border-blue-400/30 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -translate-y-16 translate-x-16"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-bold text-white">Featured Stylist</h3>
-                  <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">Verified</span>
+                  <h3 className="text-lg font-bold text-white">AI Stylist</h3>
+                  <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">AI Powered</span>
                 </div>
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="w-12 h-12 bg-purple-400 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold">S</span>
+                <h4 className="text-xl font-semibold text-white mb-2">Get Personalized Style</h4>
+                <p className="text-ink-300 text-sm mb-4">AI analyzes your style and recommends perfect outfits</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-blue-400 text-sm">4.9 ★ AI Rating</span>
                   </div>
-                  <div>
-                    <h4 className="text-white font-semibold">StyleMaster Pro</h4>
-                    <div className="flex items-center space-x-1">
-                      <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-ink-300 text-sm">4.9 (2.1k reviews)</span>
-                    </div>
-                  </div>
+                  <button 
+                    onClick={() => router.push('/ai-stylist')}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors transform hover:scale-105"
+                  >
+                    Try AI Stylist
+                  </button>
                 </div>
-                <p className="text-ink-300 text-sm mb-4">Curated collections from top streetwear brands</p>
-                <button className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors transform hover:scale-105">
-                  View Collection
-                </button>
               </div>
             </div>
 
-            {/* Rewards Status */}
+            {/* Blockchain Rewards */}
             <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-xl p-6 border border-green-400/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-full -translate-y-16 translate-x-16"></div>
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-lg font-bold text-white">Your Rewards</h3>
-                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Gold</span>
+                  <h3 className="text-lg font-bold text-white">Blockchain Rewards</h3>
+                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Web3</span>
                 </div>
                 <div className="mb-3">
                   <div className="flex justify-between text-sm mb-1">
-                    <span className="text-ink-300">Points</span>
+                    <span className="text-ink-300">$STASH Tokens</span>
                     <span className="text-white font-semibold">2,847</span>
                   </div>
                   <div className="w-full bg-ink-700 rounded-full h-2">
                     <div className="bg-green-400 h-2 rounded-full transition-all duration-500" style={{ width: '75%' }}></div>
                   </div>
                 </div>
-                <p className="text-ink-300 text-sm mb-4">Earn 2x points on your next purchase</p>
-                <button className="w-full bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors transform hover:scale-105">
-                  Redeem Points
+                <p className="text-ink-300 text-sm mb-4">Earn crypto rewards for shopping and challenges</p>
+                <button 
+                  onClick={() => router.push('/blockchain-rewards')}
+                  className="w-full bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors transform hover:scale-105"
+                >
+                  View Rewards
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Features Section */}
+      <div className="bg-ink-800 border-b border-ink-700 p-6">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">🚀 Advanced Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* AR Try-On */}
+            <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-400/30 text-center">
+              <div className="text-3xl mb-2">📱</div>
+              <h3 className="font-semibold text-white mb-2">AR Try-On</h3>
+              <p className="text-ink-300 text-xs mb-3">Virtual fitting room with AR technology</p>
+              <button 
+                onClick={() => router.push('/ar-tryon')}
+                className="bg-purple-500 text-white px-3 py-1 rounded text-xs hover:bg-purple-600 transition-colors"
+              >
+                Try AR
+              </button>
+            </div>
+
+            {/* Live Streaming */}
+            <div className="bg-gradient-to-r from-red-500/20 to-orange-500/20 rounded-xl p-4 border border-red-400/30 text-center">
+              <div className="text-3xl mb-2">📺</div>
+              <h3 className="font-semibold text-white mb-2">Live Shows</h3>
+              <p className="text-ink-300 text-xs mb-3">Watch live fashion shows and drops</p>
+              <button 
+                onClick={() => router.push('/live-shows')}
+                className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition-colors"
+              >
+                Watch Live
+              </button>
+            </div>
+
+            {/* NFT Marketplace */}
+            <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-xl p-4 border border-yellow-400/30 text-center">
+              <div className="text-3xl mb-2">🎨</div>
+              <h3 className="font-semibold text-white mb-2">NFT Collection</h3>
+              <p className="text-ink-300 text-xs mb-3">Exclusive digital fashion NFTs</p>
+              <button 
+                onClick={() => router.push('/nft-marketplace')}
+                className="bg-yellow-500 text-white px-3 py-1 rounded text-xs hover:bg-yellow-600 transition-colors"
+              >
+                Browse NFTs
+              </button>
+            </div>
+
+            {/* Smart Contracts */}
+            <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-4 border border-cyan-400/30 text-center">
+              <div className="text-3xl mb-2">⚡</div>
+              <h3 className="font-semibold text-white mb-2">Smart Contracts</h3>
+              <p className="text-ink-300 text-xs mb-3">Automated escrow and payments</p>
+              <button 
+                onClick={() => router.push('/smart-contracts')}
+                className="bg-cyan-500 text-white px-3 py-1 rounded text-xs hover:bg-cyan-600 transition-colors"
+              >
+                Learn More
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Live Activity Feed */}
+      <div className="bg-ink-900 border-b border-ink-800 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-white">🔥 Live Activity</h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-ink-400 text-sm">Real-time updates</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-ink-800 rounded-lg p-3 border border-ink-700">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-xs font-medium">LIVE</span>
+              </div>
+              <p className="text-white text-sm">@StyleMaster just dropped 50 new pieces</p>
+              <span className="text-ink-400 text-xs">2 min ago</span>
+            </div>
+            <div className="bg-ink-800 rounded-lg p-3 border border-ink-700">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-blue-400 text-xs font-medium">AI</span>
+              </div>
+              <p className="text-white text-sm">AI Stylist generated 127 new outfit combinations</p>
+              <span className="text-ink-400 text-xs">5 min ago</span>
+            </div>
+            <div className="bg-ink-800 rounded-lg p-3 border border-ink-700">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-purple-400 text-xs font-medium">NFT</span>
+              </div>
+              <p className="text-white text-sm">New NFT collection minted: "Streetwear Legends"</p>
+              <span className="text-ink-400 text-xs">8 min ago</span>
             </div>
           </div>
         </div>
