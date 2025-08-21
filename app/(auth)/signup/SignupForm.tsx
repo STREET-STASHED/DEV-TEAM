@@ -236,11 +236,11 @@ export function SignupForm() {
               <label className="block text-xl font-semibold text-white mb-6">
                 I want to join as
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+              <div className="flex flex-col md:flex-row gap-20 justify-center items-stretch">
                 {roleOptions.map((option) => (
                   <div
                     key={option.value}
-                    className={`relative cursor-pointer rounded-xl border-2 p-12 w-full aspect-square transition-all duration-300 transform hover:scale-105 ${
+                    className={`relative cursor-pointer rounded-xl border-2 p-12 w-full md:w-96 h-96 transition-all duration-300 transform hover:scale-105 ${
                       role === option.value
                         ? 'border-brand-400 bg-gradient-to-br from-brand-500/20 to-brand-600/20 shadow-lg shadow-brand-500/25'
                         : 'border-ink-600 bg-ink-800 hover:border-ink-500 hover:bg-ink-700'
