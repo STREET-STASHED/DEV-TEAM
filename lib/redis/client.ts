@@ -12,11 +12,28 @@ const redisConfig = {
   showFriendlyErrorStack: process.env.NODE_ENV === 'development'
 }
 
-// Create Redis client
+// Create Redis client with error handling
 export const redis = new Redis(redisConfig)
 
 // Redis client for pub/sub (separate connection)
 export const redisPubSub = new Redis(redisConfig)
+
+// Handle Redis connection errors gracefully
+redis.on('error', (error) => {
+  if (error.code === 'ECONNREFUSED') {
+    console.log('Redis not available, continuing without cache')
+  } else {
+    console.error('Redis error:', error)
+  }
+})
+
+redisPubSub.on('error', (error) => {
+  if (error.code === 'ECONNREFUSED') {
+    console.log('Redis pub/sub not available')
+  } else {
+    console.error('Redis pub/sub error:', error)
+  }
+})
 
 // Cache configuration
 export const CACHE_TTL = {
@@ -120,6 +137,10 @@ export async function checkRedisHealth(): Promise<boolean> {
     await redis.ping()
     return true
   } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.log('Redis not available, continuing without cache')
+      return false
+    }
     console.error('Redis health check failed:', error)
     return false
   }

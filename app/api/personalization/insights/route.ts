@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
 
-export async function GET(_request:NextRequest) {
+export async function GET(request:NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '10')
@@ -35,7 +35,7 @@ export async function GET(_request:NextRequest) {
   }
 }
 
-export async function POST(_request:NextRequest) {
+export async function POST(request:NextRequest) {
   try {
     const body = await request.json()
     const { insightType, title, description, confidence, actionable, action, impact } = body
@@ -73,7 +73,7 @@ export async function POST(_request:NextRequest) {
   }
 }
 
-export async function PUT(_request:NextRequest) {
+export async function PUT(request:NextRequest) {
   try {
     const body = await request.json()
     const { userId } = body

@@ -115,7 +115,7 @@ export async function BuyerDashboardContent() {
               </NavigationButton>
               <NavigationButton action="view-collection" className="flex-1 bg-ink-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-ink-600 transition-colors">
                 View Collection
-              </button>
+              </NavigationButton>
             </div>
           </div>
 
