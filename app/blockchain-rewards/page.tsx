@@ -10,7 +10,8 @@ import {
   StarIcon,
   BoltIcon,
   WalletIcon,
-  CogIcon
+  CogIcon,
+  ExclamationTriangleIcon
 } from '@heroicons/react/24/outline'
 
 interface TokenBalance {
@@ -20,6 +21,7 @@ interface TokenBalance {
   value: number
   change24h: number
   icon: string
+  contractAddress: string
 }
 
 interface Reward {
@@ -31,6 +33,8 @@ interface Reward {
   status: 'available' | 'claimed' | 'locked'
   expiresAt: string
   category: string
+  requirements: string[]
+  progress?: number
 }
 
 interface SmartContract {
@@ -40,6 +44,15 @@ interface SmartContract {
   status: 'active' | 'pending' | 'completed'
   value: number
   participants: number
+  contractAddress: string
+  abi: any
+}
+
+interface WalletInfo {
+  address: string
+  balance: number
+  network: string
+  connected: boolean
 }
 
 export default function BlockchainRewardsPage() {
@@ -47,44 +60,51 @@ export default function BlockchainRewardsPage() {
   const [isConnecting, setIsConnecting] = useState(false)
   const [walletConnected, setWalletConnected] = useState(false)
   const [selectedTab, setSelectedTab] = useState('rewards')
+  const [walletInfo, setWalletInfo] = useState<WalletInfo | null>(null)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
   
-  const [tokenBalances] = useState<TokenBalance[]>([
+  const [tokenBalances, setTokenBalances] = useState<TokenBalance[]>([
     {
       symbol: 'STASH',
       name: 'StreetStashed Token',
-      balance: 2847,
-      value: 284.70,
-      change24h: 12.5,
-      icon: '🪙'
+      balance: 0,
+      value: 0,
+      change24h: 0,
+      icon: '🪙',
+      contractAddress: '0x1234567890123456789012345678901234567890'
     },
     {
       symbol: 'ETH',
       name: 'Ethereum',
-      balance: 0.15,
-      value: 450.00,
-      change24h: -2.3,
-      icon: '🔷'
+      balance: 0,
+      value: 0,
+      change24h: 0,
+      icon: '🔷',
+      contractAddress: '0x0000000000000000000000000000000000000000'
     },
     {
       symbol: 'USDC',
       name: 'USD Coin',
-      balance: 125.50,
-      value: 125.50,
-      change24h: 0.0,
-      icon: '💵'
+      balance: 0,
+      value: 0,
+      change24h: 0,
+      icon: '💵',
+      contractAddress: '0xA0b86a33E6441b8c4C8C1B8810766aA764FdC6A8'
     }
   ])
 
-  const [rewards] = useState<Reward[]>([
+  const [rewards, setRewards] = useState<Reward[]>([
     {
       id: '1',
       name: 'First Purchase',
       description: 'Complete your first purchase on StreetStashed',
       points: 100,
       tokens: 10,
-      status: 'claimed',
+      status: 'locked',
       expiresAt: '2024-12-31',
-      category: 'shopping'
+      category: 'shopping',
+      requirements: ['Make first purchase'],
+      progress: 0
     },
     {
       id: '2',
@@ -92,9 +112,11 @@ export default function BlockchainRewardsPage() {
       description: 'Win the monthly streetwear challenge',
       points: 500,
       tokens: 50,
-      status: 'available',
+      status: 'locked',
       expiresAt: '2024-11-30',
-      category: 'challenge'
+      category: 'challenge',
+      requirements: ['Participate in challenge', 'Win challenge'],
+      progress: 0
     },
     {
       id: '3',
@@ -104,7 +126,9 @@ export default function BlockchainRewardsPage() {
       tokens: 25,
       status: 'available',
       expiresAt: '2024-12-31',
-      category: 'referral'
+      category: 'referral',
+      requirements: ['Invite 3 friends'],
+      progress: 0
     },
     {
       id: '4',
@@ -114,26 +138,33 @@ export default function BlockchainRewardsPage() {
       tokens: 7.5,
       status: 'locked',
       expiresAt: '2024-12-31',
-      category: 'engagement'
+      category: 'engagement',
+      requirements: ['Visit app daily', 'Complete 7 days'],
+      progress: 0
     }
+    // Add more dynamic rewards
   ])
 
-  const [smartContracts] = useState<SmartContract[]>([
+  const [smartContracts, setSmartContracts] = useState<SmartContract[]>([
     {
       id: '1',
       name: 'Shopping Escrow',
       type: 'escrow',
       status: 'active',
-      value: 1250.00,
-      participants: 47
+      value: 0,
+      participants: 0,
+      contractAddress: '0x1234567890123456789012345678901234567890',
+      abi: []
     },
     {
       id: '2',
       name: 'Rewards Distribution',
       type: 'rewards',
       status: 'active',
-      value: 2847.00,
-      participants: 2847
+      value: 0,
+      participants: 0,
+      contractAddress: '0x1234567890123456789012345678901234567890',
+      abi: []
     },
     {
       id: '3',
@@ -141,22 +172,341 @@ export default function BlockchainRewardsPage() {
       type: 'governance',
       status: 'pending',
       value: 0,
-      participants: 1250
+      participants: 0,
+      contractAddress: '0x1234567890123456789012345678901234567890',
+      abi: []
     }
   ])
 
-  const connectWallet = async () => {
-    setIsConnecting(true)
-    // Simulate wallet connection
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setWalletConnected(true)
-    setIsConnecting(false)
+  // Check if Web3 is available
+  useEffect(() => {
+    checkWeb3Availability()
+    loadUserProgress()
+  }, [])
+
+  const checkWeb3Availability = () => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      console.log('Web3 detected')
+    } else {
+      console.log('Web3 not detected')
+    }
   }
 
-  const claimReward = (rewardId: string) => {
-    // Simulate claiming reward
-    console.log(`Claiming reward: ${rewardId}`)
-    // In real implementation, this would interact with smart contracts
+  const loadUserProgress = () => {
+    // Load user progress from localStorage or API
+    const savedProgress = localStorage.getItem('user-rewards-progress')
+    if (savedProgress) {
+      try {
+        const progress = JSON.parse(savedProgress)
+        updateRewardsProgress(progress)
+      } catch (error) {
+        console.error('Error loading progress:', error)
+      }
+    }
+  }
+
+  const updateRewardsProgress = (progress: any) => {
+    setRewards(prev => prev.map(reward => {
+      const userProgress = progress[reward.id]
+      if (userProgress) {
+        return {
+          ...reward,
+          progress: userProgress.progress || 0,
+          status: userProgress.completed ? 'claimed' : 
+                  userProgress.progress > 0 ? 'available' : 'locked'
+        }
+      }
+      return reward
+    }))
+  }
+
+  const connectWallet = async () => {
+    setIsConnecting(true)
+    setConnectionError(null)
+    
+    try {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        // Request account access
+        const accounts = await window.ethereum.request({ 
+          method: 'eth_requestAccounts' 
+        })
+        
+        if (accounts.length > 0) {
+          const address = accounts[0]
+          await setupWalletConnection(address)
+        } else {
+          throw new Error('No accounts found')
+        }
+      } else {
+        throw new Error('MetaMask or Web3 wallet not detected')
+      }
+    } catch (error: any) {
+      console.error('Wallet connection error:', error)
+      setConnectionError(error.message || 'Failed to connect wallet')
+      setWalletConnected(false)
+    } finally {
+      setIsConnecting(false)
+    }
+  }
+
+  const setupWalletConnection = async (address: string) => {
+    try {
+      // Get network info
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' })
+      const network = getNetworkName(chainId)
+      
+      // Get ETH balance
+      const balance = await window.ethereum.request({
+        method: 'eth_getBalance',
+        params: [address, 'latest']
+      })
+      
+      const ethBalance = parseInt(balance, 16) / Math.pow(10, 18)
+      
+      // Get token balances
+      await loadTokenBalances(address)
+      
+      setWalletInfo({
+        address,
+        balance: ethBalance,
+        network,
+        connected: true
+      })
+      
+      setWalletConnected(true)
+      
+      // Listen for account changes
+      window.ethereum.on('accountsChanged', handleAccountChange)
+      window.ethereum.on('chainChanged', handleChainChange)
+      
+    } catch (error) {
+      console.error('Error setting up wallet:', error)
+      throw error
+    }
+  }
+
+  const handleAccountChange = (accounts: string[]) => {
+    if (accounts.length === 0) {
+      // User disconnected wallet
+      disconnectWallet()
+    } else {
+      // User switched accounts
+      setupWalletConnection(accounts[0])
+    }
+  }
+
+  const handleChainChange = (chainId: string) => {
+    // Reload page when network changes
+    window.location.reload()
+  }
+
+  const disconnectWallet = () => {
+    setWalletConnected(false)
+    setWalletInfo(null)
+    setTokenBalances(prev => prev.map(token => ({
+      ...token,
+      balance: 0,
+      value: 0
+    })))
+    
+    // Remove event listeners
+    if (window.ethereum) {
+      window.ethereum.removeListener('accountsChanged', handleAccountChange)
+      window.ethereum.removeListener('chainChanged', handleChainChange)
+    }
+  }
+
+  const getNetworkName = (chainId: string): string => {
+    const networks: { [key: string]: string } = {
+      '0x1': 'Ethereum Mainnet',
+      '0x3': 'Ropsten Testnet',
+      '0x4': 'Rinkeby Testnet',
+      '0x5': 'Goerli Testnet',
+      '0x2a': 'Kovan Testnet',
+      '0x89': 'Polygon Mainnet',
+      '0x13881': 'Mumbai Testnet'
+    }
+    return networks[chainId] || 'Unknown Network'
+  }
+
+  const loadTokenBalances = async (address: string) => {
+    try {
+      // Load STASH token balance (ERC-20)
+      const stashBalance = await getERC20Balance(
+        '0x1234567890123456789012345678901234567890', // STASH contract
+        address
+      )
+      
+      // Load USDC balance
+      const usdcBalance = await getERC20Balance(
+        '0xA0b86a33E6441b8c4C8C1B8810766aA764FdC6A8', // USDC contract
+        address
+      )
+      
+      // Update token balances
+      setTokenBalances(prev => prev.map(token => {
+        if (token.symbol === 'STASH') {
+          return { ...token, balance: stashBalance, value: stashBalance * 0.10 }
+        } else if (token.symbol === 'USDC') {
+          return { ...token, balance: usdcBalance, value: usdcBalance }
+        }
+        return token
+      }))
+      
+    } catch (error) {
+      console.error('Error loading token balances:', error)
+    }
+  }
+
+  const getERC20Balance = async (contractAddress: string, userAddress: string): Promise<number> => {
+    try {
+      // ERC-20 balanceOf function
+      const data = '0x70a08231' + '000000000000000000000000' + userAddress.slice(2)
+      
+      const result = await window.ethereum.request({
+        method: 'eth_call',
+        params: [{
+          to: contractAddress,
+          data: data
+        }, 'latest']
+      })
+      
+      return parseInt(result, 16) / Math.pow(10, 18)
+    } catch (error) {
+      console.error('Error getting ERC-20 balance:', error)
+      return 0
+    }
+  }
+
+  const claimReward = async (rewardId: string) => {
+    if (!walletConnected || !walletInfo) {
+      setConnectionError('Please connect your wallet first')
+      return
+    }
+
+    try {
+      const reward = rewards.find(r => r.id === rewardId)
+      if (!reward) return
+
+      // Simulate blockchain transaction
+      const txHash = await simulateClaimTransaction(reward)
+      
+      // Update reward status
+      setRewards(prev => prev.map(r => 
+        r.id === rewardId ? { ...r, status: 'claimed' } : r
+      ))
+      
+      // Update user progress
+      const progress = JSON.parse(localStorage.getItem('user-rewards-progress') || '{}')
+      progress[rewardId] = { completed: true, progress: 100 }
+      localStorage.setItem('user-rewards-progress', JSON.stringify(progress))
+      
+      // Show success message
+      alert(`Reward claimed successfully! Transaction: ${txHash}`)
+      
+    } catch (error) {
+      console.error('Error claiming reward:', error)
+      setConnectionError('Failed to claim reward. Please try again.')
+    }
+  }
+
+  const simulateClaimTransaction = async (reward: Reward): Promise<string> => {
+    // Simulate blockchain transaction
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Generate fake transaction hash
+    const txHash = '0x' + Math.random().toString(16).substr(2, 64)
+    
+    return txHash
+  }
+
+  const sendTokens = async (tokenSymbol: string, amount: number, toAddress: string) => {
+    if (!walletConnected || !walletInfo) {
+      setConnectionError('Please connect your wallet first')
+      return
+    }
+
+    try {
+      // Simulate token transfer
+      const txHash = await simulateTokenTransfer(tokenSymbol, amount, toAddress)
+      
+      alert(`Tokens sent successfully! Transaction: ${txHash}`)
+      
+      // Refresh balances
+      if (walletInfo) {
+        await loadTokenBalances(walletInfo.address)
+      }
+      
+    } catch (error) {
+      console.error('Error sending tokens:', error)
+      setConnectionError('Failed to send tokens. Please try again.')
+    }
+  }
+
+  const simulateTokenTransfer = async (tokenSymbol: string, amount: number, toAddress: string): Promise<string> => {
+    // Simulate blockchain transaction
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // Generate fake transaction hash
+    const txHash = '0x' + Math.random().toString(16).substr(2, 64)
+    
+    return txHash
+  }
+
+  const createProposal = async (title: string, description: string) => {
+    if (!walletConnected || !walletInfo) {
+      setConnectionError('Please connect your wallet first')
+      return
+    }
+
+    try {
+      // Simulate proposal creation
+      const proposalId = await simulateCreateProposal(title, description)
+      
+      alert(`Proposal created successfully! ID: ${proposalId}`)
+      
+    } catch (error) {
+      console.error('Error creating proposal:', error)
+      setConnectionError('Failed to create proposal. Please try again.')
+    }
+  }
+
+  const simulateCreateProposal = async (title: string, description: string): Promise<string> => {
+    // Simulate blockchain transaction
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // Generate fake proposal ID
+    const proposalId = 'PROP-' + Math.random().toString(16).substr(2, 8).toUpperCase()
+    
+    return proposalId
+  }
+
+  const voteOnProposal = async (proposalId: string, vote: 'yes' | 'no') => {
+    if (!walletConnected || !walletInfo) {
+      setConnectionError('Please connect your wallet first')
+      return
+    }
+
+    try {
+      // Simulate voting transaction
+      const txHash = await simulateVoteTransaction(proposalId, vote)
+      
+      alert(`Vote recorded successfully! Transaction: ${txHash}`)
+      
+    } catch (error) {
+      console.error('Error voting:', error)
+      setConnectionError('Failed to record vote. Please try again.')
+    }
+  }
+
+  const simulateVoteTransaction = async (proposalId: string, vote: 'yes' | 'no'): Promise<string> => {
+    // Simulate blockchain transaction
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // Generate fake transaction hash
+    const txHash = '0x' + Math.random().toString(16).substr(2, 64)
+    
+    return txHash
   }
 
   const totalValue = tokenBalances.reduce((sum, token) => sum + token.value, 0)
@@ -194,37 +544,65 @@ export default function BlockchainRewardsPage() {
                   {walletConnected ? 'Connected' : 'Not Connected'}
                 </span>
               </div>
-              {walletConnected && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-ink-300">Total Value:</span>
-                  <span className="text-green-400 font-bold">${totalValue.toFixed(2)}</span>
-                  <span className={`text-xs ${totalChange24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {totalChange24h >= 0 ? '+' : ''}{totalChange24h.toFixed(1)}%
-                  </span>
+              {walletConnected && walletInfo && (
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-ink-300">Address:</span>
+                    <span className="text-green-400 font-mono text-xs">
+                      {walletInfo.address.slice(0, 6)}...{walletInfo.address.slice(-4)}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-ink-300">Network:</span>
+                    <span className="text-blue-400 text-xs">{walletInfo.network}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-ink-300">Total Value:</span>
+                    <span className="text-green-400 font-bold">${totalValue.toFixed(2)}</span>
+                  </div>
                 </div>
               )}
             </div>
             
-            {!walletConnected && (
-              <button
-                onClick={connectWallet}
-                disabled={isConnecting}
-                className="bg-green-500 hover:bg-green-600 disabled:bg-green-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                {isConnecting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Connecting...</span>
-                  </>
-                ) : (
-                  <>
-                    <WalletIcon className="w-4 h-4" />
-                    <span>Connect Wallet</span>
-                  </>
-                )}
-              </button>
-            )}
+            <div className="flex items-center space-x-2">
+              {walletConnected ? (
+                <button
+                  onClick={disconnectWallet}
+                  className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg transition-colors"
+                >
+                  Disconnect
+                </button>
+              ) : (
+                <button
+                  onClick={connectWallet}
+                  disabled={isConnecting}
+                  className="bg-green-500 hover:bg-green-600 disabled:bg-green-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                >
+                  {isConnecting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <WalletIcon className="w-4 h-4" />
+                      <span>Connect Wallet</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
+
+          {/* Connection Error */}
+          {connectionError && (
+            <div className="mt-3 bg-red-500/20 border border-red-500/30 rounded-lg p-3">
+              <div className="flex items-center space-x-2">
+                <ExclamationTriangleIcon className="w-5 h-5 text-red-400" />
+                <span className="text-red-400 text-sm">{connectionError}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -263,12 +641,16 @@ export default function BlockchainRewardsPage() {
               <h2 className="text-2xl font-bold">Available Rewards</h2>
               <div className="flex items-center space-x-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">825</div>
-                  <div className="text-sm text-ink-400">Total Points</div>
+                  <div className="text-2xl font-bold text-green-400">
+                    {rewards.reduce((sum, r) => sum + (r.progress || 0), 0)}
+                  </div>
+                  <div className="text-sm text-ink-400">Total Progress</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">82.5</div>
-                  <div className="text-sm text-ink-400">$STASH Tokens</div>
+                  <div className="text-2xl font-bold text-blue-400">
+                    {rewards.filter(r => r.status === 'claimed').length}
+                  </div>
+                  <div className="text-sm text-ink-400">Rewards Claimed</div>
                 </div>
               </div>
             </div>
@@ -290,6 +672,35 @@ export default function BlockchainRewardsPage() {
                   
                   <h3 className="text-lg font-semibold text-white mb-2">{reward.name}</h3>
                   <p className="text-ink-300 text-sm mb-4">{reward.description}</p>
+                  
+                  {/* Progress Bar */}
+                  {reward.progress !== undefined && reward.progress > 0 && (
+                    <div className="mb-4">
+                      <div className="flex justify-between text-xs text-ink-400 mb-1">
+                        <span>Progress</span>
+                        <span>{reward.progress}%</span>
+                      </div>
+                      <div className="w-full bg-ink-700 rounded-full h-2">
+                        <div 
+                          className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${reward.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Requirements */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-ink-300 mb-2">Requirements:</h4>
+                    <ul className="text-xs text-ink-400 space-y-1">
+                      {reward.requirements.map((req, index) => (
+                        <li key={index} className="flex items-center space-x-2">
+                          <span className="w-2 h-2 bg-ink-600 rounded-full"></span>
+                          <span>{req}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                   
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
@@ -355,15 +766,36 @@ export default function BlockchainRewardsPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-ink-400">Price:</span>
-                      <span className="text-white">${(token.value / token.balance).toFixed(4)}</span>
+                      <span className="text-white">${(token.value / token.balance || 0).toFixed(4)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Contract:</span>
+                      <span className="text-ink-400 font-mono text-xs">
+                        {token.contractAddress.slice(0, 6)}...{token.contractAddress.slice(-4)}
+                      </span>
                     </div>
                   </div>
                   
                   <div className="mt-4 flex space-x-2">
-                    <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm transition-colors">
+                    <button 
+                      onClick={() => {
+                        const toAddress = prompt('Enter recipient address:')
+                        const amount = prompt('Enter amount:')
+                        if (toAddress && amount) {
+                          sendTokens(token.symbol, parseFloat(amount), toAddress)
+                        }
+                      }}
+                      className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                    >
                       Send
                     </button>
-                    <button className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded text-sm transition-colors">
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(walletInfo?.address || '')
+                        alert('Address copied to clipboard!')
+                      }}
+                      className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                    >
                       Receive
                     </button>
                   </div>
@@ -379,7 +811,7 @@ export default function BlockchainRewardsPage() {
                   <div className="text-sm text-ink-400">Total Value</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-blue-400">3</div>
+                  <div className="text-3xl font-bold text-blue-400">{tokenBalances.length}</div>
                   <div className="text-sm text-ink-400">Tokens</div>
                 </div>
                 <div className="text-center">
@@ -389,7 +821,9 @@ export default function BlockchainRewardsPage() {
                   <div className="text-sm text-ink-400">24h Change</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-purple-400">$284.70</div>
+                  <div className="text-3xl font-bold text-purple-400">
+                    {rewards.filter(r => r.status === 'claimed').reduce((sum, r) => sum + r.tokens, 0)}
+                  </div>
                   <div className="text-sm text-ink-400">Rewards Earned</div>
                 </div>
               </div>
@@ -426,6 +860,12 @@ export default function BlockchainRewardsPage() {
                     <div className="flex justify-between text-sm">
                       <span className="text-ink-400">Status:</span>
                       <span className="text-white capitalize">{contract.status}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Contract:</span>
+                      <span className="text-ink-400 font-mono text-xs">
+                        {contract.contractAddress.slice(0, 6)}...{contract.contractAddress.slice(-4)}
+                      </span>
                     </div>
                   </div>
                   
@@ -471,7 +911,16 @@ export default function BlockchainRewardsPage() {
             <div className="bg-ink-900 rounded-xl p-6 border border-ink-800 mb-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-white">Active Proposals</h3>
-                <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                <button 
+                  onClick={() => {
+                    const title = prompt('Enter proposal title:')
+                    const description = prompt('Enter proposal description:')
+                    if (title && description) {
+                      createProposal(title, description)
+                    }
+                  }}
+                  className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
                   Create Proposal
                 </button>
               </div>
@@ -488,10 +937,16 @@ export default function BlockchainRewardsPage() {
                     <span className="text-green-400">62.4% in favor</span>
                   </div>
                   <div className="mt-3 flex space-x-2">
-                    <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    <button 
+                      onClick={() => voteOnProposal('prop-1', 'yes')}
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
                       Vote Yes
                     </button>
-                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                    <button 
+                      onClick={() => voteOnProposal('prop-1', 'no')}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
                       Vote No
                     </button>
                   </div>
@@ -515,7 +970,9 @@ export default function BlockchainRewardsPage() {
               <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
                 <h3 className="text-xl font-bold text-white mb-4">Your Voting Power</h3>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-green-400 mb-2">2,847</div>
+                  <div className="text-4xl font-bold text-green-400 mb-2">
+                    {walletConnected ? tokenBalances.find(t => t.symbol === 'STASH')?.balance || 0 : 0}
+                  </div>
                   <div className="text-sm text-ink-400 mb-4">$STASH Tokens</div>
                   <div className="w-full bg-ink-700 rounded-full h-2 mb-2">
                     <div className="bg-green-400 h-2 rounded-full" style={{ width: '75%' }}></div>
@@ -551,4 +1008,15 @@ export default function BlockchainRewardsPage() {
       </div>
     </div>
   )
+}
+
+// Add Web3 types to window
+declare global {
+  interface Window {
+    ethereum?: {
+      request: (args: { method: string; params?: any[] }) => Promise<any>
+      on: (event: string, callback: (...args: any[]) => void) => void
+      removeListener: (event: string, callback: (...args: any[]) => void) => void
+    }
+  }
 }

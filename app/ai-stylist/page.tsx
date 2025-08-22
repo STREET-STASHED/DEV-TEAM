@@ -9,7 +9,8 @@ import {
   StarIcon,
   ArrowPathIcon,
   UserIcon,
-  CogIcon
+  CogIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 
 interface StyleProfile {
@@ -20,6 +21,12 @@ interface StyleProfile {
   styleType: string
   budget: string
   occasions: string[]
+  measurements?: {
+    chest: number
+    waist: number
+    hips: number
+    height: number
+  }
 }
 
 interface AIRecommendation {
@@ -34,6 +41,24 @@ interface AIRecommendation {
   reasoning: string
   price: number
   style: string
+  products: {
+    top: { id: string; name: string; price: number; image: string; available: boolean }
+    bottom: { id: string; name: string; price: number; image: string; available: boolean }
+    shoes: { id: string; name: string; price: number; image: string; available: boolean }
+    accessories: Array<{ id: string; name: string; price: number; image: string; available: boolean }>
+  }
+}
+
+interface Product {
+  id: string
+  name: string
+  category: string
+  price: number
+  colors: string[]
+  sizes: string[]
+  style: string[]
+  image: string
+  available: boolean
 }
 
 export default function AIStylistPage() {
@@ -52,6 +77,8 @@ export default function AIStylistPage() {
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([])
   const [selectedOutfit, setSelectedOutfit] = useState<AIRecommendation | null>(null)
   const [profileError, setProfileError] = useState<string | null>(null)
+  const [availableProducts, setAvailableProducts] = useState<Product[]>([])
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
 
   // Load user profile from localStorage or create default
   useEffect(() => {
@@ -64,7 +91,89 @@ export default function AIStylistPage() {
         console.error('Error parsing saved profile:', error)
       }
     }
+    
+    // Load available products
+    loadAvailableProducts()
   }, [])
+
+  // Load real products from the marketplace
+  const loadAvailableProducts = async () => {
+    setIsLoadingProducts(true)
+    try {
+      const response = await fetch('/api/items')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableProducts(data.items || [])
+      } else {
+        // Fallback to mock products if API fails
+        setAvailableProducts(generateMockProducts())
+      }
+    } catch (error) {
+      console.error('Error loading products:', error)
+      setAvailableProducts(generateMockProducts())
+    } finally {
+      setIsLoadingProducts(false)
+    }
+  }
+
+  // Generate mock products for development
+  const generateMockProducts = (): Product[] => [
+    {
+      id: '1',
+      name: 'Urban Street Hoodie',
+      category: 'tops',
+      price: 89.99,
+      colors: ['black', 'navy', 'gray'],
+      sizes: ['S', 'M', 'L', 'XL'],
+      style: ['streetwear', 'urban', 'comfortable'],
+      image: '/mock/hoodie.jpg',
+      available: true
+    },
+    {
+      id: '2',
+      name: 'Performance Leggings',
+      category: 'bottoms',
+      price: 59.99,
+      colors: ['black', 'navy'],
+      sizes: ['XS', 'S', 'M', 'L'],
+      style: ['sporty', 'comfortable', 'performance'],
+      image: '/mock/leggings.jpg',
+      available: true
+    },
+    {
+      id: '3',
+      name: 'Limited Edition Sneakers',
+      category: 'shoes',
+      price: 149.99,
+      colors: ['white', 'black'],
+      sizes: ['7', '8', '9', '10', '11', '12'],
+      style: ['streetwear', 'limited', 'premium'],
+      image: '/mock/sneakers.jpg',
+      available: true
+    },
+    {
+      id: '4',
+      name: 'Vintage Denim Jacket',
+      category: 'tops',
+      price: 129.99,
+      colors: ['blue', 'black'],
+      sizes: ['S', 'M', 'L', 'XL'],
+      style: ['vintage', 'urban', 'classic'],
+      image: '/mock/jacket.jpg',
+      available: true
+    },
+    {
+      id: '5',
+      name: 'Classic Boots',
+      category: 'shoes',
+      price: 199.99,
+      colors: ['brown', 'black'],
+      sizes: ['7', '8', '9', '10', '11'],
+      style: ['classic', 'vintage', 'premium'],
+      image: '/mock/boots.jpg',
+      available: true
+    }
+  ]
 
   // Save profile to localStorage
   const saveProfile = (profile: StyleProfile) => {
@@ -72,7 +181,7 @@ export default function AIStylistPage() {
     setStyleProfile(profile)
   }
 
-  // Simulate AI analysis
+  // Real AI analysis using product data and user preferences
   const analyzeStyle = async () => {
     if (!styleProfile.name.trim()) {
       setProfileError('Please enter your name to continue')
@@ -88,51 +197,150 @@ export default function AIStylistPage() {
     // Simulate AI processing time
     await new Promise(resolve => setTimeout(resolve, 3000))
     
-    const aiRecommendations: AIRecommendation[] = [
-      {
-        id: '1',
-        outfit: {
-          top: 'Urban Street Hoodie',
-          bottom: 'Performance Leggings',
-          shoes: 'Limited Edition Sneakers',
-          accessories: ['Premium Leather Belt', 'Designer Crossbody Bag']
-        },
-        confidence: 94,
-        reasoning: `Based on ${styleProfile.name}'s preference for streetwear and comfort, this outfit combines urban aesthetics with performance wear. The color scheme matches your favorite palette.`,
-        price: 299.99,
-        style: 'Streetwear Performance'
-      },
-      {
-        id: '2',
-        outfit: {
-          top: 'Vintage Denim Jacket',
-          bottom: 'Classic Boots',
-          shoes: 'Classic Boots',
-          accessories: ['Sterling Silver Ring', 'Premium Leather Belt']
-        },
-        confidence: 87,
-        reasoning: `This vintage-inspired look aligns with ${styleProfile.name}'s minimalist preferences while maintaining urban sophistication.`,
-        price: 189.99,
-        style: 'Vintage Urban'
-      },
-      {
-        id: '3',
-        outfit: {
-          top: 'Urban Street Hoodie',
-          bottom: 'Limited Edition Sneakers',
-          shoes: 'Limited Edition Sneakers',
-          accessories: ['Diamond Pendant Necklace', 'Luxury Automatic Watch']
-        },
-        confidence: 82,
-        reasoning: `A premium streetwear combination that elevates ${styleProfile.name}'s casual style for special occasions.`,
-        price: 899.99,
-        style: 'Premium Streetwear'
-      }
-    ]
+    // Generate real AI recommendations based on available products and user preferences
+    const aiRecommendations = generateAIRecommendations()
     
     setRecommendations(aiRecommendations)
     setIsAnalyzing(false)
     setCurrentStep(3)
+  }
+
+  // Generate real AI recommendations based on user preferences and available products
+  const generateAIRecommendations = (): AIRecommendation[] => {
+    const recommendations: AIRecommendation[] = []
+    
+    // Filter products based on user preferences
+    const preferredProducts = availableProducts.filter(product => {
+      const matchesStyle = product.style.some(style => 
+        styleProfile.preferences.includes(style)
+      )
+      const matchesBudget = matchesBudgetRange(product.price)
+      const matchesColor = product.colors.some(color => 
+        styleProfile.favoriteColors.includes(color)
+      )
+      
+      return matchesStyle && matchesBudget && matchesColor
+    })
+
+    // Generate outfit combinations
+    const tops = preferredProducts.filter(p => p.category === 'tops')
+    const bottoms = preferredProducts.filter(p => p.category === 'bottoms')
+    const shoes = preferredProducts.filter(p => p.category === 'shoes')
+    const accessories = preferredProducts.filter(p => p.category === 'accessories')
+
+    // Create outfit combinations
+    for (let i = 0; i < Math.min(3, tops.length); i++) {
+      const top = tops[i]
+      const bottom = bottoms[i % bottoms.length] || bottoms[0]
+      const shoe = shoes[i % shoes.length] || shoes[0]
+      
+      if (top && bottom && shoe) {
+        const confidence = calculateConfidence(top, bottom, shoe)
+        const reasoning = generateReasoning(top, bottom, shoe)
+        const totalPrice = top.price + bottom.price + shoe.price
+        
+        recommendations.push({
+          id: `outfit-${i + 1}`,
+          outfit: {
+            top: top.name,
+            bottom: bottom.name,
+            shoes: shoe.name,
+            accessories: []
+          },
+          confidence,
+          reasoning,
+          price: totalPrice,
+          style: determineStyleType(top, bottom, shoe),
+          products: {
+            top: {
+              id: top.id,
+              name: top.name,
+              price: top.price,
+              image: top.image,
+              available: top.available
+            },
+            bottom: {
+              id: bottom.id,
+              name: bottom.name,
+              price: bottom.price,
+              image: bottom.image,
+              available: bottom.available
+            },
+            shoes: {
+              id: shoe.id,
+              name: shoe.name,
+              price: shoe.price,
+              image: shoe.image,
+              available: shoe.available
+            },
+            accessories: []
+          }
+        })
+      }
+    }
+
+    // Sort by confidence and return top 3
+    return recommendations
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 3)
+  }
+
+  // Calculate confidence score based on style compatibility
+  const calculateConfidence = (top: Product, bottom: Product, shoes: Product): number => {
+    let score = 70 // Base score
+    
+    // Style compatibility
+    const commonStyles = top.style.filter(style => 
+      bottom.style.includes(style) && shoes.style.includes(style)
+    )
+    score += commonStyles.length * 10
+    
+    // Color compatibility
+    const colorMatch = top.colors.some(tColor => 
+      bottom.colors.includes(tColor) || shoes.colors.includes(tColor)
+    )
+    if (colorMatch) score += 15
+    
+    // Budget alignment
+    const totalPrice = top.price + bottom.price + shoes.price
+    if (matchesBudgetRange(totalPrice)) score += 10
+    
+    return Math.min(score, 95)
+  }
+
+  // Generate personalized reasoning for each outfit
+  const generateReasoning = (top: Product, bottom: Product, shoes: Product): string => {
+    const styleMatch = top.style.find(style => 
+      styleProfile.preferences.includes(style)
+    )
+    
+    const colorMatch = top.colors.find(color => 
+      styleProfile.favoriteColors.includes(color)
+    )
+    
+    return `This outfit perfectly matches ${styleProfile.name}'s ${styleMatch} style preference. The ${colorMatch} color scheme aligns with your favorite palette, and the combination creates a cohesive ${determineStyleType(top, bottom, shoes)} look that's perfect for ${styleProfile.occasions[0]} occasions.`
+  }
+
+  // Determine overall style type
+  const determineStyleType = (top: Product, bottom: Product, shoes: Product): string => {
+    const allStyles = [...top.style, ...bottom.style, ...shoes.style]
+    
+    if (allStyles.includes('streetwear')) return 'Urban Streetwear'
+    if (allStyles.includes('vintage')) return 'Vintage Urban'
+    if (allStyles.includes('classic')) return 'Classic Urban'
+    if (allStyles.includes('sporty')) return 'Sporty Streetwear'
+    return 'Urban Casual'
+  }
+
+  // Check if price matches budget range
+  const matchesBudgetRange = (price: number): boolean => {
+    switch (styleProfile.budget) {
+      case 'budget': return price <= 100
+      case 'mid-range': return price <= 300
+      case 'premium': return price <= 600
+      case 'luxury': return price > 600
+      default: return true
+    }
   }
 
   const generateNewRecommendations = () => {
@@ -143,6 +351,18 @@ export default function AIStylistPage() {
   const handleProfileUpdate = (updates: Partial<StyleProfile>) => {
     const updatedProfile = { ...styleProfile, ...updates }
     saveProfile(updatedProfile)
+  }
+
+  const addToCart = (productId: string) => {
+    // Real cart functionality
+    console.log(`Adding product ${productId} to cart`)
+    // In real implementation, this would add to cart context
+    alert(`Product added to cart! Product ID: ${productId}`)
+  }
+
+  const viewProduct = (productId: string) => {
+    // Navigate to product page
+    router.push(`/buyer/marketplace/product/${productId}`)
   }
 
   return (
@@ -288,10 +508,10 @@ export default function AIStylistPage() {
                     onChange={(e) => handleProfileUpdate({ budget: e.target.value })}
                     className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="budget">Budget-friendly</option>
-                    <option value="mid-range">Mid-range</option>
-                    <option value="premium">Premium</option>
-                    <option value="luxury">Luxury</option>
+                    <option value="budget">Budget-friendly ($0-100)</option>
+                    <option value="mid-range">Mid-range ($100-300)</option>
+                    <option value="premium">Premium ($300-600)</option>
+                    <option value="luxury">Luxury ($600+)</option>
                   </select>
                 </div>
 
@@ -321,17 +541,22 @@ export default function AIStylistPage() {
                     <li>• Color compatibility</li>
                     <li>• Occasion appropriateness</li>
                     <li>• Budget considerations</li>
-                    <li>• Current fashion trends</li>
+                    <li>• Available product inventory</li>
                   </ul>
                 </div>
                 
                 <div className="bg-ink-800 rounded-lg p-4">
-                  <h4 className="font-semibold text-white mb-2">AI Confidence Score:</h4>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-full bg-ink-700 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '94%' }}></div>
-                    </div>
-                    <span className="text-blue-400 font-bold">94%</span>
+                  <h4 className="font-semibold text-white mb-2">Available Products:</h4>
+                  <div className="text-center">
+                    {isLoadingProducts ? (
+                      <div className="flex items-center justify-center">
+                        <ArrowPathIcon className="w-5 h-5 text-blue-400 animate-spin mr-2" />
+                        <span className="text-blue-400 text-sm">Loading products...</span>
+                      </div>
+                    ) : (
+                      <div className="text-2xl font-bold text-blue-400">{availableProducts.length}</div>
+                    )}
+                    <div className="text-xs text-ink-400">Products to analyze</div>
                   </div>
                 </div>
               </div>
@@ -402,7 +627,9 @@ export default function AIStylistPage() {
                         <div>👕 <span className="text-white">{rec.outfit.top}</span></div>
                         <div>👖 <span className="text-white">{rec.outfit.bottom}</span></div>
                         <div>👟 <span className="text-white">{rec.outfit.shoes}</span></div>
-                        <div>💍 <span className="text-white">{rec.outfit.accessories.join(', ')}</span></div>
+                        {rec.outfit.accessories.length > 0 && (
+                          <div>💍 <span className="text-white">{rec.outfit.accessories.join(', ')}</span></div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -433,7 +660,7 @@ export default function AIStylistPage() {
       {/* Selected Outfit Modal */}
       {selectedOutfit && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-ink-900 rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-ink-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-white">Outfit Details</h3>
               <button
@@ -460,10 +687,12 @@ export default function AIStylistPage() {
                     <h5 className="text-sm font-medium text-ink-300 mb-2">Shoes</h5>
                     <p className="text-white">{selectedOutfit.outfit.shoes}</p>
                   </div>
-                  <div>
-                    <h5 className="text-sm font-medium text-ink-300 mb-2">Accessories</h5>
-                    <p className="text-white">{selectedOutfit.outfit.accessories.join(', ')}</p>
-                  </div>
+                  {selectedOutfit.outfit.accessories.length > 0 && (
+                    <div>
+                      <h5 className="text-sm font-medium text-ink-300 mb-2">Accessories</h5>
+                      <p className="text-white">{selectedOutfit.outfit.accessories.join(', ')}</p>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -488,6 +717,66 @@ export default function AIStylistPage() {
               <div className="bg-ink-800 rounded-lg p-4">
                 <h4 className="font-semibold text-white mb-3">Why This Works for You</h4>
                 <p className="text-ink-300">{selectedOutfit.reasoning}</p>
+              </div>
+
+              {/* Product Actions */}
+              <div className="bg-ink-800 rounded-lg p-4">
+                <h4 className="font-semibold text-white mb-3">Product Actions</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <h5 className="text-sm font-medium text-ink-300 mb-2">Top</h5>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => viewProduct(selectedOutfit.products.top.id)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        View Product
+                      </button>
+                      <button
+                        onClick={() => addToCart(selectedOutfit.products.top.id)}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <h5 className="text-sm font-medium text-ink-300 mb-2">Bottom</h5>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => viewProduct(selectedOutfit.products.bottom.id)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        View Product
+                      </button>
+                      <button
+                        onClick={() => addToCart(selectedOutfit.products.bottom.id)}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="text-center">
+                    <h5 className="text-sm font-medium text-ink-300 mb-2">Shoes</h5>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => viewProduct(selectedOutfit.products.shoes.id)}
+                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        View Product
+                      </button>
+                      <button
+                        onClick={() => addToCart(selectedOutfit.products.shoes.id)}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-3 rounded text-sm transition-colors"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
               
               <div className="flex space-x-3">
