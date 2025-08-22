@@ -1,299 +1,777 @@
-import Link from 'next/link'
+'use client'
 
-export async function StylistDashboardContent() {
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { 
+  UserGroupIcon, 
+  CalendarIcon, 
+  CurrencyDollarIcon, 
+  StarIcon,
+  ChartBarIcon,
+  FireIcon,
+  TrendingUpIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/react/24/outline'
+
+interface StylistStats {
+  activeClients: number
+  totalAppointments: number
+  monthlyEarnings: number
+  averageRating: number
+  totalReviews: number
+  completedSessions: number
+  pendingSessions: number
+  totalEarnings: number
+}
+
+interface Client {
+  id: string
+  name: string
+  avatar: string
+  lastSession: string
+  nextSession: string
+  totalSpent: number
+  rating: number
+  status: 'active' | 'inactive' | 'new'
+}
+
+interface Appointment {
+  id: string
+  clientName: string
+  clientAvatar: string
+  date: string
+  time: string
+  duration: number
+  type: string
+  status: 'confirmed' | 'pending' | 'completed' | 'cancelled'
+  notes: string
+}
+
+interface Challenge {
+  id: string
+  title: string
+  description: string
+  participants: number
+  deadline: string
+  prizePool: number
+  status: 'active' | 'completed' | 'upcoming'
+  category: string
+  isJoined: boolean
+}
+
+export default function StylistDashboardContent() {
+  const router = useRouter()
+  const [selectedTab, setSelectedTab] = useState('overview')
+  const [stats, setStats] = useState<StylistStats | null>(null)
+  const [clients, setClients] = useState<Client[]>([])
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [challenges, setChallenges] = useState<Challenge[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadStylistData()
+  }, [])
+
+  const loadStylistData = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Load data from APIs with fallback to mock data
+      await Promise.all([
+        loadStats(),
+        loadClients(),
+        loadAppointments(),
+        loadChallenges()
+      ])
+    } catch (error) {
+      console.error('Error loading stylist data:', error)
+      setError('Failed to load some data. Showing demo content.')
+      // Fallback to mock data for demo purposes
+      loadMockData()
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const loadStats = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data.stats || null)
+      } else {
+        throw new Error('Failed to load stats')
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error)
+      // Fallback to mock data
+      loadMockStats()
+    }
+  }
+
+  const loadClients = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/clients')
+      if (response.ok) {
+        const data = await response.json()
+        setClients(data.clients || [])
+      } else {
+        throw new Error('Failed to load clients')
+      }
+    } catch (error) {
+      console.error('Error loading clients:', error)
+      // Fallback to mock data
+      loadMockClients()
+    }
+  }
+
+  const loadAppointments = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/appointments')
+      if (response.ok) {
+        const data = await response.json()
+        setAppointments(data.appointments || [])
+      } else {
+        throw new Error('Failed to load appointments')
+      }
+    } catch (error) {
+      console.error('Error loading appointments:', error)
+      // Fallback to mock data
+      loadMockAppointments()
+    }
+  }
+
+  const loadChallenges = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/challenges')
+      if (response.ok) {
+        const data = await response.json()
+        setChallenges(data.challenges || [])
+      } else {
+        throw new Error('Failed to load challenges')
+      }
+    } catch (error) {
+      console.error('Error loading challenges:', error)
+      // Fallback to mock data
+      loadMockChallenges()
+    }
+  }
+
+  const loadMockData = () => {
+    loadMockStats()
+    loadMockClients()
+    loadMockAppointments()
+    loadMockChallenges()
+  }
+
+  const loadMockStats = () => {
+    const mockStats: StylistStats = {
+      activeClients: 24,
+      totalAppointments: 156,
+      monthlyEarnings: 2847.50,
+      averageRating: 4.8,
+      totalReviews: 89,
+      completedSessions: 142,
+      pendingSessions: 14,
+      totalEarnings: 15420.75
+    }
+    setStats(mockStats)
+  }
+
+  const loadMockClients = () => {
+    const mockClients: Client[] = [
+      {
+        id: '1',
+        name: 'Sarah Johnson',
+        avatar: '/mock/avatar1.jpg',
+        lastSession: '2024-01-15',
+        nextSession: '2024-01-22',
+        totalSpent: 450.00,
+        rating: 5,
+        status: 'active'
+      },
+      {
+        id: '2',
+        name: 'Michael Chen',
+        avatar: '/mock/avatar2.jpg',
+        lastSession: '2024-01-14',
+        nextSession: '2024-01-21',
+        totalSpent: 320.00,
+        rating: 4,
+        status: 'active'
+      },
+      {
+        id: '3',
+        name: 'Emma Rodriguez',
+        avatar: '/mock/avatar3.jpg',
+        lastSession: '2024-01-13',
+        nextSession: '2024-01-20',
+        totalSpent: 680.00,
+        rating: 5,
+        status: 'active'
+      },
+      {
+        id: '4',
+        name: 'David Kim',
+        avatar: '/mock/avatar4.jpg',
+        lastSession: '2024-01-12',
+        nextSession: '2024-01-19',
+        totalSpent: 240.00,
+        rating: 4,
+        status: 'new'
+      },
+      {
+        id: '5',
+        name: 'Lisa Thompson',
+        avatar: '/mock/avatar5.jpg',
+        lastSession: '2024-01-10',
+        nextSession: '2024-01-17',
+        totalSpent: 890.00,
+        rating: 5,
+        status: 'active'
+      }
+    ]
+    setClients(mockClients)
+  }
+
+  const loadMockAppointments = () => {
+    const mockAppointments: Appointment[] = [
+      {
+        id: '1',
+        clientName: 'Sarah Johnson',
+        clientAvatar: '/mock/avatar1.jpg',
+        date: '2024-01-22',
+        time: '10:00 AM',
+        duration: 60,
+        type: 'Style Consultation',
+        status: 'confirmed',
+        notes: 'Focus on professional wardrobe update'
+      },
+      {
+        id: '2',
+        clientName: 'Michael Chen',
+        clientAvatar: '/mock/avatar2.jpg',
+        date: '2024-01-21',
+        time: '2:00 PM',
+        duration: 90,
+        type: 'Full Wardrobe Review',
+        status: 'confirmed',
+        notes: 'Preparing for job interview'
+      },
+      {
+        id: '3',
+        clientName: 'Emma Rodriguez',
+        clientAvatar: '/mock/avatar3.jpg',
+        date: '2024-01-20',
+        time: '11:00 AM',
+        duration: 60,
+        type: 'Style Consultation',
+        status: 'pending',
+        notes: 'New client - first session'
+      },
+      {
+        id: '4',
+        clientName: 'David Kim',
+        clientAvatar: '/mock/avatar4.jpg',
+        date: '2024-01-19',
+        time: '3:00 PM',
+        duration: 45,
+        type: 'Quick Style Update',
+        status: 'confirmed',
+        notes: 'Follow-up session'
+      },
+      {
+        id: '5',
+        clientName: 'Lisa Thompson',
+        clientAvatar: '/mock/avatar5.jpg',
+        date: '2024-01-17',
+        time: '1:00 PM',
+        duration: 75,
+        type: 'Special Occasion Styling',
+        status: 'confirmed',
+        notes: 'Wedding guest outfit'
+      }
+    ]
+    setAppointments(mockAppointments)
+  }
+
+  const loadMockChallenges = () => {
+    const mockChallenges: Challenge[] = [
+      {
+        id: '1',
+        title: 'Style Transformation Challenge',
+        description: 'Transform 5 clients with complete style makeovers',
+        participants: 47,
+        deadline: '2024-02-15',
+        prizePool: 2500,
+        status: 'active',
+        category: 'Transformation',
+        isJoined: true
+      },
+      {
+        id: '2',
+        title: 'Client Satisfaction Master',
+        description: 'Achieve 100% client satisfaction for 30 days',
+        participants: 23,
+        deadline: '2024-01-31',
+        prizePool: 1500,
+        status: 'active',
+        category: 'Quality',
+        isJoined: false
+      },
+      {
+        id: '3',
+        title: 'Social Media Influencer',
+        description: 'Grow social media following by 1000+ followers',
+        participants: 89,
+        deadline: '2024-03-01',
+        prizePool: 3000,
+        status: 'upcoming',
+        category: 'Marketing',
+        isJoined: false
+      }
+    ]
+    setChallenges(mockChallenges)
+  }
+
+  const handleClientClick = (clientId: string) => {
+    router.push(`/stylist/clients/${clientId}`)
+  }
+
+  const handleAppointmentClick = (appointmentId: string) => {
+    router.push(`/stylist/appointments/${appointmentId}`)
+  }
+
+  const handleChallengeJoin = (challengeId: string) => {
+    setChallenges(prev => prev.map(challenge => 
+      challenge.id === challengeId ? { ...challenge, isJoined: true } : challenge
+    ))
+    alert('Challenge joined successfully!')
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-500/20 text-green-400'
+      case 'pending': return 'bg-yellow-500/20 text-yellow-400'
+      case 'completed': return 'bg-blue-500/20 text-blue-400'
+      case 'cancelled': return 'bg-red-500/20 text-red-400'
+      default: return 'bg-ink-500/20 text-ink-400'
+    }
+  }
+
+  const getClientStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500/20 text-green-400'
+      case 'new': return 'bg-blue-500/20 text-blue-400'
+      case 'inactive': return 'bg-ink-500/20 text-ink-400'
+      default: return 'bg-ink-500/20 text-ink-400'
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-ink-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-ink-300">Loading stylist dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-purple-500/10 to-brand-500/10 rounded-2xl p-8 border border-purple-400/20">
-        <h1 className="text-3xl font-bold text-white mb-4">Stylist Dashboard</h1>
-        <p className="text-ink-300 text-lg mb-6">
-          Build your brand, engage with clients, and grow your influence in the fashion community
-        </p>
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-ink-800/50 border border-ink-700 rounded-xl p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-brand-400/20 rounded-lg">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-ink-400">Active Clients</p>
-                <p className="text-2xl font-bold text-white">18</p>
-              </div>
+    <div className="min-h-screen bg-ink-black text-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">👗 Stylist Dashboard</h1>
+              <p className="text-ink-300">Manage your clients, appointments, and grow your business</p>
             </div>
-          </div>
-
-          <div className="bg-ink-800/50 border border-ink-700 rounded-xl p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-brand-400/20 rounded-lg">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4M8 7l8 0M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-ink-400">This Month Appointments</p>
-                <p className="text-2xl font-bold text-white">24</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-ink-800/50 border border-ink-700 rounded-xl p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-brand-400/20 rounded-lg">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-ink-400">Monthly Earnings</p>
-                <p className="text-2xl font-bold text-white">$3,245</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-ink-800/50 border border-ink-700 rounded-xl p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-brand-400/20 rounded-lg">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-ink-400">Average Rating</p>
-                <p className="text-2xl font-bold text-white">4.9</p>
-              </div>
-            </div>
+            <button
+              onClick={() => router.back()}
+              className="bg-ink-800 hover:bg-ink-700 px-4 py-2 rounded-lg transition-colors"
+            >
+              ← Back
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Social Commerce Features */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Viral Challenges */}
-        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Viral Challenges</h2>
-            <Link href="/stylist/challenges" className="text-brand-400 hover:text-brand-300 text-sm font-medium">
-              View All
-            </Link>
+      {/* Stats Overview */}
+      {stats && (
+        <div className="bg-ink-800 border-b border-ink-700 p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Active Clients */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                    <UserGroupIcon className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-purple-400">{stats.activeClients}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Active Clients</h3>
+                <p className="text-ink-400 text-sm">Currently managed</p>
+              </div>
+
+              {/* Total Appointments */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <CalendarIcon className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-blue-400">{stats.totalAppointments}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Total Appointments</h3>
+                <p className="text-ink-400 text-sm">All time</p>
+              </div>
+
+              {/* Monthly Earnings */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <CurrencyDollarIcon className="w-6 h-6 text-green-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-green-400">${stats.monthlyEarnings.toLocaleString()}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Monthly Earnings</h3>
+                <p className="text-ink-400 text-sm">This month</p>
+              </div>
+
+              {/* Average Rating */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                    <StarIcon className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-yellow-400">{stats.averageRating}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Average Rating</h3>
+                <p className="text-ink-400 text-sm">From {stats.totalReviews} reviews</p>
+              </div>
+            </div>
           </div>
-          
-          <div className="space-y-4">
-            <div className="bg-gradient-to-r from-brand-500/20 to-brand-600/20 rounded-xl p-6 border border-brand-400/30">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-bold text-white">Streetwear Showdown</h3>
-                <span className="bg-brand-500 text-white text-xs px-2 py-1 rounded-full">Live</span>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="bg-ink-800 border-b border-ink-700 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex space-x-1">
+            {[
+              { id: 'overview', name: 'Overview', icon: ChartBarIcon },
+              { id: 'clients', name: 'Clients', icon: UserGroupIcon },
+              { id: 'appointments', name: 'Appointments', icon: CalendarIcon },
+              { id: 'challenges', name: 'Challenges', icon: FireIcon }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                  selectedTab === tab.id
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-ink-900 text-ink-300 hover:bg-ink-700'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto p-6">
+        {selectedTab === 'overview' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Dashboard Overview</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Recent Activity */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                <h3 className="text-xl font-bold text-white mb-4">Recent Activity</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-ink-300">New client Sarah Johnson booked consultation</span>
+                    <span className="text-ink-400 text-sm">2 hours ago</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-ink-300">Completed styling session with Michael Chen</span>
+                    <span className="text-ink-400 text-sm">1 day ago</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                    <span className="text-ink-300">Received 5-star review from Emma Rodriguez</span>
+                    <span className="text-ink-400 text-sm">2 days ago</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <span className="text-ink-300">Joined Style Transformation Challenge</span>
+                    <span className="text-ink-400 text-sm">3 days ago</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-ink-300 text-sm mb-4">Create and share your best streetwear looks</p>
-              <div className="flex justify-between text-sm mb-4">
-                <span className="text-ink-300">Participants</span>
-                <span className="text-white font-semibold">2,847</span>
+
+              {/* Quick Actions */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                <h3 className="text-xl font-bold text-white mb-4">Quick Actions</h3>
+                <div className="space-y-3">
+                  <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-semibold transition-colors">
+                    Schedule New Appointment
+                  </button>
+                  <button className="w-full bg-ink-800 hover:bg-ink-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                    Add New Client
+                  </button>
+                  <button className="w-full bg-ink-800 hover:bg-ink-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                    View Analytics
+                  </button>
+                  <button className="w-full bg-ink-800 hover:bg-ink-700 text-white py-3 rounded-lg font-semibold transition-colors">
+                    Manage Profile
+                  </button>
+                </div>
               </div>
-              <button className="w-full bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
-                Participate
+            </div>
+
+            {/* Performance Metrics */}
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+              <h3 className="text-xl font-bold text-white mb-4">Performance Metrics</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-400 mb-2">{stats?.completedSessions || 0}</div>
+                  <div className="text-ink-300">Completed Sessions</div>
+                  <div className="text-ink-400 text-sm">This month</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-400 mb-2">{stats?.pendingSessions || 0}</div>
+                  <div className="text-ink-300">Pending Sessions</div>
+                  <div className="text-ink-400 text-sm">Upcoming</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-400 mb-2">${stats?.totalEarnings.toLocaleString() || 0}</div>
+                  <div className="text-ink-300">Total Earnings</div>
+                  <div className="text-ink-400 text-sm">All time</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'clients' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Client Management</h2>
+              <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                + Add Client
               </button>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {clients.map((client) => (
+                <div
+                  key={client.id}
+                  onClick={() => handleClientClick(client.id)}
+                  className="bg-ink-900 rounded-xl p-6 border border-ink-800 cursor-pointer hover:border-purple-500/50 transition-all duration-300"
+                >
+                  <div className="flex items-center space-x-4 mb-4">
+                    <img
+                      src={client.avatar}
+                      alt={client.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = '/mock/default-avatar.jpg'
+                      }}
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-white">{client.name}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getClientStatusColor(client.status)}`}>
+                        {client.status}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Last Session:</span>
+                      <span className="text-ink-300">{client.lastSession}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Next Session:</span>
+                      <span className="text-ink-300">{client.nextSession}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Total Spent:</span>
+                      <span className="text-green-400 font-semibold">${client.totalSpent}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Rating:</span>
+                      <div className="flex items-center space-x-1">
+                        <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
+                        <span className="text-ink-300">{client.rating}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 rounded-xl p-6 border border-purple-400/30">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-bold text-white">Style Transformation</h3>
-                <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">New</span>
-              </div>
-              <p className="text-ink-300 text-sm mb-4">Show before/after style transformations</p>
-              <div className="flex justify-between text-sm mb-4">
-                <span className="text-ink-300">Participants</span>
-                <span className="text-white font-semibold">1,234</span>
-              </div>
-              <button className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
-                Participate
+        {selectedTab === 'appointments' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">Appointment Schedule</h2>
+              <button className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                + New Appointment
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Client Engagement */}
-        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Client Engagement</h2>
-            <Link href="/stylist/clients" className="text-brand-400 hover:text-brand-300 text-sm font-medium">
-              View All
-            </Link>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="bg-ink-800 rounded-xl p-6 border border-ink-700">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">S</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Sarah M.</h3>
-                  <p className="text-ink-300 text-sm">Last session: 2 days ago</p>
-                </div>
+            
+            <div className="bg-ink-900 rounded-xl border border-ink-800 overflow-hidden">
+              <div className="p-6 border-b border-ink-800">
+                <h3 className="text-lg font-semibold text-white mb-2">Upcoming Sessions</h3>
+                <p className="text-ink-300 text-sm">Manage your client appointments</p>
               </div>
-              <p className="text-ink-300 text-sm mb-4">Ready for next styling session</p>
-              <div className="flex space-x-2">
-                <button className="flex-1 bg-brand-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
-                  Book Session
-                </button>
-                <button className="flex-1 bg-ink-700 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-ink-600 transition-colors">
-                  Message
-                </button>
+              
+              <div className="divide-y divide-ink-800">
+                {appointments.map((appointment) => (
+                  <div
+                    key={appointment.id}
+                    onClick={() => handleAppointmentClick(appointment.id)}
+                    className="p-6 hover:bg-ink-800/50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <img
+                          src={appointment.clientAvatar}
+                          alt={appointment.clientName}
+                          className="w-12 h-12 rounded-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/mock/default-avatar.jpg'
+                          }}
+                        />
+                        <div>
+                          <h4 className="font-semibold text-white">{appointment.clientName}</h4>
+                          <p className="text-ink-400 text-sm">{appointment.type}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <CalendarIcon className="w-4 h-4 text-ink-400" />
+                          <span className="text-ink-300">{appointment.date}</span>
+                        </div>
+                        <div className="flex items-center space-x-2 mb-2">
+                          <ClockIcon className="w-4 h-4 text-ink-400" />
+                          <span className="text-ink-300">{appointment.time} ({appointment.duration}min)</span>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
+                          {appointment.status}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {appointment.notes && (
+                      <div className="mt-4 p-3 bg-ink-800 rounded-lg">
+                        <p className="text-ink-300 text-sm">{appointment.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="bg-ink-800 rounded-xl p-6 border border-ink-700">
-              <div className="flex items-center space-x-4 mb-4">
-                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">M</span>
+        {selectedTab === 'challenges' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Styling Challenges</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {challenges.map((challenge) => (
+                <div key={challenge.id} className="bg-ink-900 rounded-xl border border-ink-800 overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-xl font-bold text-white">{challenge.title}</h3>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                        challenge.status === 'active' ? 'bg-green-500 text-white' :
+                        challenge.status === 'completed' ? 'bg-blue-500 text-white' :
+                        'bg-ink-700 text-ink-300'
+                      }`}>
+                        {challenge.status === 'upcoming' ? 'Coming Soon' : challenge.status}
+                      </span>
+                    </div>
+                    
+                    <p className="text-ink-300 text-sm mb-4">{challenge.description}</p>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ink-400">Participants:</span>
+                        <span className="text-white font-semibold">{challenge.participants}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-ink-400">Deadline:</span>
+                        <span className="text-ink-300">{challenge.deadline}</span>
+                      </div>
+                      {challenge.prizePool > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-ink-400">Prize Pool:</span>
+                          <span className="text-green-400 font-semibold">${challenge.prizePool.toLocaleString()}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-purple-400 font-medium">{challenge.category}</span>
+                      
+                      {challenge.status === 'active' && !challenge.isJoined && (
+                        <button
+                          onClick={() => handleChallengeJoin(challenge.id)}
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        >
+                          Join Challenge
+                        </button>
+                      )}
+                      
+                      {challenge.isJoined && (
+                        <button className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed">
+                          Joined ✓
+                        </button>
+                      )}
+                      
+                      {challenge.status === 'upcoming' && (
+                        <button className="bg-ink-700 text-ink-400 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed">
+                          Coming Soon
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-white font-semibold">Mike R.</h3>
-                  <p className="text-ink-300 text-sm">Last session: 1 week ago</p>
-                </div>
-              </div>
-              <p className="text-ink-300 text-sm mb-4">Interested in new collection</p>
-              <div className="flex space-x-2">
-                <button className="flex-1 bg-purple-500 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
-                  Book Session
-                </button>
-                <button className="flex-1 bg-ink-700 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-ink-600 transition-colors">
-                  Message
-                </button>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700">
-        <h2 className="text-2xl font-bold text-white mb-6">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link
-            href="/stylist/looks/create"
-            className="bg-ink-800 border border-ink-700 rounded-xl p-6 hover:bg-ink-700/50 transition-colors group"
-          >
-            <div className="flex items-center mb-3">
-              <div className="p-3 bg-brand-400/20 rounded-lg group-hover:bg-brand-400/30 transition-colors">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-white font-semibold mb-2">Create Look</h3>
-            <p className="text-ink-300 text-sm">Design and share new style collections</p>
-          </Link>
-
-          <Link
-            href="/stylist/appointments/schedule"
-            className="bg-ink-800 border border-ink-700 rounded-xl p-6 hover:bg-ink-700/50 transition-colors group"
-          >
-            <div className="flex items-center mb-3">
-              <div className="p-3 bg-brand-400/20 rounded-lg group-hover:bg-brand-400/30 transition-colors">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3a2 2 0 012-2h4a2 2 0 012 2v4M8 7l8 0M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-white font-semibold mb-2">Schedule Session</h3>
-            <p className="text-ink-300 text-sm">Book appointments with clients</p>
-          </Link>
-
-          <Link
-            href="/stylist/bundle-upload"
-            className="bg-ink-800 border border-ink-700 rounded-xl p-6 hover:bg-ink-700/50 transition-colors group"
-          >
-            <div className="flex items-center mb-3">
-              <div className="p-3 bg-brand-400/20 rounded-lg group-hover:bg-brand-400/30 transition-colors">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-white font-semibold mb-2">Upload Bundle</h3>
-            <p className="text-ink-300 text-sm">Add new products to your store</p>
-          </Link>
-
-          <Link
-            href="/stylist/earnings"
-            className="bg-ink-800 border border-ink-700 rounded-xl p-6 hover:bg-ink-700/50 transition-colors group"
-          >
-            <div className="flex items-center mb-3">
-              <div className="p-3 bg-brand-400/20 rounded-lg group-hover:bg-brand-400/30 transition-colors">
-                <svg className="w-6 h-6 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-white font-semibold mb-2">View Earnings</h3>
-            <p className="text-ink-300 text-sm">Track your revenue and analytics</p>
-          </Link>
-        </div>
-      </div>
-
-      {/* Social Analytics */}
-      <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700">
-        <h2 className="text-2xl font-bold text-white mb-6">Social Analytics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-ink-800 rounded-xl p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Content Performance</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Total Views</span>
-                <span className="text-white font-semibold">45.2K</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Engagement Rate</span>
-                <span className="text-white font-semibold">8.7%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Viral Score</span>
-                <span className="text-white font-semibold">92</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-ink-800 rounded-xl p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Client Growth</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">New Clients</span>
-                <span className="text-white font-semibold">+12</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Retention Rate</span>
-                <span className="text-white font-semibold">87%</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Referrals</span>
-                <span className="text-white font-semibold">+8</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-ink-800 rounded-xl p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Revenue Trends</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">This Month</span>
-                <span className="text-white font-semibold">$3,245</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Last Month</span>
-                <span className="text-white font-semibold">$2,890</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-ink-300">Growth</span>
-                <span className="text-green-400 font-semibold">+12.3%</span>
-              </div>
-            </div>
+      {/* Error Banner */}
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg max-w-sm">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">{error}</span>
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

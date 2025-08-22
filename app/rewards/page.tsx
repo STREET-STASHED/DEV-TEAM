@@ -1,246 +1,681 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'Rewards',
-  description: 'Earn points and unlock exclusive rewards',
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { 
+  StarIcon, 
+  GiftIcon, 
+  TrophyIcon, 
+  FireIcon,
+  BoltIcon,
+  SparklesIcon,
+  ArrowTrendingUpIcon,
+  UserGroupIcon,
+  ShoppingBagIcon,
+  CalendarIcon
+} from '@heroicons/react/24/outline'
+
+interface Reward {
+  id: string
+  name: string
+  description: string
+  points: number
+  tokens: number
+  status: 'available' | 'claimed' | 'locked'
+  expiresAt: string
+  category: string
+  requirements: string[]
+  progress?: number
+  icon: string
+}
+
+interface UserStats {
+  totalPoints: number
+  memberLevel: string
+  nextLevelPoints: number
+  currentLevelPoints: number
+  totalRewards: number
+  streakDays: number
+  referralCount: number
+  totalSpent: number
+}
+
+interface LeaderboardEntry {
+  rank: number
+  username: string
+  points: number
+  avatar: string
+  isCurrentUser: boolean
 }
 
 export default function RewardsPage() {
-  return (
-    <div className="min-h-screen bg-ink-black text-white py-20 px-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl font-bold text-white mb-6">Rewards & Points</h1>
-          <p className="text-xl text-ink-300 max-w-3xl mx-auto">
-            Earn points for every action, unlock exclusive perks, and get cash rewards for your fashion choices
-          </p>
-        </div>
+  const router = useRouter()
+  const [selectedTab, setSelectedTab] = useState('rewards')
+  const [rewards, setRewards] = useState<Reward[]>([])
+  const [userStats, setUserStats] = useState<UserStats | null>(null)
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-        {/* Current Status */}
-        <div className="bg-gradient-to-r from-brand-500/20 to-purple-500/20 rounded-2xl p-8 border border-brand-400/30 mb-12">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">Your Current Status</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-              <div className="text-center">
-                <div className="text-5xl font-bold text-brand-400 mb-2">2,847</div>
-                <div className="text-ink-300">Total Points</div>
-              </div>
-              <div className="text-center">
-                <div className="text-5xl font-bold text-purple-400 mb-2">Gold</div>
-                <div className="text-ink-300">Member Level</div>
-              </div>
-              <div className="text-center">
-                <div className="text-5xl font-bold text-green-400 mb-2">$28.47</div>
-                <div className="text-ink-300">Cash Value</div>
-              </div>
-            </div>
-            <div className="w-full bg-ink-700 rounded-full h-4 mb-4">
-              <div className="bg-gradient-to-r from-brand-500 to-purple-500 h-4 rounded-full" style={{ width: '75%' }}></div>
-            </div>
-            <p className="text-ink-300 text-sm">750 points until Platinum level</p>
-          </div>
-        </div>
+  useEffect(() => {
+    loadRewardsData()
+  }, [])
 
-        {/* How to Earn Points */}
-        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 mb-12">
-          <h2 className="text-3xl font-bold text-white text-center mb-8">How to Earn Points</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-brand-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-brand-400 text-2xl">🛍️</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Shopping</h3>
-              <p className="text-ink-300 text-sm">1 point per $1 spent</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-purple-400 text-2xl">⭐</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Reviews</h3>
-              <p className="text-ink-300 text-sm">50 points per review</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-green-400 text-2xl">📱</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Social Sharing</h3>
-              <p className="text-ink-300 text-sm">25 points per share</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-orange-400 text-2xl">🎯</span>
-              </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Challenges</h3>
-              <p className="text-ink-300 text-sm">100-500 points per challenge</p>
-            </div>
-          </div>
-        </div>
+  const loadRewardsData = async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Load data from APIs with fallback to mock data
+      await Promise.all([
+        loadRewards(),
+        loadUserStats(),
+        loadLeaderboard()
+      ])
+    } catch (error) {
+      console.error('Error loading rewards data:', error)
+      setError('Failed to load some data. Showing demo content.')
+      // Fallback to mock data for demo purposes
+      loadMockData()
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-        {/* Available Rewards */}
-        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 mb-12">
-          <h2 className="text-3xl font-bold text-white text-center mb-8">Available Rewards</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Cash Rewards */}
-            <div className="bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-xl p-6 border border-green-400/30">
-              <div className="text-center mb-4">
-                <span className="text-4xl">💰</span>
-              </div>
-              <h3 className="text-xl font-bold text-white text-center mb-2">Cash Rewards</h3>
-              <p className="text-ink-300 text-sm text-center mb-4">Convert points to cash</p>
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">1,000 points</span>
-                  <span className="text-white font-semibold">$10.00</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">5,000 points</span>
-                  <span className="text-white font-semibold">$55.00</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">10,000 points</span>
-                  <span className="text-white font-semibold">$120.00</span>
-                </div>
-              </div>
-              <button className="w-full bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-600 transition-colors">
-                Redeem Cash
-              </button>
-            </div>
+  const loadRewards = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/rewards')
+      if (response.ok) {
+        const data = await response.json()
+        setRewards(data.rewards || [])
+      } else {
+        throw new Error('Failed to load rewards')
+      }
+    } catch (error) {
+      console.error('Error loading rewards:', error)
+      // Fallback to mock data
+      loadMockRewards()
+    }
+  }
 
-            {/* Discount Codes */}
-            <div className="bg-gradient-to-r from-brand-500/20 to-brand-600/20 rounded-xl p-6 border border-brand-400/30">
-              <div className="text-center mb-4">
-                <span className="text-4xl">🎫</span>
-              </div>
-              <h3 className="text-xl font-bold text-white text-center mb-2">Discount Codes</h3>
-              <p className="text-ink-300 text-sm text-center mb-4">Save on your next purchase</p>
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">500 points</span>
-                  <span className="text-white font-semibold">10% off</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">1,000 points</span>
-                  <span className="text-white font-semibold">20% off</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">2,000 points</span>
-                  <span className="text-white font-semibold">30% off</span>
-                </div>
-              </div>
-              <button className="w-full bg-brand-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors">
-                Get Discount
-              </button>
-            </div>
+  const loadUserStats = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/rewards/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setUserStats(data.stats || null)
+      } else {
+        throw new Error('Failed to load user stats')
+      }
+    } catch (error) {
+      console.error('Error loading user stats:', error)
+      // Fallback to mock data
+      loadMockUserStats()
+    }
+  }
 
-            {/* Free Shipping */}
-            <div className="bg-gradient-to-r from-purple-500/20 to-purple-600/20 rounded-xl p-6 border border-purple-400/30">
-              <div className="text-center mb-4">
-                <span className="text-4xl">🚚</span>
-              </div>
-              <h3 className="text-xl font-bold text-white text-center mb-2">Free Shipping</h3>
-              <p className="text-ink-300 text-sm text-center mb-4">Free delivery on all orders</p>
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">300 points</span>
-                  <span className="text-white font-semibold">1 month</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">800 points</span>
-                  <span className="text-white font-semibold">3 months</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-ink-300">1,500 points</span>
-                  <span className="text-white font-semibold">1 year</span>
-                </div>
-              </div>
-              <button className="w-full bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">
-                Activate Shipping
-              </button>
-            </div>
-          </div>
-        </div>
+  const loadLeaderboard = async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/rewards/leaderboard')
+      if (response.ok) {
+        const data = await response.json()
+        setLeaderboard(data.leaderboard || [])
+      } else {
+        throw new Error('Failed to load leaderboard')
+      }
+    } catch (error) {
+      console.error('Error loading leaderboard:', error)
+      // Fallback to mock data
+      loadMockLeaderboard()
+    }
+  }
 
-        {/* Member Levels */}
-        <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 mb-12">
-          <h2 className="text-3xl font-bold text-white text-center mb-8">Member Levels</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-ink-800 rounded-lg border border-ink-700">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-ink-600 rounded-full flex items-center justify-center">
-                  <span className="text-ink-300 text-lg">🥉</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Bronze</h3>
-                  <p className="text-ink-300 text-sm">0 - 999 points</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-ink-300 text-sm">1x points</p>
-                <p className="text-ink-300 text-sm">Basic rewards</p>
-              </div>
-            </div>
+  const loadMockData = () => {
+    loadMockRewards()
+    loadMockUserStats()
+    loadMockLeaderboard()
+  }
 
-            <div className="flex items-center justify-between p-4 bg-brand-500/20 rounded-lg border border-brand-400/50">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">🥈</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Gold</h3>
-                  <p className="text-brand-300 text-sm">1,000 - 2,999 points</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-brand-300 text-sm">1.5x points</p>
-                <p className="text-brand-300 text-sm">Enhanced rewards</p>
-              </div>
-            </div>
+  const loadMockRewards = () => {
+    const mockRewards: Reward[] = [
+      {
+        id: '1',
+        name: 'First Purchase',
+        description: 'Earn points for your first purchase on StreetStashed',
+        points: 100,
+        tokens: 10,
+        status: 'available',
+        expiresAt: '2024-12-31',
+        category: 'shopping',
+        requirements: ['Make first purchase'],
+        progress: 0,
+        icon: '🛍️'
+      },
+      {
+        id: '2',
+        name: 'Style Challenge Winner',
+        description: 'Win the monthly style challenge and earn bonus rewards',
+        points: 500,
+        tokens: 50,
+        status: 'locked',
+        expiresAt: '2024-11-30',
+        category: 'challenge',
+        requirements: ['Participate in challenge', 'Win challenge'],
+        progress: 0,
+        icon: '🏆'
+      },
+      {
+        id: '3',
+        name: 'Referral Master',
+        description: 'Invite friends and earn rewards for each successful referral',
+        points: 250,
+        tokens: 25,
+        status: 'available',
+        expiresAt: '2024-12-31',
+        category: 'referral',
+        requirements: ['Invite 3 friends'],
+        progress: 0,
+        icon: '👥'
+      },
+      {
+        id: '4',
+        name: 'Daily Streak',
+        description: 'Visit the app daily for 7 consecutive days',
+        points: 150,
+        tokens: 15,
+        status: 'locked',
+        expiresAt: '2024-12-31',
+        category: 'engagement',
+        requirements: ['Visit app daily', 'Complete 7 days'],
+        progress: 0,
+        icon: '🔥'
+      },
+      {
+        id: '5',
+        name: 'Review Contributor',
+        description: 'Write helpful product reviews and earn community points',
+        points: 75,
+        tokens: 8,
+        status: 'available',
+        expiresAt: '2024-12-31',
+        category: 'community',
+        requirements: ['Write 5 reviews'],
+        progress: 0,
+        icon: '✍️'
+      },
+      {
+        id: '6',
+        name: 'Social Media Star',
+        description: 'Share your style on social media and tag StreetStashed',
+        points: 200,
+        tokens: 20,
+        status: 'available',
+        expiresAt: '2024-12-31',
+        category: 'social',
+        requirements: ['Share on Instagram', 'Tag @streetstashed'],
+        progress: 0,
+        icon: '📱'
+      }
+    ]
+    setRewards(mockRewards)
+  }
 
-            <div className="flex items-center justify-between p-4 bg-ink-800 rounded-lg border border-ink-700">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">🥇</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Platinum</h3>
-                  <p className="text-ink-300 text-sm">3,000 - 9,999 points</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-ink-300 text-sm">2x points</p>
-                <p className="text-ink-300 text-sm">Premium rewards</p>
-              </div>
-            </div>
+  const loadMockUserStats = () => {
+    const mockStats: UserStats = {
+      totalPoints: 1250,
+      memberLevel: 'Gold',
+      nextLevelPoints: 2000,
+      currentLevelPoints: 1250,
+      totalRewards: 8,
+      streakDays: 5,
+      referralCount: 3,
+      totalSpent: 450.00
+    }
+    setUserStats(mockStats)
+  }
 
-            <div className="flex items-center justify-between p-4 bg-ink-800 rounded-lg border border-ink-700">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-lg">💎</span>
-                </div>
-                <div>
-                  <h3 className="text-white font-semibold">Diamond</h3>
-                  <p className="text-ink-300 text-sm">10,000+ points</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-ink-300 text-sm">3x points</p>
-                <p className="text-ink-300 text-sm">Exclusive rewards</p>
-              </div>
-            </div>
-          </div>
-        </div>
+  const loadMockLeaderboard = () => {
+    const mockLeaderboard: LeaderboardEntry[] = [
+      { rank: 1, username: 'StyleMaster', points: 2847, avatar: '/mock/avatar1.jpg', isCurrentUser: false },
+      { rank: 2, username: 'FashionForward', points: 2156, avatar: '/mock/avatar2.jpg', isCurrentUser: false },
+      { rank: 3, username: 'UrbanTrendsetter', points: 1892, avatar: '/mock/avatar3.jpg', isCurrentUser: false },
+      { rank: 4, username: 'You', points: 1250, avatar: '/mock/current-user.jpg', isCurrentUser: true },
+      { rank: 5, username: 'StreetwearKing', points: 1187, avatar: '/mock/avatar4.jpg', isCurrentUser: false },
+      { rank: 6, username: 'Fashionista', points: 1056, avatar: '/mock/avatar5.jpg', isCurrentUser: false },
+      { rank: 7, username: 'StyleGuru', points: 987, avatar: '/mock/avatar6.jpg', isCurrentUser: false },
+      { rank: 8, username: 'TrendHunter', points: 876, avatar: '/mock/avatar7.jpg', isCurrentUser: false },
+      { rank: 9, username: 'FashionExplorer', points: 765, avatar: '/mock/avatar8.jpg', isCurrentUser: false },
+      { rank: 10, username: 'StyleSeeker', points: 654, avatar: '/mock/avatar9.jpg', isCurrentUser: false }
+    ]
+    setLeaderboard(mockLeaderboard)
+  }
 
-        {/* Back to Dashboard */}
+  const claimReward = async (rewardId: string) => {
+    try {
+      // In real implementation, this would call the API
+      const response = await fetch('/api/rewards/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rewardId })
+      })
+
+      if (response.ok) {
+        // Update local state
+        setRewards(prev => prev.map(reward => 
+          reward.id === rewardId ? { ...reward, status: 'claimed' } : reward
+        ))
+        
+        // Refresh user stats
+        await loadUserStats()
+        
+        alert('Reward claimed successfully!')
+      } else {
+        throw new Error('Failed to claim reward')
+      }
+    } catch (error) {
+      console.error('Error claiming reward:', error)
+      alert('Failed to claim reward. Please try again.')
+    }
+  }
+
+  const getLevelProgress = () => {
+    if (!userStats) return 0
+    const progress = (userStats.currentLevelPoints / userStats.nextLevelPoints) * 100
+    return Math.min(progress, 100)
+  }
+
+  const getNextLevel = () => {
+    if (!userStats) return 'Bronze'
+    const levels = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond']
+    const currentIndex = levels.indexOf(userStats.memberLevel)
+    return levels[currentIndex + 1] || 'Max Level'
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-ink-black text-white flex items-center justify-center">
         <div className="text-center">
-          <Link href="/buyer/dashboard" className="inline-flex items-center space-x-2 bg-ink-800 hover:bg-ink-700 px-6 py-3 rounded-lg font-medium transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span>Back to Dashboard</span>
-          </Link>
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-ink-300">Loading rewards...</p>
         </div>
       </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-ink-black text-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">🎁 Rewards & Loyalty</h1>
+              <p className="text-ink-300">Earn points, unlock rewards, and climb the leaderboard</p>
+            </div>
+            <button
+              onClick={() => router.back()}
+              className="bg-ink-800 hover:bg-ink-700 px-4 py-2 rounded-lg transition-colors"
+            >
+              ← Back
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* User Stats Overview */}
+      {userStats && (
+        <div className="bg-ink-800 border-b border-ink-700 p-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Total Points */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                    <StarIcon className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-purple-400">{userStats.totalPoints}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Total Points</h3>
+                <p className="text-ink-400 text-sm">Earned from activities</p>
+              </div>
+
+              {/* Member Level */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                    <TrophyIcon className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <span className="text-lg font-bold text-yellow-400">{userStats.memberLevel}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Member Level</h3>
+                <p className="text-ink-400 text-sm">Next: {getNextLevel()}</p>
+                <div className="mt-3 w-full bg-ink-700 rounded-full h-2">
+                  <div 
+                    className="bg-yellow-400 h-2 rounded-full transition-all duration-500" 
+                    style={{ width: `${getLevelProgress()}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Streak */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                    <FireIcon className="w-6 h-6 text-red-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-red-400">{userStats.streakDays}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Day Streak</h3>
+                <p className="text-ink-400 text-sm">Visit daily for bonus points</p>
+              </div>
+
+              {/* Referrals */}
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <UserGroupIcon className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <span className="text-2xl font-bold text-blue-400">{userStats.referralCount}</span>
+                </div>
+                <h3 className="text-white font-semibold mb-1">Referrals</h3>
+                <p className="text-ink-400 text-sm">Friends invited</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="bg-ink-800 border-b border-ink-700 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex space-x-1">
+            {[
+              { id: 'rewards', name: 'Rewards', icon: GiftIcon },
+              { id: 'leaderboard', name: 'Leaderboard', icon: TrophyIcon },
+              { id: 'how-it-works', name: 'How It Works', icon: SparklesIcon }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setSelectedTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                  selectedTab === tab.id
+                    ? 'bg-purple-500 text-white'
+                    : 'bg-ink-900 text-ink-300 hover:bg-ink-700'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto p-6">
+        {selectedTab === 'rewards' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Available Rewards</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {rewards.map((reward) => (
+                <div key={reward.id} className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                      <span className="text-3xl">{reward.icon}</span>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      reward.status === 'available' ? 'bg-green-500 text-white' :
+                      reward.status === 'claimed' ? 'bg-blue-500 text-white' :
+                      'bg-ink-700 text-ink-300'
+                    }`}>
+                      {reward.status === 'claimed' ? 'Claimed' : 
+                       reward.status === 'available' ? 'Available' : 'Locked'}
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-xl font-bold text-white mb-2">{reward.name}</h3>
+                  <p className="text-ink-300 text-sm mb-4">{reward.description}</p>
+                  
+                  <div className="space-y-3 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Points:</span>
+                      <span className="text-purple-400 font-semibold">{reward.points}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Tokens:</span>
+                      <span className="text-yellow-400 font-semibold">{reward.tokens}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-ink-400">Expires:</span>
+                      <span className="text-ink-300">{reward.expiresAt}</span>
+                    </div>
+                  </div>
+                  
+                  {reward.requirements && reward.requirements.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-ink-300 mb-2">Requirements:</h4>
+                      <ul className="space-y-1">
+                        {reward.requirements.map((req, index) => (
+                          <li key={index} className="text-xs text-ink-400 flex items-center space-x-2">
+                            <span className="w-2 h-2 bg-ink-600 rounded-full"></span>
+                            <span>{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {reward.status === 'available' && (
+                    <button
+                      onClick={() => claimReward(reward.id)}
+                      className="w-full bg-purple-500 hover:bg-purple-600 text-white py-3 rounded-lg font-semibold transition-colors"
+                    >
+                      Claim Reward
+                    </button>
+                  )}
+                  
+                  {reward.status === 'claimed' && (
+                    <button className="w-full bg-ink-700 text-ink-300 py-3 rounded-lg font-semibold cursor-not-allowed">
+                      Already Claimed
+                    </button>
+                  )}
+                  
+                  {reward.status === 'locked' && (
+                    <button className="w-full bg-ink-700 text-ink-400 py-3 rounded-lg font-semibold cursor-not-allowed">
+                      Requirements Not Met
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'leaderboard' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white mb-6">Leaderboard</h2>
+            
+            <div className="bg-ink-900 rounded-xl border border-ink-800 overflow-hidden">
+              <div className="p-6 border-b border-ink-800">
+                <h3 className="text-lg font-semibold text-white mb-2">Top Performers</h3>
+                <p className="text-ink-300 text-sm">Compete with other fashion enthusiasts</p>
+              </div>
+              
+              <div className="divide-y divide-ink-800">
+                {leaderboard.map((entry) => (
+                  <div 
+                    key={entry.rank} 
+                    className={`p-4 flex items-center space-x-4 ${
+                      entry.isCurrentUser ? 'bg-purple-500/10 border-l-4 border-purple-500' : ''
+                    }`}
+                  >
+                    <div className="flex items-center space-x-4 flex-1">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                        entry.rank === 1 ? 'bg-yellow-500 text-black' :
+                        entry.rank === 2 ? 'bg-gray-400 text-black' :
+                        entry.rank === 3 ? 'bg-orange-500 text-black' :
+                        'bg-ink-700 text-ink-300'
+                      }`}>
+                        {entry.rank}
+                      </div>
+                      
+                      <img
+                        src={entry.avatar}
+                        alt={entry.username}
+                        className="w-10 h-10 rounded-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = '/mock/default-avatar.jpg'
+                        }}
+                      />
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2">
+                          <span className={`font-semibold ${
+                            entry.isCurrentUser ? 'text-purple-400' : 'text-white'
+                          }`}>
+                            {entry.username}
+                          </span>
+                          {entry.isCurrentUser && (
+                            <span className="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">You</span>
+                          )}
+                        </div>
+                        <div className="text-sm text-ink-400">
+                          {entry.points.toLocaleString()} points
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <div className="text-sm text-ink-400">Rank #{entry.rank}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedTab === 'how-it-works' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-white mb-6">How Rewards Work</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                <div className="w-16 h-16 bg-purple-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <ShoppingBagIcon className="w-8 h-8 text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Earn Points</h3>
+                <ul className="space-y-2 text-ink-300">
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                    <span>Make purchases (1 point per $1)</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                    <span>Write product reviews (25 points)</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                    <span>Refer friends (100 points each)</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
+                    <span>Daily login streak (10 points/day)</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                <div className="w-16 h-16 bg-yellow-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <GiftIcon className="w-8 h-8 text-yellow-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Redeem Rewards</h3>
+                <ul className="space-y-2 text-ink-300">
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                    <span>Discount coupons</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                    <span>Free shipping</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                    <span>Exclusive products</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                    <span>Early access to sales</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                <div className="w-16 h-16 bg-blue-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <TrophyIcon className="w-8 h-8 text-blue-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Member Levels</h3>
+                <ul className="space-y-2 text-ink-300">
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <span>Bronze: 0-499 points</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <span>Silver: 500-999 points</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <span>Gold: 1000-1999 points</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
+                    <span>Platinum: 2000+ points</span>
+                  </li>
+                </ul>
+              </div>
+              
+              <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
+                <div className="w-16 h-16 bg-green-500/20 rounded-xl flex items-center justify-center mb-4">
+                  <BoltIcon className="w-8 h-8 text-green-400" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Bonus Features</h3>
+                <ul className="space-y-2 text-ink-300">
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    <span>Double points weekends</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    <span>Birthday month bonuses</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    <span>Seasonal challenges</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                    <span>VIP event access</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg max-w-sm">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">{error}</span>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
