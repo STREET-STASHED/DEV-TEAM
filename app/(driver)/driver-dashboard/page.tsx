@@ -2,6 +2,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { 
+  MapPinIcon, 
+  ClockIcon, 
+  CurrencyDollarIcon, 
+  TruckIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  StarIcon,
+  LocationMarkerIcon
+} from '@heroicons/react/24/outline'
 
 interface Order {
   id: string
@@ -41,7 +51,7 @@ interface DriverStats {
 }
 
 interface EarningsBreakdown {
-  baseDelivery: number
+  baseDeliveryFee: number
   distanceBonus: number
   timeBonus: number
   tipAmount: number
@@ -66,8 +76,7 @@ export default function DriverDashboardPage() {
   const [sortBy, setSortBy] = useState<'created_at' | 'distance' | 'earnings'>('created_at')
   const [isOnline, setIsOnline] = useState(false)
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null)
-
-
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
   const loadDriverData = useCallback(async () => {
     try {
@@ -83,6 +92,26 @@ export default function DriverDashboardPage() {
 
       if (profile) {
         setIsOnline(profile.is_online || false)
+        
+        // Load driver stats
+        const { data: earnings } = await supabase
+          .from('driver_earnings')
+          .select('*')
+          .eq('driver_id', user.id)
+
+        if (earnings) {
+          const totalEarnings = earnings.reduce((sum, e) => sum + parseFloat(e.total_earnings), 0)
+          const totalDistance = earnings.reduce((sum, e) => sum + (e.distance_bonus || 0), 0)
+          
+          setStats(prev => ({
+            ...prev,
+            totalEarnings,
+            totalDistance,
+            totalOrders: earnings.length,
+            completionRate: profile.completion_rate || 100,
+            averageRating: profile.rating || 5.0
+          }))
+        }
       }
     } catch (error) {
       console.error('Failed to load driver data:', error)
@@ -94,90 +123,73 @@ export default function DriverDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      // Get orders assigned to this driver
-      const { data: ordersData, error } = await supabase
+      // Get all orders assigned to this driver
+      const { data: driverOrders, error } = await supabase
         .from('orders')
         .select(`
           *,
           buyer:profiles!orders_buyer_id_fkey(full_name, phone),
-          seller:profiles!orders_seller_id_fkey(full_name, phone),
-          order_items(*)
+          seller:profiles!orders_seller_id_fkey(full_name, phone)
         `)
-        .or(`driver_id.eq.${user.id},status.eq.ready_for_pickup`)
+        .eq('driver_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Failed to load orders:', error)
+        return
+      }
 
-      const processedOrders = ordersData?.map(order => ({
-        ...order,
-        buyer_name: order.buyer?.full_name,
-        buyer_phone: order.buyer?.phone,
-        seller_name: order.seller?.full_name,
-        seller_phone: order.seller?.phone,
-        items: order.order_items || []
-      })) || []
-
-      setOrders(processedOrders)
-      calculateStats(processedOrders)
-      setIsLoading(false)
+      if (driverOrders) {
+        const formattedOrders = driverOrders.map(order => ({
+          ...order,
+          buyer_name: order.buyer?.full_name || 'Unknown',
+          buyer_phone: order.buyer?.phone || 'N/A',
+          seller_name: order.seller?.full_name || 'Unknown',
+          seller_phone: order.seller?.phone || 'N/A'
+        }))
+        setOrders(formattedOrders)
+      }
     } catch (error) {
       console.error('Failed to load orders:', error)
+    } finally {
       setIsLoading(false)
     }
   }, [supabase])
 
-  const calculateStats = (ordersData: Order[]) => {
-    const totalOrders = ordersData.length
-    const completedOrders = ordersData.filter(o => o.status === 'delivered').length
-    const activeOrders = ordersData.filter(o => ['assigned_to_driver', 'picked_up', 'in_transit'].includes(o.status)).length
-    
-    const totalEarnings = ordersData
-      .filter(o => o.status === 'delivered')
-      .reduce((sum, o) => sum + (o.delivery_fee * 0.70), 0)
-    
-    const totalDistance = ordersData.reduce((sum, o) => sum + o.distance_miles, 0)
-    const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0
-
-    // Calculate weekly and monthly earnings
-    const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-
-    const weeklyEarnings = ordersData
-      .filter(o => o.status === 'delivered' && new Date(o.delivered_at!) >= weekAgo)
-      .reduce((sum, o) => sum + (o.delivery_fee * 0.70), 0)
-
-    const monthlyEarnings = ordersData
-      .filter(o => o.status === 'delivered' && new Date(o.delivered_at!) >= monthAgo)
-      .reduce((sum, o) => sum + (o.delivery_fee * 0.70), 0)
-
-    setStats({
-      totalOrders,
-      totalEarnings,
-      totalDistance,
-      averageRating: 4.8, // Would come from reviews table
-      completionRate,
-      activeOrders,
-      weeklyEarnings,
-      monthlyEarnings
-    })
-  }
-
   const startLocationTracking = useCallback(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
+      navigator.geolocation.watchPosition(
         (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
+          const { latitude, longitude } = position.coords
+          setCurrentLocation({ lat: latitude, lng: longitude })
+          
+          // Update driver location in database
+          updateDriverLocation(latitude, longitude)
         },
         (error) => {
-          console.error('Location error:', error)
-        }
+          console.error('Location tracking failed:', error)
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
       )
     }
   }, [])
+
+  const updateDriverLocation = async (lat: number, lng: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      await supabase
+        .from('driver_profiles')
+        .update({
+          last_location: { lat, lng },
+          last_activity: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+    } catch (error) {
+      console.error('Failed to update location:', error)
+    }
+  }
 
   const toggleOnlineStatus = async () => {
     try {
@@ -185,74 +197,33 @@ export default function DriverDashboardPage() {
       if (!user) return
 
       const newStatus = !isOnline
-      setIsOnline(newStatus)
-
-      // Update driver profile
       await supabase
         .from('driver_profiles')
-        .upsert({
-          user_id: user.id,
+        .update({
           is_online: newStatus,
-          last_location: currentLocation ? JSON.stringify(currentLocation) : null,
-          updated_at: new Date().toISOString()
+          is_available: newStatus,
+          last_activity: new Date().toISOString()
         })
+        .eq('user_id', user.id)
 
-      // If going online, check for available orders
-      if (newStatus) {
-        loadOrders()
-      }
+      setIsOnline(newStatus)
     } catch (error) {
       console.error('Failed to update online status:', error)
     }
   }
 
-  const acceptOrder = async (order: Order) => {
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const { error } = await supabase
-        .from('orders')
-        .update({
-          driver_id: user.id,
-          status: 'assigned_to_driver',
-          assigned_at: new Date().toISOString()
-        })
-        .eq('id', order.id)
-
-      if (error) throw error
-
-      // Refresh orders
-      loadOrders()
+      const updateData: any = { status: newStatus }
       
-      // Send notification to buyer
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: order.buyer_id,
-          type: 'order_assigned',
-          title: 'Driver Assigned!',
-          message: `Your order has been assigned to a driver and is being prepared for pickup.`,
-          data: { order_id: order.id }
-        })
-
-    } catch (error) {
-      console.error('Failed to accept order:', error)
-      alert('Failed to accept order')
-    }
-  }
-
-  const updateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
-    try {
-      const updateData: { status: string; picked_up_at?: string; delivered_at?: string } = { status: newStatus }
-      
-      switch (newStatus) {
-        case 'picked_up':
-          updateData.picked_up_at = new Date().toISOString()
-          break
-        case 'delivered':
-          updateData.delivered_at = new Date().toISOString()
-          break
+      if (newStatus === 'picked_up') {
+        updateData.picked_up_at = new Date().toISOString()
+      } else if (newStatus === 'delivered') {
+        updateData.delivered_at = new Date().toISOString()
+        updateData.status = 'delivered'
       }
 
       const { error } = await supabase
@@ -260,25 +231,28 @@ export default function DriverDashboardPage() {
         .update(updateData)
         .eq('id', orderId)
 
-      if (error) throw error
-
-      // Refresh orders
-      loadOrders()
-
-      // Send notification to buyer
-      const order = orders.find(o => o.id === orderId)
-      if (order) {
-        await supabase
-          .from('notifications')
-          .insert({
-            user_id: order.buyer_id,
-            type: 'order_status_update',
-            title: 'Order Update',
-            message: `Your order status has been updated to: ${newStatus.replace('_', ' ')}`,
-            data: { order_id: orderId, status: newStatus }
-          })
+      if (error) {
+        console.error('Failed to update order status:', error)
+        return
       }
 
+      // Update local state
+      setOrders(prev => prev.map(order => 
+        order.id === orderId ? { ...order, ...updateData } : order
+      ))
+
+      // Send notification to buyer
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: orders.find(o => o.id === orderId)?.buyer_id,
+          type: 'order_status_update',
+          title: `Order ${newStatus.replace('_', ' ')}`,
+          message: `Your order has been ${newStatus.replace('_', ' ')}`,
+          data: { order_id: orderId, status: newStatus }
+        })
+
+      alert(`Order status updated to ${newStatus.replace('_', ' ')}`)
     } catch (error) {
       console.error('Failed to update order status:', error)
       alert('Failed to update order status')
@@ -286,14 +260,14 @@ export default function DriverDashboardPage() {
   }
 
   const calculateEarnings = (order: Order): EarningsBreakdown => {
-    const baseDelivery = order.delivery_fee * 0.70
-    const distanceBonus = order.distance_miles > 10 ? 2 : 0
-    const timeBonus = new Date().getHours() >= 22 ? 1.5 : 0
-    const tipAmount = 0 // Would come from order data
-    const total = baseDelivery + distanceBonus + timeBonus + tipAmount
+    const baseDeliveryFee = order.delivery_fee || 0
+    const distanceBonus = (order.distance_miles || 0) * 0.50 // $0.50 per mile
+    const timeBonus = 0 // Could be calculated based on delivery time
+    const tipAmount = 0 // Would come from buyer
+    const total = baseDeliveryFee + distanceBonus + timeBonus + tipAmount
 
     return {
-      baseDelivery,
+      baseDeliveryFee,
       distanceBonus,
       timeBonus,
       tipAmount,
@@ -365,30 +339,26 @@ export default function DriverDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-900 py-8">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header with Online Status */}
-        <div className="mb-8">
+    <div className="min-h-screen bg-ink-900 text-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30 p-6">
+        <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-4">Driver Dashboard</h1>
-              <p className="text-ink-300">
-                Manage your deliveries, track earnings, and stay connected with buyers and sellers.
-              </p>
+              <h1 className="text-3xl font-bold mb-2">🚚 Driver Dashboard</h1>
+              <p className="text-ink-300">Manage your deliveries and track your earnings</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className="text-ink-300 text-sm">
-                  {isOnline ? 'Online' : 'Offline'}
-                </span>
+                <span className="text-sm">{isOnline ? 'Online' : 'Offline'}</span>
               </div>
               <button
                 onClick={toggleOnlineStatus}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   isOnline 
-                    ? 'bg-red-600 text-white hover:bg-red-700' 
-                    : 'bg-green-600 text-white hover:bg-green-700'
+                    ? 'bg-red-500 hover:bg-red-600' 
+                    : 'bg-green-500 hover:bg-green-600'
                 }`}
               >
                 {isOnline ? 'Go Offline' : 'Go Online'}
@@ -396,217 +366,231 @@ export default function DriverDashboardPage() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-ink-800 rounded-lg p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-2">Today&apos;s Orders</h3>
-            <p className="text-3xl font-bold text-brand-500">{stats.activeOrders}</p>
-            <p className="text-ink-400 text-sm">Active deliveries</p>
-          </div>
-
-          <div className="bg-ink-800 rounded-lg p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-2">Weekly Earnings</h3>
-            <p className="text-3xl font-bold text-brand-500">${stats.weeklyEarnings.toFixed(2)}</p>
-            <p className="text-ink-400 text-sm">This week</p>
-          </div>
-
-          <div className="bg-ink-800 rounded-lg p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-2">Total Distance</h3>
-            <p className="text-3xl font-bold text-brand-500">
-              {stats.totalDistance.toFixed(1)} mi
-            </p>
-            <p className="text-ink-400 text-sm">Lifetime</p>
-          </div>
-
-          <div className="bg-ink-800 rounded-lg p-6 border border-ink-700">
-            <h3 className="text-lg font-semibold text-white mb-2">Completion Rate</h3>
-            <p className="text-3xl font-bold text-brand-500">{stats.completionRate.toFixed(0)}%</p>
-            <p className="text-ink-400 text-sm">Orders completed</p>
-          </div>
-        </div>
-
-        {/* Filters and Controls */}
-        <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <div className="flex space-x-2">
-            {(['all', 'active', 'completed', 'pending'] as const).map(filterOption => (
-              <button
-                key={filterOption}
-                onClick={() => setFilter(filterOption)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  filter === filterOption
-                    ? 'bg-brand-600 text-ink-black'
-                    : 'bg-ink-800 text-ink-300 hover:bg-ink-700'
-                }`}
-              >
-                {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <span className="text-ink-400 text-sm">Sort by:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-              className="px-3 py-2 bg-ink-800 border border-ink-700 rounded-md text-white text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-            >
-              <option value="created_at">Date</option>
-              <option value="distance">Distance</option>
-              <option value="earnings">Earnings</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Orders List */}
-        <div className="space-y-4">
-          {filteredOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="mx-auto h-16 w-16 text-ink-500 mb-4">
-                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+      {/* Stats Overview */}
+      <div className="bg-ink-800 border-b border-ink-700 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total Orders */}
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                  <TruckIcon className="w-6 h-6 text-blue-400" />
+                </div>
+                <span className="text-2xl font-bold text-blue-400">{stats.totalOrders}</span>
               </div>
-              <h3 className="text-xl font-semibold text-ink-200 mb-2">No orders found</h3>
-              <p className="text-ink-400">Don&apos;t see any orders? Make sure you&apos;re online and available!</p>
+              <h3 className="text-white font-semibold mb-1">Total Orders</h3>
+              <p className="text-ink-400 text-sm">All time</p>
             </div>
-          ) : (
-            filteredOrders.map((order) => {
-              const earnings = calculateEarnings(order)
-              return (
-                <div key={order.id} className="bg-ink-800 rounded-lg p-6 border border-ink-700 hover:border-ink-600 transition-colors">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">Order #{order.id}</h3>
-                      <p className="text-ink-400 text-sm">
-                        Created: {new Date(order.created_at).toLocaleDateString()}
-                      </p>
-                      {order.buyer_name && (
-                        <p className="text-ink-300 text-sm">
-                          Buyer: {order.buyer_name} • {order.buyer_phone}
-                        </p>
-                      )}
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
+
+            {/* Total Earnings */}
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                  <CurrencyDollarIcon className="w-6 h-6 text-green-400" />
+                </div>
+                <span className="text-2xl font-bold text-green-400">${stats.totalEarnings.toFixed(2)}</span>
+              </div>
+              <h3 className="text-white font-semibold mb-1">Total Earnings</h3>
+              <p className="text-ink-400 text-sm">All time</p>
+            </div>
+
+            {/* Average Rating */}
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                  <StarIcon className="w-6 h-6 text-yellow-400" />
+                </div>
+                <span className="text-2xl font-bold text-yellow-400">{stats.averageRating.toFixed(1)}</span>
+              </div>
+              <h3 className="text-white font-semibold mb-1">Average Rating</h3>
+              <p className="text-ink-400 text-sm">From customers</p>
+            </div>
+
+            {/* Completion Rate */}
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                  <CheckCircleIcon className="w-6 h-6 text-purple-400" />
+                </div>
+                <span className="text-2xl font-bold text-purple-400">{stats.completionRate}%</span>
+              </div>
+              <h3 className="text-white font-semibold mb-1">Completion Rate</h3>
+              <p className="text-ink-400 text-sm">Orders completed</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters and Controls */}
+      <div className="bg-ink-800 border-b border-ink-700 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Status Filter */}
+            <div className="flex space-x-1">
+              {[
+                { id: 'all', name: 'All Orders' },
+                { id: 'active', name: 'Active' },
+                { id: 'pending', name: 'Pending' },
+                { id: 'completed', name: 'Completed' }
+              ].map((filterOption) => (
+                <button
+                  key={filterOption.id}
+                  onClick={() => setFilter(filterOption.id as any)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    filter === filterOption.id
+                      ? 'bg-purple-500 text-white'
+                      : 'bg-ink-900 text-ink-300 hover:bg-ink-700'
+                  }`}
+                >
+                  {filterOption.name}
+                </button>
+              ))}
+            </div>
+
+            {/* Sort Options */}
+            <div className="flex items-center space-x-2">
+              <span className="text-ink-400">Sort by:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-ink-900 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="created_at">Date</option>
+                <option value="distance">Distance</option>
+                <option value="earnings">Earnings</option>
+              </select>
+            </div>
+
+            {/* Location Status */}
+            {currentLocation && (
+              <div className="flex items-center space-x-2 text-sm text-ink-300">
+                <LocationMarkerIcon className="w-4 h-4" />
+                <span>Location: {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Orders List */}
+      <div className="max-w-7xl mx-auto p-6">
+        <h2 className="text-2xl font-bold text-white mb-6">Your Orders</h2>
+        
+        {filteredOrders.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-24 h-24 bg-ink-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <TruckIcon className="w-12 h-12 text-ink-400" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-4">No orders found</h3>
+            <p className="text-ink-300 mb-6">
+              {filter === 'all' ? 'You haven\'t been assigned any orders yet.' : `No ${filter} orders found.`}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredOrders.map((order) => (
+              <div
+                key={order.id}
+                className="bg-ink-900 rounded-xl p-6 border border-ink-800 hover:border-purple-500/50 transition-all duration-300"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-4">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}>
                       {getStatusText(order.status)}
                     </span>
+                    <span className="text-ink-400 text-sm">Order #{order.id.slice(0, 8)}</span>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-ink-300 mb-2">Pickup Address</h4>
-                      <p className="text-white text-sm">{order.pickup_address}</p>
-                      {order.seller_name && (
-                        <p className="text-ink-400 text-xs mt-1">
-                          Seller: {order.seller_name} • {order.seller_phone}
-                        </p>
-                      )}
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-green-400">
+                      ${calculateEarnings(order).total.toFixed(2)}
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-ink-300 mb-2">Delivery Address</h4>
-                      <p className="text-white text-sm">{order.delivery_address}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="bg-ink-700 rounded-lg p-3">
-                      <h5 className="text-xs font-medium text-ink-400 mb-1">Order Value</h5>
-                      <p className="text-white font-semibold">${order.total_amount}</p>
-                    </div>
-                    <div className="bg-ink-700 rounded-lg p-3">
-                      <h5 className="text-xs font-medium text-ink-400 mb-1">Distance</h5>
-                      <p className="text-white font-semibold">{order.distance_miles} mi</p>
-                    </div>
-                    <div className="bg-ink-700 rounded-lg p-3">
-                      <h5 className="text-xs font-medium text-ink-400 mb-1">Your Earnings</h5>
-                      <p className="text-brand-500 font-semibold">${earnings.total.toFixed(2)}</p>
-                    </div>
-                  </div>
-
-                  {/* Earnings Breakdown */}
-                  <div className="mb-4 p-3 bg-ink-700 rounded-lg">
-                    <h5 className="text-xs font-medium text-ink-400 mb-2">Earnings Breakdown</h5>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-                      <div>
-                        <span className="text-ink-400">Base:</span>
-                        <span className="text-white ml-1">${earnings.baseDelivery.toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-ink-400">Distance:</span>
-                        <span className="text-white ml-1">${earnings.distanceBonus.toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-ink-400">Time:</span>
-                        <span className="text-white ml-1">${earnings.timeBonus.toFixed(2)}</span>
-                      </div>
-                      <div>
-                        <span className="text-ink-400">Tip:</span>
-                        <span className="text-white ml-1">${earnings.tipAmount.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-ink-700">
-                    <div className="flex space-x-2">
-                      {order.status === 'ready_for_pickup' && (
-                        <button
-                          onClick={() => acceptOrder(order)}
-                          className="px-4 py-2 bg-brand-600 text-ink-black rounded-lg hover:bg-brand-500 transition-colors text-sm font-medium"
-                        >
-                          Accept Order
-                        </button>
-                      )}
-                      {order.status === 'assigned_to_driver' && (
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'picked_up')}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm font-medium"
-                        >
-                          Mark Picked Up
-                        </button>
-                      )}
-                      {order.status === 'picked_up' && (
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'in_transit')}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition-colors text-sm font-medium"
-                        >
-                          Start Delivery
-                        </button>
-                      )}
-                      {order.status === 'in_transit' && (
-                        <button
-                          onClick={() => updateOrderStatus(order.id, 'delivered')}
-                          className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors text-sm font-medium"
-                        >
-                          Mark Delivered
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => window.open(`https://maps.google.com/?saddr=${order.pickup_address}&daddr=${order.delivery_address}`, '_blank')}
-                        className="px-3 py-2 bg-ink-700 text-white rounded-lg hover:bg-ink-600 transition-colors text-sm"
-                      >
-                        Get Directions
-                      </button>
-                    </div>
+                    <div className="text-ink-400 text-sm">Earnings</div>
                   </div>
                 </div>
-              )
-            })
-          )}
-        </div>
 
-        {/* Location Status */}
-        {currentLocation && (
-          <div className="mt-8 p-4 bg-ink-800 rounded-lg">
-            <h3 className="text-lg font-semibold text-white mb-2">Location Services</h3>
-            <p className="text-ink-300 text-sm">
-              Your location is being tracked to help with order assignments and route optimization.
-            </p>
-            <p className="text-ink-400 text-xs mt-2">
-              Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
-            </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                  {/* Pickup Details */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-white flex items-center space-x-2">
+                      <MapPinIcon className="w-4 h-4 text-blue-400" />
+                      <span>Pickup Location</span>
+                    </h4>
+                    <p className="text-ink-300">{order.seller_name}</p>
+                    <p className="text-ink-400 text-sm">{order.pickup_address}</p>
+                    <p className="text-ink-400 text-sm">{order.seller_phone}</p>
+                  </div>
+
+                  {/* Delivery Details */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-white flex items-center space-x-2">
+                      <MapPinIcon className="w-4 h-4 text-green-400" />
+                      <span>Delivery Location</span>
+                    </h4>
+                    <p className="text-ink-300">{order.buyer_name}</p>
+                    <p className="text-ink-400 text-sm">{order.delivery_address}</p>
+                    <p className="text-ink-400 text-sm">{order.buyer_phone}</p>
+                  </div>
+                </div>
+
+                {/* Order Details */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{order.distance_miles.toFixed(1)}</div>
+                    <div className="text-ink-400 text-sm">Miles</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">{order.items.length}</div>
+                    <div className="text-ink-400 text-sm">Items</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-white">${order.total_amount.toFixed(2)}</div>
+                    <div className="text-ink-400 text-sm">Order Value</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-brand-400">${order.delivery_fee.toFixed(2)}</div>
+                    <div className="text-ink-400 text-sm">Delivery Fee</div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                {order.status === 'assigned_to_driver' && (
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => updateOrderStatus(order.id, 'picked_up')}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Mark as Picked Up
+                    </button>
+                  </div>
+                )}
+
+                {order.status === 'picked_up' && (
+                  <div className="flex space-x-4">
+                    <button
+                      onClick={() => updateOrderStatus(order.id, 'delivered')}
+                      className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                    >
+                      Mark as Delivered
+                    </button>
+                  </div>
+                )}
+
+                {/* Order Items */}
+                <div className="mt-4 p-4 bg-ink-800 rounded-lg">
+                  <h5 className="font-semibold text-white mb-3">Order Items</h5>
+                  <div className="space-y-2">
+                    {order.items.map((item, index) => (
+                      <div key={index} className="flex justify-between text-sm">
+                        <span className="text-ink-300">{item.name} x{item.quantity}</span>
+                        <span className="text-ink-400">${item.price.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
