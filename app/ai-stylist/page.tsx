@@ -42,7 +42,7 @@ export default function AIStylistPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [styleProfile, setStyleProfile] = useState<StyleProfile>({
     id: '1',
-    name: 'Alex',
+    name: '',
     preferences: ['streetwear', 'minimalist', 'comfortable'],
     favoriteColors: ['black', 'white', 'navy'],
     styleType: 'urban',
@@ -51,10 +51,39 @@ export default function AIStylistPage() {
   })
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([])
   const [selectedOutfit, setSelectedOutfit] = useState<AIRecommendation | null>(null)
+  const [profileError, setProfileError] = useState<string | null>(null)
+
+  // Load user profile from localStorage or create default
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('ai-stylist-profile')
+    if (savedProfile) {
+      try {
+        const parsed = JSON.parse(savedProfile)
+        setStyleProfile(parsed)
+      } catch (error) {
+        console.error('Error parsing saved profile:', error)
+      }
+    }
+  }, [])
+
+  // Save profile to localStorage
+  const saveProfile = (profile: StyleProfile) => {
+    localStorage.setItem('ai-stylist-profile', JSON.stringify(profile))
+    setStyleProfile(profile)
+  }
 
   // Simulate AI analysis
   const analyzeStyle = async () => {
+    if (!styleProfile.name.trim()) {
+      setProfileError('Please enter your name to continue')
+      return
+    }
+    
+    setProfileError(null)
     setIsAnalyzing(true)
+    
+    // Save profile before analysis
+    saveProfile(styleProfile)
     
     // Simulate AI processing time
     await new Promise(resolve => setTimeout(resolve, 3000))
@@ -69,7 +98,7 @@ export default function AIStylistPage() {
           accessories: ['Premium Leather Belt', 'Designer Crossbody Bag']
         },
         confidence: 94,
-        reasoning: 'Based on your preference for streetwear and comfort, this outfit combines urban aesthetics with performance wear. The color scheme matches your favorite palette.',
+        reasoning: `Based on ${styleProfile.name}'s preference for streetwear and comfort, this outfit combines urban aesthetics with performance wear. The color scheme matches your favorite palette.`,
         price: 299.99,
         style: 'Streetwear Performance'
       },
@@ -82,7 +111,7 @@ export default function AIStylistPage() {
           accessories: ['Sterling Silver Ring', 'Premium Leather Belt']
         },
         confidence: 87,
-        reasoning: 'This vintage-inspired look aligns with your minimalist preferences while maintaining urban sophistication.',
+        reasoning: `This vintage-inspired look aligns with ${styleProfile.name}'s minimalist preferences while maintaining urban sophistication.`,
         price: 189.99,
         style: 'Vintage Urban'
       },
@@ -95,7 +124,7 @@ export default function AIStylistPage() {
           accessories: ['Diamond Pendant Necklace', 'Luxury Automatic Watch']
         },
         confidence: 82,
-        reasoning: 'A premium streetwear combination that elevates your casual style for special occasions.',
+        reasoning: `A premium streetwear combination that elevates ${styleProfile.name}'s casual style for special occasions.`,
         price: 899.99,
         style: 'Premium Streetwear'
       }
@@ -111,6 +140,11 @@ export default function AIStylistPage() {
     analyzeStyle()
   }
 
+  const handleProfileUpdate = (updates: Partial<StyleProfile>) => {
+    const updatedProfile = { ...styleProfile, ...updates }
+    saveProfile(updatedProfile)
+  }
+
   return (
     <div className="min-h-screen bg-ink-black text-white">
       {/* Header */}
@@ -118,7 +152,7 @@ export default function AIStylistPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">🤖 AI Stylist</h1>
+              <h1 className="text-3xl font-bold mb-2">AI Stylist</h1>
               <p className="text-ink-300">Get personalized fashion recommendations powered by artificial intelligence</p>
             </div>
             <button
@@ -158,13 +192,21 @@ export default function AIStylistPage() {
             {/* Style Profile */}
             <div className="bg-ink-900 rounded-xl p-6 border border-ink-800">
               <h2 className="text-2xl font-bold mb-6">Your Style Profile</h2>
+              
+              {profileError && (
+                <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3 mb-4">
+                  <p className="text-red-400 text-sm">{profileError}</p>
+                </div>
+              )}
+              
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Name</label>
+                  <label className="block text-sm font-medium text-ink-300 mb-2">Name *</label>
                   <input
                     type="text"
                     value={styleProfile.name}
-                    onChange={(e) => setStyleProfile({...styleProfile, name: e.target.value})}
+                    onChange={(e) => handleProfileUpdate({ name: e.target.value })}
+                    placeholder="Enter your name"
                     className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -179,13 +221,11 @@ export default function AIStylistPage() {
                           checked={styleProfile.preferences.includes(style)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setStyleProfile({
-                                ...styleProfile,
+                              handleProfileUpdate({
                                 preferences: [...styleProfile.preferences, style]
                               })
                             } else {
-                              setStyleProfile({
-                                ...styleProfile,
+                              handleProfileUpdate({
                                 preferences: styleProfile.preferences.filter(p => p !== style)
                               })
                             }
@@ -208,13 +248,11 @@ export default function AIStylistPage() {
                           checked={styleProfile.favoriteColors.includes(color)}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setStyleProfile({
-                                ...styleProfile,
+                              handleProfileUpdate({
                                 favoriteColors: [...styleProfile.favoriteColors, color]
                               })
                             } else {
-                              setStyleProfile({
-                                ...styleProfile,
+                              handleProfileUpdate({
                                 favoriteColors: styleProfile.favoriteColors.filter(c => c !== color)
                               })
                             }
@@ -227,9 +265,40 @@ export default function AIStylistPage() {
                   </div>
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-ink-300 mb-2">Style Type</label>
+                  <select
+                    value={styleProfile.styleType}
+                    onChange={(e) => handleProfileUpdate({ styleType: e.target.value })}
+                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="urban">Urban</option>
+                    <option value="classic">Classic</option>
+                    <option value="bohemian">Bohemian</option>
+                    <option value="minimalist">Minimalist</option>
+                    <option value="streetwear">Streetwear</option>
+                    <option value="vintage">Vintage</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-ink-300 mb-2">Budget Range</label>
+                  <select
+                    value={styleProfile.budget}
+                    onChange={(e) => handleProfileUpdate({ budget: e.target.value })}
+                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="budget">Budget-friendly</option>
+                    <option value="mid-range">Mid-range</option>
+                    <option value="premium">Premium</option>
+                    <option value="luxury">Luxury</option>
+                  </select>
+                </div>
+
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                  disabled={!styleProfile.name.trim()}
+                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-ink-700 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
                 >
                   Continue to AI Analysis
                 </button>
