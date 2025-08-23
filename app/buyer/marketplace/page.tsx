@@ -395,7 +395,7 @@ function MarketplaceContent() {
                 {/* Product Image */}
                 <div className="relative">
                   <img
-                    src={product.images[0]}
+                    src={product.images && product.images.length > 0 ? product.images[0] : '/mock/default-product.jpg'}
                     alt={product.name}
                     className="w-full h-64 object-cover cursor-pointer"
                     onClick={() => handleProductClick(product.id)}
