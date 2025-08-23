@@ -299,7 +299,7 @@ export class SameDayDeliverySystem {
     
     // Create driver assignment
     const assignment: DriverAssignment = {
-      driverId: selectedDriver.id,
+      driverId: selectedDriver.id as string,
       orderId: delivery.orderId,
       assignedAt: new Date(),
       estimatedPickupTime: delivery.estimatedPickup,
@@ -312,7 +312,7 @@ export class SameDayDeliverySystem {
     this.driverAssignments.set(delivery.id, assignment)
     
     // Update delivery
-    delivery.driverId = selectedDriver.id
+    delivery.driverId = selectedDriver.id as string
     delivery.status = 'accepted'
     delivery.tracking.push({
       timestamp: new Date(),
@@ -321,7 +321,7 @@ export class SameDayDeliverySystem {
     })
 
     // Notify driver (would integrate with push notifications)
-    this.notifyDriver(selectedDriver.id, delivery)
+    this.notifyDriver(selectedDriver.id as string, delivery)
   }
 
   // Find available drivers in zone
@@ -358,17 +358,17 @@ export class SameDayDeliverySystem {
       let score = 0
       
       // Rating score (40% weight)
-      score += driver.rating * 40
+      score += (driver.rating as number) * 40
       
       // Proximity score (30% weight)
       const distance = this.calculateDistance(
-        driver.currentLocation,
+        driver.currentLocation as { lat: number; lng: number },
         delivery.pickupLocation.coordinates
       )
       score += Math.max(0, 30 - (distance / 100)) * 30
       
       // Availability score (20% weight)
-      const availability = (driver.maxOrders - driver.currentOrders) / driver.maxOrders
+      const availability = ((driver.maxOrders as number) - (driver.currentOrders as number)) / (driver.maxOrders as number)
       score += availability * 20
       
       // Vehicle suitability score (10% weight)
@@ -380,7 +380,7 @@ export class SameDayDeliverySystem {
     })
 
     // Return driver with highest score
-    return scoredDrivers.sort((a, b) => b.score - a.score)[0]
+    return scoredDrivers.sort((a, b) => (b.score as number) - (a.score as number))[0]
   }
 
   // Calculate delivery route
@@ -522,7 +522,7 @@ export class SameDayDeliverySystem {
     for (const center of this.fulfillmentCenters.values()) {
       // Check if center supports order categories
       const supportsCategories = orderItems.some(item => 
-        center.supportedCategories.includes(item.category)
+        center.supportedCategories.includes(item.category as string)
       )
       
       if (!supportsCategories) continue
@@ -558,7 +558,7 @@ export class SameDayDeliverySystem {
   }
 
   // Notify driver (mock implementation)
-  private notifyDriver(driverId: string, delivery: InstantDelivery): void {
+  private notifyDriver(driverId: string, delivery: SameDayDelivery): void {
     console.log(`Notifying driver ${driverId} about delivery ${delivery.id}`)
     // Would integrate with push notifications, SMS, or in-app notifications
   }

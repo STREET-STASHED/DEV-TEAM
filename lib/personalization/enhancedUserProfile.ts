@@ -22,7 +22,7 @@ export class EnhancedPersonalizationSystem {
   // Enhanced user profile with caching
   async getUserProfile(userId: string): Promise<UserStyleProfile | null> {
     return CacheManager.getOrSet(
-      cacheKeys._userProfile(userId),
+      cacheKeys.userProfile(userId),
       async () => {
         const profile = hyperPersonalizationSystem.getUserProfile(userId)
         if (!profile) return null
@@ -93,7 +93,7 @@ export class EnhancedPersonalizationSystem {
     }
 
     // Cache the mood
-    await CacheManager.set(cacheKeys.mood(userId), newMood, CACHE_TTL.MOOD)
+    await CacheManager.set(cacheKeys.mood(userId), newMood as any, CACHE_TTL.MOOD)
     
     // Publish real-time mood update
     await RealTimeManager.publish(`user:${userId}:mood`, {
@@ -155,7 +155,7 @@ export class EnhancedPersonalizationSystem {
 
   // Enhanced _context analysis
   async analyzeUserContext(userId: string): Promise<Record<string, unknown>> {
-    const cacheKey = cacheKeys._context(userId)
+    const cacheKey = cacheKeys.context(userId)
     
     return CacheManager.getOrSet(
       cacheKey,
@@ -173,7 +173,7 @@ export class EnhancedPersonalizationSystem {
   async getTrendingItems(userId: string, limit: number = 10): Promise<any[]> {
     const cacheKey = `${cacheKeys.trending()}:${userId}`
     
-    return CacheManager.getOrSet(
+    const result = await CacheManager.getOrSet(
       cacheKey,
       async () => {
         const globalTrending = await this.getGlobalTrendingItems()
@@ -182,18 +182,16 @@ export class EnhancedPersonalizationSystem {
           userId
         )
         
-        return personalizedTrending.slice(0, limit)
+        return { items: personalizedTrending.slice(0, limit) }
       },
       CACHE_TTL.TRENDING
     )
+    
+    return (result as { items: any[] }).items
   }
 
   // Private helper methods
   private async enhanceProfileWithRealTimeData(profile: UserStyleProfile): Promise<UserStyleProfile> {
-    // Add real-time _context data
-    const _context = await this.analyzeUserContext(profile.userId)
-    const _currentMood = await this.getCurrentUserMood(profile.userId)
-    
     // Enhance AI profile with real-time metrics
     profile.aiProfile.lastUpdated = new Date()
     profile.aiProfile.confidenceScore = Math.min(
@@ -210,24 +208,20 @@ export class EnhancedPersonalizationSystem {
     userId: string
   ): Promise<PersonalizedRecommendation[]> {
     const _userProfile = await this.getUserProfile(userId)
-    const _currentMood = await this.getCurrentUserMood(userId)
     
     return recommendations.map(rec => {
       let enhancedScore = rec.score
       
-      // Boost score based on _context match
-      if (_context.weather && rec._context.weather === _context.weather) {
+      // Boost score based on context match
+      if (_context.weather && rec.context.weather === _context.weather) {
         enhancedScore *= 1.2
       }
       
-      if (_context.occasion && rec._context.occasion === _context.occasion) {
+      if (_context.occasion && rec.context.occasion === _context.occasion) {
         enhancedScore *= 1.15
       }
       
-      // Boost score based on mood match
-      if (_currentMood && rec._context.mood === _currentMood.mood) {
-        enhancedScore *= 1.1
-      }
+
       
       // Boost score based on user profile confidence
       if (_userProfile) {
@@ -241,9 +235,8 @@ export class EnhancedPersonalizationSystem {
     })
   }
 
-  private async generateMoodPreferences(userId: string, mood: string): Promise<any> {
+  private async generateMoodPreferences(_userId: string, mood: string): Promise<any> {
     // Generate mood-specific preferences based on user history
-    const _userProfile = await this.getUserProfile(userId)
     
     const moodPreferences: Record<string, any> = {
       confident: {
@@ -281,22 +274,21 @@ export class EnhancedPersonalizationSystem {
     return moodPreferences[mood] || moodPreferences.casual
   }
 
-  private async generatePredictiveInsights(userId: string): Promise<PersonalizationInsight[]> {
-    const _userProfile = await this.getUserProfile(userId)
-    const recentEvents = hyperPersonalizationSystem.getAllEvents(userId)
+  private async generatePredictiveInsights(_userId: string): Promise<PersonalizationInsight[]> {
+    const recentEvents = hyperPersonalizationSystem.getAllEvents(_userId)
     
     const insights: PersonalizationInsight[] = []
     
     // Predict seasonal preferences
-    const seasonalInsight = await this.predictSeasonalPreferences(userId, recentEvents)
+    const seasonalInsight = await this.predictSeasonalPreferences(_userId, recentEvents)
     if (seasonalInsight) insights.push(seasonalInsight)
     
     // Predict price sensitivity changes
-    const priceInsight = await this.predictPriceSensitivityChanges(userId, recentEvents)
+    const priceInsight = await this.predictPriceSensitivityChanges(_userId, recentEvents)
     if (priceInsight) insights.push(priceInsight)
     
     // Predict style evolution
-    const styleInsight = await this.predictStyleEvolution(userId, recentEvents)
+    const styleInsight = await this.predictStyleEvolution(_userId, recentEvents)
     if (styleInsight) insights.push(styleInsight)
     
     return insights
@@ -309,14 +301,14 @@ export class EnhancedPersonalizationSystem {
     // Analyze seasonal patterns and predict future preferences
     const seasonalData = this.analyzeSeasonalData(_events)
     
-    if (seasonalData.confidence > 0.7) {
+    if ((seasonalData.confidence as number) > 0.7) {
       return {
         id: crypto.randomUUID(),
         userId,
         insightType: 'seasonal_pattern',
         title: 'Seasonal Preference Prediction',
         description: `Based on your history, you'll likely prefer ${seasonalData.predictedPreference} items in the upcoming ${seasonalData.nextSeason}`,
-        confidence: seasonalData.confidence,
+        confidence: seasonalData.confidence as number,
         actionable: true,
         action: 'Prepare for seasonal shopping',
         impact: 'medium',
@@ -334,14 +326,14 @@ export class EnhancedPersonalizationSystem {
     // Analyze price trends and predict changes in sensitivity
     const priceData = this.analyzePriceTrends(_events)
     
-    if (priceData.trend !== 'stable' && priceData.confidence > 0.6) {
+    if (priceData.trend !== 'stable' && (priceData.confidence as number) > 0.6) {
       return {
         id: crypto.randomUUID(),
         userId,
         insightType: 'price_sensitivity',
         title: 'Price Sensitivity Change Detected',
         description: `Your price sensitivity is ${priceData.trend}, suggesting ${priceData.explanation}`,
-        confidence: priceData.confidence,
+        confidence: priceData.confidence as number,
         actionable: true,
         action: 'Adjust price alerts and filters',
         impact: 'high',
@@ -359,14 +351,14 @@ export class EnhancedPersonalizationSystem {
     // Analyze style evolution patterns and predict future preferences
     const styleData = this.analyzeStyleEvolutionPatterns(_events)
     
-    if (styleData.evolutionDetected && styleData.confidence > 0.65) {
+    if (styleData.evolutionDetected && (styleData.confidence as number) > 0.65) {
       return {
         id: crypto.randomUUID(),
         userId,
         insightType: 'style_evolution',
         title: 'Style Evolution Prediction',
-        description: `Your style is evolving toward ${styleData.predictedDirection}. Consider exploring ${styleData.suggestedCategories.join(', ')}`,
-        confidence: styleData.confidence,
+        description: `Your style is evolving toward ${styleData.predictedDirection}. Consider exploring ${(styleData.suggestedCategories as string[]).join(', ')}`,
+        confidence: styleData.confidence as number,
         actionable: true,
         action: 'Explore new style categories',
         impact: 'medium',
@@ -390,7 +382,7 @@ export class EnhancedPersonalizationSystem {
     }
   }
 
-  private async enhanceContextWithExternalData(baseContext: Record<string, unknown>): Promise<Record<string, unknown>[]> {
+  private async enhanceContextWithExternalData(baseContext: Record<string, unknown>): Promise<Record<string, unknown>> {
     // Add external data sources (weather, _events, trends)
     const enhancedContext = { ...baseContext }
     
@@ -406,9 +398,7 @@ export class EnhancedPersonalizationSystem {
     return enhancedContext
   }
 
-  private async getCurrentUserMood(userId: string): Promise<StyleMood | null> {
-    return CacheManager.get(cacheKeys.mood(userId))
-  }
+
 
   private async updateProfileFromMood(userId: string, mood: StyleMood): Promise<void> {
     // Update user profile based on mood changes
@@ -424,7 +414,7 @@ export class EnhancedPersonalizationSystem {
     }
     
     // Cache updated profile
-    await CacheManager.set(cacheKeys._userProfile(userId), _userProfile, CACHE_TTL.USER_PROFILE)
+    await CacheManager.set(cacheKeys.userProfile(userId), _userProfile as any, CACHE_TTL.USER_PROFILE)
   }
 
   private async updateProfileFromEvent(event: PersonalizationEvent): Promise<void> {
@@ -439,7 +429,7 @@ export class EnhancedPersonalizationSystem {
     }
     
     // Cache updated profile
-    await CacheManager.set(cacheKeys._userProfile(event.userId), _userProfile, CACHE_TTL.USER_PROFILE)
+    await CacheManager.set(cacheKeys.userProfile(event.userId), _userProfile as any, CACHE_TTL.USER_PROFILE)
   }
 
   private async getGlobalTrendingItems(): Promise<any[]> {
@@ -461,12 +451,12 @@ export class EnhancedPersonalizationSystem {
   }
 
   private calculatePersonalizedTrendScore(item: Record<string, unknown>, _userProfile: UserStyleProfile | null): number {
-    if (!_userProfile) return item.trendScore
+    if (!_userProfile) return item.trendScore as number
     
-    let score = item.trendScore
+    let score = item.trendScore as number
     
     // Boost score based on style match
-    if (_userProfile.stylePreferences.aesthetic.includes(item.category)) {
+    if (_userProfile.stylePreferences.aesthetic.includes(item.category as string)) {
       score *= 1.3
     }
     

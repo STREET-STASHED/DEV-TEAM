@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { StylistDashboardContent } from './StylistDashboardContent'
+import StylistDashboardContent from './StylistDashboardContent'
 import { DashboardSkeleton } from './DashboardSkeleton'
 
 export default function StylistDashboardPage() {

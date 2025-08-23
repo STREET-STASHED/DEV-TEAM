@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useSession } from '@/hooks/useSupabase'
+import { useSupabase } from '@/hooks/useSupabase'
 import { SimpleUserMeasurements } from '@/lib/ar/virtualTryOnSimple'
 import { Ruler, Save, X, Info } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -13,15 +13,15 @@ interface UserMeasurementsFormProps {
 }
 
 export default function UserMeasurementsForm({ 
-  onClose, onSave, _initialMeasurements 
-}:UserMeasurementsFormProps) {
-  const { session } = useSession()
+  onClose, onSave, initialMeasurements 
+}: UserMeasurementsFormProps) {
+  const { session } = useSupabase()
   const user = session?.user
   const [isLoading, setIsLoading] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
   
   const [measurements, setMeasurements] = useState<SimpleUserMeasurements>(
-    _initialMeasurements || {
+    initialMeasurements || {
       height: 0,
       weight: 0,
       chest: 0,

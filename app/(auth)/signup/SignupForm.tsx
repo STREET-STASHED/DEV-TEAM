@@ -127,9 +127,6 @@ export function SignupForm() {
         return
       }
 
-      const _access_token = session.access_token
-      const _user_id = session.user.id
-
       // Redirect based on role
       switch (role) {
         case 'buyer':
@@ -165,7 +162,7 @@ export function SignupForm() {
             Join the Revolution
           </h1>
           <p className="text-xl text-ink-300 max-w-5xl mx-auto">
-            StreetStashed isn't just a marketplace - it's a social commerce platform where fashion meets community, 
+            StreetStashed isn&apos;t just a marketplace - it&apos;s a social commerce platform where fashion meets community, 
             creativity earns rewards, and every interaction builds your influence.
           </p>
         </div>
@@ -198,7 +195,7 @@ export function SignupForm() {
                 <div className="flex items-center mb-3">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The viral challenges are addictive! I've won over $500 in prizes already."</p>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">&ldquo;The viral challenges are addictive! I&apos;ve won over $500 in prizes already.&rdquo;</p>
                 <p className="text-brand-400 text-sm font-medium">- Sarah M., Fashion Influencer</p>
               </div>
             </div>
@@ -207,7 +204,7 @@ export function SignupForm() {
                 <div className="flex items-center mb-3">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-3 leading-relaxed">"As a seller, the analytics and marketing tools are game-changing."</p>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">&ldquo;As a seller, the analytics and marketing tools are game-changing.&rdquo;</p>
                 <p className="text-brand-400 text-sm font-medium">- Mike R., Streetwear Brand Owner</p>
               </div>
             </div>
@@ -216,7 +213,7 @@ export function SignupForm() {
                 <div className="flex items-center mb-3">
                   <span className="text-white font-semibold text-2xl">4.9/5</span>
                 </div>
-                <p className="text-ink-200 text-base mb-3 leading-relaxed">"The social features make shopping so much fun and engaging!"</p>
+                <p className="text-ink-200 text-base mb-3 leading-relaxed">&ldquo;The social features make shopping so much fun and engaging!&rdquo;</p>
                 <p className="text-brand-400 text-sm font-medium">- Alex K., Style Blogger</p>
               </div>
             </div>

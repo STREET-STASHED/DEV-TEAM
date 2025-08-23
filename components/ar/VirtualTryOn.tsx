@@ -11,12 +11,11 @@ interface VirtualTryOnProps {
   productName: string
   productImage: string
   onClose: () => void
-  onAddToCart?: (_size: string) => void
 }
 
 export default function VirtualTryOn({ 
-  productId, productName, productImage, onClose, _onAddToCart 
-}:VirtualTryOnProps) {
+  productId, productName, productImage, onClose 
+}: VirtualTryOnProps) {
   const { user } = useSupabase()
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -132,13 +131,10 @@ export default function VirtualTryOn({
     // In simplified version, just update the state
   }
 
-  // Handle add to cart
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(currentSize)
-    }
-    onClose()
-  }
+  // Handle add to cart - removed as onAddToCart is no longer in props
+  // const _handleAddToCart = () => {
+  //   onClose()
+  // }
 
   // Download preview
   const downloadPreview = () => {
@@ -354,14 +350,7 @@ export default function VirtualTryOn({
                   </div>
                 )}
 
-                {onAddToCart && (
-                  <button
-                    onClick={handleAddToCart}
-                    className="w-full bg-brand-600 text-white py-3 px-4 rounded-lg hover:bg-brand-500 transition-colors font-medium"
-                  >
-                    Add to Cart (Size {currentSize.toUpperCase()})
-                  </button>
-                )}
+                {/* Add to Cart button removed */}
               </div>
             </div>
           </div>

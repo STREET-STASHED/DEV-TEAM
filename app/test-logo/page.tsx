@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { StreetStashedLogo } from '@/components/StreetStashedLogo'
 
 export default function TestLogoPage() {
@@ -54,9 +55,9 @@ export default function TestLogoPage() {
         </div>
         
         <div className="mt-12 text-center">
-          <a href="/" className="text-brand-400 hover:text-brand-300 underline">
+          <Link href="/" className="text-brand-400 hover:text-brand-300 underline">
             ← Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from '@/hooks/useSupabase'
+import { useSupabase } from '@/hooks/useSupabase'
 import { Trophy, Users, Calendar, Gift, Hash } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,7 +29,7 @@ interface SocialChallenge {
 }
 
 export default function SocialChallenges({ limit = 5 }: { limit?: number }) {
-  const { session } = useSession()
+  const { session } = useSupabase()
   const [challenges, setChallenges] = useState<SocialChallenge[]>([])
   const [loading, setLoading] = useState(true)
   const [participating, setParticipating] = useState<string | null>(null)

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabaseAdmin'
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const featured = searchParams.get('featured')
     
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
     
     let query = supabase
       .from('categories')

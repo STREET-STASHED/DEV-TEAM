@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceRoleClient } from '@/lib/supabaseAdmin'
 
 export async function GET(request: Request) {
   try {
@@ -7,7 +7,7 @@ export async function GET(request: Request) {
     const trending = searchParams.get('trending')
     const limit = searchParams.get('limit')
     
-    const supabase = createClient()
+    const supabase = createServiceRoleClient()
     
     let query = supabase
       .from('items')

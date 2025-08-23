@@ -1,16 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   SparklesIcon, 
-  CameraIcon, 
   HeartIcon, 
-  StarIcon,
-  ArrowPathIcon,
-  UserIcon,
-  CogIcon,
-  MagnifyingGlassIcon
+  ArrowPathIcon
 } from '@heroicons/react/24/outline'
 
 interface StyleProfile {
@@ -63,7 +58,7 @@ interface Product {
 
 export default function AIStylistPage() {
   const router = useRouter()
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [_isAnalyzing, _setIsAnalyzing] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [styleProfile, setStyleProfile] = useState<StyleProfile>({
     id: '1',
@@ -80,24 +75,8 @@ export default function AIStylistPage() {
   const [availableProducts, setAvailableProducts] = useState<Product[]>([])
   const [isLoadingProducts, setIsLoadingProducts] = useState(false)
 
-  // Load user profile from localStorage or create default
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('ai-stylist-profile')
-    if (savedProfile) {
-      try {
-        const parsed = JSON.parse(savedProfile)
-        setStyleProfile(parsed)
-      } catch (error) {
-        console.error('Error parsing saved profile:', error)
-      }
-    }
-    
-    // Load available products
-    loadAvailableProducts()
-  }, [])
-
   // Load real products from the marketplace
-  const loadAvailableProducts = async () => {
+  const loadAvailableProducts = useCallback(async () => {
     setIsLoadingProducts(true)
     try {
       const response = await fetch('/api/items')
@@ -114,7 +93,12 @@ export default function AIStylistPage() {
     } finally {
       setIsLoadingProducts(false)
     }
-  }
+  }, [])
+
+  // Load available products
+  useEffect(() => {
+    loadAvailableProducts()
+  }, [loadAvailableProducts])
 
   // Generate mock products for development
   const generateMockProducts = (): Product[] => [
@@ -189,20 +173,28 @@ export default function AIStylistPage() {
     }
     
     setProfileError(null)
-    setIsAnalyzing(true)
+    _setIsAnalyzing(true)
     
     // Save profile before analysis
     saveProfile(styleProfile)
     
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    
-    // Generate real AI recommendations based on available products and user preferences
-    const aiRecommendations = generateAIRecommendations()
-    
-    setRecommendations(aiRecommendations)
-    setIsAnalyzing(false)
-    setCurrentStep(3)
+    try {
+      // Simulate AI analysis
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Generate personalized recommendations
+      const recommendations = generateAIRecommendations()
+      setRecommendations(recommendations)
+      
+      // Show success message
+      // setSuccessMessage('Style analysis complete! Check out your personalized recommendations below.')
+      
+    } catch (error) {
+      console.error('Style analysis failed:', error)
+      setProfileError('Style analysis failed. Please try again.')
+    } finally {
+      _setIsAnalyzing(false)
+    }
   }
 
   // Generate real AI recommendations based on user preferences and available products
@@ -226,7 +218,6 @@ export default function AIStylistPage() {
     const tops = preferredProducts.filter(p => p.category === 'tops')
     const bottoms = preferredProducts.filter(p => p.category === 'bottoms')
     const shoes = preferredProducts.filter(p => p.category === 'shoes')
-    const accessories = preferredProducts.filter(p => p.category === 'accessories')
 
     // Create outfit combinations
     for (let i = 0; i < Math.min(3, tops.length); i++) {

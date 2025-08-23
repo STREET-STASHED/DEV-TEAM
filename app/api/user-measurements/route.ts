@@ -40,7 +40,7 @@ export async function POST(_request:NextRequest) {
     }
 
     // Parse request body
-    const measurements = await request.json()
+    const measurements = await _request.json()
 
     // Validate measurements
     const requiredFields = ['height', 'weight', 'chest', 'waist', 'hips', 'shoulders', 'inseam', 'bodyType']

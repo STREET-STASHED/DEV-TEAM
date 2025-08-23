@@ -3,9 +3,9 @@ import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
 import { enhancedPersonalizationSystem } from '@/lib/personalization/enhancedUserProfile'
 import { CacheManager, RealTimeManager } from '@/lib/redis/client'
 
-export async function GET(_request:NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(_request.url)
     const limit = parseInt(searchParams.get('limit') || '20')
     const context = searchParams.get('context') ? JSON.parse(searchParams.get('context')!) : {}
     const includeTrending = searchParams.get('trending') === 'true'
@@ -154,9 +154,9 @@ export async function GET(_request:NextRequest) {
   }
 }
 
-export async function POST(_request:NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { itemId, action, feedback, mood, context } = body
 
     const supabase = await createRouteHandlerClient()
@@ -231,7 +231,7 @@ export async function POST(_request:NextRequest) {
 }
 
 // Utility methods
-function calculateTimeMatch(_timeOfDay?:string): number {
+function calculateTimeMatch(timeOfDay?: string): number {
   if (!timeOfDay) return 0.5
   
   const hour = new Date().getHours()
@@ -245,7 +245,7 @@ function calculateTimeMatch(_timeOfDay?:string): number {
   return timeOfDay === currentTimeOfDay ? 1.0 : 0.5
 }
 
-function calculateSeasonMatch(_season:string): number {
+function calculateSeasonMatch(season: string): number {
   const currentSeason = getCurrentSeason()
   return season === currentSeason ? 1.0 : 0.5
 }
@@ -258,26 +258,26 @@ function getCurrentSeason(): string {
   return 'winter'
 }
 
-function calculateOverallPersonalizationScore(_recommendations:any[], _context:Record<string, unknown>): number {
+function calculateOverallPersonalizationScore(recommendations: any[], userContext: Record<string, unknown>): number {
   if (recommendations.length === 0) return 0
   
-  const scores = recommendations.map(rec => rec.score)
-  const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length
+  const scores = recommendations.map((rec: any) => rec.score)
+  const avgScore = scores.reduce((a: number, b: number) => a + b, 0) / scores.length
   
   // Boost score based on context richness
   let contextBoost = 0
-  if (context.weather) contextBoost += 0.1
-  if (context.occasion) contextBoost += 0.1
-  if (context.mood) contextBoost += 0.1
-  if (context.trendingTopics?.length > 0) contextBoost += 0.1
+  if (userContext.weather) contextBoost += 0.1
+  if (userContext.occasion) contextBoost += 0.1
+  if (userContext.mood) contextBoost += 0.1
+  if (userContext.trendingTopics && Array.isArray(userContext.trendingTopics) && userContext.trendingTopics.length > 0) contextBoost += 0.1
   
   return Math.min(avgScore + contextBoost, 1.0)
 }
 
-function calculateConfidence(_recommendations:any[]): number {
+function calculateConfidence(recommendations: any[]): number {
   if (recommendations.length === 0) return 0
   
-  const confidenceScores = recommendations.map(rec => 
+  const confidenceScores = recommendations.map((rec: any) => 
     rec.personalizationFactors.styleMatch * 0.3 +
     rec.personalizationFactors.priceMatch * 0.2 +
     rec.personalizationFactors.contextMatch * 0.2 +
@@ -285,5 +285,5 @@ function calculateConfidence(_recommendations:any[]): number {
     rec.personalizationFactors.socialProof * 0.15
   )
   
-  return confidenceScores.reduce((a, b) => a + b, 0) / confidenceScores.length
+  return confidenceScores.reduce((a: number, b: number) => a + b, 0) / confidenceScores.length
 }

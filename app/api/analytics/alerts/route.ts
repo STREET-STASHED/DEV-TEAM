@@ -3,7 +3,7 @@ import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
 
 export async function GET(_request:NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(_request.url)
     const sellerId = searchParams.get('sellerId')
     const alertType = searchParams.get('alertType')
     const severity = searchParams.get('severity')
@@ -77,7 +77,7 @@ export async function GET(_request:NextRequest) {
 
 export async function POST(_request:NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { 
       alertType, 
       severity, 
@@ -133,7 +133,7 @@ export async function POST(_request:NextRequest) {
 
 export async function PATCH(_request:NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { alertId, action } = body
 
     const supabase = await createRouteHandlerClient()
@@ -229,11 +229,11 @@ export async function PUT(_request:NextRequest) {
 }
 
 // Helper functions
-function calculateUrgencyScore(_alert:Record<string, unknown>): number {
+function calculateUrgencyScore(_alert: Record<string, unknown>): number {
   let score = 0
 
   // Base score from severity
-  switch (alert.severity) {
+  switch (_alert.severity) {
     case 'critical': score += 100; break
     case 'high': score += 75; break
     case 'medium': score += 50; break
@@ -241,7 +241,7 @@ function calculateUrgencyScore(_alert:Record<string, unknown>): number {
   }
 
   // Adjust based on alert type
-  switch (alert.alert_type) {
+  switch (_alert.alert_type) {
     case 'low_stock': score += 20; break
     case 'price_alert': score += 15; break
     case 'trend_opportunity': score += 10; break
@@ -249,14 +249,14 @@ function calculateUrgencyScore(_alert:Record<string, unknown>): number {
   }
 
   // Time decay (alerts become more urgent over time)
-  const hoursOld = (Date.now() - new Date(alert.created_at).getTime()) / (1000 * 60 * 60)
+  const hoursOld = (Date.now() - new Date(_alert.created_at as string).getTime()) / (1000 * 60 * 60)
   score += Math.min(hoursOld * 2, 50)
 
   return Math.round(score)
 }
 
-function estimateResolutionTime(_alert:Record<string, unknown>): string {
-  switch (alert.alert_type) {
+function estimateResolutionTime(_alert: Record<string, unknown>): string {
+  switch (_alert.alert_type) {
     case 'low_stock': return '2-5 days'
     case 'overstock': return '1-2 weeks'
     case 'price_alert': return 'Immediate'
@@ -266,8 +266,8 @@ function estimateResolutionTime(_alert:Record<string, unknown>): string {
   }
 }
 
-function calculatePotentialImpact(_alert:Record<string, unknown>): string {
-  const impact = Math.abs(alert.estimated_impact || 0)
+function calculatePotentialImpact(_alert: Record<string, unknown>): string {
+  const impact = Math.abs(_alert.estimated_impact as number || 0)
   
   if (impact > 10000) return 'Very High'
   if (impact > 5000) return 'High'
@@ -276,16 +276,16 @@ function calculatePotentialImpact(_alert:Record<string, unknown>): string {
   return 'Minimal'
 }
 
-async function triggerCriticalAlertNotification(_alert:Record<string, unknown>): Promise<void> {
+async function triggerCriticalAlertNotification(_alert: Record<string, unknown>): Promise<void> {
   // In a real implementation, this would send notifications via:
   // - Email
   // - SMS
   // - Push notifications
   // - Slack/Discord webhooks
-  console.log('Critical alert triggered:', alert.title)
+  console.log('Critical alert triggered:', _alert.title)
 }
 
-async function generateTrendAlerts(_supabase:Record<string, unknown>): Promise<any[]> {
+async function generateTrendAlerts(supabase: any): Promise<any[]> {
   const alerts = []
 
   // Get emerging trends
@@ -297,94 +297,71 @@ async function generateTrendAlerts(_supabase:Record<string, unknown>): Promise<a
 
   for (const trend of trends || []) {
     alerts.push({
+      id: `trend-${trend.id}`,
       alert_type: 'trend_opportunity',
-      severity: 'high',
-      title: `Emerging Trend: ${trend.category}`,
-      description: `${trend.category} showing ${(trend.predicted_growth * 100).toFixed(1)}% growth potential`,
-      action_required: 'Consider increasing inventory for this category',
-      estimated_impact: calculateTrendOpportunityValue(trend)
+      severity: 'medium',
+      title: `Emerging Trend: ${trend.trend_name}`,
+      description: `Trend confidence: ${(trend.confidence_score * 100).toFixed(0)}%`,
+      item_id: trend.item_id,
+      supplier_id: trend.supplier_id,
+      estimated_impact: trend.potential_revenue,
+      action_required: 'Consider increasing inventory for this trending item',
+      created_at: new Date().toISOString()
     })
   }
 
   return alerts
 }
 
-async function generatePriceAlerts(_supabase:Record<string, unknown>): Promise<any[]> {
+async function generatePriceAlerts(supabase: any): Promise<any[]> {
   const alerts = []
 
-  // Get significant price optimization opportunities
-  const { data: optimizations } = await supabase
-    .from('price_optimizations')
-    .select('*, items(name)')
-    .gte('profit_impact', 100)
-    .eq('implemented', false)
+  // Get price optimization opportunities
+  const { data: priceData } = await supabase
+    .from('price_analytics')
+    .select('*')
+    .gte('optimization_score', 0.8)
 
-  for (const opt of optimizations || []) {
-    const priceDiff = Math.abs(opt.recommended_price - opt.current_price)
-    const percentChange = (priceDiff / opt.current_price) * 100
-
-    if (percentChange > 10) { // Significant price change recommended
-      alerts.push({
-        alert_type: 'price_alert',
-        severity: percentChange > 20 ? 'high' : 'medium',
-        item_id: opt.item_id,
-        title: `Price Optimization: ${opt.items?.name}`,
-        description: `Recommended ${percentChange > 0 ? 'increase' : 'decrease'} of ${percentChange.toFixed(1)}%`,
-        action_required: 'Review and implement price recommendation',
-        estimated_impact: opt.profit_impact
-      })
-    }
+  for (const price of priceData || []) {
+    alerts.push({
+      id: `price-${price.id}`,
+      alert_type: 'price_alert',
+      severity: 'high',
+      title: `Price Optimization: ${price.item_name}`,
+      description: `Current price: $${price.current_price}, Recommended: $${price.optimal_price}`,
+      item_id: price.item_id,
+      supplier_id: price.supplier_id,
+      estimated_impact: price.potential_revenue_increase,
+      action_required: 'Review and adjust pricing strategy',
+      created_at: new Date().toISOString()
+    })
   }
 
   return alerts
 }
 
-async function generateSupplierAlerts(_supabase:Record<string, unknown>): Promise<any[]> {
+async function generateSupplierAlerts(supabase: any): Promise<any[]> {
   const alerts = []
 
-  // Get supplier metrics with issues
+  // Get supplier performance issues
   const { data: suppliers } = await supabase
-    .from('supplier_metrics')
+    .from('supplier_analytics')
     .select('*')
-    .or('reliability_score.lt.0.7,quality_score.lt.0.7,risk_score.gt.0.7')
+    .lt('performance_score', 0.6)
 
   for (const supplier of suppliers || []) {
-    let issueType = ''
-    let severity = 'medium'
-
-    if (supplier.reliability_score < 0.5) {
-      issueType = 'reliability'
-      severity = 'high'
-    } else if (supplier.quality_score < 0.5) {
-      issueType = 'quality'
-      severity = 'high'
-    } else if (supplier.risk_score > 0.8) {
-      issueType = 'risk'
-      severity = 'medium'
-    }
-
-    if (issueType) {
-      alerts.push({
-        alert_type: 'supplier_issue',
-        severity,
-        supplier_id: supplier.supplier_id,
-        title: `Supplier ${issueType} Issue: ${supplier.supplier_name}`,
-        description: `${supplier.supplier_name} has a ${issueType} score of ${supplier[`${issueType}_score`]}`,
-        action_required: `Review supplier performance and consider alternatives`,
-        estimated_impact: calculateSupplierImpact(supplier)
-      })
-    }
+    alerts.push({
+      id: `supplier-${supplier.id}`,
+      alert_type: 'supplier_issue',
+      severity: 'high',
+      title: `Supplier Performance: ${supplier.supplier_name}`,
+      description: `Performance score: ${(supplier.performance_score * 100).toFixed(0)}%`,
+      supplier_id: supplier.id,
+      estimated_impact: supplier.potential_loss,
+      action_required: 'Review supplier relationship and consider alternatives',
+      created_at: new Date().toISOString()
+    })
   }
 
   return alerts
-}
-
-function calculateTrendOpportunityValue(_trend:Record<string, unknown>): number {
-  // Estimate potential revenue from trend opportunity
-  return Math.round(trend.predicted_growth * 10000) // Simplified calculation
-}
-
-function calculateSupplierImpact(_supplier:Record<string, unknown>): number {
-  // Estimate impact of supplier issues
-  return supplier.total_orders * 100 // Simplified calculation
 }

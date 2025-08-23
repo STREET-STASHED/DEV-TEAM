@@ -164,7 +164,7 @@ class AIProductionMonitor {
     const avgMemoryUsage = recentMetrics.reduce((sum, m) => sum + m.memoryUsage, 0) / recentMetrics.length
 
     // AI Pattern Detection
-    const _patterns = this.detectPatterns(recentMetrics)
+    this.detectPatterns(recentMetrics)
     
     // Generate alerts if thresholds exceeded
     if (avgResponseTime > this.alertThresholds.responseTime) {
@@ -229,9 +229,9 @@ class AIProductionMonitor {
     
     const n = values.length
     const sumX = (n * (n - 1)) / 2
-    const sumY = values.reduce((sum, val, _i) => sum + val, 0)
+    const sumY = values.reduce((sum, _val, _i) => sum + _val, 0)
     const sumXY = values.reduce((sum, val, i) => sum + (val * i), 0)
-    const sumX2 = values.reduce((sum, val, i) => sum + (i * i), 0)
+    const sumX2 = values.reduce((sum, _val, i) => sum + (i * i), 0)
     
     const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
     return slope / (sumY / n) // Normalized slope

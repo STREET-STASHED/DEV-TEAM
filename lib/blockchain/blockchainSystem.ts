@@ -508,8 +508,8 @@ export class BlockchainSystem {
         verifiedProducts
       },
       nfts: {
-        byBrand: this.getNFTsByBrand(),
-        byRarity: this.getNFTsByRarity(),
+        byBrand: this.getNFTsByBrandCounts(),
+        byRarity: this.getNFTsByRarityCounts(),
         tradingVolume: nftVolume,
         averagePrice: this.calculateAverageNFTPrice()
       },
@@ -528,7 +528,7 @@ export class BlockchainSystem {
     };
   }
 
-  private getNFTsByBrand(): Record<string, number> {
+  private getNFTsByBrandCounts(): Record<string, number> {
     const brandCounts: Record<string, number> = {};
     this.nftFashion.forEach(nft => {
       const brand = nft.metadata.brand;
@@ -537,7 +537,7 @@ export class BlockchainSystem {
     return brandCounts;
   }
 
-  private getNFTsByRarity(): Record<string, number> {
+  private getNFTsByRarityCounts(): Record<string, number> {
     const rarityCounts: Record<string, number> = {};
     this.nftFashion.forEach(nft => {
       const rarity = nft.metadata.rarity;

@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
 
-export async function POST(_request:NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { postId, interactionType, platform, comment } = body
 
     const supabase = await createRouteHandlerClient()

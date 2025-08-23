@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   UserGroupIcon, 
@@ -9,10 +9,7 @@ import {
   StarIcon,
   ChartBarIcon,
   FireIcon,
-  TrendingUpIcon,
-  ClockIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon
+  ClockIcon
 } from '@heroicons/react/24/outline'
 
 interface StylistStats {
@@ -71,108 +68,7 @@ export default function StylistDashboardContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadStylistData()
-  }, [])
-
-  const loadStylistData = async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Load data from APIs with fallback to mock data
-      await Promise.all([
-        loadStats(),
-        loadClients(),
-        loadAppointments(),
-        loadChallenges()
-      ])
-    } catch (error) {
-      console.error('Error loading stylist data:', error)
-      setError('Failed to load some data. Showing demo content.')
-      // Fallback to mock data for demo purposes
-      loadMockData()
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadStats = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/stylist/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setStats(data.stats || null)
-      } else {
-        throw new Error('Failed to load stats')
-      }
-    } catch (error) {
-      console.error('Error loading stats:', error)
-      // Fallback to mock data
-      loadMockStats()
-    }
-  }
-
-  const loadClients = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/stylist/clients')
-      if (response.ok) {
-        const data = await response.json()
-        setClients(data.clients || [])
-      } else {
-        throw new Error('Failed to load clients')
-      }
-    } catch (error) {
-      console.error('Error loading clients:', error)
-      // Fallback to mock data
-      loadMockClients()
-    }
-  }
-
-  const loadAppointments = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/stylist/appointments')
-      if (response.ok) {
-        const data = await response.json()
-        setAppointments(data.appointments || [])
-      } else {
-        throw new Error('Failed to load appointments')
-      }
-    } catch (error) {
-      console.error('Error loading appointments:', error)
-      // Fallback to mock data
-      loadMockAppointments()
-    }
-  }
-
-  const loadChallenges = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/stylist/challenges')
-      if (response.ok) {
-        const data = await response.json()
-        setChallenges(data.challenges || [])
-      } else {
-        throw new Error('Failed to load challenges')
-      }
-    } catch (error) {
-      console.error('Error loading challenges:', error)
-      // Fallback to mock data
-      loadMockChallenges()
-    }
-  }
-
-  const loadMockData = () => {
-    loadMockStats()
-    loadMockClients()
-    loadMockAppointments()
-    loadMockChallenges()
-  }
-
-  const loadMockStats = () => {
+  const loadMockStats = useCallback(() => {
     const mockStats: StylistStats = {
       activeClients: 24,
       totalAppointments: 156,
@@ -184,9 +80,9 @@ export default function StylistDashboardContent() {
       totalEarnings: 15420.75
     }
     setStats(mockStats)
-  }
+  }, [])
 
-  const loadMockClients = () => {
+  const loadMockClients = useCallback(() => {
     const mockClients: Client[] = [
       {
         id: '1',
@@ -240,9 +136,9 @@ export default function StylistDashboardContent() {
       }
     ]
     setClients(mockClients)
-  }
+  }, [])
 
-  const loadMockAppointments = () => {
+  const loadMockAppointments = useCallback(() => {
     const mockAppointments: Appointment[] = [
       {
         id: '1',
@@ -283,10 +179,10 @@ export default function StylistDashboardContent() {
         clientAvatar: '/mock/avatar4.jpg',
         date: '2024-01-19',
         time: '3:00 PM',
-        duration: 45,
-        type: 'Quick Style Update',
-        status: 'confirmed',
-        notes: 'Follow-up session'
+        duration: 60,
+        type: 'Style Consultation',
+        status: 'pending',
+        notes: 'First-time client'
       },
       {
         id: '5',
@@ -294,16 +190,16 @@ export default function StylistDashboardContent() {
         clientAvatar: '/mock/avatar5.jpg',
         date: '2024-01-17',
         time: '1:00 PM',
-        duration: 75,
-        type: 'Special Occasion Styling',
+        duration: 90,
+        type: 'Full Wardrobe Review',
         status: 'confirmed',
-        notes: 'Wedding guest outfit'
+        notes: 'Seasonal wardrobe update'
       }
     ]
     setAppointments(mockAppointments)
-  }
+  }, [])
 
-  const loadMockChallenges = () => {
+  const loadMockChallenges = useCallback(() => {
     const mockChallenges: Challenge[] = [
       {
         id: '1',
@@ -340,7 +236,106 @@ export default function StylistDashboardContent() {
       }
     ]
     setChallenges(mockChallenges)
-  }
+  }, [])
+
+  const loadStats = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data.stats || null)
+      } else {
+        throw new Error('Failed to load stats')
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error)
+      // Fallback to mock data
+      loadMockStats()
+    }
+  }, [loadMockStats])
+
+  const loadClients = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/clients')
+      if (response.ok) {
+        const data = await response.json()
+        setClients(data.clients || [])
+      } else {
+        throw new Error('Failed to load clients')
+      }
+    } catch (error) {
+      console.error('Error loading clients:', error)
+      // Fallback to mock data
+      loadMockClients()
+    }
+  }, [loadMockClients])
+
+  const loadAppointments = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/appointments')
+      if (response.ok) {
+        const data = await response.json()
+        setAppointments(data.appointments || [])
+      } else {
+        throw new Error('Failed to load appointments')
+      }
+    } catch (error) {
+      console.error('Error loading appointments:', error)
+      // Fallback to mock data
+      loadMockAppointments()
+    }
+  }, [loadMockAppointments])
+
+  const loadChallenges = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/stylist/challenges')
+      if (response.ok) {
+        const data = await response.json()
+        setChallenges(data.challenges || [])
+      } else {
+        throw new Error('Failed to load challenges')
+      }
+    } catch (error) {
+      console.error('Error loading challenges:', error)
+      // Fallback to mock data
+      loadMockChallenges()
+    }
+  }, [loadMockChallenges])
+
+  const loadMockData = useCallback(() => {
+    loadMockStats()
+    loadMockClients()
+    loadMockAppointments()
+    loadMockChallenges()
+  }, [loadMockStats, loadMockClients, loadMockAppointments, loadMockChallenges])
+
+  const loadStylistData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      // Load all data in parallel
+      await Promise.all([
+        loadStats(),
+        loadClients(),
+        loadAppointments(),
+        loadChallenges()
+      ])
+    } catch (error) {
+      console.error('Error loading stylist data:', error)
+      setError('Failed to load some data. Showing demo content.')
+      // Fallback to mock data for demo purposes
+      loadMockData()
+    } finally {
+      setIsLoading(false)
+    }
+  }, [loadStats, loadClients, loadAppointments, loadChallenges, loadMockData])
+
+  useEffect(() => {
+    loadStylistData()
+  }, [loadStylistData])
 
   const handleClientClick = (clientId: string) => {
     router.push(`/stylist/clients/${clientId}`)
@@ -394,7 +389,7 @@ export default function StylistDashboardContent() {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2">👗 Stylist Dashboard</h1>
+              <h1 className="text-3xl font-bold mb-2">Stylist Dashboard</h1>
               <p className="text-ink-300">Manage your clients, appointments, and grow your business</p>
             </div>
             <button

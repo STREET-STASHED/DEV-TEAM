@@ -175,8 +175,7 @@ export class AIStylistPersonalitySystem {
   // Generate personalized message from stylist
   generateMessage(
     personality: StylistPersonality,
-    context: 'greeting' | 'recommendation' | 'encouragement' | 'feedback',
-    _userData?: Record<string, unknown>): string {
+    context: 'greeting' | 'recommendation' | 'encouragement' | 'feedback'): string {
     const catchphrase = personality.catchphrases[
       Math.floor(Math.random() * personality.catchphrases.length)
     ]
@@ -219,7 +218,7 @@ export class AIStylistPersonalitySystem {
   // Update personality based on user interaction
   async evolvePersonality(
     personalityId: string,
-    userId: string,
+    _userId: string,
     interaction: 'positive' | 'negative' | 'neutral'
   ): Promise<void> {
     const personality = this.personalities.get(personalityId)

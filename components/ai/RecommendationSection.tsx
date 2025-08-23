@@ -33,8 +33,8 @@ interface RecommendationSectionProps {
 }
 
 export default function RecommendationSection({
-  type = 'hybrid', title = 'Recommended for You', limit = 8, showReason = true, _className = ''
-}:RecommendationSectionProps) {
+  type = 'hybrid', title = 'Recommended for You', limit = 8, showReason = true, className = ''
+}: RecommendationSectionProps) {
   const { user } = useSupabase()
   const [recommendations, setRecommendations] = useState<Recommendation[]>([])
   const [loading, setLoading] = useState(true)

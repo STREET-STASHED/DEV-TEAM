@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   HeartIcon, 
@@ -53,27 +53,6 @@ export default function SocialPage() {
   const [newPostImage, setNewPostImage] = useState<File | null>(null)
   const [isCreatingPost, setIsCreatingPost] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    loadSocialData()
-  }, [])
-
-  const loadSocialData = async () => {
-    setIsLoading(true)
-    try {
-      // Load posts and challenges from API
-      await Promise.all([
-        loadPosts(),
-        loadChallenges()
-      ])
-    } catch (error) {
-      console.error('Error loading social data:', error)
-      // Fallback to mock data
-      loadMockData()
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const loadPosts = async () => {
     try {
@@ -153,17 +132,18 @@ export default function SocialPage() {
         isFollowing: true
       }
     ]
+    setPosts(mockPosts)
 
     // Mock challenges
     const mockChallenges: Challenge[] = [
       {
         id: '1',
-        title: 'Streetwear Showdown',
-        description: 'Show off your best streetwear fit and win up to $1000 in prizes. Share your look with #StreetwearShowdown',
-        hashtag: 'StreetwearShowdown',
-        participants: 2847,
-        deadline: '3 days left',
-        prizePool: 5000,
+        title: 'Streetwear Style Challenge',
+        description: 'Show off your best streetwear outfit and win exclusive rewards!',
+        hashtag: 'StreetwearStyle',
+        participants: 156,
+        deadline: '2024-02-15',
+        prizePool: 1000,
         status: 'active',
         category: 'Style',
         image: '/mock/challenge1.jpg',
@@ -171,35 +151,41 @@ export default function SocialPage() {
       },
       {
         id: '2',
-        title: 'Style Transformation',
-        description: 'Transform your style with before/after photos and win styling sessions with top stylists.',
-        hashtag: 'StyleTransformation',
-        participants: 1234,
-        deadline: '7 days left',
-        prizePool: 2500,
+        title: 'Sustainable Fashion Week',
+        description: 'Share your eco-friendly fashion choices and promote sustainability!',
+        hashtag: 'SustainableFashion',
+        participants: 89,
+        deadline: '2024-02-28',
+        prizePool: 500,
         status: 'active',
-        category: 'Transformation',
+        category: 'Sustainability',
         image: '/mock/challenge2.jpg',
         isJoined: true
-      },
-      {
-        id: '3',
-        title: 'Brand Ambassador',
-        description: 'Become a brand ambassador for your favorite streetwear brands.',
-        hashtag: 'BrandAmbassador',
-        participants: 0,
-        deadline: 'Next Week',
-        prizePool: 0,
-        status: 'coming-soon',
-        category: 'Partnership',
-        image: '/mock/challenge3.jpg',
-        isJoined: false
       }
     ]
-
-    setPosts(mockPosts)
     setChallenges(mockChallenges)
   }
+
+  const loadSocialData = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      // Load posts and challenges from API
+      await Promise.all([
+        loadPosts(),
+        loadChallenges()
+      ])
+    } catch (error) {
+      console.error('Error loading social data:', error)
+      // Fallback to mock data
+      loadMockData()
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadSocialData()
+  }, [loadSocialData])
 
   const createPost = async () => {
     if (!newPostContent.trim()) return

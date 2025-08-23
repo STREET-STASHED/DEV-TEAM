@@ -35,48 +35,10 @@ export async function GET(request:NextRequest) {
   }
 }
 
-export async function POST(request:NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json()
-    const { insightType, title, description, confidence, actionable, action, impact } = body
-
-    const supabase = await createRouteHandlerClient()
-
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Create new insight
-    const { data: insight, error } = await supabase
-      .from('personalization_insights')
-      .insert({
-        user_id: user.id,
-        insight_type: insightType,
-        title,
-        description,
-        confidence,
-        actionable,
-        action,
-        impact
-      })
-      .select()
-      .single()
-
-    if (error) throw error
-
-    return NextResponse.json({ insight })
-  } catch (error) {
-    console.error('Error creating insight:', error)
-    return NextResponse.json({ error: 'Failed to create insight' }, { status: 500 })
-  }
-}
-
-export async function PUT(request:NextRequest) {
-  try {
-    const body = await request.json()
-    const { userId } = body
+    const body = await _request.json()
+    const { dataSource: _dataSource } = body
 
     const supabase = await createRouteHandlerClient()
 
@@ -88,13 +50,13 @@ export async function PUT(request:NextRequest) {
 
     // Analyze user behavior and generate new insights
     const { data: behaviorAnalysis, error: analysisError } = await supabase.rpc('analyze_user_behavior', {
-      p_user_id: userId || user.id
+      p_user_id: user.id
     })
 
     if (analysisError) throw analysisError
 
     // Generate insights based on behavior analysis
-    const insights = await generateInsightsFromBehavior(behaviorAnalysis, userId || user.id, supabase)
+    const insights = await generateInsightsFromBehavior(behaviorAnalysis, user.id, supabase)
 
     return NextResponse.json({ 
       success: true, 
@@ -107,25 +69,59 @@ export async function PUT(request:NextRequest) {
   }
 }
 
-async function generateInsightsFromBehavior(_behaviorAnalysis: Record<string, unknown>, _userId: string, _supabase: Record<string, unknown>) {
+export async function PUT(_request:NextRequest) {
+  try {
+    const supabase = await createRouteHandlerClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Analyze user behavior and generate new insights
+    const { data: behaviorAnalysis, error: analysisError } = await supabase.rpc('analyze_user_behavior', {
+      p_user_id: user.id
+    })
+
+    if (analysisError) throw analysisError
+
+    // Generate insights based on behavior analysis
+    const insights = await generateInsightsFromBehavior(behaviorAnalysis, user.id, supabase)
+
+    return NextResponse.json({ 
+      success: true, 
+      insightsGenerated: insights.length,
+      behaviorAnalysis 
+    })
+  } catch (error) {
+    console.error('Error generating insights:', error)
+    return NextResponse.json({ error: 'Failed to generate insights' }, { status: 500 })
+  }
+}
+
+async function generateInsightsFromBehavior(behaviorAnalysis: Record<string, unknown>, userId: string, supabase: any) {
   const insights = []
 
   // Price sensitivity insight
-  if (behaviorAnalysis.price_behavior?.avg_price) {
-    const avgPrice = behaviorAnalysis.price_behavior.avg_price
-    const priceRange = behaviorAnalysis.price_behavior.price_range
+  if (behaviorAnalysis.price_behavior && typeof behaviorAnalysis.price_behavior === 'object') {
+    const priceBehavior = behaviorAnalysis.price_behavior as any
+    if (priceBehavior.avg_price) {
+      const avgPrice = priceBehavior.avg_price
+      const priceRange = priceBehavior.price_range
 
-    if (priceRange && priceRange.max - priceRange.min < avgPrice * 0.5) {
-      insights.push({
-        user_id: userId,
-        insight_type: 'price_sensitivity',
-        title: 'Price Sensitivity Detected',
-        description: `You consistently shop in the $${Math.round(priceRange.min)}-$${Math.round(priceRange.max)} range`,
-        confidence: 0.8,
-        actionable: true,
-        action: 'Set price alerts for your preferred range',
-        impact: 'high'
-      })
+      if (priceRange && priceRange.max - priceRange.min < avgPrice * 0.5) {
+        insights.push({
+          user_id: userId,
+          insight_type: 'price_sensitivity',
+          title: 'Price Sensitivity Detected',
+          description: `You consistently shop in the $${Math.round(priceRange.min)}-$${Math.round(priceRange.max)} range`,
+          confidence: 0.8,
+          actionable: true,
+          action: 'Set price alerts for your preferred range',
+          impact: 'high'
+        })
+      }
     }
   }
 
@@ -134,7 +130,8 @@ async function generateInsightsFromBehavior(_behaviorAnalysis: Record<string, un
     const categories = Object.entries(behaviorAnalysis.category_preferences)
     if (categories.length > 0) {
       const [topCategory, count] = categories[0] as [string, number]
-      const totalEvents = behaviorAnalysis.engagement?.total_events || 1
+      const engagement = behaviorAnalysis.engagement as any
+      const totalEvents = engagement?.total_events || 1
       const percentage = (count / totalEvents) * 100
 
       if (percentage > 40) {
@@ -153,16 +150,19 @@ async function generateInsightsFromBehavior(_behaviorAnalysis: Record<string, un
   }
 
   // Engagement pattern insight
-  if (behaviorAnalysis.engagement?.active_days && behaviorAnalysis.engagement.active_days > 7) {
-    insights.push({
-      user_id: userId,
-      insight_type: 'social_influence',
-      title: 'Active Shopper',
-      description: `You've been active for ${behaviorAnalysis.engagement.active_days} days`,
-      confidence: 0.6,
-      actionable: false,
-      impact: 'low'
-    })
+  if (behaviorAnalysis.engagement && typeof behaviorAnalysis.engagement === 'object') {
+    const engagement = behaviorAnalysis.engagement as any
+    if (engagement.active_days && engagement.active_days > 7) {
+      insights.push({
+        user_id: userId,
+        insight_type: 'social_influence',
+        title: 'Active Shopper',
+        description: `You've been active for ${engagement.active_days} days`,
+        confidence: 0.6,
+        actionable: false,
+        impact: 'low'
+      })
+    }
   }
 
   // Insert insights into database

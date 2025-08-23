@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log
-    await audit.log('review_created', {
+    await audit('review_created', {
       userId: user.id,
       reviewId: review.id,
       orderId: validatedData.orderId,
@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
           totalPages: Math.ceil((count || 0) / validatedQuery.pageSize),
         },
       });
-    } catch (dbError) {
+    } catch (_dbError) {
       // Fallback to mock data if database query fails
       console.log('Database query failed, returning mock reviews');
       return NextResponse.json({ 
@@ -225,16 +225,6 @@ export async function GET(request: NextRequest) {
         }
       });
     }
-
-    return NextResponse.json({
-      reviews: reviews || [],
-      pagination: {
-        page: validatedQuery.page,
-        pageSize: validatedQuery.pageSize,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / validatedQuery.pageSize),
-      },
-    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(

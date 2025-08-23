@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
 
-export async function GET(_request:NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(_request.url)
     const itemId = searchParams.get('itemId')
     const sellerId = searchParams.get('sellerId')
 
@@ -141,7 +141,7 @@ export async function GET(_request:NextRequest) {
 
 export async function POST(_request:NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { itemId, newPrice, optimizationId } = body
 
     const supabase = await createRouteHandlerClient()

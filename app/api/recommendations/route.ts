@@ -13,17 +13,13 @@ export async function GET(_request:NextRequest) {
     }
 
     // Parse query parameters
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(_request.url)
     const type = searchParams.get('type') as 'hybrid' | 'collaborative' | 'content' | 'realtime' | 'contextual' || 'hybrid'
     const limit = parseInt(searchParams.get('limit') || '10')
-    const sessionId = searchParams.get('sessionId')
-    const context = searchParams.get('context') ? JSON.parse(searchParams.get('context')!) : {}
 
     // Get recommendations
     const recommendations = await getRecommendations(user.id, type, {
-      limit,
-      sessionId: sessionId || undefined,
-      context
+      limit
     })
 
     // Get product details for recommendations
@@ -100,7 +96,7 @@ export async function POST(_request:NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await request.json()
+    const body = await _request.json()
     const { action, productId, sessionId } = body
 
     // Validate required fields

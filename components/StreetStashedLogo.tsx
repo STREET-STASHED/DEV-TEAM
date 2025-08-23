@@ -13,7 +13,6 @@ interface LogoProps {
 export function StreetStashedLogo({ 
   href = '/', 
   size = 'md', 
-  variant = 'light',
   showText = true,
   className = '' 
 }: LogoProps) {
@@ -27,13 +26,6 @@ export function StreetStashedLogo({
     sm: 'text-lg',
     md: 'text-xl',
     lg: 'text-2xl'
-  }
-
-  const variantClasses = {
-    light: 'text-white',
-    dark: 'text-gray-900',
-    gold: 'text-yellow-500',
-    graffiti: 'text-transparent bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 bg-clip-text'
   }
 
   const LogoContent = () => (

@@ -48,7 +48,7 @@ export async function GET(request:NextRequest) {
       }
 
       return NextResponse.json({ recommendations: data })
-    } catch (rpcError) {
+    } catch (_rpcError) {
       // Fallback to mock data if RPC fails
       console.log('RPC call failed, returning mock fit recommendations')
       return NextResponse.json({ 
@@ -63,8 +63,6 @@ export async function GET(request:NextRequest) {
         ]
       })
     }
-
-    return NextResponse.json({ recommendations: data })
   } catch (error) {
     console.error('Error getting fit recommendations:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { 
   MapPinIcon, 
@@ -14,7 +14,7 @@ import {
 
 interface OrderTrackingProps {
   orderId: string
-  onStatusUpdate?: (status: string) => void
+  onStatusUpdate?: (_status: string) => void
 }
 
 interface OrderStatus {
@@ -58,22 +58,16 @@ const STATUS_STEPS = [
   { key: 'delivered', label: 'Delivered', icon: CheckCircleIcon, color: 'text-green-500' }
 ]
 
-export default function OrderTracking({ orderId, onStatusUpdate }: OrderTrackingProps) {
+export default function OrderTracking({ orderId }: OrderTrackingProps) {
   const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
   const [order, setOrder] = useState<Order | null>(null)
   const [statusHistory, setStatusHistory] = useState<OrderStatus[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [currentStep, setCurrentStep] = useState(0)
   const [estimatedTime, setEstimatedTime] = useState<string>('')
-  const [driverLocation, setDriverLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [_driverLocation, _setDriverLocation] = useState<{lat: number, lng: number} | null>(null)
 
-  useEffect(() => {
-    loadOrderData()
-    const interval = setInterval(loadOrderData, 30000) // Refresh every 30 seconds
-    return () => clearInterval(interval)
-  }, [orderId])
-
-  const loadOrderData = async () => {
+  const loadOrderData = useCallback(async () => {
     try {
       // Load order details
       const { data: orderData, error: orderError } = await supabase
@@ -110,7 +104,7 @@ export default function OrderTracking({ orderId, onStatusUpdate }: OrderTracking
         
         // Update driver location if available
         if (formattedOrder.driver?.last_location) {
-          setDriverLocation(formattedOrder.driver.last_location)
+          _setDriverLocation(formattedOrder.driver.last_location)
         }
       }
 
@@ -131,7 +125,13 @@ export default function OrderTracking({ orderId, onStatusUpdate }: OrderTracking
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [orderId, supabase])
+
+  useEffect(() => {
+    loadOrderData()
+    const interval = setInterval(loadOrderData, 30000) // Refresh every 30 seconds
+    return () => clearInterval(interval)
+  }, [orderId, loadOrderData, supabase])
 
   const calculateEstimatedDelivery = (orderData: Order) => {
     if (!orderData.picked_up_at) return
@@ -152,11 +152,10 @@ export default function OrderTracking({ orderId, onStatusUpdate }: OrderTracking
     }))
   }
 
-  const getStatusIcon = (status: string, index: number) => {
+  const getStatusIcon = (_status: string, index: number) => {
     const step = STATUS_STEPS.find(s => s.key === status)
     if (!step) return null
 
-    const Icon = step.icon
     const isCompleted = index <= currentStep
     const isCurrent = index === currentStep
 
@@ -393,27 +392,29 @@ export default function OrderTracking({ orderId, onStatusUpdate }: OrderTracking
         <div className="bg-ink-800 rounded-lg p-4">
           <h4 className="font-semibold text-white mb-3">Status Updates</h4>
           <div className="space-y-3">
-            {statusHistory.map((status, index) => (
-              <div key={status.id} className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-white font-medium">
-                      {status.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                    <span className="text-ink-400 text-sm">
-                      {formatTimestamp(status.timestamp)}
-                    </span>
+            {statusHistory.map((status, _index) => {
+              return (
+                <div key={status.id} className="flex items-start space-x-3">
+                  <div className="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-white font-medium">
+                        {status.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                      <span className="text-ink-400 text-sm">
+                        {formatTimestamp(status.timestamp)}
+                      </span>
+                    </div>
+                    {status.notes && (
+                      <p className="text-ink-300 text-sm mt-1">{status.notes}</p>
+                    )}
+                    {status.location && (
+                      <p className="text-ink-400 text-xs mt-1">📍 {status.location}</p>
+                    )}
                   </div>
-                  {status.notes && (
-                    <p className="text-ink-300 text-sm mt-1">{status.notes}</p>
-                  )}
-                  {status.location && (
-                    <p className="text-ink-400 text-xs mt-1">📍 {status.location}</p>
-                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}

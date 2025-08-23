@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   StarIcon, 
@@ -9,10 +9,8 @@ import {
   FireIcon,
   BoltIcon,
   SparklesIcon,
-  ArrowTrendingUpIcon,
   UserGroupIcon,
-  ShoppingBagIcon,
-  CalendarIcon
+  ShoppingBagIcon
 } from '@heroicons/react/24/outline'
 
 interface Reward {
@@ -57,88 +55,6 @@ export default function RewardsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadRewardsData()
-  }, [])
-
-  const loadRewardsData = async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Load data from APIs with fallback to mock data
-      await Promise.all([
-        loadRewards(),
-        loadUserStats(),
-        loadLeaderboard()
-      ])
-    } catch (error) {
-      console.error('Error loading rewards data:', error)
-      setError('Failed to load some data. Showing demo content.')
-      // Fallback to mock data for demo purposes
-      loadMockData()
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadRewards = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/rewards')
-      if (response.ok) {
-        const data = await response.json()
-        setRewards(data.rewards || [])
-      } else {
-        throw new Error('Failed to load rewards')
-      }
-    } catch (error) {
-      console.error('Error loading rewards:', error)
-      // Fallback to mock data
-      loadMockRewards()
-    }
-  }
-
-  const loadUserStats = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/rewards/stats')
-      if (response.ok) {
-        const data = await response.json()
-        setUserStats(data.stats || null)
-      } else {
-        throw new Error('Failed to load user stats')
-      }
-    } catch (error) {
-      console.error('Error loading user stats:', error)
-      // Fallback to mock data
-      loadMockUserStats()
-    }
-  }
-
-  const loadLeaderboard = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/rewards/leaderboard')
-      if (response.ok) {
-        const data = await response.json()
-        setLeaderboard(data.leaderboard || [])
-      } else {
-        throw new Error('Failed to load leaderboard')
-      }
-    } catch (error) {
-      console.error('Error loading leaderboard:', error)
-      // Fallback to mock data
-      loadMockLeaderboard()
-    }
-  }
-
-  const loadMockData = () => {
-    loadMockRewards()
-    loadMockUserStats()
-    loadMockLeaderboard()
-  }
-
   const loadMockRewards = () => {
     const mockRewards: Reward[] = [
       {
@@ -156,68 +72,29 @@ export default function RewardsPage() {
       },
       {
         id: '2',
-        name: 'Style Challenge Winner',
-        description: 'Win the monthly style challenge and earn bonus rewards',
-        points: 500,
-        tokens: 50,
+        name: 'Social Butterfly',
+        description: 'Share 5 items on social media',
+        points: 50,
+        tokens: 5,
         status: 'locked',
-        expiresAt: '2024-11-30',
-        category: 'challenge',
-        requirements: ['Participate in challenge', 'Win challenge'],
+        expiresAt: '2024-12-31',
+        category: 'social',
+        requirements: ['Share 5 items'],
         progress: 0,
-        icon: '🏆'
+        icon: '🦋'
       },
       {
         id: '3',
-        name: 'Referral Master',
-        description: 'Invite friends and earn rewards for each successful referral',
-        points: 250,
-        tokens: 25,
-        status: 'available',
-        expiresAt: '2024-12-31',
-        category: 'referral',
-        requirements: ['Invite 3 friends'],
-        progress: 0,
-        icon: '👥'
-      },
-      {
-        id: '4',
-        name: 'Daily Streak',
-        description: 'Visit the app daily for 7 consecutive days',
-        points: 150,
-        tokens: 15,
+        name: 'Review Master',
+        description: 'Write 10 product reviews',
+        points: 200,
+        tokens: 20,
         status: 'locked',
         expiresAt: '2024-12-31',
         category: 'engagement',
-        requirements: ['Visit app daily', 'Complete 7 days'],
-        progress: 0,
-        icon: '🔥'
-      },
-      {
-        id: '5',
-        name: 'Review Contributor',
-        description: 'Write helpful product reviews and earn community points',
-        points: 75,
-        tokens: 8,
-        status: 'available',
-        expiresAt: '2024-12-31',
-        category: 'community',
-        requirements: ['Write 5 reviews'],
+        requirements: ['Write 10 reviews'],
         progress: 0,
         icon: '✍️'
-      },
-      {
-        id: '6',
-        name: 'Social Media Star',
-        description: 'Share your style on social media and tag StreetStashed',
-        points: 200,
-        tokens: 20,
-        status: 'available',
-        expiresAt: '2024-12-31',
-        category: 'social',
-        requirements: ['Share on Instagram', 'Tag @streetstashed'],
-        progress: 0,
-        icon: '📱'
       }
     ]
     setRewards(mockRewards)
@@ -252,6 +129,88 @@ export default function RewardsPage() {
     ]
     setLeaderboard(mockLeaderboard)
   }
+
+  const loadRewards = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/rewards')
+      if (response.ok) {
+        const data = await response.json()
+        setRewards(data.rewards || [])
+      } else {
+        throw new Error('Failed to load rewards')
+      }
+    } catch (error) {
+      console.error('Error loading rewards:', error)
+      // Fallback to mock data
+      loadMockRewards()
+    }
+  }, [])
+
+  const loadUserStats = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/rewards/stats')
+      if (response.ok) {
+        const data = await response.json()
+        setUserStats(data.stats || null)
+      } else {
+        throw new Error('Failed to load user stats')
+      }
+    } catch (error) {
+      console.error('Error loading user stats:', error)
+      // Fallback to mock data
+      loadMockUserStats()
+    }
+  }, [])
+
+  const loadLeaderboard = useCallback(async () => {
+    try {
+      // Try to load from real API first
+      const response = await fetch('/api/rewards/leaderboard')
+      if (response.ok) {
+        const data = await response.json()
+        setLeaderboard(data.leaderboard || [])
+      } else {
+        throw new Error('Failed to load leaderboard')
+      }
+    } catch (error) {
+      console.error('Error loading leaderboard:', error)
+      // Fallback to mock data
+      loadMockLeaderboard()
+    }
+  }, [])
+
+  const loadMockData = useCallback(() => {
+    loadMockRewards()
+    loadMockUserStats()
+    loadMockLeaderboard()
+  }, [])
+
+  const loadRewardsData = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Load data from APIs with fallback to mock data
+      await Promise.all([
+        loadRewards(),
+        loadUserStats(),
+        loadLeaderboard()
+      ])
+    } catch (error) {
+      console.error('Error loading rewards data:', error)
+      setError('Failed to load some data. Showing demo content.')
+      // Fallback to mock data for demo purposes
+      loadMockData()
+    } finally {
+      setIsLoading(false)
+    }
+  }, [loadRewards, loadUserStats, loadLeaderboard, loadMockData])
+
+  useEffect(() => {
+    loadRewardsData()
+  }, [loadRewardsData])
 
   const claimReward = async (rewardId: string) => {
     try {

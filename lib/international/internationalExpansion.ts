@@ -458,17 +458,10 @@ export class InternationalExpansionSystem {
   public calculateShippingCost(origin: string, destination: string, weight: number, method: string): Record<string, unknown> {
     // Mock shipping calculation - in real app, this would integrate with shipping APIs
     const baseCosts = {
-      'standard': 15,
-      'express': 35,
-      'premium': 75,
-      'same-day': 150
-    };
-
-    const _distanceMultipliers = {
-      'local': 1.0,
-      'regional': 1.5,
-      'national': 2.0,
-      'international': 3.5
+      'standard': 10,
+      'express': 25,
+      'premium': 50,
+      'same-day': 100
     };
 
     const baseCost = baseCosts[method as keyof typeof baseCosts] || 15;
@@ -549,7 +542,7 @@ export class InternationalExpansionSystem {
   }
 
   // Market Entry Strategy
-  public getMarketEntryStrategy(region: string): Record<string, unknown> {
+  public getMarketEntryStrategy(region: string): Record<string, unknown> | null {
     const localization = this.localizations.get(region);
     if (!localization) return null;
 

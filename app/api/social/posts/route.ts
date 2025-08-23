@@ -42,7 +42,7 @@ export async function GET(request:NextRequest) {
         }
         
         return NextResponse.json({ posts: data })
-      } catch (rpcError) {
+      } catch (_rpcError) {
         // Fallback to mock data if RPC fails
         console.log('RPC call failed, returning mock trending posts')
         return NextResponse.json({ 
@@ -96,7 +96,7 @@ export async function GET(request:NextRequest) {
         }
         
         return NextResponse.json({ posts: data })
-      } catch (rpcError) {
+      } catch (_rpcError) {
         // Fallback to mock data if RPC fails
         console.log('RPC call failed, returning mock user feed')
         return NextResponse.json({ 
@@ -146,7 +146,7 @@ export async function GET(request:NextRequest) {
         }
         
         return NextResponse.json({ posts: data })
-      } catch (dbError) {
+      } catch (_dbError) {
         // Fallback to mock data if database query fails
         console.log('Database query failed, returning mock user posts')
         return NextResponse.json({ 
@@ -197,7 +197,7 @@ export async function GET(request:NextRequest) {
       }
       
       return NextResponse.json({ posts: data })
-    } catch (rpcError) {
+    } catch (_rpcError) {
       // Fallback to mock data if RPC fails
       console.log('RPC call failed, returning mock trending posts')
       return NextResponse.json({ 

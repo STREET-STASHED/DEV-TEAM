@@ -4,13 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { 
   MapPinIcon, 
-  ClockIcon, 
   CurrencyDollarIcon, 
   TruckIcon,
-  CheckCircleIcon,
-  ExclamationTriangleIcon,
   StarIcon,
-  LocationMarkerIcon
+  CheckCircleIcon
 } from '@heroicons/react/24/outline'
 
 interface Order {
@@ -75,8 +72,8 @@ export default function DriverDashboardPage() {
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'pending'>('all')
   const [sortBy, setSortBy] = useState<'created_at' | 'distance' | 'earnings'>('created_at')
   const [isOnline, setIsOnline] = useState(false)
-  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null)
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [_currentLocation, _setCurrentLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [_selectedOrder, _setSelectedOrder] = useState<Order | null>(null)
 
   const loadDriverData = useCallback(async () => {
     try {
@@ -100,81 +97,35 @@ export default function DriverDashboardPage() {
           .eq('driver_id', user.id)
 
         if (earnings) {
-          const totalEarnings = earnings.reduce((sum, e) => sum + parseFloat(e.total_earnings), 0)
-          const totalDistance = earnings.reduce((sum, e) => sum + (e.distance_bonus || 0), 0)
+          const totalEarnings = earnings.reduce((sum, e) => sum + e.amount, 0)
+          const totalOrders = earnings.length
           
           setStats(prev => ({
             ...prev,
             totalEarnings,
-            totalDistance,
-            totalOrders: earnings.length,
-            completionRate: profile.completion_rate || 100,
-            averageRating: profile.rating || 5.0
+            totalOrders
           }))
         }
       }
-    } catch (error) {
-      console.error('Failed to load driver data:', error)
-    }
-  }, [supabase])
 
-  const loadOrders = useCallback(async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      // Get all orders assigned to this driver
-      const { data: driverOrders, error } = await supabase
+      // Load orders
+      const { data: driverOrders } = await supabase
         .from('orders')
-        .select(`
-          *,
-          buyer:profiles!orders_buyer_id_fkey(full_name, phone),
-          seller:profiles!orders_seller_id_fkey(full_name, phone)
-        `)
+        .select('*')
         .eq('driver_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Failed to load orders:', error)
-        return
-      }
-
       if (driverOrders) {
-        const formattedOrders = driverOrders.map(order => ({
-          ...order,
-          buyer_name: order.buyer?.full_name || 'Unknown',
-          buyer_phone: order.buyer?.phone || 'N/A',
-          seller_name: order.seller?.full_name || 'Unknown',
-          seller_phone: order.seller?.phone || 'N/A'
-        }))
-        setOrders(formattedOrders)
+        setOrders(driverOrders)
       }
     } catch (error) {
-      console.error('Failed to load orders:', error)
+      console.error('Failed to load driver data:', error)
     } finally {
       setIsLoading(false)
     }
   }, [supabase])
 
-  const startLocationTracking = useCallback(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.watchPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords
-          setCurrentLocation({ lat: latitude, lng: longitude })
-          
-          // Update driver location in database
-          updateDriverLocation(latitude, longitude)
-        },
-        (error) => {
-          console.error('Location tracking failed:', error)
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
-      )
-    }
-  }, [])
-
-  const updateDriverLocation = async (lat: number, lng: number) => {
+  const updateDriverLocation = useCallback(async (lat: number, lng: number) => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -189,7 +140,26 @@ export default function DriverDashboardPage() {
     } catch (error) {
       console.error('Failed to update location:', error)
     }
-  }
+  }, [supabase])
+
+  const startLocationTracking = useCallback(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords
+          updateDriverLocation(latitude, longitude)
+        },
+        (error) => {
+          console.error('Location tracking error:', error)
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      )
+    }
+  }, [updateDriverLocation])
 
   const toggleOnlineStatus = async () => {
     try {
@@ -323,9 +293,8 @@ export default function DriverDashboardPage() {
   // Load driver data
   useEffect(() => {
     loadDriverData()
-    loadOrders()
     startLocationTracking()
-  }, [loadDriverData, loadOrders, startLocationTracking])
+  }, [loadDriverData, startLocationTracking])
 
   if (isLoading) {
     return (
@@ -464,10 +433,9 @@ export default function DriverDashboardPage() {
             </div>
 
             {/* Location Status */}
-            {currentLocation && (
+            {_currentLocation && (
               <div className="flex items-center space-x-2 text-sm text-ink-300">
-                <LocationMarkerIcon className="w-4 h-4" />
-                <span>Location: {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)}</span>
+                <span>Location: {_currentLocation.lat.toFixed(4)}, {_currentLocation.lng.toFixed(4)}</span>
               </div>
             )}
           </div>

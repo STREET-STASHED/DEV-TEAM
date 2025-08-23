@@ -324,7 +324,7 @@ export class BrandOnboardingSystem {
       estimatedTimeRemaining: this.onboardingSteps.reduce((sum, step) => sum + step.estimatedTime, 0),
       completedSteps: [],
       pendingSteps: this.onboardingSteps.map(step => step.id),
-      rewards: this.generateRewards(_brandId, template)
+      rewards: this.generateRewards(_brandId, template || null)
     };
 
     this.progress.set(_brandId, progress);
@@ -626,7 +626,7 @@ export class BrandOnboardingSystem {
   }
 
   // Quick Start Features
-  public getQuickStartGuide(_brandId: string): Record<string, unknown> {
+  public getQuickStartGuide(_brandId: string): Record<string, unknown> | null {
     const progress = this.progress.get(_brandId);
     if (!progress) return null;
 

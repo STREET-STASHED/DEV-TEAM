@@ -10,7 +10,7 @@ export async function GET() {
     let redisHealthy = false
     try {
       redisHealthy = await checkRedisHealth()
-    } catch (error) {
+    } catch (_error) {
       console.log('Redis not available, continuing without cache')
     }
     

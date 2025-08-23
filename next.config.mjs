@@ -3,14 +3,13 @@ import process from "process";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    appDir: true,
     optimizePackageImports: ['lucide-react'],
   },
   eslint: {
-    ignoreDuringBuilds: true, // Temporarily disable ESLint during build
+    ignoreDuringBuilds: false, // Enable ESLint for production builds
   },
   typescript: {
-    ignoreBuildErrors: true, // Temporarily disable TypeScript errors during build
+    ignoreBuildErrors: false, // Enable TypeScript checking for production builds
   },
 }
 

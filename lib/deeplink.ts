@@ -88,7 +88,7 @@ class DeepLinkService {
     if (typeof window === 'undefined') return false;
     
     // Check for Capacitor
-    return !!(window as Record<string, unknown>).Capacitor;
+    return !!(window as any).Capacitor;
   }
 
   /**

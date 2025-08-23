@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -67,19 +68,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   // Fetch notifications when authenticated
-  useEffect(() => {
-    if (isAuthenticated && hydrated) {
-      void fetchNotifications();
-    }
-  }, [isAuthenticated, hydrated]);
-
-  // Update unread count
-  useEffect(() => {
-    const unread = notifications.filter(n => !n.read).length;
-    setUnreadCount(unread);
-  }, [notifications]);
-
-  const fetchNotifications = async (): Promise<void> => {
+  const fetchNotifications = useCallback(async (): Promise<void> => {
     if (!isAuthenticated || !user?.id) return;
     
     try {
@@ -123,7 +112,19 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({
         }
       ]);
     }
-  };
+  }, [isAuthenticated, user?.id]);
+
+  useEffect(() => {
+    if (isAuthenticated && hydrated) {
+      void fetchNotifications();
+    }
+  }, [isAuthenticated, hydrated, fetchNotifications]);
+
+  // Update unread count
+  useEffect(() => {
+    const unread = notifications.filter(n => !n.read).length;
+    setUnreadCount(unread);
+  }, [notifications]);
 
   const markAsRead = async (id: string) => {
     if (!isAuthenticated || !user?.id) return;

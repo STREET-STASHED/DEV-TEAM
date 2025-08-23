@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
 
-export async function GET(_request:NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
+    const { searchParams } = new URL(_request.url)
     const _itemId = searchParams.get('_itemId')
     const sellerId = searchParams.get('sellerId')
     const forecastDays = parseInt(searchParams.get('forecastDays') || '30')
@@ -42,7 +42,6 @@ export async function GET(_request:NextRequest) {
       if (insertError) console.error('Error saving forecast:', insertError)
 
       return NextResponse.json({ 
-        _itemId,
         forecastDays,
         ...forecast[0]
       })
@@ -66,7 +65,7 @@ export async function GET(_request:NextRequest) {
 
         if (forecast && forecast[0]) {
           forecasts.push({
-            _itemId: item.item_id,
+            itemId: item.item_id,
             itemName: (item.items as any)?.name,
             forecastDays,
             ...forecast[0]
@@ -84,10 +83,10 @@ export async function GET(_request:NextRequest) {
   }
 }
 
-export async function POST(_request:NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json()
-    const { _itemId, actualDemand, forecastId } = body
+    const body = await _request.json()
+    const { actualDemand, forecastId } = body
 
     const supabase = await createRouteHandlerClient()
 

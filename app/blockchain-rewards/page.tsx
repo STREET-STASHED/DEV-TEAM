@@ -1,13 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   CurrencyDollarIcon, 
   ChartBarIcon, 
   GiftIcon, 
-  FireIcon,
-  StarIcon,
   BoltIcon,
   WalletIcon,
   CogIcon,
@@ -145,7 +143,7 @@ export default function BlockchainRewardsPage() {
     // Add more dynamic rewards
   ])
 
-  const [smartContracts, setSmartContracts] = useState<SmartContract[]>([
+  const [smartContracts, _setSmartContracts] = useState<SmartContract[]>([
     {
       id: '1',
       name: 'Shopping Escrow',
@@ -178,12 +176,6 @@ export default function BlockchainRewardsPage() {
     }
   ])
 
-  // Check if Web3 is available
-  useEffect(() => {
-    checkWeb3Availability()
-    loadUserProgress()
-  }, [])
-
   const checkWeb3Availability = () => {
     if (typeof window !== 'undefined' && window.ethereum) {
       console.log('Web3 detected')
@@ -192,7 +184,7 @@ export default function BlockchainRewardsPage() {
     }
   }
 
-  const loadUserProgress = () => {
+  const loadUserProgress = useCallback(() => {
     // Load user progress from localStorage or API
     const savedProgress = localStorage.getItem('user-rewards-progress')
     if (savedProgress) {
@@ -203,7 +195,12 @@ export default function BlockchainRewardsPage() {
         console.error('Error loading progress:', error)
       }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    checkWeb3Availability()
+    loadUserProgress()
+  }, [loadUserProgress])
 
   const updateRewardsProgress = (progress: any) => {
     setRewards(prev => prev.map(reward => {
@@ -251,6 +248,10 @@ export default function BlockchainRewardsPage() {
 
   const setupWalletConnection = async (address: string) => {
     try {
+      if (!window.ethereum) {
+        throw new Error('Web3 wallet not available')
+      }
+      
       // Get network info
       const chainId = await window.ethereum.request({ method: 'eth_chainId' })
       const network = getNetworkName(chainId)
@@ -295,25 +296,22 @@ export default function BlockchainRewardsPage() {
     }
   }
 
-  const handleChainChange = (chainId: string) => {
-    // Reload page when network changes
-    window.location.reload()
+  const handleChainChange = (_chainId: string) => {
+    // Reload wallet info when chain changes
+    if (walletInfo?.address) {
+      setupWalletConnection(walletInfo.address)
+    }
   }
 
   const disconnectWallet = () => {
+    if (window.ethereum) {
+      window.ethereum.removeAllListeners()
+    }
+    
     setWalletConnected(false)
     setWalletInfo(null)
-    setTokenBalances(prev => prev.map(token => ({
-      ...token,
-      balance: 0,
-      value: 0
-    })))
-    
-    // Remove event listeners
-    if (window.ethereum) {
-      window.ethereum.removeListener('accountsChanged', handleAccountChange)
-      window.ethereum.removeListener('chainChanged', handleChainChange)
-    }
+    setTokenBalances([])
+    setConnectionError(null)
   }
 
   const getNetworkName = (chainId: string): string => {
@@ -360,6 +358,10 @@ export default function BlockchainRewardsPage() {
 
   const getERC20Balance = async (contractAddress: string, userAddress: string): Promise<number> => {
     try {
+      if (!window.ethereum) {
+        throw new Error('Web3 wallet not available')
+      }
+      
       // ERC-20 balanceOf function
       const data = '0x70a08231' + '000000000000000000000000' + userAddress.slice(2)
       
@@ -410,7 +412,7 @@ export default function BlockchainRewardsPage() {
     }
   }
 
-  const simulateClaimTransaction = async (reward: Reward): Promise<string> => {
+  const simulateClaimTransaction = async (_reward: Reward): Promise<string> => {
     // Simulate blockchain transaction
     await new Promise(resolve => setTimeout(resolve, 2000))
     
@@ -420,7 +422,7 @@ export default function BlockchainRewardsPage() {
     return txHash
   }
 
-  const sendTokens = async (tokenSymbol: string, amount: number, toAddress: string) => {
+  const sendTokens = async (_tokenSymbol: string, _amount: number, _toAddress: string) => {
     if (!walletConnected || !walletInfo) {
       setConnectionError('Please connect your wallet first')
       return
@@ -428,7 +430,7 @@ export default function BlockchainRewardsPage() {
 
     try {
       // Simulate token transfer
-      const txHash = await simulateTokenTransfer(tokenSymbol, amount, toAddress)
+      const txHash = await simulateTokenTransfer(_tokenSymbol, _amount, _toAddress)
       
       alert(`Tokens sent successfully! Transaction: ${txHash}`)
       
@@ -443,7 +445,7 @@ export default function BlockchainRewardsPage() {
     }
   }
 
-  const simulateTokenTransfer = async (tokenSymbol: string, amount: number, toAddress: string): Promise<string> => {
+  const simulateTokenTransfer = async (_tokenSymbol: string, _amount: number, _toAddress: string): Promise<string> => {
     // Simulate blockchain transaction
     await new Promise(resolve => setTimeout(resolve, 1500))
     
@@ -453,7 +455,7 @@ export default function BlockchainRewardsPage() {
     return txHash
   }
 
-  const createProposal = async (title: string, description: string) => {
+  const createProposal = async (_title: string, _description: string) => {
     if (!walletConnected || !walletInfo) {
       setConnectionError('Please connect your wallet first')
       return
@@ -461,7 +463,7 @@ export default function BlockchainRewardsPage() {
 
     try {
       // Simulate proposal creation
-      const proposalId = await simulateCreateProposal(title, description)
+      const proposalId = await simulateCreateProposal(_title, _description)
       
       alert(`Proposal created successfully! ID: ${proposalId}`)
       
@@ -471,7 +473,7 @@ export default function BlockchainRewardsPage() {
     }
   }
 
-  const simulateCreateProposal = async (title: string, description: string): Promise<string> => {
+  const simulateCreateProposal = async (_title: string, _description: string): Promise<string> => {
     // Simulate blockchain transaction
     await new Promise(resolve => setTimeout(resolve, 2000))
     
@@ -481,7 +483,7 @@ export default function BlockchainRewardsPage() {
     return proposalId
   }
 
-  const voteOnProposal = async (proposalId: string, vote: 'yes' | 'no') => {
+  const voteOnProposal = async (_proposalId: string, _vote: 'yes' | 'no') => {
     if (!walletConnected || !walletInfo) {
       setConnectionError('Please connect your wallet first')
       return
@@ -489,7 +491,7 @@ export default function BlockchainRewardsPage() {
 
     try {
       // Simulate voting transaction
-      const txHash = await simulateVoteTransaction(proposalId, vote)
+      const txHash = await simulateVoteTransaction(_proposalId, _vote)
       
       alert(`Vote recorded successfully! Transaction: ${txHash}`)
       
@@ -499,7 +501,7 @@ export default function BlockchainRewardsPage() {
     }
   }
 
-  const simulateVoteTransaction = async (proposalId: string, vote: 'yes' | 'no'): Promise<string> => {
+  const simulateVoteTransaction = async (_proposalId: string, _vote: 'yes' | 'no'): Promise<string> => {
     // Simulate blockchain transaction
     await new Promise(resolve => setTimeout(resolve, 1500))
     
@@ -1014,9 +1016,10 @@ export default function BlockchainRewardsPage() {
 declare global {
   interface Window {
     ethereum?: {
-      request: (args: { method: string; params?: any[] }) => Promise<any>
-      on: (event: string, callback: (...args: any[]) => void) => void
-      removeListener: (event: string, callback: (...args: any[]) => void) => void
+      request: (_args: { method: string; params?: any[] }) => Promise<any>
+      on: (_event: string, _callback: (..._args: any[]) => void) => void
+      removeListener: (_event: string, _callback: (..._args: any[]) => void) => void
+      removeAllListeners: () => void
     }
   }
 }

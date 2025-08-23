@@ -29,10 +29,6 @@ export default function ReferralLeaderboard() {
   const [currentOffset, setCurrentOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    fetchLeaderboard();
-  }, [currentOffset, fetchLeaderboard]);
-
   const fetchLeaderboard = useCallback(async () => {
     if (!flags.leaderboard) return;
 
@@ -57,6 +53,10 @@ export default function ReferralLeaderboard() {
       setLoading(false);
     }
   }, [currentOffset]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [currentOffset, fetchLeaderboard]);
 
   const loadMore = () => {
     setCurrentOffset(prev => prev + 20);
@@ -163,10 +163,12 @@ export default function ReferralLeaderboard() {
 // Leaderboard Row Component
 function LeaderboardRow({
   entry,
+  rank: _rank,
   rankIcon,
   rankColor,
 }: {
   entry: LeaderboardEntry;
+  rank: number;
   rankIcon: string;
   rankColor: string;
 }) {

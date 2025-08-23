@@ -3,9 +3,13 @@ import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
 import { rateLimit } from '@/lib/rateLimitApp';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-});
+// Lazy initialize Stripe to avoid build-time issues
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,6 +36,9 @@ export async function POST(request: NextRequest) {
     if (!amount || !orderId) {
       return NextResponse.json({ error: 'Amount and order ID are required' }, { status: 400 });
     }
+
+    // Initialize Stripe only when needed
+    const stripe = getStripe();
 
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({

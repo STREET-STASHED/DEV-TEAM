@@ -1,16 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   MagnifyingGlassIcon, 
-  FilterIcon, 
+  FunnelIcon, 
   StarIcon,
   ShoppingCartIcon,
   HeartIcon,
-  MapPinIcon,
-  ClockIcon,
-  CurrencyDollarIcon
+  MapPinIcon
 } from '@heroicons/react/24/outline'
 import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
 
@@ -58,7 +56,7 @@ interface Store {
   isVerified: boolean
 }
 
-export default function BuyerMarketplacePage() {
+function MarketplaceContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
@@ -74,9 +72,85 @@ export default function BuyerMarketplacePage() {
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
 
+  const loadMarketplaceData = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Load data from APIs with fallback to mock data
+      await Promise.all([
+        // API calls would go here
+      ])
+      
+      // For now, use mock data
+      setProducts(mockProducts)
+      setCategories(mockCategories)
+      setStores(mockStores)
+      
+    } catch (error) {
+      console.error('Error loading marketplace data:', error)
+      setError('Failed to load marketplace data')
+      
+      // Fallback to mock data
+      setProducts(mockProducts)
+      setCategories(mockCategories)
+      setStores(mockStores)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  const applyFilters = useCallback(() => {
+    let filtered = [...products]
+    
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+    
+    // Apply category filter
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(product => product.category === selectedCategory)
+    }
+    
+    // Apply store filter
+    if (selectedStore !== 'all') {
+      filtered = filtered.filter(product => product.storeId === selectedStore)
+    }
+    
+    // Apply price filter
+    filtered = filtered.filter(product => 
+      product.price >= priceRange[0] && product.price <= priceRange[1]
+    )
+    
+    // Apply sorting
+    switch (sortBy) {
+      case 'price-low':
+        filtered.sort((a, b) => a.price - b.price)
+        break
+      case 'price-high':
+        filtered.sort((a, b) => b.price - a.price)
+        break
+      case 'rating':
+        filtered.sort((a, b) => b.rating - a.rating)
+        break
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        break
+      default: // trending
+        filtered.sort((a, b) => (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0))
+    }
+    
+    setFilteredProducts(filtered)
+  }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
+
   useEffect(() => {
     loadMarketplaceData()
-  }, [])
+  }, [loadMarketplaceData])
 
   useEffect(() => {
     // Get URL parameters
@@ -91,131 +165,7 @@ export default function BuyerMarketplacePage() {
 
   useEffect(() => {
     applyFilters()
-  }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
-
-  const loadMarketplaceData = async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Load data from APIs with fallback to mock data
-      await Promise.all([
-        loadProducts(),
-        loadCategories(),
-        loadStores()
-      ])
-    } catch (error) {
-      console.error('Error loading marketplace data:', error)
-      setError('Failed to load some data. Showing demo content.')
-      // Fallback to mock data for demo purposes
-      setProducts(mockProducts)
-      setCategories(mockCategories)
-      setStores(mockStores)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const loadProducts = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/items')
-      if (response.ok) {
-        const data = await response.json()
-        setProducts(data.items || [])
-      } else {
-        throw new Error('Failed to load products')
-      }
-    } catch (error) {
-      console.error('Error loading products:', error)
-      // Fallback to mock data
-      setProducts(mockProducts)
-    }
-  }
-
-  const loadCategories = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/categories')
-      if (response.ok) {
-        const data = await response.json()
-        setCategories(data.categories || [])
-      } else {
-        throw new Error('Failed to load categories')
-      }
-    } catch (error) {
-      console.error('Error loading categories:', error)
-      // Fallback to mock data
-      setCategories(mockCategories)
-    }
-  }
-
-  const loadStores = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/stores')
-      if (response.ok) {
-        const data = await response.json()
-        setStores(data.stores || [])
-      } else {
-        throw new Error('Failed to load stores')
-      }
-    } catch (error) {
-      console.error('Error loading stores:', error)
-      // Fallback to mock data
-      setStores(mockStores)
-    }
-  }
-
-  const applyFilters = () => {
-    let filtered = [...products]
-
-    // Search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    }
-
-    // Category filter
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => product.category === selectedCategory)
-    }
-
-    // Store filter
-    if (selectedStore !== 'all') {
-      filtered = filtered.filter(product => product.storeId === selectedStore)
-    }
-
-    // Price filter
-    filtered = filtered.filter(product => 
-      product.price >= priceRange[0] && product.price <= priceRange[1]
-    )
-
-    // Sort
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price)
-        break
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price)
-        break
-      case 'rating':
-        filtered.sort((a, b) => b.rating - a.rating)
-        break
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-        break
-      case 'trending':
-      default:
-        filtered.sort((a, b) => (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0))
-        break
-    }
-
-    setFilteredProducts(filtered)
-  }
+  }, [applyFilters])
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -312,7 +262,7 @@ export default function BuyerMarketplacePage() {
               onClick={() => setShowFilters(!showFilters)}
               className="bg-ink-900 hover:bg-ink-700 px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
             >
-              <FilterIcon className="w-5 h-5" />
+              <FunnelIcon className="w-5 h-5" />
               <span>Filters</span>
             </button>
 
@@ -540,5 +490,13 @@ export default function BuyerMarketplacePage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function BuyerMarketplacePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MarketplaceContent />
+    </Suspense>
   )
 }

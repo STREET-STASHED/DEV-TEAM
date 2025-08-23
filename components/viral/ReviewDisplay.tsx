@@ -34,10 +34,6 @@ export default function ReviewDisplay({
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [subjectType, subjectId, currentPage, fetchReviews]);
-
   const fetchReviews = useCallback(async () => {
     if (!flags.reviews) return;
 
@@ -57,7 +53,7 @@ export default function ReviewDisplay({
 
       const data: ReviewsData = await response.json();
       setReviews(prev => currentPage === 1 ? data.reviews : [...prev, ...data.reviews]);
-      setHasMore(data.pagination.hasMore);
+      setHasMore(data.pagination.page < data.pagination.totalPages);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch reviews');
     } finally {
@@ -65,6 +61,9 @@ export default function ReviewDisplay({
     }
   }, [subjectType, subjectId, currentPage]);
 
+  useEffect(() => {
+    fetchReviews();
+  }, [subjectType, subjectId, currentPage, fetchReviews]);
 
 
   const loadMore = () => {

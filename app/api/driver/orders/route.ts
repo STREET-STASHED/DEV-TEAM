@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { driverId, orderId, action, notes, location } = body
+    const { driverId, orderId, action, location } = body
 
     if (!driverId || !orderId || !action) {
       return NextResponse.json(

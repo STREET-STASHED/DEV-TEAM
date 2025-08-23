@@ -1,22 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from '@/hooks/useSupabase'
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
+import { useSupabase } from '@/hooks/useSupabase'
+import {
+  TrendingUp,
+  TrendingDown,
   DollarSign,
+  AlertTriangle,
   Package,
   Target,
   BarChart3,
-  _PieChart,
   Activity,
   Clock,
   ArrowUpRight,
-  ArrowDownRight,
-  _Eye,
-  _Zap
+  ArrowDownRight
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -38,7 +35,7 @@ interface DashboardData {
 }
 
 export default function AnalyticsDashboard() {
-  const { session } = useSession()
+  const { session } = useSupabase()
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('overview')
@@ -70,8 +67,8 @@ export default function AnalyticsDashboard() {
 
       // Calculate summary metrics
       const summary = {
-        totalRevenue: forecasts.forecasts?.reduce((sum: number, f: Record<string, unknown>) => 
-          sum + (f.predicted_demand * f.sellingPrice || 0), 0
+        totalRevenue: forecasts.forecasts?.reduce((sum: number, f: Record<string, unknown>) =>
+          sum + ((f.predicted_demand as number) * (f.sellingPrice as number) || 0), 0
         ) || 0,
         totalItems: forecasts.forecasts?.length || 0,
         lowStockAlerts: alerts.alerts?.filter((a: Record<string, unknown>) => a.alert_type === 'low_stock').length || 0,
@@ -374,7 +371,7 @@ export default function AnalyticsDashboard() {
                       </div>
                       <Progress value={75} className="h-2" />
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p className="text-gray-400">Trend Factor</p>
@@ -420,16 +417,16 @@ export default function AnalyticsDashboard() {
                         <p className="text-white text-lg font-bold">${opt.recommendedPrice}</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Profit Impact</span>
                       <span className={`font-bold ${opt.profitImpact > 0 ? 'text-green-400' : 'text-red-400'}`}>
                         {opt.profitImpact > 0 ? '+' : ''}${opt.profitImpact.toFixed(0)}
                       </span>
                     </div>
-                    
+
                     <p className="text-sm text-gray-400">{opt.recommendationReason}</p>
-                    
+
                     <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-black">
                       Apply Recommendation
                     </Button>
@@ -469,14 +466,14 @@ export default function AnalyticsDashboard() {
                         {(trend.predicted_growth * 100).toFixed(1)}%
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <span className="text-gray-400">Timeframe</span>
                       <Badge variant="outline" className="capitalize">
                         {trend.timeframe} term
                       </Badge>
                     </div>
-                    
+
                     {trend.keywords && trend.keywords.length > 0 && (
                       <div>
                         <p className="text-gray-400 text-sm mb-2">Trending Keywords</p>

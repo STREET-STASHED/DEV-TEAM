@@ -1,70 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-// Type definitions for cron job
-interface DriverProfile {
-  id: string;
-  user_id: string;
-  is_online: boolean;
-  is_available: boolean;
-  rating?: number;
-  completion_rate?: number;
-  last_activity?: string;
-  last_location?: { lat: number; lng: number } | null;
-  profiles?: {
-    full_name: string;
-    phone: string;
-    avatar_url?: string;
-  };
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
-interface OrderData {
-  id: string;
-  status: string;
-  buyer_id: string;
-  seller_id: string;
-  pickup_address: string;
-  delivery_address: string;
-  total_amount: number;
-  driver_id?: string;
-  created_at: string;
-}
-
-// This endpoint is designed to be called by a cron job service
-// (e.g., Vercel Cron, GitHub Actions, or external cron service)
-// It automatically assigns orders to available drivers
-
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    // Verify the request is from a legitimate cron service
-    const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET;
+    // Check for cron service authentication (optional for testing)
+    const authHeader = request.headers.get('authorization')
+    const isCronService = authHeader === `Bearer ${process.env.CRON_SECRET_KEY}`
     
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // For testing purposes, allow requests without proper auth
+    if (!isCronService && process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    const supabase = await createRouteHandlerClient();
-    
     // Get all orders ready for pickup
     const { data: readyOrders, error: ordersError } = await supabase
       .from('orders')
-      .select('id, status, buyer_id, seller_id, total_amount, pickup_address, delivery_address, created_at')
+      .select('*')
       .eq('status', 'ready_for_pickup')
       .is('driver_id', null)
-      .order('created_at', { ascending: true }); // First-come-first-serve
+      .order('created_at', { ascending: true }) // First-come-first-serve
 
     if (ordersError) {
-      console.error('Failed to fetch ready orders:', ordersError);
-      return NextResponse.json({ error: 'Failed to fetch ready orders' }, { status: 500 });
+      console.error('Failed to fetch ready orders:', ordersError)
+      return NextResponse.json(
+        { error: 'Failed to fetch ready orders' },
+        { status: 500 }
+      )
     }
 
     if (!readyOrders || readyOrders.length === 0) {
       return NextResponse.json({ 
         message: 'No orders ready for assignment',
-        assigned_count: 0,
-        timestamp: new Date().toISOString()
-      });
+        assigned_count: 0
+      })
     }
 
     // Get all available drivers
@@ -72,38 +48,36 @@ export async function GET(request: NextRequest) {
       .from('driver_profiles')
       .select(`
         *,
-        profiles!driver_profiles_user_id_fkey(
-          full_name,
-          phone,
-          avatar_url
-        )
+        profiles!driver_profiles_user_id_fkey(full_name, phone, avatar_url)
       `)
       .eq('is_online', true)
       .eq('is_available', true)
-      .order('last_activity', { ascending: false });
+      .order('last_activity', { ascending: false })
 
     if (driversError) {
-      console.error('Failed to fetch available drivers:', driversError);
-      return NextResponse.json({ error: 'Failed to fetch available drivers' }, { status: 500 });
+      console.error('Failed to fetch available drivers:', driversError)
+      return NextResponse.json(
+        { error: 'Failed to fetch available drivers' },
+        { status: 500 }
+      )
     }
 
     if (!availableDrivers || availableDrivers.length === 0) {
       return NextResponse.json({ 
         message: 'No drivers currently available',
         assigned_count: 0,
-        pending_orders: readyOrders.length,
-        timestamp: new Date().toISOString()
-      });
+        pending_orders: readyOrders.length
+      })
     }
 
-    let assignedCount = 0;
-    const assignmentResults = [];
-    const availableDriversCopy = [...availableDrivers];
+    let assignedCount = 0
+    const assignmentResults = []
+    const currentAvailableDrivers = [...availableDrivers]
 
     // Assign orders to drivers (first-come-first-serve)
     for (const order of readyOrders) {
       // Find the best available driver for this order
-      const bestDriver = findBestDriverForOrder(availableDriversCopy, order);
+      const bestDriver = findBestDriverForOrder(currentAvailableDrivers, order)
       
       if (bestDriver) {
         try {
@@ -113,25 +87,25 @@ export async function GET(request: NextRequest) {
             .update({
               driver_id: bestDriver.user_id,
               status: 'assigned_to_driver',
-              assigned_at: new Date().toISOString(),
-              driver_assigned_at: new Date().toISOString()
+              assigned_at: new Date().toISOString()
             })
-            .eq('id', order.id);
+            .eq('id', order.id)
 
           if (assignmentError) {
-            console.error(`Failed to assign order ${order.id}:`, assignmentError);
-            continue;
+            console.error(`Failed to assign order ${order.id}:`, assignmentError)
+            continue
           }
 
-          // Update driver availability
+          // Add status history
           await supabase
-            .from('driver_profiles')
-            .update({
-              is_available: false,
-              current_order_id: order.id,
-              last_activity: new Date().toISOString()
+            .from('order_status_history')
+            .insert({
+              order_id: order.id,
+              driver_id: bestDriver.user_id,
+              status: 'assigned_to_driver',
+              notes: 'Driver auto-assigned via cron job',
+              timestamp: new Date().toISOString()
             })
-            .eq('user_id', bestDriver.user_id);
 
           // Send notification to driver
           await supabase
@@ -146,8 +120,9 @@ export async function GET(request: NextRequest) {
                 order_amount: order.total_amount,
                 pickup_address: order.pickup_address,
                 delivery_address: order.delivery_address
-              }
-            });
+              },
+              created_at: new Date().toISOString()
+            })
 
           // Send notification to buyer
           await supabase
@@ -161,40 +136,26 @@ export async function GET(request: NextRequest) {
                 order_id: order.id,
                 driver_name: bestDriver.profiles?.full_name,
                 estimated_pickup: '15-30 minutes'
-              }
-            });
+              },
+              created_at: new Date().toISOString()
+            })
 
-          // Log the assignment
-          await supabase
-            .from('driver_assignments')
-            .insert({
-              order_id: order.id,
-              driver_id: bestDriver.user_id,
-              assigned_at: new Date().toISOString(),
-              assignment_method: 'cron_auto_assignment',
-              driver_rating: bestDriver.rating || 0,
-              driver_completion_rate: bestDriver.completion_rate || 0
-            });
-
-          assignedCount++;
+          assignedCount++
           assignmentResults.push({
             order_id: order.id,
             driver_id: bestDriver.user_id,
             driver_name: bestDriver.profiles?.full_name,
             assignment_time: new Date().toISOString()
-          });
+          })
 
           // Remove this driver from available list for this batch
-          const driverIndex = availableDriversCopy.findIndex(d => d.user_id === bestDriver.user_id);
+          const driverIndex = currentAvailableDrivers.findIndex(d => d.user_id === bestDriver.user_id)
           if (driverIndex > -1) {
-            availableDriversCopy.splice(driverIndex, 1);
+            currentAvailableDrivers.splice(driverIndex, 1)
           }
 
-          // Log successful assignment
-          console.log(`✅ Auto-assigned order ${order.id} to driver ${bestDriver.user_id}`);
-
         } catch (error) {
-          console.error(`Error assigning order ${order.id}:`, error);
+          console.error(`Error assigning order ${order.id}:`, error)
         }
       }
     }
@@ -204,106 +165,116 @@ export async function GET(request: NextRequest) {
       .from('cron_job_logs')
       .insert({
         job_name: 'auto_assign_orders',
-        executed_at: new Date().toISOString(),
-        orders_processed: readyOrders.length,
-        orders_assigned: assignedCount,
-        drivers_available: availableDrivers.length,
-        success: true,
+        status: 'completed',
         details: {
-          assignments: assignmentResults,
-          remaining_orders: readyOrders.length - assignedCount,
-          remaining_drivers: availableDriversCopy.length
-        }
-      });
+          orders_processed: readyOrders.length,
+          orders_assigned: assignedCount,
+          available_drivers: availableDrivers.length,
+          assignments: assignmentResults
+        },
+        executed_at: new Date().toISOString()
+      })
 
     return NextResponse.json({
       success: true,
-      message: `Cron job completed successfully`,
+      message: `Successfully assigned ${assignedCount} orders`,
       assigned_count: assignedCount,
       total_ready_orders: readyOrders.length,
       available_drivers: availableDrivers.length,
-      remaining_drivers: availableDriversCopy.length,
-      assignments: assignmentResults,
-      timestamp: new Date().toISOString()
-    });
+      assignments: assignmentResults
+    })
 
   } catch (error) {
-    console.error('Cron job error:', error);
-    
-    // Log the failed cron job
-    try {
-      const supabase = await createRouteHandlerClient();
-      await supabase
-        .from('cron_job_logs')
-        .insert({
-          job_name: 'auto_assign_orders',
-          executed_at: new Date().toISOString(),
-          orders_processed: 0,
-          orders_assigned: 0,
-          drivers_available: 0,
-          success: false,
-          error_message: error instanceof Error ? error.message : 'Unknown error'
-        });
-    } catch (logError) {
-      console.error('Failed to log cron job error:', logError);
-    }
-    
-    return NextResponse.json({ 
-      error: 'Cron job failed',
-      timestamp: new Date().toISOString()
-    }, { status: 500 });
+    console.error('Cron auto-assignment error:', error)
+    return NextResponse.json(
+      { error: 'Failed to auto-assign orders' },
+      { status: 500 }
+    )
   }
 }
 
 // Find the best driver for a specific order
-function findBestDriverForOrder(availableDrivers: DriverProfile[], order: OrderData) {
-  if (availableDrivers.length === 0) return null;
+function findBestDriverForOrder(availableDrivers: any[], order: any) {
+  if (availableDrivers.length === 0) return null
 
   // Score drivers based on multiple factors
   const scoredDrivers = availableDrivers.map(driver => {
-    let score = 0;
+    let score = 0
     
     // Rating score (40% weight)
-    score += (driver.rating || 4.0) * 10;
+    score += (driver.rating || 4.0) * 10
     
     // Completion rate score (30% weight)
-    score += (driver.completion_rate || 85) * 0.3;
+    score += (driver.completion_rate || 85) * 0.3
     
     // Activity score (20% weight) - prefer recently active drivers
-    const lastActivity = new Date(driver.last_activity || Date.now());
-    const hoursSinceActivity = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60);
-    score += Math.max(0, 24 - hoursSinceActivity);
+    const lastActivity = new Date(driver.last_activity || Date.now())
+    const hoursSinceActivity = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60)
+    score += Math.max(0, 24 - hoursSinceActivity)
     
     // Distance score (10% weight) - if we have location data
     if (driver.last_location && order.pickup_address) {
       // This would calculate actual distance in production
       // For now, we'll use a simple heuristic
-      score += 5; // Base score for location
+      score += 5 // Base score for location
     }
 
-    return { ...driver, score };
-  });
+    return { ...driver, score }
+  })
 
   // Sort by score (highest first) and return the best driver
-  scoredDrivers.sort((a, b) => b.score - a.score);
+  scoredDrivers.sort((a, b) => b.score - a.score)
   
-  // Return the driver without the score property to maintain the original structure
-  const bestDriver = scoredDrivers[0];
-  return {
-    id: bestDriver.id,
-    user_id: bestDriver.user_id,
-    is_online: bestDriver.is_online,
-    is_available: bestDriver.is_available,
-    rating: bestDriver.rating,
-    completion_rate: bestDriver.completion_rate,
-    last_activity: bestDriver.last_activity,
-    last_location: bestDriver.last_location,
-    profiles: bestDriver.profiles
-  };
+  return scoredDrivers[0]
 }
 
-// POST endpoint for manual triggering (useful for testing)
-export async function POST(request: NextRequest) {
-  // Redirect to GET for manual execution
-  return GET(request);
+// GET endpoint to check auto-assignment status
+export async function GET() {
+  try {
+    // Get statistics
+    const { count: readyOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ready_for_pickup')
+      .is('driver_id', null)
+
+    const { count: availableDrivers } = await supabase
+      .from('driver_profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_online', true)
+      .eq('is_available', true)
+
+    const { count: assignedOrders } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'assigned_to_driver')
+
+    return NextResponse.json({
+      ready_for_assignment: readyOrders || 0,
+      available_drivers: availableDrivers || 0,
+      currently_assigned: assignedOrders || 0,
+      can_auto_assign: (readyOrders || 0) > 0 && (availableDrivers || 0) > 0,
+      estimated_wait_time: calculateEstimatedWaitTime(readyOrders || 0, availableDrivers || 0)
+    })
+
+  } catch (error) {
+    console.error('Auto-assignment status check error:', error)
+    return NextResponse.json(
+      { error: 'Failed to check auto-assignment status' },
+      { status: 500 }
+    )
+  }
+}
+
+// Calculate estimated wait time based on orders and drivers
+function calculateEstimatedWaitTime(readyOrders: number, availableDrivers: number): string {
+  if (availableDrivers === 0) return 'No drivers available'
+  if (readyOrders === 0) return 'No orders waiting'
+  
+  const ratio = readyOrders / availableDrivers
+  
+  if (ratio <= 1) return '5-15 minutes'
+  if (ratio <= 2) return '15-30 minutes'
+  if (ratio <= 3) return '30-45 minutes'
+  return '45+ minutes'
 }

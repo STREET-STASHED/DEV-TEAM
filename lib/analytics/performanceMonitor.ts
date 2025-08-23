@@ -260,9 +260,9 @@ export class PerformanceMonitor {
 
   // Export metrics for external monitoring
   exportMetrics(): {
-    performance: ReturnType<typeof this.getPerformanceSummary>
-    cache: ReturnType<typeof this.getCachePerformanceSummary>
-    engagement: ReturnType<typeof this.getUserEngagementSummary>
+    performance: ReturnType<PerformanceMonitor['getPerformanceSummary']>
+    cache: ReturnType<PerformanceMonitor['getCachePerformanceSummary']>
+    engagement: ReturnType<PerformanceMonitor['getUserEngagementSummary']>
     timestamp: Date
   } {
     return {
@@ -287,11 +287,11 @@ export class PerformanceMonitor {
 }
 
 // Performance decorator for methods
-export function trackPerformance(_endpoint:string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+export function trackPerformance(endpoint: string) {
+  return function (_target: any, _propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (this: any, ...args: any[]) {
       const startTime = Date.now()
       let cacheHit = false
       let error: string | undefined

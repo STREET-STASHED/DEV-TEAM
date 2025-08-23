@@ -19,7 +19,7 @@ export const redis = new Redis(redisConfig)
 export const redisPubSub = new Redis(redisConfig)
 
 // Handle Redis connection errors gracefully
-redis.on('error', (error) => {
+redis.on('error', (error: any) => {
   if (error.code === 'ECONNREFUSED') {
     console.log('Redis not available, continuing without cache')
   } else {
@@ -27,7 +27,7 @@ redis.on('error', (error) => {
   }
 })
 
-redisPubSub.on('error', (error) => {
+redisPubSub.on('error', (error: any) => {
   if (error.code === 'ECONNREFUSED') {
     console.log('Redis pub/sub not available')
   } else {
@@ -102,7 +102,7 @@ export class CacheManager {
     if (cached) return cached
 
     const fresh = await fetchFn()
-    await this.set(key, fresh, ttl)
+    await this.set(key, fresh as any, ttl)
     return fresh
   }
 }
@@ -136,7 +136,7 @@ export async function checkRedisHealth(): Promise<boolean> {
   try {
     await redis.ping()
     return true
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'ECONNREFUSED') {
       console.log('Redis not available, continuing without cache')
       return false

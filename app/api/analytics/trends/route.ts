@@ -102,7 +102,7 @@ export async function GET(request:NextRequest) {
       }))
 
       return NextResponse.json({ trends: enhancedTrends })
-    } catch (dbError) {
+    } catch (_dbError) {
       // If database operations fail, return mock data
       console.log('Database operations failed, returning mock trends')
       return NextResponse.json({ 
@@ -135,7 +135,7 @@ export async function GET(request:NextRequest) {
 export async function POST(request:NextRequest) {
   try {
     const body = await request.json()
-    const { category, trendData, dataSource } = body
+    const { category, trendData: _trendData, dataSource: _dataSource } = body
 
     const supabase = await createRouteHandlerClient()
 
@@ -146,22 +146,19 @@ export async function POST(request:NextRequest) {
     }
 
     // Analyze the trend data
-    const analysis = await analyzeTrendData(trendData, category)
+    const analysis = await analyzeTrendData(_trendData, category)
 
-    // Save market intelligence data
-    const { error: intelligenceError } = await supabase
+    // Store market intelligence data
+    const { error: upsertError } = await supabase
       .from('market_intelligence')
-      .insert({
+      .upsert({
         category,
-        data_type: 'trend_data',
-        data_source: dataSource,
-        raw_data: trendData,
         processed_data: analysis,
-        confidence_score: analysis.confidenceScore,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        last_updated: new Date().toISOString(),
+        source: 'trend_analysis'
       })
 
-    if (intelligenceError) throw intelligenceError
+    if (upsertError) throw upsertError
 
     // Update or create trend analysis
     const { error: trendError } = await supabase
@@ -206,7 +203,7 @@ function calculateMarketOpportunity(trend: any, actualGrowth: number): string {
   return 'Minimal'
 }
 
-function generateRecommendations(trend: any, actualGrowth: number): string[] {
+function generateRecommendations(trend: any, _actualGrowth: number): string[] {
   const recommendations = []
 
   if (trend.trend_type === 'emerging' && trend.confidence_score > 0.7) {
@@ -236,7 +233,7 @@ function generateRecommendations(trend: any, actualGrowth: number): string[] {
   return recommendations
 }
 
-async function analyzeTrendData(trendData: any, category: string) {
+async function analyzeTrendData(_trendData: any, category: string) {
   // Mock analysis for now - in production this would use AI/ML
   return {
     subcategory: 'general',

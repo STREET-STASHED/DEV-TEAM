@@ -37,59 +37,41 @@ export interface UseAIRecommendationsReturn {
   sessionId: string
 }
 
-export function useAIRecommendations(_options:UseAIRecommendationsOptions = {}): UseAIRecommendationsReturn {
+export function useAIRecommendations(_options: UseAIRecommendationsOptions = {}): UseAIRecommendationsReturn {
   const {
     type = 'hybrid',
     limit = 10,
     autoRefresh = false,
     refreshInterval = 5 * 60 * 1000, // 5 minutes
     enabled = true
-  } = options
+  } = _options
 
   const { user } = useSupabase()
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
 
-  // Generate contextual data for contextual recommendations
-  const getContext = useCallback(() => {
-    const now = new Date()
-    const hour = now.getHours()
-    const day = now.getDay()
-    const month = now.getMonth()
-
-    return {
-      timeOfDay: hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening',
-      dayOfWeek: ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][day],
-      season: month < 3 || month > 10 ? 'winter' : month < 6 ? 'spring' : month < 9 ? 'summer' : 'fall'
-    }
-  }, [])
-
   // Fetch recommendations
   const fetchRecommendations = useCallback(async () => {
-    if (!user || !enabled) {
-      setLoading(false)
-      return
-    }
+    if (!enabled || !user) return
+
+    setLoading(true)
+    setError(null)
 
     try {
-      setLoading(true)
-      setError(null)
-
-      const params = new URLSearchParams({
-        type,
-        limit: limit.toString(),
-        sessionId
+      const response = await fetch('/api/ai/recommendations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type,
+          limit,
+          userId: user.id,
+        }),
       })
 
-      // Add context for contextual recommendations
-      if (type === 'contextual') {
-        params.append('context', JSON.stringify(getContext()))
-      }
-
-      const response = await fetch(`/api/recommendations?${params}`)
-      
       if (!response.ok) {
         throw new Error('Failed to fetch recommendations')
       }
@@ -97,12 +79,11 @@ export function useAIRecommendations(_options:UseAIRecommendationsOptions = {}):
       const data = await response.json()
       setRecommendations(data.recommendations || [])
     } catch (err) {
-      console.error('Error fetching recommendations:', err)
-      setError('Failed to load recommendations')
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
-  }, [user, type, limit, sessionId, enabled, getContext])
+  }, [enabled, user, type, limit])
 
   // Track user behavior
   const trackBehavior = useCallback(async (action: string, productId: string) => {
@@ -160,26 +141,26 @@ export function useAIRecommendations(_options:UseAIRecommendationsOptions = {}):
 
 // Convenience hooks for specific recommendation types
 export function useHybridRecommendations(_limit?:number) {
-  return useAIRecommendations({ type: 'hybrid', limit })
+  return useAIRecommendations({ type: 'hybrid', limit: _limit })
 }
 
 export function useCollaborativeRecommendations(_limit?:number) {
-  return useAIRecommendations({ type: 'collaborative', limit })
+  return useAIRecommendations({ type: 'collaborative', limit: _limit })
 }
 
 export function useContentBasedRecommendations(_limit?:number) {
-  return useAIRecommendations({ type: 'content', limit })
+  return useAIRecommendations({ type: 'content', limit: _limit })
 }
 
 export function useRealTimeRecommendations(_limit?:number) {
   return useAIRecommendations({ 
     type: 'realtime', 
-    limit, 
+    limit: _limit, 
     autoRefresh: true,
     refreshInterval: 2 * 60 * 1000 // 2 minutes for real-time
   })
 }
 
 export function useContextualRecommendations(_limit?:number) {
-  return useAIRecommendations({ type: 'contextual', limit })
+  return useAIRecommendations({ type: 'contextual', limit: _limit })
 }

@@ -310,16 +310,24 @@ export class ARVRShoppingSystem {
 
   // Virtual Try-On Management
   public startVirtualTryOn(userId: string, productId: string, userMeasurements: Record<string, unknown>): VirtualTryOn {
-    const sessionId = `session-${Date.now()}`;
     
     const virtualTryOn: VirtualTryOn = {
-      id: `tryon-${Date.now()}`,
+      id: crypto.randomUUID(),
       userId,
       productId,
-      sessionId,
+      sessionId: crypto.randomUUID(),
       status: 'active',
       startTime: new Date(),
-      userMeasurements,
+      userMeasurements: {
+        height: (userMeasurements.height as number) || 170,
+        weight: (userMeasurements.weight as number) || 70,
+        chest: (userMeasurements.chest as number) || 95,
+        waist: (userMeasurements.waist as number) || 80,
+        hips: (userMeasurements.hips as number) || 95,
+        inseam: (userMeasurements.inseam as number) || 80,
+        shoeSize: (userMeasurements.shoeSize as number) || 42,
+        bodyType: (userMeasurements.bodyType as 'athletic' | 'slim' | 'regular' | 'plus-size') || 'regular'
+      },
       virtualFitting: {
         productFit: 'good',
         confidence: 0.85,
@@ -358,7 +366,12 @@ export class ARVRShoppingSystem {
 
     tryOn.status = 'completed';
     tryOn.endTime = new Date();
-    tryOn.userFeedback = feedback;
+    tryOn.userFeedback = {
+      satisfaction: (feedback.satisfaction as number) || 0,
+      comments: (feedback.comments as string) || '',
+      wouldPurchase: (feedback.wouldPurchase as boolean) || false,
+      priceExpectation: (feedback.priceExpectation as number) || 0
+    };
 
     return true;
   }
@@ -386,15 +399,12 @@ export class ARVRShoppingSystem {
     switch (deviceType) {
       case 'mobile':
         optimizedModel.quality = 'medium';
-        optimizedModel.maxPolygons = Math.floor(model.vertices * 0.5);
         break;
       case 'vr-headset':
         optimizedModel.quality = 'ultra';
-        optimizedModel.maxPolygons = model.vertices;
         break;
       default:
         optimizedModel.quality = 'high';
-        optimizedModel.maxPolygons = Math.floor(model.vertices * 0.8);
     }
 
     return optimizedModel;
@@ -432,7 +442,7 @@ export class ARVRShoppingSystem {
     return Array.from(this.vrShowrooms.values()).filter(showroom => showroom.theme === theme);
   }
 
-  public addProductToShowroom(showroomId: string, productId: string, position: Record<string, unknown>, rotation: Record<string, unknown>, scale: Record<string, unknown>): boolean {
+  public addProductToShowroom(showroomId: string, productId: string, position: { x: number; y: number; z: number }, rotation: { x: number; y: number; z: number }, scale: { x: number; y: number; z: number }): boolean {
     const showroom = this.vrShowrooms.get(showroomId);
     if (!showroom) return false;
 
@@ -449,19 +459,24 @@ export class ARVRShoppingSystem {
 
   // AR Measurement Management
   public startARMeasurement(userId: string, measurementType: string, device: Record<string, unknown>): ARMeasurement {
-    const sessionId = `measurement-${Date.now()}`;
+    const _sessionId = `measurement-${Date.now()}`;
     
     const measurement: ARMeasurement = {
       id: `measurement-${Date.now()}`,
       userId,
-      sessionId,
+      sessionId: _sessionId,
       measurementType: measurementType as any,
       method: 'camera',
       accuracy: 0.95,
       measurements: {},
       confidence: 0.9,
       timestamp: new Date(),
-      device,
+      device: {
+        type: (device.type as string) || 'mobile',
+        model: (device.model as string) || 'unknown',
+        os: (device.os as string) || 'unknown',
+        arCapabilities: Array.isArray(device.arCapabilities) ? (device.arCapabilities as string[]) : []
+      },
       processing: {
         algorithm: 'AI-powered body tracking',
         processingTime: 2.5,

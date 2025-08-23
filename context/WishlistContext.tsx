@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useCallback,
   ReactNode,
 } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -98,14 +99,7 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({
     void loadUserSession();
   }, []);
 
-  // Sync to server when authenticated
-  useEffect(() => {
-    if (isAuthenticated && hydrated) {
-      void syncToServer(items);
-    }
-  }, [items, isAuthenticated, hydrated]);
-
-  const syncToServer = async (nextItems: WishlistItem[]): Promise<void> => {
+  const syncToServer = useCallback(async (nextItems: WishlistItem[]): Promise<void> => {
     if (!isAuthenticated || !user?.id) return;
     
     try {
@@ -128,7 +122,14 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({
     } catch (error) {
       console.error("Failed to sync wishlist to server:", error);
     }
-  };
+  }, [isAuthenticated, user?.id]);
+
+  // Sync to server when authenticated
+  useEffect(() => {
+    if (isAuthenticated && hydrated) {
+      void syncToServer(items);
+    }
+  }, [items, isAuthenticated, hydrated, syncToServer]);
 
   const addItem = (item: WishlistItem) => {
     console.log("[WishlistContext] addItem", item);

@@ -38,7 +38,7 @@ export async function GET(request:NextRequest) {
         }
         
         return NextResponse.json({ challenges: data })
-      } catch (dbError) {
+      } catch (_dbError) {
         // Fallback to mock data if database query fails
         console.log('Database query failed, returning mock active challenges')
         return NextResponse.json({ 
@@ -93,7 +93,7 @@ export async function GET(request:NextRequest) {
       }
       
       return NextResponse.json({ challenges: data })
-    } catch (dbError) {
+    } catch (_dbError) {
       // Fallback to mock data if database query fails
       console.log('Database query failed, returning mock challenges')
       return NextResponse.json({ 

@@ -45,7 +45,7 @@ export default function CheckoutPage() {
   })
   
   const [distanceMiles, setDistanceMiles] = useState(0)
-  const [isCalculatingDistance, setIsCalculatingDistance] = useState(false)
+  const [_isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [isProcessingOrder, setIsProcessingOrder] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'stripe' | 'cash'>('stripe')
   const [_orderId, setOrderId] = useState<string | null>(null)
@@ -149,15 +149,15 @@ export default function CheckoutPage() {
                   currency: 'usd',
                   product_data: {
                     name: item.name,
-                    images: [item.image]
+                    images: item.image_url ? [item.image_url] : []
                   },
                   unit_amount: Math.round(item.price * 100)
                 },
                 quantity: item.quantity
               })),
               mode: 'payment',
-              success_url: `${window.location.origin}/buyer/checkout/success?orderId=${order.id}`,
-              cancel_url: `${window.location.origin}/buyer/checkout`
+              successUrl: `${window.location.origin}/buyer/checkout/success?orderId=${order.id}`,
+              cancelUrl: `${window.location.origin}/buyer/checkout`
             })
             
             if (error) {
@@ -252,8 +252,7 @@ export default function CheckoutPage() {
       const { error } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: {
-            // This would normally come from Stripe Elements
-            // For demo purposes, we'll use a test card
+            token: 'tok_visa' // Demo token for testing
           },
           billing_details: {
             name: 'Test User',
@@ -405,10 +404,7 @@ export default function CheckoutPage() {
             <div>
               <CheckoutSummary
                 items={items}
-                deliveryAddress={deliveryAddress}
-                pickupAddress={pickupAddress}
                 distanceMiles={distanceMiles}
-                isCalculatingDistance={isCalculatingDistance}
                 onSummaryChange={handleSummaryChange}
               />
             </div>

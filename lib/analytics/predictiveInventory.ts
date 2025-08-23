@@ -272,19 +272,19 @@ export class PredictiveInventorySystem {
 
   private calculateDemand(itemData: Record<string, unknown>, _marketData: Record<string, unknown>, userBehavior: Record<string, unknown>): number {
     // Complex demand calculation algorithm
-    const baseDemand = itemData.salesVelocity * 30 // Monthly projection
-    const trendMultiplier = 1 + (_marketData.trendScore - 0.5) * 0.4
-    const seasonalMultiplier = _marketData.seasonalFactor
-    const socialMultiplier = 1 + (userBehavior.socialProof - 0.5) * 0.3
+    const baseDemand = (itemData.salesVelocity as number) * 30 // Monthly projection
+    const trendMultiplier = 1 + ((_marketData.trendScore as number) - 0.5) * 0.4
+    const seasonalMultiplier = (_marketData.seasonalFactor as number) || 1
+    const socialMultiplier = 1 + ((userBehavior.socialProof as number) - 0.5) * 0.3
     
     return Math.round(baseDemand * trendMultiplier * seasonalMultiplier * socialMultiplier)
   }
 
-  private calculateConfidence(itemData: Record<string, unknown>, _marketData: Record<string, unknown>, userBehavior: Record<string, unknown>): number {
+  private calculateConfidence(_itemData: Record<string, unknown>, _marketData: Record<string, unknown>, userBehavior: Record<string, unknown>): number {
     // Calculate confidence based on data quality and consistency
     const dataQuality = 0.9 // Mock - would be based on data completeness
-    const trendConsistency = 1 - Math.abs(_marketData.trendScore - 0.5) * 2
-    const userEngagement = userBehavior.engagementRate
+    const trendConsistency = 1 - Math.abs((_marketData.trendScore as number) - 0.5) * 2
+    const userEngagement = (userBehavior.engagementRate as number) || 0.5
     
     return (dataQuality + trendConsistency + userEngagement) / 3
   }
@@ -293,7 +293,12 @@ export class PredictiveInventorySystem {
     predictedDemand: number,
     currentInventory: number,
     confidence: number
-  ): Record<string, unknown> {
+  ): {
+    restockQuantity: number;
+    optimalPrice: number;
+    timing: "immediate" | "soon" | "later";
+    risk: "low" | "medium" | "high";
+  } {
     const safetyStock = Math.ceil(predictedDemand * 0.2) // 20% safety stock
     const restockQuantity = Math.max(0, predictedDemand + safetyStock - currentInventory)
     
@@ -325,10 +330,10 @@ export class PredictiveInventorySystem {
 
   private calculateOptimalPrice(itemData: Record<string, unknown>, prediction: InventoryPrediction, _marketData: Record<string, unknown>): number {
     // Dynamic pricing algorithm
-    const basePrice = itemData.currentPrice
+    const basePrice = (itemData.currentPrice as number) || 0
     const demandMultiplier = 1 + (prediction.predictedDemand / 100 - 0.5) * 0.2
-    const competitionMultiplier = 1 + (_marketData.competitionScore - 0.5) * 0.1
-    const seasonalMultiplier = _marketData.seasonalFactor
+    const competitionMultiplier = 1 + ((_marketData.competitionScore as number) - 0.5) * 0.1
+    const seasonalMultiplier = (_marketData.seasonalFactor as number) || 1
     
     const optimalPrice = basePrice * demandMultiplier * competitionMultiplier * seasonalMultiplier
     
@@ -340,9 +345,9 @@ export class PredictiveInventorySystem {
   }
 
   private determinePricingStrategy(itemData: Record<string, unknown>, prediction: InventoryPrediction, _marketData: Record<string, unknown>): 'aggressive' | 'balanced' | 'conservative' {
-    const demandRatio = prediction.predictedDemand / (itemData.currentInventory || 1)
-    const profitMargin = itemData.profitMargin
-    const competitionLevel = _marketData.competitionScore
+    const demandRatio = prediction.predictedDemand / ((itemData.currentInventory as number) || 1)
+    const profitMargin = (itemData.profitMargin as number) || 0
+    const competitionLevel = (_marketData.competitionScore as number) || 0
     
     if (demandRatio > 2 && profitMargin > 0.5 && competitionLevel < 0.5) {
       return 'aggressive'
@@ -354,8 +359,8 @@ export class PredictiveInventorySystem {
   }
 
   private determineTrendDirection(_marketData: Record<string, unknown>, _historicalData: Record<string, unknown>, _socialData: Record<string, unknown>): 'rising' | 'stable' | 'declining' {
-    const trendScore = _marketData.trendScore
-    const growthRate = _marketData.growthRate
+    const trendScore = (_marketData.trendScore as number) || 0.5
+    const growthRate = (_marketData.growthRate as number) || 0
     
     if (trendScore > 0.7 && growthRate > 0.1) {
       return 'rising'
@@ -404,10 +409,10 @@ export class PredictiveInventorySystem {
   private identifyTrendFactors(_marketData: Record<string, unknown>, _socialData: Record<string, unknown>): string[] {
     const factors: string[] = []
     
-    if (_marketData.trendScore > 0.7) factors.push('Strong market momentum')
-    if (_marketData.seasonalFactor > 1.1) factors.push('Seasonal demand increase')
-    if (_marketData.competitionScore < 0.5) factors.push('Low competition')
-    if (_marketData.growthRate > 0.1) factors.push('High growth rate')
+    if ((_marketData.trendScore as number) > 0.7) factors.push('Strong market momentum')
+    if ((_marketData.seasonalFactor as number) > 1.1) factors.push('Seasonal demand increase')
+    if ((_marketData.competitionScore as number) < 0.5) factors.push('Low competition')
+    if ((_marketData.growthRate as number) > 0.1) factors.push('High growth rate')
     
     return factors
   }

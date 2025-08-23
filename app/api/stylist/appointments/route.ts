@@ -1,10 +1,7 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
-    const supabase = createClient()
-    
     // In a real implementation, you would fetch actual appointment data from the database
     // For now, we'll return mock data that can be easily replaced with real data
     

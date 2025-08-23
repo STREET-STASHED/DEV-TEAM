@@ -16,9 +16,9 @@ const onboardingSchema = z.object({
   insurance_info: z.string().optional(),
 })
 
-export async function POST(_request:NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     
     // Validate request body
     const validationResult = onboardingSchema.safeParse(body)
@@ -34,7 +34,7 @@ export async function POST(_request:NextRequest) {
     }
 
     const data = validationResult.data
-    const authHeader = request.headers.get('authorization')
+    const authHeader = _request.headers.get('authorization')
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(

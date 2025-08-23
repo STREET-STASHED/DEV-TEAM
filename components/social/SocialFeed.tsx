@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from '@/hooks/useSupabase'
+import { useSupabase } from '@/hooks/useSupabase'
 import { Heart, MessageCircle, Share2, Eye, ShoppingBag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -28,7 +28,7 @@ interface SocialPost {
 }
 
 export default function SocialFeed({ type = 'trending', limit = 10 }:{ type?: string, limit?: number }) {
-  const { session } = useSession()
+  const { session } = useSupabase()
   const [posts, setPosts] = useState<SocialPost[]>([])
   const [loading, setLoading] = useState(true)
   const [interacting, setInteracting] = useState<string | null>(null)

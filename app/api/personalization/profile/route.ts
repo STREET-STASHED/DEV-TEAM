@@ -121,9 +121,9 @@ export async function GET() {
   }
 }
 
-export async function PUT(_request:NextRequest) {
+export async function PUT(_request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { stylePreferences, bodyProfile, contextProfile } = body
 
     const supabase = await createRouteHandlerClient()
@@ -156,9 +156,9 @@ export async function PUT(_request:NextRequest) {
   }
 }
 
-export async function POST(_request:NextRequest) {
+export async function POST(_request: NextRequest) {
   try {
-    const body = await request.json()
+    const body = await _request.json()
     const { eventType, itemId, category, price, context, metadata } = body
 
     const supabase = await createRouteHandlerClient()

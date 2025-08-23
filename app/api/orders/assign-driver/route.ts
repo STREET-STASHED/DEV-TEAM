@@ -1,57 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
-import { rateLimit } from '@/lib/rateLimitApp';
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-// Type definitions for driver assignment
-interface DriverProfile {
-  id: string;
-  user_id: string;
-  is_online: boolean;
-  is_available: boolean;
-  rating?: number;
-  completion_rate?: number;
-  last_activity?: string;
-  last_location?: { lat: number; lng: number } | null;
-  profiles?: {
-    full_name?: string;
-    phone?: string;
-    avatar_url?: string;
-  };
-}
-
-interface OrderData {
-  id: string;
-  status: string;
-  pickup_address: string;
-  delivery_address: string;
-  total_amount: number;
-  driver_id?: string;
-}
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const { success } = await rateLimit(request);
-    if (!success) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      );
-    }
-
-    const supabase = await createRouteHandlerClient();
-    
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const { orderId } = body;
+    const body = await request.json()
+    const { orderId, driverId } = body
 
     if (!orderId) {
-      return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Order ID is required' },
+        { status: 400 }
+      )
     }
 
     // Get order details
@@ -59,193 +23,186 @@ export async function POST(request: NextRequest) {
       .from('orders')
       .select('*')
       .eq('id', orderId)
-      .single();
+      .single()
 
     if (orderError || !order) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      )
     }
 
-    if (order.status !== 'ready_for_pickup') {
-      return NextResponse.json({ error: 'Order is not ready for pickup' }, { status: 400 });
-    }
+    // If driverId is provided, assign that specific driver
+    if (driverId) {
+      // Verify driver exists and is available
+      const { data: driver, error: driverError } = await supabase
+        .from('driver_profiles')
+        .select('*')
+        .eq('user_id', driverId)
+        .eq('is_available', true)
+        .single()
 
-    if (order.driver_id) {
-      return NextResponse.json({ error: 'Order already has a driver assigned' }, { status: 400 });
-    }
-
-    // Find available drivers (first-come-first-serve with smart matching)
-    const { data: availableDrivers, error: driversError } = await supabase
-      .from('driver_profiles')
-      .select(`
-        *,
-        profiles!driver_profiles_user_id_fkey(
-          full_name,
-          phone,
-          avatar_url
+      if (driverError || !driver) {
+        return NextResponse.json(
+          { error: 'Driver not found or unavailable' },
+          { status: 400 }
         )
-      `)
-      .eq('is_online', true)
-      .eq('is_available', true)
-      .order('last_activity', { ascending: false }); // Most recently active first
+      }
 
-    if (driversError) {
-      return NextResponse.json({ error: 'Failed to find available drivers' }, { status: 500 });
+      // Assign driver to order
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({
+          driver_id: driverId,
+          status: 'assigned_to_driver',
+          assigned_at: new Date().toISOString()
+        })
+        .eq('id', orderId)
+
+      if (updateError) {
+        console.error('Failed to assign driver:', updateError)
+        return NextResponse.json(
+          { error: 'Failed to assign driver' },
+          { status: 500 }
+        )
+      }
+
+      // Add status history
+      await supabase
+        .from('order_status_history')
+        .insert({
+          order_id: orderId,
+          driver_id: driverId,
+          status: 'assigned_to_driver',
+          notes: 'Driver manually assigned',
+          timestamp: new Date().toISOString()
+        })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Driver assigned successfully',
+        data: {
+          order_id: orderId,
+          driver_id: driverId,
+          driver_name: driver.full_name,
+          assigned_at: new Date().toISOString()
+        }
+      })
     }
 
-    if (!availableDrivers || availableDrivers.length === 0) {
-      return NextResponse.json({ 
-        error: 'No drivers currently available',
-        code: 'NO_DRIVERS_AVAILABLE'
-      }, { status: 404 });
+    // Auto-assign best available driver
+    const bestDriver = await selectBestDriver(order)
+    
+    if (!bestDriver) {
+      return NextResponse.json(
+        { error: 'No available drivers found' },
+        { status: 404 }
+      )
     }
 
-    // Smart driver selection algorithm
-    const selectedDriver = selectBestDriver(availableDrivers, order);
-
-    if (!selectedDriver) {
-      return NextResponse.json({ 
-        error: 'No suitable driver found for this order',
-        code: 'NO_SUITABLE_DRIVER'
-      }, { status: 404 });
-    }
-
-    // Assign order to driver
-    const { error: assignmentError } = await supabase
+    // Assign best driver to order
+    const { error: updateError } = await supabase
       .from('orders')
       .update({
-        driver_id: selectedDriver.user_id,
+        driver_id: bestDriver.id,
         status: 'assigned_to_driver',
-        assigned_at: new Date().toISOString(),
-        driver_assigned_at: new Date().toISOString()
+        assigned_at: new Date().toISOString()
       })
-      .eq('id', orderId);
+      .eq('id', orderId)
 
-    if (assignmentError) {
-      return NextResponse.json({ error: 'Failed to assign driver' }, { status: 500 });
+    if (updateError) {
+      console.error('Failed to assign best driver:', updateError)
+      return NextResponse.json(
+        { error: 'Failed to assign driver' },
+        { status: 500 }
+      )
     }
 
-    // Update driver availability
+    // Add status history
     await supabase
-      .from('driver_profiles')
-      .update({
-        is_available: false,
-        current_order_id: orderId,
-        last_activity: new Date().toISOString()
-      })
-      .eq('user_id', selectedDriver.user_id);
-
-    // Send notification to driver
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: selectedDriver.user_id,
-        type: 'new_order_assigned',
-        title: 'New Order Assigned! 🚚',
-        message: `You have a new delivery order worth $${order.total_amount}. Pickup: ${order.pickup_address}`,
-        data: { 
-          order_id: orderId,
-          order_amount: order.total_amount,
-          pickup_address: order.pickup_address,
-          delivery_address: order.delivery_address
-        }
-      });
-
-    // Send notification to buyer
-    await supabase
-      .from('notifications')
-      .insert({
-        user_id: order.buyer_id,
-        type: 'driver_assigned',
-        title: 'Driver Assigned! 🎉',
-        message: `Your order has been assigned to a driver and is being prepared for pickup.`,
-        data: { 
-          order_id: orderId,
-          driver_name: selectedDriver.profiles?.full_name,
-          estimated_pickup: '15-30 minutes'
-        }
-      });
-
-    // Log the assignment
-    await supabase
-      .from('driver_assignments')
+      .from('order_status_history')
       .insert({
         order_id: orderId,
-        driver_id: selectedDriver.user_id,
-        assigned_at: new Date().toISOString(),
-        assignment_method: 'smart_matching',
-        driver_rating: selectedDriver.rating || 0,
-        driver_completion_rate: selectedDriver.completion_rate || 0
-      });
+        driver_id: bestDriver.id,
+        status: 'assigned_to_driver',
+        notes: 'Best driver auto-assigned',
+        timestamp: new Date().toISOString()
+      })
 
     return NextResponse.json({
       success: true,
-      driver: {
-        id: selectedDriver.user_id,
-        name: selectedDriver.profiles?.full_name,
-        phone: selectedDriver.profiles?.phone,
-        rating: selectedDriver.rating,
-        completion_rate: selectedDriver.completion_rate
-      },
-      order: {
-        id: orderId,
-        status: 'assigned_to_driver',
+      message: 'Best driver assigned successfully',
+      data: {
+        order_id: orderId,
+        driver_id: bestDriver.id,
+        driver_name: bestDriver.full_name,
         assigned_at: new Date().toISOString()
       }
-    });
+    })
 
   } catch (error) {
-    console.error('Driver assignment error:', error);
-    return NextResponse.json({ error: 'Failed to assign driver' }, { status: 500 });
+    console.error('Driver assignment API error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
-// Smart driver selection algorithm
-function selectBestDriver(drivers: DriverProfile[], order: OrderData) {
-  // Filter drivers by basic criteria
-  const eligibleDrivers = drivers.filter(driver => {
-    // Driver must be online and available
-    if (!driver.is_online || !driver.is_available) return false;
-    
-    // Driver must have good rating (4.0+)
-    if (driver.rating && driver.rating < 4.0) return false;
-    
-    // Driver must have decent completion rate (80%+)
-    if (driver.completion_rate && driver.completion_rate < 80) return false;
-    
-    return true;
-  });
+async function selectBestDriver(order: any) {
+  try {
+    // Get all available drivers
+    const { data: availableDrivers, error } = await supabase
+      .from('driver_profiles')
+      .select('*')
+      .eq('is_available', true)
+      .eq('is_online', true)
 
-  if (eligibleDrivers.length === 0) return null;
-
-  // Score drivers based on multiple factors
-  const scoredDrivers = eligibleDrivers.map(driver => {
-    let score = 0;
-    
-    // Rating score (40% weight)
-    score += (driver.rating || 4.0) * 10;
-    
-    // Completion rate score (30% weight)
-    score += (driver.completion_rate || 85) * 0.3;
-    
-    // Activity score (20% weight) - prefer recently active drivers
-    const lastActivity = new Date(driver.last_activity || Date.now());
-    const hoursSinceActivity = (Date.now() - lastActivity.getTime()) / (1000 * 60 * 60);
-    score += Math.max(0, 24 - hoursSinceActivity);
-    
-    // Distance score (10% weight) - if we have location data
-    if (driver.last_location && order.pickup_address) {
-      // This would calculate actual distance in production
-      // For now, we'll use a simple heuristic
-      score += 5; // Base score for location
+    if (error || !availableDrivers || availableDrivers.length === 0) {
+      return null
     }
 
-    return { ...driver, score };
-  });
+    // Score drivers based on multiple factors
+    const scoredDrivers = availableDrivers.map(driver => {
+      let score = 0
 
-  // Sort by score (highest first) and return the best driver
-  scoredDrivers.sort((a, b) => b.score - a.score);
-  
-  return scoredDrivers[0];
+      // Rating bonus (0-5 stars)
+      score += (driver.rating || 5.0) * 2
+
+      // Completion rate bonus (0-100%)
+      score += (driver.completion_rate || 100) * 0.5
+
+      // Activity recency bonus (more recent = higher score)
+      if (driver.last_activity) {
+        const hoursSinceActivity = (Date.now() - new Date(driver.last_activity).getTime()) / (1000 * 60 * 60)
+        score += Math.max(0, 24 - hoursSinceActivity)
+      }
+
+      // Location proximity bonus (if available)
+      if (driver.last_location && order.pickup_address) {
+        // Simplified distance calculation - in real app, use proper geocoding
+        score += 10 // Base proximity bonus
+      }
+
+      // Vehicle type bonus (if specified)
+      if (driver.vehicle_info?.type === 'motorcycle' && order.distance_miles < 5) {
+        score += 5 // Motorcycles good for short distances
+      }
+
+      return {
+        ...driver,
+        score
+      }
+    })
+
+    // Sort by score and return the best driver
+    scoredDrivers.sort((a, b) => b.score - a.score)
+    return scoredDrivers[0]
+
+  } catch (error) {
+    console.error('Error selecting best driver:', error)
+    return null
+  }
 }
 
 // GET endpoint to check available drivers for an order
@@ -258,7 +215,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
-    const supabase = await createRouteHandlerClient();
+    const supabase = await createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();

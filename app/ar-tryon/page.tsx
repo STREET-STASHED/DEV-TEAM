@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { CameraIcon, SparklesIcon, ArrowPathIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { CameraIcon, ArrowPathIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 export default function ARTryOnPage() {
   const router = useRouter()
@@ -142,7 +142,7 @@ export default function ARTryOnPage() {
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">📱</div>
           <h2 className="text-2xl font-bold text-white mb-4">Virtual Fitting Room</h2>
-          <p className="text-ink-300">Try on clothes virtually using your device's camera and AR technology</p>
+          <p className="text-ink-300">Try on clothes virtually using your device&apos;s camera and AR technology</p>
         </div>
 
         {/* Camera Section */}
@@ -199,7 +199,7 @@ export default function ARTryOnPage() {
                 <div className="bg-ink-800 rounded-lg p-6">
                   <h4 className="font-semibold text-white mb-4">Body Scanning</h4>
                   <p className="text-ink-300 mb-4 text-sm">
-                    Position yourself in front of the camera and click "Start Body Scan" to get your measurements.
+                    Position yourself in front of the camera and click &ldquo;Start Body Scan&rdquo; to get your measurements.
                   </p>
                   
                   {!isScanning ? (
@@ -254,28 +254,28 @@ export default function ARTryOnPage() {
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">{measurements.chest}"</div>
+                  <div className="text-2xl font-bold text-purple-400">{measurements.chest}&quot;</div>
                   <div className="text-sm text-ink-400">Chest</div>
                   <div className="text-xs text-purple-400 font-medium">
                     Size: {getSizeRecommendation(measurements.chest, 'chest')}
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">{measurements.waist}"</div>
+                  <div className="text-2xl font-bold text-purple-400">{measurements.waist}&quot;</div>
                   <div className="text-sm text-ink-400">Waist</div>
                   <div className="text-xs text-purple-400 font-medium">
                     Size: {getSizeRecommendation(measurements.waist, 'waist')}
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">{measurements.hips}"</div>
+                  <div className="text-2xl font-bold text-purple-400">{measurements.hips}&quot;</div>
                   <div className="text-sm text-ink-400">Hips</div>
                   <div className="text-xs text-purple-400 font-medium">
                     Size: {getSizeRecommendation(measurements.hips, 'hips')}
                   </div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-purple-400">{measurements.height}"</div>
+                  <div className="text-2xl font-bold text-purple-400">{measurements.height}&quot;</div>
                   <div className="text-sm text-ink-400">Height</div>
                   <div className="text-xs text-purple-400 font-medium">
                     Size: {measurements.height >= 72 ? 'Tall' : measurements.height >= 66 ? 'Regular' : 'Petite'}

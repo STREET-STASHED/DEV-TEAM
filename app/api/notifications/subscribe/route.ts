@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log
-    await audit.log('push_token_subscribed', {
+    await audit('push_token_subscribed', {
       userId: user.id,
       tokenId: token.id,
       platform: validatedData.platform || 'web',
@@ -122,7 +122,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Audit log
-    await audit.log('push_token_unsubscribed', {
+    await audit('push_token_unsubscribed', {
       userId: user.id,
       token,
     });

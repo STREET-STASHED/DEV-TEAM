@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   MagnifyingGlassIcon, 
@@ -8,7 +8,7 @@ import {
   StarIcon,
   ShoppingBagIcon,
   FireIcon,
-  TrendingUpIcon
+  ChartBarIcon
 } from '@heroicons/react/24/outline'
 import { mockStores, mockProducts, mockCategories } from '@/lib/mockData'
 
@@ -59,39 +59,12 @@ interface Category {
 export default function HomePage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [_selectedCategory, _setSelectedCategory] = useState('all')
   const [stores, setStores] = useState<Store[]>([])
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadHomePageData()
-  }, [])
-
-  const loadHomePageData = async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Load data from APIs with fallback to mock data
-      await Promise.all([
-        loadStores(),
-        loadFeaturedProducts(),
-        loadCategories()
-      ])
-    } catch (error) {
-      console.error('Error loading homepage data:', error)
-      setError('Failed to load some data. Showing demo content.')
-      // Fallback to mock data for demo purposes
-      setStores(mockStores)
-      setFeaturedProducts(mockProducts.filter(p => p.isTrending).slice(0, 6))
-      setCategories(mockCategories)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const loadStores = async () => {
     try {
@@ -144,6 +117,33 @@ export default function HomePage() {
     }
   }
 
+  const loadHomePageData = useCallback(async () => {
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      // Load data from APIs with fallback to mock data
+      await Promise.all([
+        loadStores(),
+        loadFeaturedProducts(),
+        loadCategories()
+      ])
+    } catch (error) {
+      console.error('Error loading homepage data:', error)
+      setError('Failed to load some data. Showing demo content.')
+      // Fallback to mock data for demo purposes
+      setStores(mockStores)
+      setFeaturedProducts(mockProducts.filter(p => p.isTrending).slice(0, 6))
+      setCategories(mockCategories)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadHomePageData()
+  }, [loadHomePageData])
+
   const handleSearch = () => {
     if (searchQuery.trim()) {
       router.push(`/buyer/marketplace?search=${encodeURIComponent(searchQuery)}`)
@@ -151,7 +151,7 @@ export default function HomePage() {
   }
 
   const handleCategorySelect = (categoryId: string) => {
-    setSelectedCategory(categoryId)
+    _setSelectedCategory(categoryId)
     if (categoryId === 'all') {
       router.push('/buyer/marketplace')
     } else {
@@ -237,7 +237,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">Shop by Category</h2>
-            <p className="text-ink-300">Find exactly what you're looking for</p>
+            <p className="text-ink-300">Find exactly what you&apos;re looking for</p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -263,7 +263,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-white mb-4">Trending Now</h2>
-            <p className="text-ink-300">The hottest items everyone's talking about</p>
+            <p className="text-ink-300">The hottest items everyone&apos;s talking about</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -419,7 +419,7 @@ export default function HomePage() {
       {error && (
         <div className="fixed bottom-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg max-w-sm">
           <div className="flex items-center space-x-2">
-            <TrendingUpIcon className="w-5 h-5" />
+            <ChartBarIcon className="w-5 h-5" />
             <span className="text-sm">{error}</span>
           </div>
         </div>

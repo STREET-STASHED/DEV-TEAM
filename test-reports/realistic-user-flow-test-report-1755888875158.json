@@ -1,0 +1,329 @@
+{
+  "timestamp": "2025-08-22T18:54:35.158Z",
+  "summary": {
+    "total": 51,
+    "passed": 50,
+    "failed": 1,
+    "successRate": 98
+  },
+  "results": [
+    {
+      "category": "Core App - Homepage",
+      "status": "PASS",
+      "message": "Main landing page accessible (200)",
+      "timestamp": "2025-08-22T18:54:24.289Z"
+    },
+    {
+      "category": "Page Elements - Homepage",
+      "status": "PASS",
+      "message": "Element found: App title/branding",
+      "timestamp": "2025-08-22T18:54:24.290Z"
+    },
+    {
+      "category": "Page Elements - Homepage",
+      "status": "PASS",
+      "message": "Element found: Signup button",
+      "timestamp": "2025-08-22T18:54:24.290Z"
+    },
+    {
+      "category": "Page Elements - Homepage",
+      "status": "PASS",
+      "message": "Element found: Login button",
+      "timestamp": "2025-08-22T18:54:24.290Z"
+    },
+    {
+      "category": "Core App - Signup Page",
+      "status": "PASS",
+      "message": "User registration accessible (200)",
+      "timestamp": "2025-08-22T18:54:24.364Z"
+    },
+    {
+      "category": "Page Elements - Signup Page",
+      "status": "PASS",
+      "message": "Element found: Signup button",
+      "timestamp": "2025-08-22T18:54:24.364Z"
+    },
+    {
+      "category": "Page Elements - Signup Page",
+      "status": "PASS",
+      "message": "Element found: Email input field",
+      "timestamp": "2025-08-22T18:54:24.364Z"
+    },
+    {
+      "category": "Page Elements - Signup Page",
+      "status": "PASS",
+      "message": "Element found: Password input field",
+      "timestamp": "2025-08-22T18:54:24.364Z"
+    },
+    {
+      "category": "Page Elements - Signup Page",
+      "status": "PASS",
+      "message": "Element found: Full name input field",
+      "timestamp": "2025-08-22T18:54:24.364Z"
+    },
+    {
+      "category": "Core App - Login Page",
+      "status": "PASS",
+      "message": "User authentication accessible (200)",
+      "timestamp": "2025-08-22T18:54:24.405Z"
+    },
+    {
+      "category": "Core App - Marketplace",
+      "status": "PASS",
+      "message": "Product browsing accessible (200)",
+      "timestamp": "2025-08-22T18:54:24.506Z"
+    },
+    {
+      "category": "Page Elements - Marketplace",
+      "status": "PASS",
+      "message": "Element found: Search functionality",
+      "timestamp": "2025-08-22T18:54:24.506Z"
+    },
+    {
+      "category": "Page Elements - Marketplace",
+      "status": "PASS",
+      "message": "Element found: Add to cart buttons",
+      "timestamp": "2025-08-22T18:54:24.506Z"
+    },
+    {
+      "category": "Page Elements - Marketplace",
+      "status": "PASS",
+      "message": "Element found: Filter options",
+      "timestamp": "2025-08-22T18:54:24.506Z"
+    },
+    {
+      "category": "Page Elements - Marketplace",
+      "status": "PASS",
+      "message": "Element found: Sort options",
+      "timestamp": "2025-08-22T18:54:24.506Z"
+    },
+    {
+      "category": "Core App - Checkout",
+      "status": "PASS",
+      "message": "Order completion accessible (200)",
+      "timestamp": "2025-08-22T18:54:24.566Z"
+    },
+    {
+      "category": "Page Elements - Checkout",
+      "status": "PASS",
+      "message": "Element found: Checkout title",
+      "timestamp": "2025-08-22T18:54:24.566Z"
+    },
+    {
+      "category": "Page Elements - Checkout",
+      "status": "PASS",
+      "message": "Element found: Payment section",
+      "timestamp": "2025-08-22T18:54:24.566Z"
+    },
+    {
+      "category": "Page Elements - Checkout",
+      "status": "PASS",
+      "message": "Element found: Shipping section",
+      "timestamp": "2025-08-22T18:54:24.566Z"
+    },
+    {
+      "category": "Page Elements - Checkout",
+      "status": "PASS",
+      "message": "Element found: Place order button",
+      "timestamp": "2025-08-22T18:54:24.566Z"
+    },
+    {
+      "category": "Core App - AI Stylist",
+      "status": "PASS",
+      "message": "AI styling assistant accessible (200)",
+      "timestamp": "2025-08-22T18:54:32.064Z"
+    },
+    {
+      "category": "Page Elements - AI Stylist",
+      "status": "PASS",
+      "message": "Element found: AI Stylist title",
+      "timestamp": "2025-08-22T18:54:32.064Z"
+    },
+    {
+      "category": "Page Elements - AI Stylist",
+      "status": "PASS",
+      "message": "Element found: Style profile section",
+      "timestamp": "2025-08-22T18:54:32.064Z"
+    },
+    {
+      "category": "Page Elements - AI Stylist",
+      "status": "PASS",
+      "message": "Element found: Analyze button",
+      "timestamp": "2025-08-22T18:54:32.065Z"
+    },
+    {
+      "category": "Page Elements - AI Stylist",
+      "status": "PASS",
+      "message": "Element found: Recommendations section",
+      "timestamp": "2025-08-22T18:54:32.065Z"
+    },
+    {
+      "category": "Core App - Social Challenges",
+      "status": "PASS",
+      "message": "Community features redirects as expected (307)",
+      "timestamp": "2025-08-22T18:54:32.111Z"
+    },
+    {
+      "category": "Core App - Blockchain Rewards",
+      "status": "PASS",
+      "message": "Token system accessible (200)",
+      "timestamp": "2025-08-22T18:54:32.383Z"
+    },
+    {
+      "category": "Page Elements - Blockchain Rewards",
+      "status": "PASS",
+      "message": "Element found: Blockchain title",
+      "timestamp": "2025-08-22T18:54:32.383Z"
+    },
+    {
+      "category": "Page Elements - Blockchain Rewards",
+      "status": "PASS",
+      "message": "Element found: Rewards section",
+      "timestamp": "2025-08-22T18:54:32.383Z"
+    },
+    {
+      "category": "Core App - Admin Dashboard",
+      "status": "PASS",
+      "message": "Administration redirects as expected (307)",
+      "timestamp": "2025-08-22T18:54:32.438Z"
+    },
+    {
+      "category": "Authentication - Signup API",
+      "status": "PASS",
+      "message": "User registration successful",
+      "timestamp": "2025-08-22T18:54:32.942Z"
+    },
+    {
+      "category": "Authentication - Login Page",
+      "status": "PASS",
+      "message": "Login form elements present",
+      "timestamp": "2025-08-22T18:54:33.102Z"
+    },
+    {
+      "category": "Authentication - Route Protection",
+      "status": "PASS",
+      "message": "Protected routes properly secured",
+      "timestamp": "2025-08-22T18:54:33.120Z"
+    },
+    {
+      "category": "Marketplace - Products API",
+      "status": "PASS",
+      "message": "Products loaded successfully",
+      "timestamp": "2025-08-22T18:54:33.297Z"
+    },
+    {
+      "category": "Marketplace - Product Data",
+      "status": "PASS",
+      "message": "Products have required fields",
+      "timestamp": "2025-08-22T18:54:33.297Z"
+    },
+    {
+      "category": "Marketplace - Page Elements",
+      "status": "PASS",
+      "message": "Marketplace page elements present",
+      "timestamp": "2025-08-22T18:54:33.538Z"
+    },
+    {
+      "category": "Marketplace - Search Function",
+      "status": "PASS",
+      "message": "Search functionality working",
+      "timestamp": "2025-08-22T18:54:33.719Z"
+    },
+    {
+      "category": "Marketplace - Filter Function",
+      "status": "PASS",
+      "message": "Filter functionality working",
+      "timestamp": "2025-08-22T18:54:33.807Z"
+    },
+    {
+      "category": "Orders - Orders API",
+      "status": "PASS",
+      "message": "Orders API accessible",
+      "timestamp": "2025-08-22T18:54:33.866Z"
+    },
+    {
+      "category": "Checkout - Page Elements",
+      "status": "PASS",
+      "message": "Checkout page elements present",
+      "timestamp": "2025-08-22T18:54:33.999Z"
+    },
+    {
+      "category": "Orders - Order Creation",
+      "status": "PASS",
+      "message": "Order creation working",
+      "timestamp": "2025-08-22T18:54:34.027Z"
+    },
+    {
+      "category": "AI Stylist - Page Access",
+      "status": "PASS",
+      "message": "AI Stylist page accessible",
+      "timestamp": "2025-08-22T18:54:34.114Z"
+    },
+    {
+      "category": "AI Stylist - Page Elements",
+      "status": "PASS",
+      "message": "AI Stylist page elements present",
+      "timestamp": "2025-08-22T18:54:34.223Z"
+    },
+    {
+      "category": "AI Stylist - Recommendations API",
+      "status": "PASS",
+      "message": "Recommendations API accessible",
+      "timestamp": "2025-08-22T18:54:34.266Z"
+    },
+    {
+      "category": "AI Stylist - Insights API",
+      "status": "PASS",
+      "message": "Insights API accessible",
+      "timestamp": "2025-08-22T18:54:34.326Z"
+    },
+    {
+      "category": "Social - Challenges Page",
+      "status": "FAIL",
+      "message": "Social challenges page returned status 307",
+      "timestamp": "2025-08-22T18:54:34.333Z"
+    },
+    {
+      "category": "Social - Posts API",
+      "status": "PASS",
+      "message": "Social posts API working",
+      "timestamp": "2025-08-22T18:54:34.434Z"
+    },
+    {
+      "category": "Social - Challenges API",
+      "status": "PASS",
+      "message": "Social challenges API working",
+      "timestamp": "2025-08-22T18:54:34.533Z"
+    },
+    {
+      "category": "Admin - Admin Page",
+      "status": "PASS",
+      "message": "Admin page accessible/protected",
+      "timestamp": "2025-08-22T18:54:34.630Z"
+    },
+    {
+      "category": "Admin - Monitoring Page",
+      "status": "PASS",
+      "message": "Admin monitoring page accessible/protected",
+      "timestamp": "2025-08-22T18:54:34.640Z"
+    },
+    {
+      "category": "Admin - Health Check",
+      "status": "PASS",
+      "message": "Health check working",
+      "timestamp": "2025-08-22T18:54:35.155Z"
+    }
+  ],
+  "duration": 12299,
+  "userFlow": {
+    "signup": {
+      "email": "testuser1755888862857@streetstashed.com",
+      "password": "TestPassword123!",
+      "fullName": "Test User",
+      "username": "testuser1755888862857",
+      "phone": "+1234567890",
+      "id": "test-user-id"
+    }
+  },
+  "conclusion": "CORE USER FLOW MOSTLY WORKING"
+}

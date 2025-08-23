@@ -74,7 +74,11 @@ export interface StyleQuestion {
 export interface StyleProfile {
   aesthetic: string
   colorPalette: string[]
-  _stylePreferences: string[]
+  _stylePreferences: {
+    colorPalette: string[]
+    aesthetic: string
+    priceRange: { min: number; max: number }
+  }
   comfortLevel: number
   budgetRange: string
   lifestyle: string[]
@@ -84,7 +88,7 @@ export class AIStyleCreator {
   private static instance: AIStyleCreator
   private styleDatabase: Map<string, Outfit> = new Map()
   private inspirationDatabase: Map<string, StyleInspiration> = new Map()
-  private userStyleProfiles: Map<string, StyleProfile> = new Map()
+
 
   static getInstance(): AIStyleCreator {
     if (!AIStyleCreator.instance) {
@@ -112,7 +116,7 @@ export class AIStyleCreator {
             size: 'L',
             image: '/images/oversized-hoodie.jpg',
             availability: 'in-stock',
-            alternatives: []
+            alternatives: ['item1-alt', 'item1-alt2']
           },
           {
             id: 'item2',
@@ -124,7 +128,7 @@ export class AIStyleCreator {
             size: '32',
             image: '/images/cargo-pants.jpg',
             availability: 'in-stock',
-            alternatives: []
+            alternatives: ['item2-alt', 'item2-alt2']
           },
           {
             id: 'item3',
@@ -136,7 +140,7 @@ export class AIStyleCreator {
             size: '10',
             image: '/images/chunky-sneakers.jpg',
             availability: 'in-stock',
-            alternatives: []
+            alternatives: ['item3-alt', 'item3-alt2']
           }
         ],
         totalPrice: 379.97,
@@ -162,7 +166,7 @@ export class AIStyleCreator {
             size: 'M',
             image: '/images/silk-blouse.jpg',
             availability: 'in-stock',
-            alternatives: []
+            alternatives: ['item4-alt', 'item4-alt2']
           },
           {
             id: 'item5',
@@ -174,19 +178,19 @@ export class AIStyleCreator {
             size: '30',
             image: '/images/tailored-pants.jpg',
             availability: 'in-stock',
-            alternatives: []
+            alternatives: ['item5-alt', 'item5-alt2']
           },
           {
             id: 'item6',
             name: 'Leather Heels',
             category: 'shoes',
-            price: 599.99,
+            price: 299.99,
             brand: 'LuxuryShoes',
             color: 'Black',
             size: '8',
             image: '/images/leather-heels.jpg',
             availability: 'in-stock',
-            alternatives: []
+            alternatives: ['item6-alt', 'item6-alt2']
           }
         ],
         totalPrice: 1299.97,
@@ -251,17 +255,14 @@ export class AIStyleCreator {
     }
 
     // Analyze user preferences
-    const _stylePreferences = userProfile._stylePreferences
-    const _colorPreferences = _stylePreferences.colorPalette
-    const _aestheticPreferences = _stylePreferences.aesthetic
-    const _pricePreferences = _stylePreferences.priceRange
+    const stylePreferences = userProfile.stylePreferences
 
     // Generate outfit recommendations
     const recommendations: StyleRecommendation[] = []
     
     // Get outfits that match user preferences
     const matchingOutfits = this.findMatchingOutfits(
-      _stylePreferences,
+      stylePreferences,
       occasion,
       weather,
       budget
@@ -271,7 +272,7 @@ export class AIStyleCreator {
       // Calculate confidence score
       const confidence = this.calculateOutfitConfidence(
         outfit,
-        _stylePreferences,
+        stylePreferences,
         occasion,
         weather,
         _mood
@@ -280,7 +281,7 @@ export class AIStyleCreator {
       // Generate reasoning
       const reasoning = this.generateReasoning(
         outfit,
-        _stylePreferences,
+        stylePreferences,
         occasion,
         weather,
         _mood
@@ -292,8 +293,7 @@ export class AIStyleCreator {
       // Generate stylist note
       const stylistNote = aiStylistSystem.generateMessage(
         stylistPersonality,
-        'recommendation',
-        { outfit, confidence }
+        'recommendation'
       )
 
       const recommendation: StyleRecommendation = {
@@ -340,7 +340,7 @@ export class AIStyleCreator {
     }
 
     // Generate outfit concept
-    const outfitConcept = this.generateOutfitConcept(requirements, userProfile._stylePreferences)
+    const outfitConcept = this.generateOutfitConcept(requirements, userProfile.stylePreferences)
     
     // Find items that match the concept
     const items = await this.findMatchingItems(outfitConcept, requirements.budget)
@@ -403,9 +403,11 @@ export class AIStyleCreator {
       return false
     }
 
-    // Check style preference match
-    const styleMatch = _stylePreferences.aesthetic.includes(outfit.style) ||
-                      _stylePreferences.aesthetic.includes('versatile')
+      // Check style preference match
+  const styleMatch = (Array.isArray(_stylePreferences.aesthetic) && 
+                     _stylePreferences.aesthetic.includes(outfit.style)) ||
+                    (Array.isArray(_stylePreferences.aesthetic) && 
+                     _stylePreferences.aesthetic.includes('versatile'))
 
     // Check weather/season match
     const weatherMatch = this.weatherMatchesSeason(weather, outfit.season)
@@ -424,14 +426,14 @@ export class AIStyleCreator {
     let confidence = 0.5 // Base confidence
 
     // Style preference match (30% weight)
-    if (_stylePreferences.aesthetic.includes(outfit.style)) {
+    if (Array.isArray(_stylePreferences.aesthetic) && _stylePreferences.aesthetic.includes(outfit.style)) {
       confidence += 0.3
-    } else if (_stylePreferences.aesthetic.includes('versatile')) {
+    } else if (Array.isArray(_stylePreferences.aesthetic) && _stylePreferences.aesthetic.includes('versatile')) {
       confidence += 0.2
     }
 
     // Color preference match (25% weight)
-    const colorMatch = this.calculateColorMatch(outfit, _stylePreferences.colorPalette)
+    const colorMatch = this.calculateColorMatch(outfit, Array.isArray(_stylePreferences.colorPalette) ? _stylePreferences.colorPalette : [])
     confidence += colorMatch * 0.25
 
     // Occasion match (20% weight)
@@ -493,12 +495,12 @@ export class AIStyleCreator {
     const reasoning: string[] = []
 
     // Style reasoning
-    if (_stylePreferences.aesthetic.includes(outfit.style)) {
+    if (Array.isArray(_stylePreferences.aesthetic) && _stylePreferences.aesthetic.includes(outfit.style)) {
       reasoning.push(`This ${outfit.style} style matches your preferred aesthetic`)
     }
 
     // Color reasoning
-    const colorMatch = this.calculateColorMatch(outfit, _stylePreferences.colorPalette)
+    const colorMatch = this.calculateColorMatch(outfit, Array.isArray(_stylePreferences.colorPalette) ? _stylePreferences.colorPalette : [])
     if (colorMatch > 0.7) {
       reasoning.push('The color palette aligns with your preferences')
     }
@@ -512,7 +514,7 @@ export class AIStyleCreator {
     }
 
     // Price reasoning
-    if (outfit.totalPrice <= _stylePreferences.priceRange.preferred) {
+    if (outfit.totalPrice <= (_stylePreferences.priceRange as any)?.preferred || 1000) {
       reasoning.push('Fits within your preferred budget range')
     }
 
@@ -540,11 +542,11 @@ export class AIStyleCreator {
   // Generate outfit concept
   private generateOutfitConcept(requirements: Record<string, unknown>, _stylePreferences: Record<string, unknown>): Record<string, unknown> {
     return {
-      style: requirements.style,
-      occasion: requirements.occasion,
-      colors: requirements.colors,
-      budget: requirements.budget,
-      complexity: this.determineComplexity(requirements.occasion)
+      style: requirements.style as string,
+      occasion: requirements.occasion as string,
+      colors: requirements.colors as string[],
+      budget: requirements.budget as number,
+      complexity: this.determineComplexity(requirements.occasion as string)
     }
   }
 
@@ -558,7 +560,7 @@ export class AIStyleCreator {
         category: 'top',
         price: Math.min(budget * 0.4, 150),
         brand: 'CustomBrand',
-        color: outfitConcept.colors[0] || 'Black',
+        color: (Array.isArray(outfitConcept.colors) ? outfitConcept.colors[0] : 'Black') || 'Black',
         size: 'M',
         image: '/images/custom-top.jpg',
         availability: 'in-stock',
@@ -570,7 +572,7 @@ export class AIStyleCreator {
         category: 'bottom',
         price: Math.min(budget * 0.4, 200),
         brand: 'CustomBrand',
-        color: outfitConcept.colors[1] || 'Blue',
+        color: (Array.isArray(outfitConcept.colors) ? outfitConcept.colors[1] : 'Blue') || 'Blue',
         size: '32',
         image: '/images/custom-bottom.jpg',
         availability: 'in-stock',
@@ -582,7 +584,7 @@ export class AIStyleCreator {
         category: 'shoes',
         price: Math.min(budget * 0.2, 100),
         brand: 'CustomBrand',
-        color: outfitConcept.colors[2] || 'White',
+        color: (Array.isArray(outfitConcept.colors) ? outfitConcept.colors[2] : 'White') || 'White',
         size: '10',
         image: '/images/custom-shoes.jpg',
         availability: 'in-stock',
@@ -615,7 +617,7 @@ export class AIStyleCreator {
   private determineComplexity(occasion: string): 'simple' | 'moderate' | 'complex' {
     const simpleOccasions = ['casual', 'everyday', 'weekend']
     const moderateOccasions = ['work', 'date', 'party']
-    const _complexOccasions = ['formal', 'wedding', 'gala']
+    // const complexOccasions = ['formal', 'wedding', 'gala']
     
     if (simpleOccasions.includes(occasion)) return 'simple'
     if (moderateOccasions.includes(occasion)) return 'moderate'
