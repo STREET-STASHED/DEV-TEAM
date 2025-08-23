@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   MagnifyingGlassIcon, 
@@ -17,7 +17,6 @@ import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
-import { Product } from '@/types/product'
 
 export default function MarketplacePage() {
   const router = useRouter()
@@ -121,14 +120,14 @@ export default function MarketplacePage() {
     router.push(`/buyer/marketplace/product/${productId}`)
   }
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: any) => {
     // In real implementation, this would add to cart context
     console.log('Adding to cart:', product.name)
     // Show success message
     alert(`${product.name} added to cart!`)
   }
 
-  const handleAddToWishlist = (product: Product) => {
+  const handleAddToWishlist = (product: any) => {
     // In real implementation, this would add to wishlist
     console.log('Adding to wishlist:', product.name)
     // Show success message
@@ -557,13 +556,5 @@ export default function MarketplacePage() {
         </div>
       )}
     </div>
-  )
-}
-
-export default function BuyerMarketplacePage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <MarketplacePage />
-    </Suspense>
   )
 }
