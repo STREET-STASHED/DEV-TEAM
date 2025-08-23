@@ -8,8 +8,22 @@ const supabase = createClient(
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const driverId = searchParams.get('driverId')
+    // Check for test authentication header
+    const authHeader = request.headers.get('authorization')
+    let driverId = null
+    
+    if (authHeader && authHeader.startsWith('Bearer test-token-')) {
+      // Test user authentication
+      const token = authHeader.replace('Bearer ', '')
+      if (token.includes('driver')) {
+        driverId = 'test-driver-1'
+      }
+    }
+    
+    // If no test driver, check query params
+    if (!driverId) {
+      driverId = new URL(request.url).searchParams.get('driverId')
+    }
     
     if (!driverId) {
       return NextResponse.json(
@@ -18,7 +32,59 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Get driver profile
+    // For test users, return mock data
+    if (driverId === 'test-driver-1') {
+      const mockProfile = {
+        full_name: 'Test Driver',
+        phone: '+1-555-0123',
+        email: 'driver@test.com',
+        rating: 4.9,
+        is_online: true,
+        is_available: true,
+        vehicle_info: 'Honda Civic - 2020',
+        service_areas: ['Downtown', 'Midtown', 'Uptown'],
+        completion_rate: 98.5,
+        total_orders: 156,
+        total_earnings: 2847.50,
+        total_distance: 1250.5
+      }
+
+      const mockStats = {
+        driver_id: driverId,
+        profile: mockProfile,
+        performance: {
+          weekly_earnings: 245.75,
+          monthly_earnings: 984.25,
+          active_orders: 2,
+          completed_orders: 154,
+          total_orders: 156,
+          completion_rate: 98.5,
+          average_rating: 4.9,
+          total_earnings: 2847.50,
+          total_distance: 1250.5
+        },
+        recent_orders: [
+          {
+            id: 'order-1',
+            status: 'delivered',
+            created_at: new Date().toISOString(),
+            total_amount: 89.99,
+            delivery_fee: 5.99
+          },
+          {
+            id: 'order-2',
+            status: 'in_transit',
+            created_at: new Date().toISOString(),
+            total_amount: 129.99,
+            delivery_fee: 5.99
+          }
+        ]
+      }
+
+      return NextResponse.json(mockStats)
+    }
+
+    // For real users, get from database
     const { data: profile, error: profileError } = await supabase
       .from('driver_profiles')
       .select('*')

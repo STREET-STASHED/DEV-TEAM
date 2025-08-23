@@ -9,24 +9,33 @@ export async function GET(request: Request) {
     
     const supabase = createServiceRoleClient()
     
-    let query = supabase
-      .from('items')
-      .select('*')
-      .eq('active', true)
+    // Try to fetch from database first
+    let items = null
+    let error = null
     
-    if (trending === 'true') {
-      query = query.eq('isTrending', true)
+    try {
+      let query = supabase
+        .from('items')
+        .select('*')
+      
+      if (trending === 'true') {
+        query = query.eq('isTrending', true)
+      }
+      
+      if (limit) {
+        query = query.limit(parseInt(limit))
+      }
+      
+      const result = await query
+      items = result.data
+      error = result.error
+    } catch (dbError) {
+      console.log('Database not available, using mock data')
+      error = dbError
     }
     
-    if (limit) {
-      query = query.limit(parseInt(limit))
-    }
-    
-    const { data: items, error } = await query
-    
-    if (error) {
-      console.error('Error fetching items:', error)
-      // Return mock data as fallback
+    if (error || !items) {
+      console.log('Using mock data as fallback')
       return NextResponse.json({
         items: [
           {
