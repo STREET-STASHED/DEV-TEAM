@@ -26,6 +26,7 @@ const PUBLIC_PATHS = [
   "/live-shows",
   "/nft-marketplace",
   "/smart-contracts",
+  "/mock",
 ];
 
 // 👇 Admin-only routes
@@ -39,10 +40,29 @@ function isPublicPath(pathname: string): boolean {
   );
 }
 
+// Check if user has test authentication
+function hasTestAuth(req: NextRequest): boolean {
+  const authHeader = req.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer test-token-')) {
+    return true;
+  }
+  
+  // Check for test auth in cookies (for client-side requests)
+  const testAuthCookie = req.cookies.get('test-auth-session');
+  return testAuthCookie ? true : false;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const res = NextResponse.next();
+  
+  // Check for test authentication first
+  if (hasTestAuth(req)) {
+    console.log("[MIDDLEWARE] Test authentication detected, allowing access to:", pathname);
+    return res;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

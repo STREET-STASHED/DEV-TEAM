@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   MagnifyingGlassIcon, 
@@ -12,10 +12,8 @@ import {
   SparklesIcon,
   CameraIcon,
   TrophyIcon,
-  ShareIcon,
   ChatBubbleLeftRightIcon,
   BoltIcon,
-  GiftIcon,
   UsersIcon,
   GlobeAltIcon
 } from '@heroicons/react/24/outline'
@@ -69,89 +67,13 @@ export default function HomePage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [_selectedCategory, _setSelectedCategory] = useState('all')
-  const [stores, setStores] = useState<Store[]>([])
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [stores, setStores] = useState<Store[]>(mockStores.slice(0, 6))
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>(mockProducts.filter(p => p.isTrending).slice(0, 6))
+  const [categories, setCategories] = useState<Category[]>(mockCategories)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const loadStores = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/stores?featured=true&limit=6')
-      if (response.ok) {
-        const data = await response.json()
-        setStores(data.stores || [])
-      } else {
-        throw new Error('Failed to load stores')
-      }
-    } catch (error) {
-      console.error('Error loading stores:', error)
-      // Fallback to mock data
-      setStores(mockStores.slice(0, 6))
-    }
-  }
 
-  const loadFeaturedProducts = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/items?trending=true&limit=6')
-      if (response.ok) {
-        const data = await response.json()
-        setFeaturedProducts(data.items || [])
-      } else {
-        throw new Error('Failed to load featured products')
-      }
-    } catch (error) {
-      console.error('Error loading featured products:', error)
-      // Fallback to mock data
-      setFeaturedProducts(mockProducts.filter(p => p.isTrending).slice(0, 6))
-    }
-  }
-
-  const loadCategories = async () => {
-    try {
-      // Try to load from real API first
-      const response = await fetch('/api/categories?featured=true')
-      if (response.ok) {
-        const data = await response.json()
-        setCategories(data.categories || [])
-      } else {
-        throw new Error('Failed to load categories')
-      }
-    } catch (error) {
-      console.error('Error loading categories:', error)
-      // Fallback to mock data
-      setCategories(mockCategories)
-    }
-  }
-
-  const loadHomePageData = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Load data from APIs with fallback to mock data
-      await Promise.all([
-        loadStores(),
-        loadFeaturedProducts(),
-        loadCategories()
-      ])
-    } catch (error) {
-      console.error('Error loading homepage data:', error)
-      setError('Failed to load some data. Showing demo content.')
-      // Fallback to mock data for demo purposes
-      setStores(mockStores)
-      setFeaturedProducts(mockProducts.filter(p => p.isTrending).slice(0, 6))
-      setCategories(mockCategories)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadHomePageData()
-  }, [loadHomePageData])
 
   const handleSearch = () => {
     if (searchQuery.trim()) {

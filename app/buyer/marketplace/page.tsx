@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   MagnifyingGlassIcon, 
@@ -70,46 +70,20 @@ function MarketplaceContent() {
   const [selectedStore, setSelectedStore] = useState('all')
   const [priceRange, setPriceRange] = useState([0, 1000])
   const [sortBy, setSortBy] = useState('trending')
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [stores, setStores] = useState<Store[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [products, setProducts] = useState<Product[]>(mockProducts)
+  const [categories, setCategories] = useState<Category[]>(mockCategories)
+  const [stores, setStores] = useState<Store[]>(mockStores)
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>(mockProducts)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [showAIStylist, setShowAIStylist] = useState(false)
-  const [showARTryOn, setShowARTryOn] = useState(false)
-  const [showSocialChallenges, setShowSocialChallenges] = useState(false)
+  const [_showAIStylist, _setShowAIStylist] = useState(false)
+  const [_showARTryOn, _setShowARTryOn] = useState(false)
+  const [_showSocialChallenges, _setShowSocialChallenges] = useState(false)
 
-  const loadMarketplaceData = useCallback(async () => {
-    setIsLoading(true)
-    setError(null)
-    
-    try {
-      // Load data from APIs with fallback to mock data
-      await Promise.all([
-        // API calls would go here
-      ])
-      
-      // For now, use mock data
-      setProducts(mockProducts)
-      setCategories(mockCategories)
-      setStores(mockStores)
-      
-    } catch (error) {
-      console.error('Error loading marketplace data:', error)
-      setError('Failed to load marketplace data')
-      
-      // Fallback to mock data
-      setProducts(mockProducts)
-      setCategories(mockCategories)
-      setStores(mockStores)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
 
-  const applyFilters = useCallback(() => {
+
+  const applyFilters = () => {
     let filtered = [...products]
     
     // Apply search filter
@@ -155,11 +129,9 @@ function MarketplaceContent() {
     }
     
     setFilteredProducts(filtered)
-  }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
+  }
 
-  useEffect(() => {
-    loadMarketplaceData()
-  }, [loadMarketplaceData])
+
 
   useEffect(() => {
     // Get URL parameters
@@ -173,8 +145,10 @@ function MarketplaceContent() {
   }, [searchParams])
 
   useEffect(() => {
-    applyFilters()
-  }, [applyFilters])
+    if (products.length > 0) {
+      applyFilters()
+    }
+  }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -214,19 +188,19 @@ function MarketplaceContent() {
   }
 
   const handleAIStylist = () => {
-    setShowAIStylist(true)
+    _setShowAIStylist(true)
     // In real implementation, this would open AI Stylist modal or navigate to page
     router.push('/ai-stylist')
   }
 
   const handleARTryOn = () => {
-    setShowARTryOn(true)
+    _setShowARTryOn(true)
     // In real implementation, this would open AR Try-On modal or navigate to page
     router.push('/ar-tryon')
   }
 
   const handleSocialChallenges = () => {
-    setShowSocialChallenges(true)
+    _setShowSocialChallenges(true)
     // In real implementation, this would open Social Challenges modal or navigate to page
     router.push('/social/challenges')
   }

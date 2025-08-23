@@ -41,6 +41,10 @@ export function TestAuthProvider({ children }: { children: ReactNode }) {
       try {
         const parsed = JSON.parse(savedSession)
         setSession(parsed)
+        
+        // Set cookie for middleware to detect test authentication
+        document.cookie = `test-auth-session=true; path=/; max-age=86400; SameSite=Lax`
+        
         // Fetch user profile
         fetchUserProfile(parsed.user.id, parsed.user.role)
       } catch (error) {
@@ -92,6 +96,10 @@ export function TestAuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user)
         setSession(data.session)
         localStorage.setItem('test-session', JSON.stringify(data.session))
+        
+        // Set cookie for middleware to detect test authentication
+        document.cookie = `test-auth-session=true; path=/; max-age=86400; SameSite=Lax`
+        
         return true
       }
       return false
@@ -105,6 +113,9 @@ export function TestAuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
     setSession(null)
     localStorage.removeItem('test-session')
+    
+    // Remove test auth cookie
+    document.cookie = 'test-auth-session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
   }
 
   const value: TestAuthContextType = {
