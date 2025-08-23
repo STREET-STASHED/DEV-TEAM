@@ -8,7 +8,13 @@ import {
   StarIcon,
   ShoppingCartIcon,
   HeartIcon,
-  MapPinIcon
+  MapPinIcon,
+  FireIcon,
+  SparklesIcon,
+  CameraIcon,
+  TrophyIcon,
+  ShareIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
 
@@ -71,6 +77,9 @@ function MarketplaceContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
+  const [showAIStylist, setShowAIStylist] = useState(false)
+  const [showARTryOn, setShowARTryOn] = useState(false)
+  const [showSocialChallenges, setShowSocialChallenges] = useState(false)
 
   const loadMarketplaceData = useCallback(async () => {
     setIsLoading(true)
@@ -204,6 +213,24 @@ function MarketplaceContent() {
     router.push('/buyer/marketplace')
   }
 
+  const handleAIStylist = () => {
+    setShowAIStylist(true)
+    // In real implementation, this would open AI Stylist modal or navigate to page
+    router.push('/ai-stylist')
+  }
+
+  const handleARTryOn = () => {
+    setShowARTryOn(true)
+    // In real implementation, this would open AR Try-On modal or navigate to page
+    router.push('/ar-tryon')
+  }
+
+  const handleSocialChallenges = () => {
+    setShowSocialChallenges(true)
+    // In real implementation, this would open Social Challenges modal or navigate to page
+    router.push('/social/challenges')
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-ink-black text-white flex items-center justify-center">
@@ -230,6 +257,58 @@ function MarketplaceContent() {
               className="bg-ink-800 hover:bg-ink-700 px-4 py-2 rounded-lg transition-colors"
             >
               ← Back
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Features Bar */}
+      <div className="bg-gradient-to-r from-yellow-500/20 via-purple-500/20 to-pink-500/20 border-b border-yellow-400/30 p-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {/* AI Stylist */}
+            <button
+              onClick={handleAIStylist}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
+              <SparklesIcon className="w-5 h-5" />
+              <span>AI Stylist</span>
+            </button>
+
+            {/* AR Try-On */}
+            <button
+              onClick={handleARTryOn}
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
+              <CameraIcon className="w-5 h-5" />
+              <span>AR Try-On</span>
+            </button>
+
+            {/* Social Challenges */}
+            <button
+              onClick={handleSocialChallenges}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
+              <TrophyIcon className="w-5 h-5" />
+              <span>Challenges</span>
+            </button>
+
+            {/* Live Chat */}
+            <button
+              onClick={() => alert('Live chat coming soon!')}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
+              <ChatBubbleLeftRightIcon className="w-5 h-5" />
+              <span>Live Chat</span>
+            </button>
+
+            {/* Social Sharing */}
+            <button
+              onClick={() => alert('Share this marketplace!')}
+              className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+            >
+              <ShareIcon className="w-5 h-5" />
+              <span>Share</span>
             </button>
           </div>
         </div>
@@ -406,8 +485,9 @@ function MarketplaceContent() {
                   
                   {/* Badges */}
                   {product.isTrending && (
-                    <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold">
-                      Trending
+                    <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
+                      <FireIcon className="w-4 h-4" />
+                      <span>Trending</span>
                     </div>
                   )}
                   {product.originalPrice && (
