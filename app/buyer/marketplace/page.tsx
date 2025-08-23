@@ -17,52 +17,9 @@ import {
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
+import { Product } from '@/types/product'
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  originalPrice?: number
-  category: string
-  subcategory: string
-  storeId: string
-  storeName: string
-  images: string[]
-  sizes: string[]
-  colors: string[]
-  rating: number
-  reviewCount: number
-  inStock: boolean
-  isTrending: boolean
-  tags: string[]
-  created_at: string
-}
-
-interface Category {
-  id: string
-  name: string
-  icon: string
-  description: string
-  productCount: number
-  image: string
-}
-
-interface Store {
-  id: string
-  name: string
-  description: string
-  rating: number
-  reviewCount: number
-  deliveryTime: string
-  minOrder: number
-  categories: string[]
-  image: string
-  location: string
-  isVerified: boolean
-}
-
-function MarketplaceContent() {
+export default function MarketplacePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
@@ -70,12 +27,12 @@ function MarketplaceContent() {
   const [selectedStore, setSelectedStore] = useState('all')
   const [priceRange, setPriceRange] = useState([0, 1000])
   const [sortBy, setSortBy] = useState('trending')
-  const [products, setProducts] = useState<Product[]>(mockProducts)
-  const [categories, setCategories] = useState<Category[]>(mockCategories)
-  const [stores, setStores] = useState<Store[]>(mockStores)
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(mockProducts)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [products, _setProducts] = useState(mockProducts)
+  const [categories, _setCategories] = useState(mockCategories)
+  const [stores, _setStores] = useState(mockStores)
+  const [filteredProducts, setFilteredProducts] = useState(mockProducts)
+  const [isLoading, _setIsLoading] = useState(false)
+  const [error, _setError] = useState<string | null>(null)
   const [showFilters, setShowFilters] = useState(false)
   const [_showAIStylist, _setShowAIStylist] = useState(false)
   const [_showARTryOn, _setShowARTryOn] = useState(false)
@@ -277,13 +234,69 @@ function MarketplaceContent() {
             </button>
 
             {/* Social Sharing */}
-            <button
-              onClick={() => alert('Share this marketplace!')}
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
-            >
+            <button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
               <ShareIcon className="w-5 h-5" />
               <span>Share</span>
             </button>
+            <button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+              </svg>
+              <span>NFT Collection</span>
+            </button>
+            <button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+              </svg>
+              <span>Smart Contracts</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Live Activity Section */}
+      <div className="bg-ink-900 border-b border-ink-700 p-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-white flex items-center space-x-2">
+              <span className="text-red-500">🔥</span>
+              Live Activity
+            </h2>
+            <div className="flex items-center space-x-2">
+              <span className="text-green-500 text-sm">Real-time updates</span>
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <button className="text-ink-400 hover:text-white transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-ink-800 rounded-lg p-4 border border-ink-700">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-sm font-semibold">LIVE</span>
+              </div>
+              <p className="text-white text-sm">@StyleMaster just dropped 50 new pieces</p>
+              <span className="text-ink-400 text-xs">2 min ago</span>
+            </div>
+            <div className="bg-ink-800 rounded-lg p-4 border border-ink-700">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-blue-400 text-sm font-semibold">AI</span>
+              </div>
+              <p className="text-white text-sm">AI Stylist generated 127 new outfit combinations</p>
+              <span className="text-ink-400 text-xs">5 min ago</span>
+            </div>
+            <div className="bg-ink-800 rounded-lg p-4 border border-ink-700">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-purple-400 text-sm font-semibold">NFT</span>
+              </div>
+              <p className="text-white text-sm">New NFT collection minted: 'Streetwear Legends'</p>
+              <span className="text-ink-400 text-xs">8 min ago</span>
+            </div>
           </div>
         </div>
       </div>
@@ -550,7 +563,7 @@ function MarketplaceContent() {
 export default function BuyerMarketplacePage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <MarketplaceContent />
+      <MarketplacePage />
     </Suspense>
   )
 }

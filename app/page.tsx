@@ -242,8 +242,47 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+      
+      {/* Live Activity Section */}
+      <div className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-red-500/10 to-orange-500/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-white mb-4">🔥 Live Activity</h2>
+            <p className="text-ink-300">Real-time updates from the StreetStashed community</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-800 hover:border-red-500/50 transition-all duration-300">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-red-400 font-semibold">LIVE</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">New Product Drop</h3>
+              <p className="text-ink-300 text-sm">@StyleMaster just dropped 50 new pieces</p>
+              <span className="text-ink-400 text-xs">2 min ago</span>
+            </div>
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-800 hover:border-blue-500/50 transition-all duration-300">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                <span className="text-blue-400 font-semibold">AI</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">AI Stylist Active</h3>
+              <p className="text-ink-300 text-sm">AI Stylist generated 127 new outfit combinations</p>
+              <span className="text-ink-400 text-xs">5 min ago</span>
+            </div>
+            <div className="bg-ink-900 rounded-xl p-6 border border-ink-800 hover:border-purple-500/50 transition-all duration-300">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse"></div>
+                <span className="text-purple-400 font-semibold">NFT</span>
+              </div>
+              <h3 className="text-white font-semibold mb-2">NFT Collection</h3>
+              <p className="text-ink-300 text-sm">New NFT collection minted: 'Streetwear Legends'</p>
+              <span className="text-ink-400 text-xs">8 min ago</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      {/* Categories Section */}
+      {/* Shop by Category */}
       <div className="py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
