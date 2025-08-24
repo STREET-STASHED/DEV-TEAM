@@ -8,8 +8,9 @@ import React, {
   useMemo,
   ReactNode,
 } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { User } from "@supabase/supabase-js";
+// Only import supabase when needed for authenticated users
+// import { supabase } from "@/lib/supabaseClient";
+// import { User } from "@supabase/supabase-js";
 import { safeJsonParse } from "@/lib/safeJson";
 import { computeStashedSupportFee } from '@/lib/feeConfig';
 
@@ -59,10 +60,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
   const [stashedFee, setStashedFee] = useState<number>(0);
 
-  const isAuthenticated = !!user;
+  // For now, always treat as guest user to avoid Supabase errors
+  const isAuthenticated = false;
 
   // On mount, always hydrate cart from localStorage for guests.
   // This ensures cart state is always consistent, even if empty,
@@ -97,94 +98,53 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [items, hydrated]);
 
-  useEffect(() => {
-    const loadUserSession = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        setUser(data?.session?.user ?? null);
-      } catch (error) {
-        console.error("Failed to load user session:", error);
-        setUser(null);
-      }
-    };
+  // For now, disable user session loading to avoid Supabase errors
+  // useEffect(() => {
+  //   const loadUserSession = async () => {
+  //     try {
+  //       const { data } = await supabase.auth.getSession();
+  //       setUser(data?.session?.user ?? null);
+  //     } catch (error) {
+  //       console.error("Failed to load user session:", error);
+  //       setUser(null);
+  //     }
+  //   };
     
-    void loadUserSession();
-  }, []);
+  //   void loadUserSession();
+  // }, []);
 
   useEffect(() => {
     if (!hydrated) return;
     
-    const loadCart = async () => {
+    // Simplified cart loading - only use guest cart for now
+    const loadCart = () => {
       try {
-        const guestItems = getGuestCart();
-
-        if (isAuthenticated && user?.id) {
-          const { data: serverRows } = await supabase
-            .from("cart_items")
-            .select("*")
-            .eq("user_id", user.id);
-
-          // Map DB rows -> client CartItem (image -> image_url)
-          const serverItems: CartItem[] = (serverRows ?? []).map(
-            (row: { image: string | null; id: string; name: string; price: number; quantity: number; [key: string]: unknown }) => ({
-              id: row.id,
-              name: row.name,
-              price: row.price,
-              quantity: row.quantity,
-              image_url: row.image ?? "/mock/default-product.jpg",
-              category: (row.category as string) ?? "general",
-              delivery_tier: (row.delivery_tier as string) ?? "standard",
-            }),
-          );
-
-          const mergedItems = mergeItems(serverItems ?? [], guestItems ?? []);
-          setItems(mergedItems);
-
-          // Map client -> DB and upsert with composite conflict target
-          await supabase.from("cart_items").upsert(
-            mergedItems.map((item) => ({
-              ...item,
-              image: item.image_url ?? null,
-              user_id: user.id,
-            })),
-            { onConflict: "user_id,id" },
-          );
-
-          clearGuestCart();
-        } else if (guestItems.length > 0) {
-          setItems(guestItems);
-        }
-      } catch (error) {
-        console.error("Failed to load cart:", error);
-        // Fallback to guest cart on error
         const guestItems = getGuestCart();
         if (guestItems.length > 0) {
           setItems(guestItems);
         }
+      } catch (error) {
+        console.error("Failed to load guest cart:", error);
       }
     };
 
-    void loadCart();
-  }, [isAuthenticated, user, hydrated]);
+    loadCart();
+  }, [hydrated]);
 
   useEffect(() => {
     if (!isAuthenticated && hydrated) saveGuestCart(items);
   }, [items, isAuthenticated, hydrated]);
 
+  // Simplified server sync - disabled for now to avoid Supabase errors
   const syncToServer = async (nextItems: CartItem[]): Promise<void> => {
-    if (!isAuthenticated || !user?.id) return;
-    
+    // For now, just save to localStorage
     try {
-      await supabase.from("cart_items").upsert(
-        nextItems.map((item) => ({
-          ...item,
-          image: item.image_url ?? null,
-          user_id: user.id,
-        })),
-        { onConflict: "user_id,id" },
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ items: nextItems, timestamp: Date.now() }),
       );
     } catch (error) {
-      console.error("Failed to sync cart to server:", error);
+      console.error("Failed to save cart to localStorage:", error);
     }
   };
 
@@ -237,22 +197,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({
     });
   };
 
-  const clearCart = async () => {
-    setItems([]);
-    if (isAuthenticated && user?.id) {
-      try {
-        await supabase.from("cart_items").delete().eq("user_id", user.id);
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
+  // const clearCart = async () => {
+  //   setItems([]);
+  //   // For now, just clear local storage to avoid Supabase errors
+  //   clearGuestCart();
+  // };
 
   const clearCartSync = () => {
     setItems([]);
-    if (isAuthenticated && user?.id) {
-      void clearCart();
-    }
+    // For now, just clear local storage to avoid Supabase errors
+    clearGuestCart();
   };
 
   const toggleCart = () => setIsOpen((prev) => !prev);
@@ -361,18 +315,18 @@ function clearGuestCart() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
-function mergeItems(
-  serverItems: CartItem[],
-  guestItems: CartItem[],
-): CartItem[] {
-  const map = new Map<string, CartItem>();
-  [...serverItems, ...guestItems].forEach((item) => {
-    const existing = map.get(item.id);
-    if (existing) {
-      existing.quantity += item.quantity;
-    } else {
-      map.set(item.id, { ...item });
-    }
-  });
-  return Array.from(map.values());
-}
+// function mergeItems(
+//   serverItems: CartItem[],
+//   guestItems: CartItem[],
+// ): CartItem[] {
+//   const map = new Map<string, CartItem>();
+//   [...serverItems, ...guestItems].forEach((item) => {
+//     const existing = map.get(item.id);
+//     if (existing) {
+//       existing.quantity += item.quantity;
+//     } else {
+//       map.set(item.id, { ...item });
+//     }
+//   });
+//   return Array.from(map.values());
+// }

@@ -99,13 +99,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        console.error("Error loading profile:", error);
+        // Only log critical errors, not expected "no rows" errors
+        if (error.code !== 'PGRST116') {
+          console.error("Error loading profile:", error);
+        }
         return;
       }
 
       setProfile(data);
     } catch (error) {
-      console.error("Error loading profile:", error);
+      // Only log unexpected errors
+      if (error instanceof Error && !error.message.includes('profiles')) {
+        console.error("Error loading profile:", error);
+      }
     }
   }, []);
 
