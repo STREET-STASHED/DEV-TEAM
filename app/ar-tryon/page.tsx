@@ -54,10 +54,26 @@ export default function ARTryOnPage() {
   // Set browser compatibility on client side only
   useEffect(() => {
     const checkCompatibility = () => {
+      console.log('Checking browser compatibility...')
+      console.log('navigator:', typeof navigator !== 'undefined' ? 'exists' : 'undefined')
+      console.log('navigator.mediaDevices:', navigator?.mediaDevices ? 'exists' : 'undefined')
+      console.log('navigator.mediaDevices.getUserMedia:', typeof navigator?.mediaDevices?.getUserMedia)
+      
+      // More permissive compatibility check
       const hasMediaDevices = typeof navigator !== 'undefined' && 
         navigator.mediaDevices && 
-        typeof navigator.mediaDevices.getUserMedia === 'function'
-      setIsBrowserCompatible(hasMediaDevices)
+        (typeof navigator.mediaDevices.getUserMedia === 'function' || 
+         typeof navigator.mediaDevices.getUserMedia === 'object')
+      
+      // Also check for older getUserMedia support
+      const hasOldGetUserMedia = typeof navigator !== 'undefined' && 
+        (typeof (navigator as any).getUserMedia === 'function' || 
+         typeof (navigator as any).webkitGetUserMedia === 'function' ||
+         typeof (navigator as any).mozGetUserMedia === 'function')
+      
+      const isCompatible = hasMediaDevices || hasOldGetUserMedia
+      console.log('Browser compatible:', isCompatible)
+      setIsBrowserCompatible(isCompatible)
     }
     
     checkCompatibility()
@@ -115,8 +131,39 @@ export default function ARTryOnPage() {
       setDebugInfo('Checking browser compatibility...')
       
       // Check if we're in a browser environment and MediaDevices API is supported
-      if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
-        const errorMsg = 'MediaDevices API not supported in this environment'
+      console.log('Checking MediaDevices API...')
+      console.log('window exists:', typeof window !== 'undefined')
+      console.log('navigator exists:', typeof navigator !== 'undefined')
+      console.log('navigator.mediaDevices:', navigator?.mediaDevices)
+      console.log('navigator.mediaDevices.getUserMedia:', navigator?.mediaDevices?.getUserMedia)
+      
+      if (typeof window === 'undefined') {
+        const errorMsg = 'Not in browser environment'
+        console.warn(errorMsg)
+        setCameraError(errorMsg)
+        setIsCameraLoading(false)
+        return
+      }
+      
+      // Try different ways to get camera access
+      let getUserMediaFunc: any = null
+      
+      if (navigator?.mediaDevices?.getUserMedia) {
+        getUserMediaFunc = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices)
+        console.log('Using navigator.mediaDevices.getUserMedia')
+      } else if ((navigator as any)?.getUserMedia) {
+        getUserMediaFunc = (navigator as any).getUserMedia.bind(navigator)
+        console.log('Using navigator.getUserMedia')
+      } else if ((navigator as any)?.webkitGetUserMedia) {
+        getUserMediaFunc = (navigator as any).webkitGetUserMedia.bind(navigator)
+        console.log('Using navigator.webkitGetUserMedia')
+      } else if ((navigator as any)?.mozGetUserMedia) {
+        getUserMediaFunc = (navigator as any).mozGetUserMedia.bind(navigator)
+        console.log('Using navigator.mozGetUserMedia')
+      }
+      
+      if (!getUserMediaFunc) {
+        const errorMsg = 'No getUserMedia implementation found'
         console.warn(errorMsg)
         setCameraError(errorMsg)
         setIsCameraLoading(false)
@@ -126,7 +173,7 @@ export default function ARTryOnPage() {
       setDebugInfo('Requesting camera permissions...')
       
       // Request camera permissions with more specific constraints
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await getUserMediaFunc({ 
         video: { 
           facingMode: 'user',
           width: { ideal: 640, min: 320, max: 1920 },
