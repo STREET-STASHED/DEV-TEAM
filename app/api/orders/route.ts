@@ -41,10 +41,13 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createRouteHandlerClient();
     
-    // Check authentication
+    // Check authentication - allow guest users
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const isGuest = !user || authError;
+    
+    // For guest users, we'll create orders without a buyer_id
+    if (isGuest) {
+      console.log('Processing guest checkout');
     }
 
     // Parse and validate request
@@ -61,19 +64,25 @@ export async function POST(request: NextRequest) {
     const { items, pickupAddress, deliveryAddress, distanceMiles, totalPrice } = validationResult.data;
 
     // Create order in database
+    const orderData: any = {
+      status: 'pending_payment',
+      total_amount: totalPrice,
+      delivery_fee: 0, // Will be calculated separately
+      distance_miles: distanceMiles,
+      pickup_address: JSON.stringify(pickupAddress),
+      delivery_address: JSON.stringify(deliveryAddress),
+      items: JSON.stringify(items),
+      created_at: new Date().toISOString(),
+    };
+
+    // Add buyer_id only for authenticated users
+    if (!isGuest) {
+      orderData.buyer_id = user.id;
+    }
+
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert({
-        buyer_id: user.id,
-        status: 'pending_payment',
-        total_amount: totalPrice,
-        delivery_fee: 0, // Will be calculated separately
-        distance_miles: distanceMiles,
-        pickup_address: JSON.stringify(pickupAddress),
-        delivery_address: JSON.stringify(deliveryAddress),
-        items: JSON.stringify(items),
-        created_at: new Date().toISOString(),
-      })
+      .insert(orderData)
       .select()
       .single();
 
