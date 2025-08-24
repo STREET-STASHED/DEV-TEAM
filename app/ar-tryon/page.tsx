@@ -45,10 +45,23 @@ export default function ARTryOnPage() {
   const [recommendedSize, setRecommendedSize] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [isCameraLoading, setIsCameraLoading] = useState(false)
+  const [cameraError, setCameraError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<string>('')
   
   // Check browser compatibility for camera and AR features
-  const isBrowserCompatible = typeof window !== 'undefined' && 
-    !!navigator?.mediaDevices?.getUserMedia
+  const [isBrowserCompatible, setIsBrowserCompatible] = useState(false)
+  
+  // Set browser compatibility on client side only
+  useEffect(() => {
+    const checkCompatibility = () => {
+      const hasMediaDevices = typeof navigator !== 'undefined' && 
+        navigator.mediaDevices && 
+        typeof navigator.mediaDevices.getUserMedia === 'function'
+      setIsBrowserCompatible(hasMediaDevices)
+    }
+    
+    checkCompatibility()
+  }, [])
 
   // Available AR products for try-on
   const arProducts: ARProduct[] = [
@@ -89,68 +102,158 @@ export default function ARTryOnPage() {
     // Early return if browser is not compatible
     if (!isBrowserCompatible) {
       console.warn('Camera not supported in this browser')
+      setCameraError('Camera not supported in this browser')
       return
     }
     
     setIsCameraLoading(true)
+    setCameraError(null)
+    setDebugInfo('Starting camera...')
     
     try {
       console.log('Starting camera...')
+      setDebugInfo('Checking browser compatibility...')
       
       // Check if we're in a browser environment and MediaDevices API is supported
       if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
-        console.warn('MediaDevices API not supported in this environment')
-        alert('Camera access is not supported in this browser. Please use a modern browser with camera support.')
+        const errorMsg = 'MediaDevices API not supported in this environment'
+        console.warn(errorMsg)
+        setCameraError(errorMsg)
+        setIsCameraLoading(false)
         return
       }
 
-      // Request camera permissions
+      setDebugInfo('Requesting camera permissions...')
+      
+      // Request camera permissions with more specific constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: 640, min: 320, max: 1920 },
+          height: { ideal: 480, min: 240, max: 1080 }
         } 
       })
       
       console.log('Camera stream obtained:', stream)
+      setDebugInfo(`Stream obtained: ${stream.getVideoTracks().length} video tracks`)
       
       if (videoRef.current) {
+        console.log('Setting video srcObject...')
+        setDebugInfo('Setting video source...')
+        
+        // Set the stream as the video source
         videoRef.current.srcObject = stream
         
-        // Wait for video to load
+        // Add event listeners for better debugging
+        videoRef.current.onloadstart = () => {
+          console.log('Video load started')
+          setDebugInfo('Video load started...')
+        }
+        videoRef.current.onloadeddata = () => {
+          console.log('Video data loaded')
+          setDebugInfo('Video data loaded...')
+        }
+        videoRef.current.oncanplay = () => {
+          console.log('Video can play')
+          setDebugInfo('Video can play...')
+        }
+        videoRef.current.oncanplaythrough = () => {
+          console.log('Video can play through')
+          setDebugInfo('Video can play through...')
+        }
+        
+        // Wait for video to load metadata
         videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded')
+          const width = videoRef.current?.videoWidth || 0
+          const height = videoRef.current?.videoHeight || 0
+          console.log('Video metadata loaded, dimensions:', width, 'x', height)
+          setDebugInfo(`Video ready: ${width}x${height}`)
+          
+          // Ensure video dimensions are set
+          if (videoRef.current) {
+            videoRef.current.style.width = '100%'
+            videoRef.current.style.height = 'auto'
+            videoRef.current.style.minHeight = '300px'
+          }
+          
           setIsCameraActive(true)
           setIsCameraLoading(false)
         }
         
         videoRef.current.onerror = (error) => {
-          console.error('Video error:', error)
-          alert('Error loading video stream')
+          const errorMsg = 'Error loading video stream'
+          console.error(errorMsg, error)
+          setCameraError(errorMsg)
           setIsCameraLoading(false)
         }
         
-        // Force play the video
-        try {
-          await videoRef.current.play()
-          console.log('Video playing successfully')
-        } catch (playError) {
-          console.error('Error playing video:', playError)
-          setIsCameraLoading(false)
+        // Set video properties for better compatibility
+        videoRef.current.autoplay = true
+        videoRef.current.playsInline = true
+        videoRef.current.muted = true
+        
+        // Force play the video with retry logic
+        let playAttempts = 0
+        const maxPlayAttempts = 3
+        
+        const attemptPlay = async () => {
+          try {
+            setDebugInfo(`Attempting to play video (attempt ${playAttempts + 1})...`)
+            await videoRef.current!.play()
+            console.log('Video playing successfully')
+            setDebugInfo('Video playing successfully!')
+            
+            // Double-check that video is actually playing
+            setTimeout(() => {
+              if (videoRef.current && videoRef.current.paused) {
+                console.warn('Video appears to be paused, attempting to restart...')
+                videoRef.current.play().catch(e => console.error('Restart failed:', e))
+              }
+            }, 1000)
+            
+          } catch (playError) {
+            console.error('Play attempt', playAttempts + 1, 'failed:', playError)
+            playAttempts++
+            
+            if (playAttempts < maxPlayAttempts) {
+              const retryMsg = `Play failed, retrying in 500ms... (${playAttempts}/${maxPlayAttempts})`
+              console.log(retryMsg)
+              setDebugInfo(retryMsg)
+              setTimeout(attemptPlay, 500)
+            } else {
+              const finalError = `Failed to play video after ${maxPlayAttempts} attempts`
+              console.error(finalError)
+              setCameraError(finalError)
+              setIsCameraLoading(false)
+            }
+          }
         }
+        
+        // Start play attempt
+        attemptPlay()
       } else {
-        console.error('Video ref not available')
+        const errorMsg = 'Video ref not available'
+        console.error(errorMsg)
+        setCameraError(errorMsg)
         setIsCameraLoading(false)
       }
     } catch (error) {
       console.error('Error accessing camera:', error)
       setIsCameraLoading(false)
-      if (error instanceof DOMException && error.name === 'NotAllowedError') {
-        alert('Camera permission denied. Please allow camera access and try again.')
-      } else {
-        alert('Unable to access camera. Please check permissions and try again.')
+      
+      let errorMsg = 'Unable to access camera'
+      if (error instanceof DOMException) {
+        if (error.name === 'NotAllowedError') {
+          errorMsg = 'Camera permission denied. Please allow camera access and try again.'
+        } else if (error.name === 'NotFoundError') {
+          errorMsg = 'No camera found. Please check your device has a camera.'
+        } else if (error.name === 'NotReadableError') {
+          errorMsg = 'Camera is in use by another application. Please close other camera apps.'
+        }
       }
+      
+      setCameraError(errorMsg)
+      setDebugInfo(`Error: ${errorMsg}`)
     }
   }, [])
 
@@ -366,24 +469,41 @@ export default function ARTryOnPage() {
                     <div className="text-center">
                       <CameraIcon className="w-16 h-16 text-ink-400 mx-auto mb-4" />
                       <p className="text-ink-300 mb-4">Camera not active</p>
-                                                <button
-                            onClick={startCamera}
-                            disabled={!isBrowserCompatible || isCameraLoading}
-                            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                              isBrowserCompatible && !isCameraLoading
-                                ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                                : 'bg-gray-500 cursor-not-allowed text-gray-300'
-                            }`}
-                          >
-                            {isCameraLoading ? (
-                              <div className="flex items-center space-x-2">
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                <span>Starting Camera...</span>
-                              </div>
-                            ) : (
-                              'Start Camera'
-                            )}
-                          </button>
+                      
+                      {/* Debug Info */}
+                      {debugInfo && (
+                        <div className="mb-4 p-3 bg-ink-700 rounded-lg text-xs text-ink-300">
+                          <div className="font-semibold mb-1">Debug Info:</div>
+                          <div>{debugInfo}</div>
+                        </div>
+                      )}
+                      
+                      {/* Camera Error */}
+                      {cameraError && (
+                        <div className="mb-4 p-3 bg-red-900/50 border border-red-500/50 rounded-lg text-xs text-red-300">
+                          <div className="font-semibold mb-1">Camera Error:</div>
+                          <div>{cameraError}</div>
+                        </div>
+                      )}
+                      
+                      <button
+                        onClick={startCamera}
+                        disabled={!isBrowserCompatible || isCameraLoading}
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                          isBrowserCompatible && !isCameraLoading
+                            ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                            : 'bg-gray-500 cursor-not-allowed text-gray-300'
+                        }`}
+                      >
+                        {isCameraLoading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Starting Camera...</span>
+                          </div>
+                        ) : (
+                          'Start Camera'
+                        )}
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -402,6 +522,10 @@ export default function ARTryOnPage() {
                         playsInline
                         muted
                         className="w-full aspect-video object-cover"
+                        style={{ 
+                          minHeight: '300px',
+                          backgroundColor: '#1f2937' // ink-800 color
+                        }}
                       />
                     )}
                     <canvas
