@@ -4,74 +4,28 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   MagnifyingGlassIcon, 
-  MapPinIcon, 
+  FunnelIcon, 
   StarIcon,
-  ShoppingBagIcon,
+  ShoppingCartIcon,
+  HeartIcon,
+  MapPinIcon,
   FireIcon,
-  ChartBarIcon,
   SparklesIcon,
   CameraIcon,
   TrophyIcon,
-  ChatBubbleLeftRightIcon,
-  BoltIcon,
-  UsersIcon,
-  GlobeAltIcon
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
-import { mockStores, mockProducts, mockCategories } from '@/lib/mockData'
-
-interface Store {
-  id: string
-  name: string
-  description: string
-  rating: number
-  reviewCount: number
-  deliveryTime: string
-  minOrder: number
-  categories: string[]
-  image: string
-  location: string
-  isVerified: boolean
-}
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  originalPrice?: number
-  category: string
-  subcategory: string
-  storeId: string
-  storeName: string
-  images: string[]
-  sizes: string[]
-  colors: string[]
-  rating: number
-  reviewCount: number
-  inStock: boolean
-  isTrending: boolean
-  tags: string[]
-  created_at: string
-}
-
-interface Category {
-  id: string
-  name: string
-  icon: string
-  description: string
-  productCount: number
-  image: string
-}
+import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
 
 export default function HomePage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [_selectedCategory, _setSelectedCategory] = useState('all')
-  const [stores, setStores] = useState<Store[]>(mockStores.slice(0, 6))
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>(mockProducts.filter(p => p.isTrending).slice(0, 6))
-  const [categories, setCategories] = useState<Category[]>(mockCategories)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [stores, _setStores] = useState(mockStores)
+  const [featuredProducts, _setFeaturedProducts] = useState(mockProducts)
+  const [categories, _setCategories] = useState(mockCategories)
+  const [isLoading, _setIsLoading] = useState(false)
+  const [error, _setError] = useState<string | null>(null)
 
 
 
@@ -168,7 +122,7 @@ export default function HomePage() {
                 onClick={() => router.push('/buyer/marketplace')}
                 className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors flex items-center space-x-2"
               >
-                <ShoppingBagIcon className="w-6 h-6" />
+                <ShoppingCartIcon className="w-6 h-6" />
                 <span>Shop Now</span>
               </button>
               <button
@@ -234,7 +188,7 @@ export default function HomePage() {
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white p-6 rounded-xl text-center transition-all duration-300 transform hover:scale-105 border border-orange-400/30 shadow-lg"
             >
               <div className="w-16 h-16 mx-auto mb-4 bg-white/20 rounded-full flex items-center justify-center">
-                <BoltIcon className="w-8 h-8" />
+                <FunnelIcon className="w-8 h-8" />
               </div>
               <h3 className="font-semibold text-white mb-2">Rewards</h3>
               <p className="text-sm text-orange-100">Earn tokens and rewards</p>
@@ -275,7 +229,7 @@ export default function HomePage() {
                 <span className="text-purple-400 font-semibold">NFT</span>
               </div>
               <h3 className="text-white font-semibold mb-2">NFT Collection</h3>
-              <p className="text-ink-300 text-sm">New NFT collection minted: 'Streetwear Legends'</p>
+              <p className="text-ink-300 text-sm">New NFT collection minted: &apos;Streetwear Legends&apos;</p>
               <span className="text-ink-400 text-xs">8 min ago</span>
             </div>
           </div>
@@ -396,7 +350,7 @@ export default function HomePage() {
               className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white p-8 rounded-xl text-center transition-all duration-300 transform hover:scale-105 border border-green-400/30 shadow-lg"
             >
               <div className="w-20 h-20 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
-                <UsersIcon className="w-10 h-10" />
+                <HeartIcon className="w-10 h-10" />
               </div>
               <h3 className="font-semibold text-white text-xl mb-3">Refer Friends</h3>
               <p className="text-green-100 mb-4">Invite friends and earn rewards</p>
@@ -426,7 +380,7 @@ export default function HomePage() {
               className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white p-8 rounded-xl text-center transition-all duration-300 transform hover:scale-105 border border-purple-400/30 shadow-lg"
             >
               <div className="w-20 h-20 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center">
-                <GlobeAltIcon className="w-10 h-10" />
+                <HeartIcon className="w-10 h-10" />
               </div>
               <h3 className="font-semibold text-white text-xl mb-3">Global Community</h3>
               <p className="text-purple-100 mb-4">Connect with fashion lovers worldwide</p>
@@ -526,7 +480,7 @@ export default function HomePage() {
       {error && (
         <div className="fixed bottom-4 right-4 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg max-w-sm">
           <div className="flex items-center space-x-2">
-            <ChartBarIcon className="w-5 h-5" />
+            <FunnelIcon className="w-5 h-5" />
             <span className="text-sm">{error}</span>
           </div>
         </div>

@@ -7,10 +7,6 @@ import {
   PhotoIcon,
   ArrowLeftIcon,
   PlayIcon,
-  PauseIcon,
-  ArrowsPointingOutIcon,
-  MagnifyingGlassIcon,
-  AdjustmentsHorizontalIcon,
   SparklesIcon,
   CheckIcon,
   XMarkIcon
@@ -48,6 +44,10 @@ export default function ARTryOnPage() {
   const [scanProgress, setScanProgress] = useState(0)
   const [recommendedSize, setRecommendedSize] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
+  
+  // Check browser compatibility for camera and AR features
+  const isBrowserCompatible = typeof window !== 'undefined' && 
+    !!navigator?.mediaDevices?.getUserMedia
 
   // Available AR products for try-on
   const arProducts: ARProduct[] = [
@@ -85,7 +85,20 @@ export default function ARTryOnPage() {
 
   // Start camera
   const startCamera = useCallback(async () => {
+    // Early return if browser is not compatible
+    if (!isBrowserCompatible) {
+      console.warn('Camera not supported in this browser')
+      return
+    }
+    
     try {
+      // Check if we're in a browser environment and MediaDevices API is supported
+      if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
+        console.warn('MediaDevices API not supported in this environment')
+        alert('Camera access is not supported in this browser. Please use a modern browser with camera support.')
+        return
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user',
@@ -106,16 +119,23 @@ export default function ARTryOnPage() {
 
   // Stop camera
   const stopCamera = useCallback(() => {
+    if (!isBrowserCompatible) return
+    
     if (videoRef.current && videoRef.current.srcObject) {
       const stream = videoRef.current.srcObject as MediaStream
       stream.getTracks().forEach(track => track.stop())
       videoRef.current.srcObject = null
       setIsCameraActive(false)
     }
-  }, [])
+  }, [isBrowserCompatible])
 
   // Start body scanning
   const startBodyScan = useCallback(async () => {
+    if (!isBrowserCompatible) {
+      alert('Camera features not supported in this browser')
+      return
+    }
+    
     if (!isCameraActive) {
       alert('Please start camera first')
       return
@@ -144,10 +164,15 @@ export default function ARTryOnPage() {
     setBodyMeasurements(measurements)
     setIsScanning(false)
     setIsProcessing(false)
-  }, [isCameraActive])
+  }, [isCameraActive, isBrowserCompatible])
 
   // Try on product with AR
   const tryOnProduct = useCallback(async (product: ARProduct) => {
+    if (!isBrowserCompatible) {
+      alert('AR features not supported in this browser')
+      return
+    }
+    
     if (!bodyMeasurements) {
       alert('Please complete body scanning first')
       return
@@ -175,11 +200,11 @@ export default function ARTryOnPage() {
     
     setRecommendedSize(sizeMap[recommended] || 'Medium')
     setIsProcessing(false)
-  }, [bodyMeasurements])
+  }, [bodyMeasurements, isBrowserCompatible])
 
   // Capture photo with AR overlay
   const capturePhoto = useCallback(() => {
-    if (!canvasRef.current || !videoRef.current) return
+    if (!isBrowserCompatible || !canvasRef.current || !videoRef.current) return
 
     const canvas = canvasRef.current
     const video = videoRef.current
@@ -210,9 +235,11 @@ export default function ARTryOnPage() {
   // Cleanup camera on unmount
   useEffect(() => {
     return () => {
-      stopCamera()
+      if (isBrowserCompatible) {
+        stopCamera()
+      }
     }
-  }, [stopCamera])
+  }, [stopCamera, isBrowserCompatible])
 
   return (
     <div className="min-h-screen bg-ink-black text-white">
@@ -239,6 +266,19 @@ export default function ARTryOnPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* Browser Compatibility Warning */}
+        {!isBrowserCompatible && (
+          <div className="mb-6 bg-yellow-500/20 border border-yellow-500/50 rounded-xl p-4">
+            <div className="flex items-center space-x-2 text-yellow-400">
+              <span className="text-lg">⚠️</span>
+              <span className="font-medium">Browser Compatibility Notice</span>
+            </div>
+            <p className="text-yellow-300 mt-2">
+              Your browser doesn&apos;t support camera access or AR features. Please use a modern browser with camera permissions enabled.
+            </p>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Camera Feed & AR Display */}
           <div className="lg:col-span-2 space-y-6">
@@ -250,7 +290,12 @@ export default function ARTryOnPage() {
                   {!isCameraActive ? (
                     <button
                       onClick={startCamera}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                      disabled={!isBrowserCompatible}
+                      className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                        isBrowserCompatible 
+                          ? 'bg-green-500 hover:bg-green-600 text-white' 
+                          : 'bg-gray-500 cursor-not-allowed text-gray-300'
+                      }`}
                     >
                       <CameraIcon className="w-4 h-4" />
                       <span>Start Camera</span>
@@ -286,7 +331,12 @@ export default function ARTryOnPage() {
                       <p className="text-ink-300 mb-4">Camera not active</p>
                       <button
                         onClick={startCamera}
-                        className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                        disabled={!isBrowserCompatible}
+                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                          isBrowserCompatible 
+                            ? 'bg-purple-500 hover:bg-purple-600 text-white' 
+                            : 'bg-gray-500 cursor-not-allowed text-gray-300'
+                        }`}
                       >
                         Start Camera
                       </button>

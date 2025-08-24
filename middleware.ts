@@ -20,6 +20,7 @@ const PUBLIC_PATHS = [
   "/test-context",
   "/test-simple",
   "/test-auth",
+  "/test-signup",
   "/ai-stylist",
   "/blockchain-rewards",
   "/ar-tryon",

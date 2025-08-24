@@ -22,7 +22,7 @@ interface TestSession {
 interface TestAuthContextType {
   user: TestUser | null
   session: TestSession | null
-  login: (email: string, password: string) => Promise<boolean>
+  login: (_email: string, _password: string) => Promise<boolean>
   logout: () => void
   isLoading: boolean
 }
@@ -83,12 +83,12 @@ export function TestAuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (_email: string, _password: string) => {
     try {
       const response = await fetch('/api/auth/test-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: _email, password: _password })
       })
 
       if (response.ok) {
