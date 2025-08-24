@@ -44,6 +44,7 @@ export default function ARTryOnPage() {
   const [scanProgress, setScanProgress] = useState(0)
   const [recommendedSize, setRecommendedSize] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isCameraLoading, setIsCameraLoading] = useState(false)
   
   // Check browser compatibility for camera and AR features
   const isBrowserCompatible = typeof window !== 'undefined' && 
@@ -91,7 +92,11 @@ export default function ARTryOnPage() {
       return
     }
     
+    setIsCameraLoading(true)
+    
     try {
+      console.log('Starting camera...')
+      
       // Check if we're in a browser environment and MediaDevices API is supported
       if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
         console.warn('MediaDevices API not supported in this environment')
@@ -99,6 +104,7 @@ export default function ARTryOnPage() {
         return
       }
 
+      // Request camera permissions
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { 
           facingMode: 'user',
@@ -107,13 +113,44 @@ export default function ARTryOnPage() {
         } 
       })
       
+      console.log('Camera stream obtained:', stream)
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream
-        setIsCameraActive(true)
+        
+        // Wait for video to load
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video metadata loaded')
+          setIsCameraActive(true)
+          setIsCameraLoading(false)
+        }
+        
+        videoRef.current.onerror = (error) => {
+          console.error('Video error:', error)
+          alert('Error loading video stream')
+          setIsCameraLoading(false)
+        }
+        
+        // Force play the video
+        try {
+          await videoRef.current.play()
+          console.log('Video playing successfully')
+        } catch (playError) {
+          console.error('Error playing video:', playError)
+          setIsCameraLoading(false)
+        }
+      } else {
+        console.error('Video ref not available')
+        setIsCameraLoading(false)
       }
     } catch (error) {
       console.error('Error accessing camera:', error)
-      alert('Unable to access camera. Please check permissions.')
+      setIsCameraLoading(false)
+      if (error instanceof DOMException && error.name === 'NotAllowedError') {
+        alert('Camera permission denied. Please allow camera access and try again.')
+      } else {
+        alert('Unable to access camera. Please check permissions and try again.')
+      }
     }
   }, [])
 
@@ -329,28 +366,44 @@ export default function ARTryOnPage() {
                     <div className="text-center">
                       <CameraIcon className="w-16 h-16 text-ink-400 mx-auto mb-4" />
                       <p className="text-ink-300 mb-4">Camera not active</p>
-                      <button
-                        onClick={startCamera}
-                        disabled={!isBrowserCompatible}
-                        className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                          isBrowserCompatible 
-                            ? 'bg-purple-500 hover:bg-purple-600 text-white' 
-                            : 'bg-gray-500 cursor-not-allowed text-gray-300'
-                        }`}
-                      >
-                        Start Camera
-                      </button>
+                                                <button
+                            onClick={startCamera}
+                            disabled={!isBrowserCompatible || isCameraLoading}
+                            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                              isBrowserCompatible && !isCameraLoading
+                                ? 'bg-purple-500 hover:bg-purple-600 text-white'
+                                : 'bg-gray-500 cursor-not-allowed text-gray-300'
+                            }`}
+                          >
+                            {isCameraLoading ? (
+                              <div className="flex items-center space-x-2">
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <span>Starting Camera...</span>
+                              </div>
+                            ) : (
+                              'Start Camera'
+                            )}
+                          </button>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full aspect-video object-cover"
-                    />
+                    {isCameraLoading ? (
+                      <div className="aspect-video flex items-center justify-center">
+                        <div className="text-center">
+                          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                          <p className="text-ink-300">Initializing camera...</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full aspect-video object-cover"
+                      />
+                    )}
                     <canvas
                       ref={canvasRef}
                       className="absolute top-0 left-0 w-full h-full pointer-events-none"
