@@ -8,8 +8,8 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { User } from "@supabase/supabase-js";
+// import { supabase } from "@/lib/supabaseClient";
+// import { User } from "@supabase/supabase-js";
 
 export interface WishlistItem {
   id: string;
@@ -48,9 +48,10 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({
   const [items, setItems] = useState<WishlistItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  // const [user, setUser] = useState<User | null>(null);
 
-  const isAuthenticated = !!user;
+  // For now, always treat as guest to avoid Supabase errors
+  const isAuthenticated = false;
 
   // On mount, hydrate wishlist from localStorage for guests
   useEffect(() => {
@@ -84,45 +85,32 @@ export const WishlistProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, [items, hydrated]);
 
-  // Load user session
-  useEffect(() => {
-    const loadUserSession = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        setUser(data?.session?.user ?? null);
-      } catch (error) {
-        console.error("Failed to load user session:", error);
-        setUser(null);
-      }
-    };
+  // Load user session - disabled for now to avoid Supabase errors
+  // useEffect(() => {
+  //   const loadUserSession = async () => {
+  //     try {
+  //       const { data } = await supabase.auth.getSession();
+  //       setUser(data?.session?.user ?? null);
+  //     } catch (error) {
+  //       console.error("Failed to load user session:", error);
+  //       setUser(null);
+  //     }
+  //   };
     
-    void loadUserSession();
-  }, []);
+  //   void loadUserSession();
+  // }, []);
 
   const syncToServer = useCallback(async (nextItems: WishlistItem[]): Promise<void> => {
-    if (!isAuthenticated || !user?.id) return;
-    
+    // For now, just save to localStorage for guest users
     try {
-      // Clear existing wishlist items
-      await supabase
-        .from("wishlist_items")
-        .delete()
-        .eq("user_id", user.id);
-
-      // Insert new items
-      if (nextItems.length > 0) {
-        await supabase.from("wishlist_items").insert(
-          nextItems.map((item) => ({
-            ...item,
-            image: item.image_url ?? null,
-            user_id: user.id,
-          }))
-        );
-      }
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ items: nextItems, timestamp: Date.now() }),
+      );
     } catch (error) {
-      console.error("Failed to sync wishlist to server:", error);
+      console.error("Failed to save wishlist to localStorage:", error);
     }
-  }, [isAuthenticated, user?.id]);
+  }, []);
 
   // Sync to server when authenticated
   useEffect(() => {
