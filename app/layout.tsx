@@ -4,7 +4,7 @@ import '../styles/globals.css'
 import { AuthProvider } from '@/context/AuthContext'
 import { CartProvider } from '@/context/CartContext'
 import { SupabaseProvider } from '@/context/SupabaseContext'
-import { TestAuthProvider } from '@/context/TestAuthContext'
+
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -81,13 +81,11 @@ export default function RootLayout({
     <html lang="en" className={`h-full ${inter.variable}`}>
       <body className="bg-ink-black text-white h-full font-sans">
         <SupabaseProvider>
-          <TestAuthProvider>
-            <AuthProvider>
-              <CartProvider>
-                {children}
-              </CartProvider>
-            </AuthProvider>
-          </TestAuthProvider>
+          <AuthProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </AuthProvider>
         </SupabaseProvider>
       </body>
     </html>

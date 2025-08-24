@@ -13,21 +13,9 @@ export async function GET(request:NextRequest) {
       }, { status: 400 })
     }
 
-    // Check for test authentication header
-    const authHeader = request.headers.get('authorization')
+    // For now, provide basic recommendations for all users
+    // In production, this would check real Supabase authentication
     let user = null
-    
-    if (authHeader && authHeader.startsWith('Bearer test-token-')) {
-      // Test user authentication
-      const token = authHeader.replace('Bearer ', '')
-      if (token.includes('buyer')) {
-        user = { id: 'test-buyer-1', role: 'buyer' }
-      } else if (token.includes('stylist')) {
-        user = { id: 'test-stylist-1', role: 'stylist' }
-      } else if (token.includes('driver')) {
-        user = { id: 'test-driver-1', role: 'driver' }
-      }
-    }
 
     // For guest users, provide basic fit recommendations
     if (!user) {

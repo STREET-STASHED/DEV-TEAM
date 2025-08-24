@@ -6,29 +6,105 @@ export async function GET(request:NextRequest) {
     const { searchParams } = new URL(request.url)
     const limit = parseInt(searchParams.get('limit') || '20')
     const context = searchParams.get('context') ? JSON.parse(searchParams.get('context')!) : {}
-    const userId = searchParams.get('userId')
-
-    // Check for test authentication header
-    const authHeader = request.headers.get('authorization')
-    let user = null
     
-    if (authHeader && authHeader.startsWith('Bearer test-token-')) {
-      // Test user authentication
-      const token = authHeader.replace('Bearer ', '')
-      if (token.includes('buyer')) {
-        user = { id: 'test-buyer-1', role: 'buyer' }
-      } else if (token.includes('stylist')) {
-        user = { id: 'test-stylist-1', role: 'stylist' }
-      } else if (token.includes('driver')) {
-        user = { id: 'test-driver-1', role: 'driver' }
-      }
-    } else if (userId) {
-      // Fallback for direct testing
-      user = { id: userId, role: 'buyer' }
-    }
+    // For now, provide basic recommendations for all users
+    // In production, this would check real Supabase authentication
+    let user = null
 
+    // For guest users, provide basic recommendations without personalization
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      // Return basic recommendations for guest users
+      const basicRecommendations = [
+        {
+          id: 'guest-rec-1',
+          item: {
+            id: '1',
+            name: 'Vintage Nike Air Jordan 1',
+            price: 299.99,
+            category: 'Sneakers',
+            images: ['https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop&crop=center'],
+            seller_id: 'seller-1'
+          },
+          score: 0.85,
+          reason: 'Popular streetwear choice',
+          category: 'Sneakers',
+          personalizationFactors: {
+            styleMatch: 0.8,
+            priceMatch: 0.7,
+            sizeMatch: 0.8,
+            trendMatch: 0.9,
+            socialProof: 0.9,
+            contextMatch: 0.8
+          },
+          context: {
+            occasion: 'casual',
+            season: getCurrentSeason(),
+            weather: 'moderate',
+            mood: 'neutral'
+          }
+        },
+        {
+          id: 'guest-rec-2',
+          item: {
+            id: '2',
+            name: 'Supreme Box Logo Hoodie',
+            price: 450.00,
+            category: 'Streetwear',
+            images: ['https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&h=400&fit=crop&crop=center'],
+            seller_id: 'seller-2'
+          },
+          score: 0.82,
+          reason: 'Trending luxury streetwear',
+          category: 'Streetwear',
+          personalizationFactors: {
+            styleMatch: 0.8,
+            priceMatch: 0.6,
+            sizeMatch: 0.8,
+            trendMatch: 0.9,
+            socialProof: 0.9,
+            contextMatch: 0.8
+          },
+          context: {
+            occasion: 'casual',
+            season: getCurrentSeason(),
+            weather: 'moderate',
+            mood: 'neutral'
+          }
+        },
+        {
+          id: 'guest-rec-3',
+          item: {
+            id: '3',
+            name: 'Off-White Industrial Belt',
+            price: 199.99,
+            category: 'Accessories',
+            images: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=400&fit=crop&crop=center'],
+            seller_id: 'seller-3'
+          },
+          score: 0.78,
+          reason: 'Great accessory to complete your look',
+          category: 'Accessories',
+          personalizationFactors: {
+            styleMatch: 0.8,
+            priceMatch: 0.8,
+            sizeMatch: 1.0,
+            trendMatch: 0.8,
+            socialProof: 0.8,
+            contextMatch: 0.7
+          },
+          context: {
+            occasion: 'casual',
+            season: getCurrentSeason(),
+            weather: 'moderate',
+            mood: 'neutral'
+          }
+        }
+      ];
+      
+      return NextResponse.json({ 
+        recommendations: basicRecommendations,
+        message: 'Basic recommendations for guest users. Sign up for personalized recommendations!'
+      });
     }
 
     // Generate personalized recommendations for test users
