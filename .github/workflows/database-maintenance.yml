@@ -1,4 +1,5 @@
 name: Database Maintenance
+# GitHub Actions workflow for automated database maintenance
 
 on:
   schedule:
