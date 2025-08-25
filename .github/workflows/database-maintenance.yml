@@ -1,5 +1,4 @@
 name: Database Maintenance
-# Trigger GitHub Actions to recognize this workflow
 
 on:
   schedule:
