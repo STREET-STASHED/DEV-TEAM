@@ -1,6 +1,9 @@
-name: Database Maintenance Simple
-
+name: Database Maintenance
 on:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       maintenance_type:
@@ -17,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Daily Maintenance
-        if: github.event.inputs.maintenance_type == 'daily'
+        if: github.event.inputs.maintenance_type == 'daily' || github.event.schedule == '0 2 * * *'
         run: |
           echo "Running daily maintenance..."
           curl -X POST "https://${{ env.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/maintenance" \
@@ -37,3 +40,8 @@ jobs:
         env:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: Log Execution
+        run: |
+          echo "Maintenance job executed at $(date)"
+          echo "Maintenance type: ${{ github.event.inputs.maintenance_type || 'scheduled' }}"
