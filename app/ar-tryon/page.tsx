@@ -45,6 +45,7 @@ export default function ARTryOnPage() {
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [debugInfo, setDebugInfo] = useState<string>('')
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [demoMode, setDemoMode] = useState(false)
   
   // Check browser compatibility for camera and AR features
   const [isBrowserCompatible, setIsBrowserCompatible] = useState(false)
@@ -54,16 +55,14 @@ export default function ARTryOnPage() {
     if (typeof window !== 'undefined') {
       const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)
       const hasCanvas = !!document.createElement('canvas').getContext
-      const hasWebGL = !!window.WebGLRenderingContext
       
-      setIsBrowserCompatible(hasGetUserMedia && hasCanvas && hasWebGL)
+      // Only require camera and canvas support, WebGL is optional for basic functionality
+      setIsBrowserCompatible(hasGetUserMedia && hasCanvas)
       
       if (!hasGetUserMedia) {
         setDebugInfo('Camera not supported in this browser')
       } else if (!hasCanvas) {
         setDebugInfo('Canvas not supported in this browser')
-      } else if (!hasWebGL) {
-        setDebugInfo('WebGL not supported in this browser')
       } else {
         setDebugInfo('Browser is compatible with AR features')
       }
@@ -81,33 +80,70 @@ export default function ARTryOnPage() {
     setCameraError(null)
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      // Check if we're on HTTPS or localhost
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      
+      if (!isSecure) {
+        setCameraError('Camera access requires HTTPS or localhost. Please use https://localhost:3000 or enable demo mode.')
+        setIsCameraLoading(false)
+        return false
+      }
+
+      // Try different video constraints for better compatibility
+      const constraints = {
+        video: {
           facingMode: 'user',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        } 
-      })
+          width: { ideal: 640, max: 1280 },
+          height: { ideal: 480, max: 720 }
+        }
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         videoRef.current.onloadedmetadata = () => {
           setIsCameraActive(true)
           setIsCameraLoading(false)
+          setDebugInfo('Camera initialized successfully')
         }
         videoRef.current.onerror = () => {
           throw new Error('Failed to load video stream')
         }
+        
+        // Add timeout in case video doesn't load
+        setTimeout(() => {
+          if (!isCameraActive && isCameraLoading) {
+            setCameraError('Camera took too long to initialize. Please try again or use demo mode.')
+            setIsCameraLoading(false)
+          }
+        }, 10000) // 10 second timeout
       }
 
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('Camera initialization error:', error)
-      setCameraError('Failed to access camera. Please check permissions.')
+      
+      // Provide more specific error messages
+      if (error.name === 'NotAllowedError') {
+        setCameraError('Camera access denied. Please allow camera permissions and refresh the page.')
+      } else if (error.name === 'NotFoundError') {
+        setCameraError('No camera found. Please connect a camera and try again.')
+      } else if (error.name === 'NotSupportedError') {
+        setCameraError('Camera not supported in this browser. Try using Chrome or Firefox.')
+      } else if (error.name === 'NotReadableError') {
+        setCameraError('Camera is already in use by another application.')
+      } else if (error.name === 'OverconstrainedError') {
+        setCameraError('Camera constraints not supported. Trying demo mode...')
+        setDemoMode(true)
+      } else {
+        setCameraError('Failed to access camera. Please check permissions and try again.')
+      }
+      
       setIsCameraLoading(false)
       return false
     }
-  }, [isBrowserCompatible])
+  }, [isBrowserCompatible, isCameraActive, isCameraLoading])
 
   // Stop camera
   const stopCamera = useCallback(() => {
@@ -167,12 +203,12 @@ export default function ARTryOnPage() {
 
   // Try on product with AR
   const tryOnProduct = useCallback(async (product: ARProduct) => {
-    if (!isBrowserCompatible) {
+    if (!isBrowserCompatible && !demoMode) {
       alert('AR features not supported in this browser')
       return
     }
     
-    if (!bodyMeasurements) {
+    if (!bodyMeasurements && !demoMode) {
       alert('Please complete body scanning first')
       return
     }
@@ -184,7 +220,7 @@ export default function ARTryOnPage() {
     // Simulate AR processing
     await new Promise(resolve => setTimeout(resolve, 2000))
     
-    // Calculate recommended size based on measurements
+    // Calculate recommended size based on measurements or demo
     const sizeMap: { [key: string]: string } = {
       'S': 'Small',
       'M': 'Medium', 
@@ -193,56 +229,96 @@ export default function ARTryOnPage() {
     }
     
     let recommended = 'M'
-    if (bodyMeasurements.chest < 90) recommended = 'S'
-    else if (bodyMeasurements.chest > 105) recommended = 'L'
-    else if (bodyMeasurements.chest > 115) recommended = 'XL'
+    if (demoMode) {
+      // Demo mode uses random size
+      const sizes = ['S', 'M', 'L', 'XL']
+      recommended = sizes[Math.floor(Math.random() * sizes.length)]
+    } else if (bodyMeasurements) {
+      if (bodyMeasurements.chest < 90) recommended = 'S'
+      else if (bodyMeasurements.chest > 105) recommended = 'L'
+      else if (bodyMeasurements.chest > 115) recommended = 'XL'
+    }
     
     setRecommendedSize(sizeMap[recommended] || 'Medium')
     setIsProcessing(false)
-  }, [bodyMeasurements, isBrowserCompatible])
+  }, [bodyMeasurements, isBrowserCompatible, demoMode])
 
   // Capture photo with AR overlay
   const capturePhoto = useCallback(() => {
-    if (!isBrowserCompatible || !canvasRef.current || !videoRef.current) return
+    if ((!isBrowserCompatible && !demoMode) || !canvasRef.current) return
 
     const canvas = canvasRef.current
-    const video = videoRef.current
     const ctx = canvas.getContext('2d')
 
     if (ctx) {
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
+      // Set canvas size
+      canvas.width = 640
+      canvas.height = 480
       
-      // Draw video frame
-      ctx.drawImage(video, 0, 0)
-      
-      // Add AR overlay if active
-      if (arOverlay && currentProduct) {
-        // Add semi-transparent overlay
-        ctx.fillStyle = 'rgba(138, 43, 226, 0.3)'
+      if (demoMode) {
+        // Create demo image
+        ctx.fillStyle = '#1a1a1a'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
         
-        // Add product info overlay
+        // Add demo text
         ctx.fillStyle = 'white'
         ctx.font = 'bold 24px Arial'
         ctx.textAlign = 'center'
-        ctx.fillText(`${currentProduct.name} - AR Try-On`, canvas.width / 2, 50)
-        ctx.fillText(`Recommended Size: ${recommendedSize}`, canvas.width / 2, 80)
+        ctx.fillText('AR Try-On Demo', canvas.width / 2, 100)
+        ctx.fillText('Camera simulation mode', canvas.width / 2, 130)
         
-        // Add brand logo or icon
+        if (currentProduct) {
+          ctx.fillText(`${currentProduct.name}`, canvas.width / 2, 200)
+          ctx.fillText(`Size: ${recommendedSize}`, canvas.width / 2, 230)
+        }
+        
+        // Add AR overlay effect
+        ctx.fillStyle = 'rgba(138, 43, 226, 0.3)'
+        ctx.fillRect(0, 0, canvas.width, canvas.height)
+        
+        // Add brand logo
         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
         ctx.fillRect(canvas.width - 100, 20, 80, 80)
         ctx.fillStyle = '#8A2BE2'
         ctx.font = 'bold 16px Arial'
         ctx.textAlign = 'center'
         ctx.fillText('AR', canvas.width - 60, 65)
+      } else if (videoRef.current) {
+        const video = videoRef.current
+        canvas.width = video.videoWidth
+        canvas.height = video.videoHeight
+        
+        // Draw video frame
+        ctx.drawImage(video, 0, 0)
+        
+        // Add AR overlay if active
+        if (arOverlay && currentProduct) {
+          // Add semi-transparent overlay
+          ctx.fillStyle = 'rgba(138, 43, 226, 0.3)'
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+          
+          // Add product info overlay
+          ctx.fillStyle = 'white'
+          ctx.font = 'bold 24px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText(`${currentProduct.name} - AR Try-On`, canvas.width / 2, 50)
+          ctx.fillText(`Recommended Size: ${recommendedSize}`, canvas.width / 2, 80)
+          
+          // Add brand logo or icon
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'
+          ctx.fillRect(canvas.width - 100, 20, 80, 80)
+          ctx.fillStyle = '#8A2BE2'
+          ctx.font = 'bold 16px Arial'
+          ctx.textAlign = 'center'
+          ctx.fillText('AR', canvas.width - 60, 65)
+        }
       }
       
       // Convert to data URL and save
       const imageData = canvas.toDataURL('image/png')
       setCapturedImage(imageData)
     }
-  }, [arOverlay, currentProduct, recommendedSize, isBrowserCompatible])
+  }, [arOverlay, currentProduct, recommendedSize, isBrowserCompatible, demoMode])
 
   // Cleanup camera on unmount
   useEffect(() => {
@@ -257,7 +333,7 @@ export default function ARTryOnPage() {
       id: 'ar-1',
       name: 'Urban Street Hoodie',
       category: 'Clothing',
-      image: '/mock/default-product.jpg',
+      image: '/mock/hoodie-1.jpg',
       price: 89.99,
       colors: ['Black', 'Gray', 'Navy'],
       sizes: ['S', 'M', 'L', 'XL']
@@ -266,7 +342,7 @@ export default function ARTryOnPage() {
       id: 'ar-2',
       name: 'Vintage Denim Jacket',
       category: 'Clothing',
-      image: '/mock/default-product.jpg',
+      image: '/mock/denim-jacket-1.jpg',
       price: 145,
       colors: ['Blue', 'Light Blue', 'Black'],
       sizes: ['M', 'L', 'XL']
@@ -275,7 +351,7 @@ export default function ARTryOnPage() {
       id: 'ar-3',
       name: 'Street Style Sneakers',
       category: 'Footwear',
-      image: '/mock/default-product.jpg',
+      image: '/mock/sneakers-1.jpg',
       price: 120,
       colors: ['White', 'Black', 'Red'],
       sizes: ['7', '8', '9', '10', '11']
@@ -292,15 +368,47 @@ export default function ARTryOnPage() {
               <CameraIcon className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl font-bold mb-4">AR Virtual Try-On</h1>
-            <p className="text-xl text-ink-300">Try on clothes virtually with augmented reality</p>
+            <p className="text-xl text-ink-300 mb-6">Try on clothes virtually with augmented reality</p>
+            
+            {/* Demo Mode Toggle */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => setDemoMode(false)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  !demoMode 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
+                }`}
+              >
+                Camera Mode
+              </button>
+              <button
+                onClick={() => setDemoMode(true)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  demoMode 
+                    ? 'bg-green-600 text-white' 
+                    : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
+                }`}
+              >
+                Demo Mode
+              </button>
+            </div>
           </div>
 
           {/* Browser Compatibility Check */}
           {!isBrowserCompatible && (
-            <div className="mb-8 bg-red-900/20 border border-red-500/50 rounded-lg p-4">
-              <p className="text-red-400 text-center">
-                Your browser doesn&apos;t support AR features. Please use a modern browser with camera support.
+            <div className="mb-8 bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-4">
+              <p className="text-yellow-400 text-center mb-3">
+                Camera features may be limited in this browser. For the best experience, use Chrome, Firefox, or Safari with camera permissions enabled.
               </p>
+              <div className="text-center">
+                <button
+                  onClick={() => setDemoMode(true)}
+                  className="bg-green-600 text-white py-2 px-6 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                >
+                  Try Demo Mode Instead
+                </button>
+              </div>
             </div>
           )}
 
@@ -308,6 +416,17 @@ export default function ARTryOnPage() {
           {debugInfo && (
             <div className="mb-6 bg-ink-800/50 border border-ink-600 rounded-lg p-3">
               <p className="text-ink-300 text-sm text-center">{debugInfo}</p>
+              {debugInfo.includes('Camera not supported') && (
+                <div className="mt-2 text-center">
+                  <p className="text-ink-400 text-xs mb-2">💡 Tip: Try using Chrome or Firefox, or enable demo mode to test the interface</p>
+                  <button
+                    onClick={() => setDemoMode(true)}
+                    className="bg-green-600 text-white py-1 px-3 rounded text-xs hover:bg-green-700 transition-colors"
+                  >
+                    Enable Demo Mode
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -316,58 +435,90 @@ export default function ARTryOnPage() {
             <div className="space-y-6">
               {/* Camera Controls */}
               <div className="bg-ink-900 rounded-lg p-6 border border-ink-700">
-                <h3 className="text-lg font-semibold mb-4">Camera Setup</h3>
+                <h3 className="text-lg font-semibold mb-4">
+                  {demoMode ? 'Demo Mode Active' : 'Camera Setup'}
+                </h3>
                 
                 <div className="space-y-4">
-                  {!isCameraActive ? (
-                    <button
-                      onClick={initializeCamera}
-                      disabled={isCameraLoading || !isBrowserCompatible}
-                      className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
-                    >
-                      {isCameraLoading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                          <span>Initializing Camera...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CameraIcon className="w-5 h-5" />
-                          <span>Start Camera</span>
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={stopCamera}
-                      className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-ink-900 transition-all duration-200 flex items-center justify-center space-x-2"
-                    >
-                      <XMarkIcon className="w-5 h-5" />
-                      <span>Stop Camera</span>
-                    </button>
-                  )}
-
-                  {cameraError && (
-                    <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3">
-                      <p className="text-red-400 text-sm">{cameraError}</p>
+                  {demoMode ? (
+                    <div className="text-center py-4">
+                      <div className="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CameraIcon className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-green-400 font-medium mb-2">Demo Mode Active</p>
+                      <p className="text-ink-300 text-sm">You can test the AR interface without camera access</p>
                     </div>
+                  ) : (
+                    <>
+                      {!isCameraActive ? (
+                        <button
+                          onClick={initializeCamera}
+                          disabled={isCameraLoading || !isBrowserCompatible}
+                          className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                        >
+                          {isCameraLoading ? (
+                            <>
+                              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                              <span>Initializing Camera...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CameraIcon className="w-5 h-5" />
+                              <span>Start Camera</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={stopCamera}
+                          className="w-full bg-red-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:ring-offset-ink-900 transition-all duration-200 flex items-center justify-center space-x-2"
+                        >
+                          <XMarkIcon className="w-5 h-5" />
+                          <span>Stop Camera</span>
+                        </button>
+                      )}
+
+                      {cameraError && (
+                        <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-3">
+                          <p className="text-red-400 text-sm">{cameraError}</p>
+                          <button
+                            onClick={() => setDemoMode(true)}
+                            className="mt-2 w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                          >
+                            Try Demo Mode
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
 
               {/* Camera Feed */}
-              {isCameraActive && (
+              {(isCameraActive || demoMode) && (
                 <div className="bg-ink-900 rounded-lg p-6 border border-ink-700">
-                  <h3 className="text-lg font-semibold mb-4">Camera Feed</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    {demoMode ? 'Demo Mode' : 'Camera Feed'}
+                  </h3>
                   
                   <div className="relative">
-                    <video
-                      ref={videoRef}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="w-full h-64 object-cover rounded-lg bg-ink-800"
-                    />
+                    {demoMode ? (
+                      <div className="w-full h-64 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg border-2 border-dashed border-ink-600 flex items-center justify-center">
+                        <div className="text-center">
+                          <CameraIcon className="w-16 h-16 text-ink-400 mx-auto mb-4" />
+                          <p className="text-ink-300">Demo Mode Active</p>
+                          <p className="text-sm text-ink-400">Camera simulation for testing</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        muted
+                        className="w-full h-64 object-cover rounded-lg bg-ink-800"
+                      />
+                    )}
                     
                     {/* AR Overlay Indicator */}
                     {arOverlay && currentProduct && (
@@ -381,11 +532,11 @@ export default function ARTryOnPage() {
                   <div className="flex space-x-3 mt-4">
                     <button
                       onClick={capturePhoto}
-                      disabled={!isCameraActive}
+                      disabled={!isCameraActive && !demoMode}
                       className="flex-1 bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
                     >
                       <PhotoIcon className="w-4 h-4" />
-                      <span>Capture Photo</span>
+                      <span>{demoMode ? 'Simulate Capture' : 'Capture Photo'}</span>
                     </button>
                   </div>
                 </div>
@@ -403,7 +554,7 @@ export default function ARTryOnPage() {
                     
                     <button
                       onClick={startBodyScan}
-                      disabled={!isCameraActive || isScanning}
+                      disabled={(!isCameraActive && !demoMode) || isScanning}
                       className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
                     >
                       {isScanning ? (
@@ -467,8 +618,12 @@ export default function ARTryOnPage() {
                 <div className="space-y-3">
                   {mockProducts.map((product) => (
                     <div key={product.id} className="flex items-center space-x-4 p-3 bg-ink-800 rounded-lg">
-                      <div className="w-16 h-16 bg-ink-700 rounded-lg flex items-center justify-center">
-                        <CameraIcon className="w-8 h-8 text-blue-400" />
+                      <div className="w-16 h-16 bg-ink-700 rounded-lg overflow-hidden">
+                        <img 
+                          src={product.image} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium">{product.name}</h4>
@@ -477,7 +632,7 @@ export default function ARTryOnPage() {
                       </div>
                       <button
                         onClick={() => tryOnProduct(product)}
-                        disabled={!bodyMeasurements || isProcessing}
+                        disabled={(!bodyMeasurements && !demoMode) || isProcessing}
                         className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                       >
                         {isProcessing && currentProduct?.id === product.id ? 'Processing...' : 'Try On'}

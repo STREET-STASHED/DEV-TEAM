@@ -1,4 +1,9 @@
 import process from "process";
+import { createRequire } from 'module';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -11,6 +16,8 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Enable TypeScript checking for production builds
   },
+
+
 
 }
 

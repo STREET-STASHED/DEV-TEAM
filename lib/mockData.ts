@@ -56,7 +56,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '45-75 min',
     minOrder: 25,
     categories: ['clothing', 'shoes', 'accessories'],
-    image: '/mock/default-product.jpg',
+    image: '/mock/hoodie-1.jpg',
     location: 'Downtown District',
     isVerified: true
   },
@@ -69,7 +69,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '30-60 min',
     minOrder: 50,
     categories: ['shoes', 'clothing'],
-    image: '/mock/default-product.jpg',
+    image: '/mock/sneakers-2.jpg',
     location: 'Sports District',
     isVerified: true
   },
@@ -82,7 +82,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '60-90 min',
     minOrder: 75,
     categories: ['jewelry', 'accessories'],
-    image: '/mock/default-product.jpg',
+    image: '/mock/necklace-2.jpg',
     location: 'Fashion Quarter',
     isVerified: true
   },
@@ -95,7 +95,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '45-75 min',
     minOrder: 30,
     categories: ['clothing', 'accessories'],
-    image: '/mock/default-product.jpg',
+    image: '/mock/denim-jacket-2.jpg',
     location: 'Arts District',
     isVerified: false
   },
@@ -108,7 +108,7 @@ export const mockStores: MockStore[] = [
     deliveryTime: '30-60 min',
     minOrder: 40,
     categories: ['clothing', 'shoes', 'accessories'],
-    image: '/mock/default-product.jpg',
+    image: '/mock/leggings-2.jpg',
     location: 'Fitness District',
     isVerified: true
   }
@@ -122,7 +122,7 @@ export const mockCategories: MockCategory[] = [
     icon: 'Clothing',
     description: 'Trendy streetwear and urban fashion',
     productCount: 156,
-    image: '/mock/default-product.jpg'
+    image: '/mock/hoodie-2.jpg'
   },
   {
     id: 'shoes',
@@ -130,7 +130,7 @@ export const mockCategories: MockCategory[] = [
     icon: 'Shoes',
     description: 'Sneakers, boots, and casual footwear',
     productCount: 89,
-    image: '/mock/default-product.jpg'
+    image: '/mock/boots-2.jpg'
   },
   {
     id: 'jewelry',
@@ -138,7 +138,7 @@ export const mockCategories: MockCategory[] = [
     icon: 'Jewelry',
     description: 'Necklaces, rings, and luxury accessories',
     productCount: 67,
-    image: '/mock/default-product.jpg'
+    image: '/mock/ring-2.jpg'
   },
   {
     id: 'accessories',
@@ -146,7 +146,7 @@ export const mockCategories: MockCategory[] = [
     icon: 'Accessories',
     description: 'Bags, belts, hats, and more',
     productCount: 94,
-    image: '/mock/default-product.jpg'
+    image: '/mock/hoodie-3.jpg'
   },
   {
     id: 'watches',
@@ -154,7 +154,7 @@ export const mockCategories: MockCategory[] = [
     icon: 'Watches',
     description: 'Luxury timepieces and smartwatches',
     productCount: 34,
-    image: '/mock/default-product.jpg'
+    image: '/mock/sneakers-1.jpg'
   }
 ]
 
@@ -312,7 +312,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'belts',
     storeId: 'store-1',
     storeName: 'Urban Threads Collective',
-    images: ['/mock/default-product.jpg'],
+    images: ['/mock/hoodie-2.jpg'],
     sizes: ['32"', '34"', '36"', '38"', '40"'],
     colors: ['Brown', 'Black', 'Tan'],
     rating: 4.8,
@@ -331,7 +331,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'bags',
     storeId: 'store-4',
     storeName: 'Vintage Vault',
-    images: ['/mock/default-product.jpg'],
+    images: ['/mock/hoodie-3.jpg'],
     sizes: ['One Size'],
     colors: ['Black', 'Brown', 'Navy'],
     rating: 4.6,
@@ -353,7 +353,7 @@ export const mockProducts: MockProduct[] = [
     subcategory: 'automatic',
     storeId: 'store-3',
     storeName: 'Luxe Jewelry Co.',
-    images: ['/mock/default-product.jpg'],
+    images: ['/mock/denim-jacket-2.jpg'],
     sizes: ['42mm'],
     colors: ['Silver/Black', 'Gold/White'],
     rating: 4.9,

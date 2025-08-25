@@ -41,10 +41,22 @@ interface Outfit {
   confidence: number
 }
 
+// Default style profile
+const defaultStyleProfile: StyleProfile = {
+  name: '',
+  age: 0,
+  gender: '',
+  stylePreferences: [],
+  budget: 0,
+  occasion: '',
+  colors: [],
+  sizes: []
+}
+
 export default function AIStylistPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
-  const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null)
+  const [styleProfile, setStyleProfile] = useState<StyleProfile>(defaultStyleProfile)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [recommendations, setRecommendations] = useState<Outfit[]>([])
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null)
@@ -52,6 +64,7 @@ export default function AIStylistPage() {
   const [_isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
 
   // Load available products for recommendations
   const loadAvailableProducts = useCallback(async () => {
@@ -152,6 +165,11 @@ export default function AIStylistPage() {
     }
   }, [])
 
+  // Set client-side flag
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   // Load products on mount
   useEffect(() => {
     loadAvailableProducts()
@@ -164,7 +182,8 @@ export default function AIStylistPage() {
         const saved = localStorage.getItem('ai-stylist-profile')
         if (saved) {
           const parsed = JSON.parse(saved)
-          setStyleProfile(parsed)
+          // Merge with default to ensure all fields exist
+          setStyleProfile({ ...defaultStyleProfile, ...parsed })
         }
       } catch (error) {
         console.error('Failed to load saved profile:', error)
@@ -182,7 +201,9 @@ export default function AIStylistPage() {
 
     for (let i = 0; i < 3; i++) {
       const occasion = profile.occasion || occasions[i % occasions.length]
-      const style = profile.stylePreferences[i % profile.stylePreferences.length] || styles[i % styles.length]
+      const style = profile.stylePreferences.length > 0 
+        ? profile.stylePreferences[i % profile.stylePreferences.length] 
+        : styles[i % styles.length]
       
       // Select 2-3 products for each outfit
       const numItems = Math.floor(Math.random() * 2) + 2
@@ -225,7 +246,8 @@ export default function AIStylistPage() {
 
   // Real AI analysis using product data and user preferences
   const analyzeStyle = async () => {
-    if (!styleProfile || !styleProfile.name.trim()) {
+    // Validate required fields
+    if (!styleProfile.name.trim()) {
       setProfileError('Please enter your name to continue')
       return
     }
@@ -276,14 +298,12 @@ export default function AIStylistPage() {
 
   // Handle profile input changes
   const handleProfileChange = (field: keyof StyleProfile, value: any) => {
-    setStyleProfile(prev => prev ? { ...prev, [field]: value } : null)
+    setStyleProfile(prev => ({ ...prev, [field]: value }))
     setProfileError(null)
   }
 
   // Handle style preference changes
   const handleStylePreferenceChange = (preference: string, checked: boolean) => {
-    if (!styleProfile) return
-    
     const newPreferences = checked 
       ? [...styleProfile.stylePreferences, preference]
       : styleProfile.stylePreferences.filter(p => p !== preference)
@@ -293,8 +313,6 @@ export default function AIStylistPage() {
 
   // Handle color preference changes
   const handleColorChange = (color: string, checked: boolean) => {
-    if (!styleProfile) return
-    
     const newColors = checked 
       ? [...styleProfile.colors, color]
       : styleProfile.colors.filter(c => c !== color)
@@ -304,13 +322,30 @@ export default function AIStylistPage() {
 
   // Handle size preference changes
   const handleSizeChange = (size: string, checked: boolean) => {
-    if (!styleProfile) return
-    
     const newSizes = checked 
       ? [...styleProfile.sizes, size]
       : styleProfile.sizes.filter(s => s !== size)
     
     setStyleProfile({ ...styleProfile, sizes: newSizes })
+  }
+
+  // Show loading state during hydration
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-ink-black text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6">
+                <SparklesIcon className="w-10 h-10 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold mb-4">AI Personal Stylist</h1>
+              <p className="text-xl text-ink-300">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -354,7 +389,7 @@ export default function AIStylistPage() {
                     </label>
                     <input
                       type="text"
-                      value={styleProfile?.name || ''}
+                      value={styleProfile.name}
                       onChange={(e) => handleProfileChange('name', e.target.value)}
                       className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
                       placeholder="Enter your name"
@@ -367,7 +402,7 @@ export default function AIStylistPage() {
                     </label>
                     <input
                       type="number"
-                      value={styleProfile?.age || ''}
+                      value={styleProfile.age || ''}
                       onChange={(e) => handleProfileChange('age', parseInt(e.target.value) || 0)}
                       className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
                       placeholder="25"
@@ -379,7 +414,7 @@ export default function AIStylistPage() {
                       Gender
                     </label>
                     <select
-                      value={styleProfile?.gender || ''}
+                      value={styleProfile.gender}
                       onChange={(e) => handleProfileChange('gender', e.target.value)}
                       className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
                     >
@@ -396,7 +431,7 @@ export default function AIStylistPage() {
                       Budget Range
                     </label>
                     <select
-                      value={styleProfile?.budget || 0}
+                      value={styleProfile.budget}
                       onChange={(e) => handleProfileChange('budget', parseInt(e.target.value) || 0)}
                       className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
                     >
@@ -414,7 +449,7 @@ export default function AIStylistPage() {
                       Occasion
                     </label>
                     <select
-                      value={styleProfile?.occasion || ''}
+                      value={styleProfile.occasion}
                       onChange={(e) => handleProfileChange('occasion', e.target.value)}
                       className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
                     >
@@ -439,7 +474,7 @@ export default function AIStylistPage() {
                         <label key={style} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={styleProfile?.stylePreferences.includes(style) || false}
+                            checked={styleProfile.stylePreferences.includes(style)}
                             onChange={(e) => handleStylePreferenceChange(style, e.target.checked)}
                             className="text-purple-500 focus:ring-purple-400"
                           />
@@ -458,7 +493,7 @@ export default function AIStylistPage() {
                         <label key={color} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={styleProfile?.colors.includes(color) || false}
+                            checked={styleProfile.colors.includes(color)}
                             onChange={(e) => handleColorChange(color, e.target.checked)}
                             className="text-purple-500 focus:ring-purple-400"
                           />
@@ -477,7 +512,7 @@ export default function AIStylistPage() {
                         <label key={size} className="flex items-center space-x-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={styleProfile?.sizes.includes(size) || false}
+                            checked={styleProfile.sizes.includes(size)}
                             onChange={(e) => handleSizeChange(size, e.target.checked)}
                             className="text-purple-500 focus:ring-purple-400"
                           />
@@ -493,7 +528,7 @@ export default function AIStylistPage() {
               <div className="flex justify-center mt-8">
                 <button
                   onClick={analyzeStyle}
-                  disabled={isAnalyzing || !styleProfile?.name}
+                  disabled={isAnalyzing}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-8 rounded-xl font-semibold text-lg hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg"
                 >
                   {isAnalyzing ? (

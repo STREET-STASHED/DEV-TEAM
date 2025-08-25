@@ -9,8 +9,19 @@ import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import { useAuth } from '@/context/AuthContext'
 
-// Initialize Stripe with fallback for missing key
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_fallback')
+// Initialize Stripe with automatic environment detection
+const stripePromise = (() => {
+  const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_IS_TEST_MODE === 'true';
+  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  
+  if (isDevelopment && key?.startsWith('pk_live_')) {
+    // Convert live key to test key for development
+    const testKey = key.replace('pk_live_', 'pk_test_');
+    return loadStripe(testKey);
+  }
+  
+  return loadStripe(key || 'pk_test_fallback');
+})()
 
 interface Address {
   street: string
