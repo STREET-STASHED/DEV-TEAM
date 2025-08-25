@@ -1,4 +1,4 @@
-name: Database Maintenance
+name: Database Maintenance Workflow
 # GitHub Actions workflow for automated database maintenance
 
 on:
