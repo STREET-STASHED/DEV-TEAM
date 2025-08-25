@@ -6,8 +6,7 @@ import {
   CameraIcon,
   PhotoIcon,
   ArrowPathIcon,
-  XMarkIcon,
-  CheckIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline'
 
 interface ARProduct {
@@ -300,7 +299,7 @@ export default function ARTryOnPage() {
           {!isBrowserCompatible && (
             <div className="mb-8 bg-red-900/20 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400 text-center">
-                Your browser doesn't support AR features. Please use a modern browser with camera support.
+                Your browser doesn&apos;t support AR features. Please use a modern browser with camera support.
               </p>
             </div>
           )}
@@ -497,7 +496,7 @@ export default function ARTryOnPage() {
                     <div className="bg-ink-800 rounded-lg p-4">
                       <h4 className="font-medium mb-2">{currentProduct.name}</h4>
                       <p className="text-sm text-ink-400 mb-3">
-                        Based on your body measurements, here's what we recommend:
+                        Based on your body measurements, here&apos;s what we recommend:
                       </p>
                       
                       <div className="space-y-2">

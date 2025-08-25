@@ -151,14 +151,13 @@ export const performanceTracker = new PerformanceTracker();
  */
 export function withPerformanceTracking<T extends any[], R>(
   queryName: string,
-  queryFn: (...args: T) => Promise<R>
+  queryFn: (..._args: T) => Promise<R>
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  return async (...args: T): Promise<R> => {
+  return async (..._args: T): Promise<R> => {
     const startTime = Date.now();
     
     try {
-      const result = await queryFn(...args);
+      const result = await queryFn(..._args);
       const executionTime = Date.now() - startTime;
       
       performanceTracker.trackQuery(

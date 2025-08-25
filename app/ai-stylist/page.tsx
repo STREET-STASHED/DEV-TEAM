@@ -4,10 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   SparklesIcon, 
-  HeartIcon,
   ShoppingCartIcon,
-  StarIcon,
-  UserIcon
+  StarIcon
 } from '@heroicons/react/24/outline'
 
 interface StyleProfile {
@@ -51,7 +49,7 @@ export default function AIStylistPage() {
   const [recommendations, setRecommendations] = useState<Outfit[]>([])
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null)
   const [availableProducts, setAvailableProducts] = useState<Product[]>([])
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
+  const [_isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -517,7 +515,7 @@ export default function AIStylistPage() {
               {/* Header */}
               <div className="text-center">
                 <h2 className="text-3xl font-bold mb-4">Your Personalized Recommendations</h2>
-                <p className="text-ink-300">Based on your style profile, here are some outfits we think you'll love</p>
+                <p className="text-ink-300">Based on your style profile, here are some outfits we think you&apos;ll love</p>
               </div>
 
               {/* Recommendations Grid */}

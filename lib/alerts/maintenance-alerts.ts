@@ -1,13 +1,7 @@
 // Maintenance Alerting System for StreetStashed MVP
 // Monitors maintenance job success/failure and sends alerts
 
-import { createClient } from '@supabase/supabase-js';
 import queries from '../database/queries';
-
-const _supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 // =============================
 // ALERT TYPES
@@ -130,15 +124,12 @@ export class MaintenanceAlertMonitor {
     const alerts: MaintenanceAlert[] = [];
 
     try {
-      // Check maintenance status
-      const _maintenanceStatus = await queries.maintenance.getStatus();
-      
       // Check partition statistics
       const partitionStats = await queries.maintenance.getPartitionStats();
 
       // Check for partition issues
-      const emptyPartitions = partitionStats.filter(partition => partition.row_count === 0);
-      const largePartitions = partitionStats.filter(partition => {
+      const emptyPartitions = partitionStats.filter((partition: any) => partition.row_count === 0);
+      const largePartitions = partitionStats.filter((partition: any) => {
         const sizeInMB = parseInt(partition.table_size.replace(/[^\d]/g, ''));
         return sizeInMB > 1000; // 1GB
       });
@@ -203,7 +194,7 @@ export class MaintenanceAlertMonitor {
       // Check if materialized views are stale (older than 24 hours)
       const maintenanceStatus = await queries.maintenance.getStatus();
       
-      const staleViews = maintenanceStatus.filter(status => {
+      const staleViews = maintenanceStatus.filter((status: any) => {
         if (status.maintenance_type === 'materialized_views' && status.last_run) {
           const lastRun = new Date(status.last_run);
           const hoursSinceLastRun = (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
@@ -221,7 +212,7 @@ export class MaintenanceAlertMonitor {
           message: 'Materialized views have not been refreshed in over 24 hours',
           details: {
             staleViews,
-            hoursSinceLastRefresh: staleViews.map(view => {
+            hoursSinceLastRefresh: staleViews.map((view: any) => {
               const lastRun = new Date(view.last_run);
               return (Date.now() - lastRun.getTime()) / (1000 * 60 * 60);
             })
