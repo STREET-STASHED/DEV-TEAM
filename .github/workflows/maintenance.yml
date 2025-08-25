@@ -37,7 +37,7 @@ jobs:
     steps:
       - name: Run Monthly Maintenance
         run: |
-          curl -X POST "https://${{ env.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/maintenance/monthly" \
+          curl -X POST "https://${{ env.SUPABASE_PROJECT_REF }}.supabase.co/functions/v1/monthly-maintenance" \
             -H "Authorization: Bearer ${{ env.SUPABASE_ANON_KEY }}" \
             -H "Content-Type: application/json"
         env:
