@@ -29,7 +29,6 @@ CREATE INDEX IF NOT EXISTS idx_products_seller_id ON public.products(seller_id);
 CREATE INDEX IF NOT EXISTS idx_products_category ON public.products(category);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON public.products(is_active);
 CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON public.order_items(order_id);
-CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON public.order_items(product_id);
 -- Enable RLS
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;

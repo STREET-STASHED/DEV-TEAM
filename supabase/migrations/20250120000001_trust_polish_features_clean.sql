@@ -29,12 +29,22 @@ END $$;
 ALTER TABLE public.orders
 ADD COLUMN IF NOT EXISTS seller_id uuid;
 -- Update seller_id for existing orders by joining through order_items and products
+-- Note: This assumes order_items has a product_id column, if not, this will be skipped
+DO $$ BEGIN IF EXISTS (
+  SELECT 1
+  FROM information_schema.columns
+  WHERE table_name = 'order_items'
+    AND column_name = 'product_id'
+    AND table_schema = 'public'
+) THEN
 UPDATE public.orders
 SET seller_id = p.seller_id
 FROM public.order_items oi
   JOIN public.products p ON oi.product_id = p.id
 WHERE oi.order_id = orders.id
   AND orders.seller_id IS NULL;
+END IF;
+END $$;
 -- =============================
 -- DISPUTES TABLE
 -- =============================
@@ -55,12 +65,31 @@ CREATE TABLE IF NOT EXISTS public.disputes (
   updated_at timestamptz DEFAULT now()
 );
 -- Add foreign key constraints after table creation
+DO $$ BEGIN IF NOT EXISTS (
+  SELECT 1
+  FROM information_schema.table_constraints
+  WHERE constraint_name = 'disputes_order_id_fkey'
+) THEN
 ALTER TABLE public.disputes
 ADD CONSTRAINT disputes_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM information_schema.table_constraints
+  WHERE constraint_name = 'disputes_buyer_id_fkey'
+) THEN
 ALTER TABLE public.disputes
 ADD CONSTRAINT disputes_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM information_schema.table_constraints
+  WHERE constraint_name = 'disputes_seller_id_fkey'
+) THEN
 ALTER TABLE public.disputes
 ADD CONSTRAINT disputes_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+END IF;
+END $$;
 -- =============================
 -- REFERRALS TABLE
 -- =============================
@@ -77,10 +106,23 @@ CREATE TABLE IF NOT EXISTS public.referrals (
   UNIQUE(referrer_id, referred_id)
 );
 -- Add foreign key constraints after table creation
+DO $$ BEGIN IF NOT EXISTS (
+  SELECT 1
+  FROM information_schema.table_constraints
+  WHERE constraint_name = 'referrals_referrer_id_fkey'
+) THEN
 ALTER TABLE public.referrals
 ADD CONSTRAINT referrals_referrer_id_fkey FOREIGN KEY (referrer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM information_schema.table_constraints
+  WHERE constraint_name = 'referrals_referred_id_fkey'
+) THEN
 ALTER TABLE public.referrals
 ADD CONSTRAINT referrals_referred_id_fkey FOREIGN KEY (referred_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
+END IF;
+END $$;
 -- =============================
 -- EXTEND PROFILES TABLE
 -- =============================
@@ -107,37 +149,78 @@ COMMENT ON COLUMN public.profiles.referral_code IS 'Unique referral code for inv
 ALTER TABLE public.disputes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 -- Disputes policies
-CREATE POLICY "Buyers can view their own disputes" ON public.disputes FOR
+DO $$ BEGIN IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'disputes'
+    AND policyname = 'Buyers can view their own disputes'
+) THEN CREATE POLICY "Buyers can view their own disputes" ON public.disputes FOR
 SELECT USING (auth.uid() = buyer_id);
-CREATE POLICY "Sellers can view disputes for their orders" ON public.disputes FOR
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'disputes'
+    AND policyname = 'Sellers can view disputes for their orders'
+) THEN CREATE POLICY "Sellers can view disputes for their orders" ON public.disputes FOR
 SELECT USING (auth.uid() = seller_id);
-CREATE POLICY "Buyers can create disputes" ON public.disputes FOR
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'disputes'
+    AND policyname = 'Buyers can create disputes'
+) THEN CREATE POLICY "Buyers can create disputes" ON public.disputes FOR
 INSERT WITH CHECK (auth.uid() = buyer_id);
-CREATE POLICY "Sellers can update dispute status" ON public.disputes FOR
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'disputes'
+    AND policyname = 'Sellers can update dispute status'
+) THEN CREATE POLICY "Sellers can update dispute status" ON public.disputes FOR
 UPDATE USING (auth.uid() = seller_id);
+END IF;
+END $$;
 -- Referrals policies
-CREATE POLICY "Users can view their own referrals" ON public.referrals FOR
+DO $$ BEGIN IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'referrals'
+    AND policyname = 'Users can view their own referrals'
+) THEN CREATE POLICY "Users can view their own referrals" ON public.referrals FOR
 SELECT USING (
     auth.uid() = referrer_id
     OR auth.uid() = referred_id
   );
-CREATE POLICY "Users can create referrals" ON public.referrals FOR
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'referrals'
+    AND policyname = 'Users can create referrals'
+) THEN CREATE POLICY "Users can create referrals" ON public.referrals FOR
 INSERT WITH CHECK (auth.uid() = referrer_id);
-CREATE POLICY "Users can update their referrals" ON public.referrals FOR
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'referrals'
+    AND policyname = 'Users can update their referrals'
+) THEN CREATE POLICY "Users can update their referrals" ON public.referrals FOR
 UPDATE USING (
     auth.uid() = referrer_id
     OR auth.uid() = referred_id
   );
+END IF;
+END $$;
 -- Admin bypass policies
-CREATE POLICY "Admin bypass - disputes" ON public.disputes FOR ALL USING (  
-  EXISTS (                                                                  
-    SELECT 1                                                                
-    FROM public.profiles p                                                  
-    WHERE p.id = auth.uid()                                          
-      AND p.role = 'admin'                                                  
-  )                                                                         
-);
-CREATE POLICY "Admin bypass - referrals" ON public.referrals FOR ALL USING (
+DO $$ BEGIN IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'disputes'
+    AND policyname = 'Admin bypass - disputes'
+) THEN CREATE POLICY "Admin bypass - disputes" ON public.disputes FOR ALL USING (
   EXISTS (
     SELECT 1
     FROM public.profiles p
@@ -145,6 +228,22 @@ CREATE POLICY "Admin bypass - referrals" ON public.referrals FOR ALL USING (
       AND p.role = 'admin'
   )
 );
+END IF;
+IF NOT EXISTS (
+  SELECT 1
+  FROM pg_policies
+  WHERE tablename = 'referrals'
+    AND policyname = 'Admin bypass - referrals'
+) THEN CREATE POLICY "Admin bypass - referrals" ON public.referrals FOR ALL USING (
+  EXISTS (
+    SELECT 1
+    FROM public.profiles p
+    WHERE p.id = auth.uid()
+      AND p.role = 'admin'
+  )
+);
+END IF;
+END $$;
 -- =============================
 -- FUNCTIONS
 -- =============================
