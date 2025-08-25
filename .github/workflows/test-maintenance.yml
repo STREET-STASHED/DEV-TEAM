@@ -1,0 +1,23 @@
+name: Test Maintenance Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: "Test type"
+        required: true
+        default: "simple"
+        type: choice
+        options:
+          - simple
+          - full
+
+jobs:
+  test-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Maintenance Workflow
+        run: |
+          echo "Testing maintenance workflow detection"
+          echo "Current time: $(date)"
+          echo "This should trigger GitHub to recognize the database-maintenance workflow"
