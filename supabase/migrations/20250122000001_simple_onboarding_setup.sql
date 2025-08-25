@@ -73,6 +73,11 @@ ALTER TABLE public.stasher_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.stylist_profiles ENABLE ROW LEVEL SECURITY;
 
 -- 6. Create RLS policies for seller_profiles
+-- Drop existing policies first to avoid conflicts
+DROP POLICY IF EXISTS "Users can view their own seller profile" ON public.seller_profiles;
+DROP POLICY IF EXISTS "Users can update their own seller profile" ON public.seller_profiles;
+DROP POLICY IF EXISTS "Users can insert their own seller profile" ON public.seller_profiles;
+
 CREATE POLICY "Users can view their own seller profile" ON public.seller_profiles 
 FOR SELECT USING (auth.uid() = user_id);
 
@@ -83,6 +88,11 @@ CREATE POLICY "Users can insert their own seller profile" ON public.seller_profi
 FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- 7. Create RLS policies for stasher_profiles
+-- Drop existing policies first to avoid conflicts
+DROP POLICY IF EXISTS "Users can view their own stasher profile" ON public.stasher_profiles;
+DROP POLICY IF EXISTS "Users can update their own stasher profile" ON public.stasher_profiles;
+DROP POLICY IF EXISTS "Users can insert their own stasher profile" ON public.stasher_profiles;
+
 CREATE POLICY "Users can view their own stasher profile" ON public.stasher_profiles 
 FOR SELECT USING (auth.uid() = user_id);
 
@@ -93,6 +103,11 @@ CREATE POLICY "Users can insert their own stasher profile" ON public.stasher_pro
 FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- 8. Create RLS policies for stylist_profiles
+-- Drop existing policies first to avoid conflicts
+DROP POLICY IF EXISTS "Users can view their own stylist profile" ON public.stylist_profiles;
+DROP POLICY IF EXISTS "Users can update their own stylist profile" ON public.stylist_profiles;
+DROP POLICY IF EXISTS "Users can insert their own stylist profile" ON public.stylist_profiles;
+
 CREATE POLICY "Users can view their own stylist profile" ON public.stylist_profiles 
 FOR SELECT USING (auth.uid() = user_id);
 

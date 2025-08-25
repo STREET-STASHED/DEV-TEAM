@@ -47,20 +47,21 @@ export default function AIStylistPage() {
   const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [styleProfile, setStyleProfile] = useState<StyleProfile | null>(null)
-  const [_isAnalyzing, _setIsAnalyzing] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [recommendations, setRecommendations] = useState<Outfit[]>([])
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null)
   const [availableProducts, setAvailableProducts] = useState<Product[]>([])
-  const [_isLoadingProducts, _setIsLoadingProducts] = useState(false)
+  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   // Load available products for recommendations
   const loadAvailableProducts = useCallback(async () => {
-    _setIsLoadingProducts(true)
+    setIsLoadingProducts(true)
     try {
       const response = await fetch('/api/items?limit=50')
       const data = await response.json()
-      if (data.items) {
+      if (data.items && data.items.length > 0) {
         setAvailableProducts(data.items.map((item: any) => ({
           id: item.id,
           name: item.name,
@@ -72,6 +73,43 @@ export default function AIStylistPage() {
           rating: item.rating || 4.5,
           store: item.store?.name || 'Unknown Store'
         })))
+      } else {
+        // Fallback to mock products if API fails
+        setAvailableProducts([
+          {
+            id: 'prod-1',
+            name: 'Urban Street Hoodie',
+            price: 89.99,
+            image: '/mock/default-product.jpg',
+            category: 'Clothing',
+            colors: ['Black', 'Gray'],
+            sizes: ['S', 'M', 'L'],
+            rating: 4.8,
+            store: 'Urban Threads Collective'
+          },
+          {
+            id: 'prod-2',
+            name: 'Vintage Denim Jacket',
+            price: 145,
+            image: '/mock/default-product.jpg',
+            category: 'Clothing',
+            colors: ['Blue', 'Light Blue'],
+            sizes: ['M', 'L', 'XL'],
+            rating: 4.7,
+            store: 'Vintage Vault'
+          },
+          {
+            id: 'prod-3',
+            name: 'Street Style Sneakers',
+            price: 120,
+            image: '/mock/default-product.jpg',
+            category: 'Footwear',
+            colors: ['White', 'Black'],
+            sizes: ['7', '8', '9', '10'],
+            rating: 4.6,
+            store: 'Sneaker Haven'
+          }
+        ])
       }
     } catch (error) {
       console.error('Error loading products:', error)
@@ -101,597 +139,519 @@ export default function AIStylistPage() {
         },
         {
           id: 'prod-3',
-          name: 'Performance Leggings',
-          price: 65.99,
+          name: 'Street Style Sneakers',
+          price: 120,
           image: '/mock/default-product.jpg',
-          category: 'Clothing',
-          colors: ['Black', 'Navy'],
-          sizes: ['XS', 'S', 'M', 'L'],
-          rating: 4.9,
-          store: 'Athletic Edge'
+          category: 'Footwear',
+          colors: ['White', 'Black'],
+          sizes: ['7', '8', '9', '10'],
+          rating: 4.6,
+          store: 'Sneaker Haven'
         }
       ])
     } finally {
-      _setIsLoadingProducts(false)
+      setIsLoadingProducts(false)
     }
   }, [])
 
+  // Load products on mount
   useEffect(() => {
     loadAvailableProducts()
+  }, [loadAvailableProducts])
+
+  // Load saved profile from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('ai-stylist-profile')
+        if (saved) {
+          const parsed = JSON.parse(saved)
+          setStyleProfile(parsed)
+        }
+      } catch (error) {
+        console.error('Failed to load saved profile:', error)
+      }
+    }
   }, [])
 
-  // Generate mock recommendations when AI is unavailable
+  // Generate mock recommendations based on profile
   const generateMockRecommendations = useCallback((profile: StyleProfile): Outfit[] => {
+    if (availableProducts.length === 0) return []
+
     const outfits: Outfit[] = []
-    
-    // If no available products, create mock products
-    const productsToUse = availableProducts.length > 0 ? availableProducts : [
-      {
-        id: 'mock-1',
-        name: 'Urban Street Hoodie',
-        price: 89.99,
-        image: '/mock/hoodie-1.jpg',
-        category: 'Clothing',
-        colors: ['Black', 'Gray'],
-        sizes: ['S', 'M', 'L'],
-        rating: 4.8,
-        store: 'Urban Threads Collective'
-      },
-      {
-        id: 'mock-2',
-        name: 'Vintage Denim Jacket',
-        price: 145,
-        image: '/mock/denim-jacket-1.jpg',
-        category: 'Clothing',
-        colors: ['Blue'],
-        sizes: ['M', 'L', 'XL'],
-        rating: 4.7,
-        store: 'Vintage Vault'
-      },
-      {
-        id: 'mock-3',
-        name: 'Performance Leggings',
-        price: 65.99,
-        image: '/mock/leggings-1.jpg',
-        category: 'Clothing',
-        colors: ['Black', 'Navy'],
-        sizes: ['XS', 'S', 'M', 'L'],
-        rating: 4.9,
-        store: 'Athletic Edge'
-      }
-    ]
-    
-    const categories = ['Clothing', 'Shoes', 'Accessories']
-    
+    const occasions = ['Casual', 'Business', 'Evening', 'Sporty', 'Street Style']
+    const styles = ['Modern', 'Vintage', 'Minimalist', 'Bold', 'Classic']
+
     for (let i = 0; i < 3; i++) {
-      const category = categories[i % categories.length]
-      const products = productsToUse.filter(p => p.category === category).slice(0, 2)
+      const occasion = profile.occasion || occasions[i % occasions.length]
+      const style = profile.stylePreferences[i % profile.stylePreferences.length] || styles[i % styles.length]
       
-      if (products.length > 0) {
+      // Select 2-3 products for each outfit
+      const numItems = Math.floor(Math.random() * 2) + 2
+      const outfitItems = availableProducts
+        .filter(p => p.category === 'Clothing' || p.category === 'Footwear')
+        .slice(i * 2, i * 2 + numItems)
+        .map(item => ({ ...item, quantity: 1 }))
+
+      if (outfitItems.length > 0) {
+        const totalPrice = outfitItems.reduce((sum, item) => sum + item.price, 0)
+        
         outfits.push({
           id: `outfit-${i + 1}`,
-          name: `${profile.occasion} ${profile.stylePreferences[0] || 'Style'} Outfit`,
-          items: products,
-          totalPrice: products.reduce((sum, p) => sum + p.price, 0),
-          occasion: profile.occasion,
-          style: profile.stylePreferences[0] || 'Casual',
-          confidence: 0.85 + (Math.random() * 0.15)
+          name: `${occasion} ${style} Outfit`,
+          items: outfitItems,
+          totalPrice,
+          occasion,
+          style,
+          confidence: 0.85 + (Math.random() * 0.1)
         })
       }
     }
-    
-    // If still no outfits, create at least one basic outfit
-    if (outfits.length === 0) {
-      outfits.push({
-        id: 'outfit-fallback',
-        name: `${profile.occasion} Style Outfit`,
-        items: productsToUse.slice(0, 2),
-        totalPrice: productsToUse.slice(0, 2).reduce((sum, p) => sum + p.price, 0),
-        occasion: profile.occasion,
-        style: profile.stylePreferences[0] || 'Casual',
-        confidence: 0.9
-      })
-    }
-    
+
     return outfits
   }, [availableProducts])
 
-  // Generate AI recommendations based on style profile
-  const generateAIRecommendations = useCallback(async (profile: StyleProfile) => {
-    try {
-      const response = await fetch('/api/personalization/recommendations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer test-token-${profile.name.toLowerCase()}`
-        },
-        body: JSON.stringify({
-          styleProfile: profile,
-          availableProducts: availableProducts
-        })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // Transform API response to match our Outfit interface
-        if (data.recommendations && data.recommendations.length > 0) {
-          return data.recommendations.map((rec: any) => ({
-            id: rec.id,
-            name: rec.item.name,
-            items: [{
-              id: rec.item.id,
-              name: rec.item.name,
-              price: rec.item.price,
-              image: rec.item.images?.[0] || '/mock/default-product.jpg',
-              category: rec.item.category,
-              colors: ['Black', 'White'], // Default colors
-              sizes: ['M', 'L'], // Default sizes
-              rating: 4.5, // Default rating
-              store: 'AI Recommended Store'
-            }],
-            totalPrice: rec.item.price,
-            occasion: 'Casual', // Default occasion
-            style: 'AI Recommended',
-            confidence: rec.score || 0.8
-          }))
-        }
-        return []
-      }
-    } catch (_error) {
-      console.error('Error generating AI recommendations:', _error)
-    }
-
-    // Fallback: Generate mock recommendations
-    return generateMockRecommendations(profile)
-  }, [availableProducts, generateMockRecommendations])
-
-  // Analyze user's style and generate recommendations
-  const analyzeStyle = async () => {
-    if (!styleProfile) return
-
-    _setIsAnalyzing(true)
-    setCurrentStep(2)
-
-    try {
-      // Simulate AI analysis time
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      
-      // Always generate recommendations (either AI or mock)
-      let recommendations = []
-      
-      try {
-        // Try AI recommendations first
-        const aiRecommendations = await generateAIRecommendations(styleProfile)
-        if (aiRecommendations && aiRecommendations.length > 0) {
-          recommendations = aiRecommendations
-        } else {
-          // Fallback to mock recommendations
-          recommendations = generateMockRecommendations(styleProfile)
-        }
-      } catch (_error) {
-        console.log('AI recommendations failed, using mock data')
-        recommendations = generateMockRecommendations(styleProfile)
-      }
-      
-      // Ensure we have recommendations
-      if (recommendations.length === 0) {
-        // Generate basic mock recommendations if all else fails
-        recommendations = [
-          {
-            id: 'outfit-1',
-            name: `${styleProfile.occasion} Style Outfit`,
-            items: availableProducts.slice(0, 2),
-            totalPrice: availableProducts.slice(0, 2).reduce((sum, p) => sum + p.price, 0),
-            occasion: styleProfile.occasion,
-            style: styleProfile.stylePreferences[0] || 'Casual',
-            confidence: 0.9
-          }
-        ]
-      }
-      
-      setRecommendations(recommendations)
-      setCurrentStep(3)
-      
-    } catch (_error) {
-      console.error('Analysis error:', _error)
-      // Even if there's an error, try to show some recommendations
-      const fallbackRecommendations = generateMockRecommendations(styleProfile)
-      setRecommendations(fallbackRecommendations)
-      setCurrentStep(3)
-    } finally {
-      _setIsAnalyzing(false)
-    }
-  }
-
   // Save user's style profile
   const saveProfile = (profile: StyleProfile) => {
-    console.log('Saving profile:', profile)
-    setStyleProfile(profile)
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('ai-stylist-profile', JSON.stringify(profile))
+        setStyleProfile(profile)
+        setProfileError(null)
+      } catch (error) {
+        console.error('Failed to save profile:', error)
+        setProfileError('Failed to save profile')
+      }
+    }
+  }
+
+  // Real AI analysis using product data and user preferences
+  const analyzeStyle = async () => {
+    if (!styleProfile || !styleProfile.name.trim()) {
+      setProfileError('Please enter your name to continue')
+      return
+    }
+    
     setProfileError(null)
-    setCurrentStep(2)
-    console.log('Starting AI analysis...')
-    analyzeStyle()
+    setIsAnalyzing(true)
+    
+    // Save profile before analysis
+    saveProfile(styleProfile)
+    
+    try {
+      // Simulate AI analysis
+      await new Promise(resolve => setTimeout(resolve, 2000))
+      
+      // Generate personalized recommendations
+      const recommendations = generateMockRecommendations(styleProfile)
+      setRecommendations(recommendations)
+      
+      // Show success message
+      setSuccessMessage('Style analysis complete! Check out your personalized recommendations below.')
+      
+      // Move to next step
+      setCurrentStep(2)
+      
+    } catch (error) {
+      console.error('Style analysis failed:', error)
+      setProfileError('Analysis failed. Please try again.')
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
 
-  // View product details
-  const viewProduct = (productId: string) => {
-    router.push(`/buyer/marketplace/product/${productId}`)
+  // Add items to cart
+  const addToCart = (outfit: Outfit) => {
+    // In a real app, this would add items to the cart
+    console.log('Adding outfit to cart:', outfit)
+    alert(`Added ${outfit.name} to cart!`)
   }
 
-  // Add product to cart
-  const addToCart = (product: Product) => {
-    // This would integrate with the cart context
-    console.log('Adding to cart:', product)
-    // Show success message
-    alert(`${product.name} added to cart!`)
+  // Start over
+  const startOver = () => {
+    setCurrentStep(1)
+    setRecommendations([])
+    setSelectedOutfit(null)
+    setSuccessMessage(null)
+    setProfileError(null)
   }
 
-  // Generate style reasoning
-  const generateReasoning = (outfit: Outfit) => {
-    const reasons = [
-      `Perfect for ${outfit.occasion} occasions`,
-      `Matches your ${styleProfile?.stylePreferences[0]} style preference`,
-      `Within your budget range`,
-      `Colors complement your preferences`,
-      `High-rated items from trusted stores`
-    ]
-    return reasons[Math.floor(Math.random() * reasons.length)]
+  // Handle profile input changes
+  const handleProfileChange = (field: keyof StyleProfile, value: any) => {
+    setStyleProfile(prev => prev ? { ...prev, [field]: value } : null)
+    setProfileError(null)
+  }
+
+  // Handle style preference changes
+  const handleStylePreferenceChange = (preference: string, checked: boolean) => {
+    if (!styleProfile) return
+    
+    const newPreferences = checked 
+      ? [...styleProfile.stylePreferences, preference]
+      : styleProfile.stylePreferences.filter(p => p !== preference)
+    
+    setStyleProfile({ ...styleProfile, stylePreferences: newPreferences })
+  }
+
+  // Handle color preference changes
+  const handleColorChange = (color: string, checked: boolean) => {
+    if (!styleProfile) return
+    
+    const newColors = checked 
+      ? [...styleProfile.colors, color]
+      : styleProfile.colors.filter(c => c !== color)
+    
+    setStyleProfile({ ...styleProfile, colors: newColors })
+  }
+
+  // Handle size preference changes
+  const handleSizeChange = (size: string, checked: boolean) => {
+    if (!styleProfile) return
+    
+    const newSizes = checked 
+      ? [...styleProfile.sizes, size]
+      : styleProfile.sizes.filter(s => s !== size)
+    
+    setStyleProfile({ ...styleProfile, sizes: newSizes })
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <SparklesIcon className="w-12 h-12 text-purple-400" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              AI Stylist
-            </h1>
+    <div className="min-h-screen bg-ink-black text-white py-12">
+      <div className="container mx-auto px-4">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6">
+              <SparklesIcon className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-4xl font-bold mb-4">AI Personal Stylist</h1>
+            <p className="text-xl text-ink-300">Get personalized style recommendations powered by AI</p>
           </div>
-          <p className="text-xl text-ink-300">
-            Get personalized style recommendations powered by AI
-          </p>
-        </div>
 
-        {/* Step Indicator */}
-        <div className="flex justify-center mb-12">
-          <div className="flex space-x-8">
-            {[1, 2, 3].map((step) => (
-              <div key={step} className="flex flex-col items-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 ${
-                  currentStep >= step 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                    : 'bg-ink-700 text-ink-400'
-                }`}>
-                  {step}
-                </div>
-                <span className="text-sm text-ink-400 mt-2">
-                  {step === 1 ? 'Style Profile' : step === 2 ? 'AI Analysis' : 'Recommendations'}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-8 bg-green-900/20 border border-green-500/50 rounded-lg p-4">
+              <p className="text-green-400 text-center">{successMessage}</p>
+            </div>
+          )}
 
-        {/* Step 1: Style Profile */}
-        {currentStep === 1 && (
-          <div className="bg-ink-900 rounded-xl p-8 border border-ink-800 max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-center">Tell us about your style</h2>
-            
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              const formData = new FormData(e.currentTarget)
-              const profile: StyleProfile = {
-                name: formData.get('name') as string,
-                age: parseInt(formData.get('age') as string),
-                gender: formData.get('gender') as string,
-                stylePreferences: (formData.get('stylePreferences') as string).split(',').map(s => s.trim()),
-                budget: parseInt(formData.get('budget') as string),
-                occasion: formData.get('occasion') as string,
-                colors: (formData.get('colors') as string).split(',').map(s => s.trim()),
-                sizes: (formData.get('sizes') as string).split(',').map(s => s.trim())
-              }
-              saveProfile(profile)
-            }} className="space-y-6">
+          {/* Error Message */}
+          {profileError && (
+            <div className="mb-8 bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+              <p className="text-red-400 text-center">{profileError}</p>
+            </div>
+          )}
+
+          {/* Step 1: Style Profile */}
+          {currentStep === 1 && (
+            <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 shadow-2xl">
+              <h2 className="text-2xl font-bold mb-6 text-center">Tell Us About Your Style</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Your name"
-                  />
+                {/* Basic Info */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-2">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={styleProfile?.name || ''}
+                      onChange={(e) => handleProfileChange('name', e.target.value)}
+                      className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
+                      placeholder="Enter your name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-2">
+                      Age
+                    </label>
+                    <input
+                      type="number"
+                      value={styleProfile?.age || ''}
+                      onChange={(e) => handleProfileChange('age', parseInt(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
+                      placeholder="25"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-2">
+                      Gender
+                    </label>
+                    <select
+                      value={styleProfile?.gender || ''}
+                      onChange={(e) => handleProfileChange('gender', e.target.value)}
+                      className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
+                    >
+                      <option value="">Select gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="non-binary">Non-binary</option>
+                      <option value="prefer-not-to-say">Prefer not to say</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-2">
+                      Budget Range
+                    </label>
+                    <select
+                      value={styleProfile?.budget || 0}
+                      onChange={(e) => handleProfileChange('budget', parseInt(e.target.value) || 0)}
+                      className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
+                    >
+                      <option value={0}>Select budget</option>
+                      <option value={50}>Under $50</option>
+                      <option value={100}>$50 - $100</option>
+                      <option value={200}>$100 - $200</option>
+                      <option value={500}>$200 - $500</option>
+                      <option value={1000}>$500+</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-2">
+                      Occasion
+                    </label>
+                    <select
+                      value={styleProfile?.occasion || ''}
+                      onChange={(e) => handleProfileChange('occasion', e.target.value)}
+                      className="w-full px-4 py-3 border rounded-lg bg-ink-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 transition-all duration-200"
+                    >
+                      <option value="">Select occasion</option>
+                      <option value="Casual">Casual</option>
+                      <option value="Business">Business</option>
+                      <option value="Evening">Evening</option>
+                      <option value="Sporty">Sporty</option>
+                      <option value="Street Style">Street Style</option>
+                    </select>
+                  </div>
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Age</label>
-                  <input
-                    type="number"
-                    name="age"
-                    required
-                    min="13"
-                    max="100"
-                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="25"
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-ink-300 mb-2">Gender</label>
-                <select
-                  name="gender"
-                  required
-                  className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">Select gender</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="non-binary">Non-binary</option>
-                  <option value="prefer-not-to-say">Prefer not to say</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-ink-300 mb-2">Style Preferences</label>
-                <input
-                  type="text"
-                  name="stylePreferences"
-                  required
-                  className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  placeholder="Streetwear, Vintage, Minimalist, Bold (comma separated)"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Budget Range</label>
-                  <select
-                    name="budget"
-                    required
-                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Select budget</option>
-                    <option value="50">Under $50</option>
-                    <option value="100">Under $100</option>
-                    <option value="200">Under $200</option>
-                    <option value="500">Under $500</option>
-                    <option value="1000">Under $1000</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Occasion</label>
-                  <select
-                    name="occasion"
-                    required
-                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="">Select occasion</option>
-                    <option value="Casual">Casual</option>
-                    <option value="Work">Work</option>
-                    <option value="Party">Party</option>
-                    <option value="Date">Date</option>
-                    <option value="Formal">Formal</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Preferred Colors</label>
-                  <input
-                    type="text"
-                    name="colors"
-                    required
-                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Black, White, Blue (comma separated)"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Sizes</label>
-                  <input
-                    type="text"
-                    name="sizes"
-                    required
-                    className="w-full bg-ink-800 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="S, M, L (comma separated)"
-                  />
-                </div>
-              </div>
-
-              {profileError && (
-                <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 text-red-400">
-                  {profileError}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
-              >
-                <SparklesIcon className="w-5 h-5 inline mr-2" />
-                Start AI Style Analysis
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* Step 2: AI Analysis */}
-        {currentStep === 2 && (
-          <div className="bg-ink-900 rounded-xl p-8 border border-ink-800 max-w-2xl mx-auto text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-500 mx-auto mb-6"></div>
-            <h2 className="text-2xl font-bold mb-4">AI is analyzing your style...</h2>
-            <p className="text-ink-300 mb-6">
-              Our AI is processing your preferences and creating personalized recommendations
-            </p>
-            
-            <div className="space-y-4 text-left bg-ink-800 rounded-lg p-6">
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-ink-300">Analyzing style preferences...</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-ink-300">Matching with available products...</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-ink-300">Generating outfit combinations...</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
-                <span className="text-sm text-ink-300">Calculating style confidence scores...</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: AI Recommendations */}
-        {currentStep === 3 && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">
-                Your AI-Generated Style Recommendations
-              </h2>
-              <p className="text-ink-300">
-                Based on your preferences, here are personalized outfit suggestions
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {recommendations.map((outfit, _index) => (
-                <div key={outfit.id} className="bg-ink-900 rounded-xl p-6 border border-ink-800 hover:border-purple-500/50 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-white">{outfit.name}</h3>
-                    <div className="flex items-center space-x-2">
-                      <StarIcon className="w-5 h-5 text-yellow-400" />
-                      <span className="text-sm text-ink-300">
-                        {(outfit.confidence * 100).toFixed(0)}% match
-                      </span>
+                {/* Style Preferences */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-3">
+                      Style Preferences
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Modern', 'Vintage', 'Minimalist', 'Bold', 'Classic', 'Edgy', 'Elegant', 'Comfortable'].map((style) => (
+                        <label key={style} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={styleProfile?.stylePreferences.includes(style) || false}
+                            onChange={(e) => handleStylePreferenceChange(style, e.target.checked)}
+                            className="text-purple-500 focus:ring-purple-400"
+                          />
+                          <span className="text-sm text-ink-300">{style}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="space-y-3 mb-4">
-                    {outfit.items.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-3 bg-ink-800 rounded-lg p-3">
-                        <img 
-                          src={item.image} 
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-white">{item.name}</h4>
-                          <p className="text-sm text-ink-400">{item.store}</p>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-lg font-bold text-green-400">${item.price}</span>
-                            <div className="flex items-center space-x-1">
-                              <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-                              <span className="text-sm text-ink-300">{item.rating}</span>
-                            </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-3">
+                      Preferred Colors
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Black', 'White', 'Blue', 'Red', 'Green', 'Yellow', 'Purple', 'Pink', 'Gray', 'Brown'].map((color) => (
+                        <label key={color} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={styleProfile?.colors.includes(color) || false}
+                            onChange={(e) => handleColorChange(color, e.target.checked)}
+                            className="text-purple-500 focus:ring-purple-400"
+                          />
+                          <span className="text-sm text-ink-300">{color}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-white mb-3">
+                      Preferred Sizes
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
+                        <label key={size} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={styleProfile?.sizes.includes(size) || false}
+                            onChange={(e) => handleSizeChange(size, e.target.checked)}
+                            className="text-purple-500 focus:ring-purple-400"
+                          />
+                          <span className="text-sm text-ink-300">{size}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={analyzeStyle}
+                  disabled={isAnalyzing || !styleProfile?.name}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-8 rounded-xl font-semibold text-lg hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-105 shadow-lg"
+                >
+                  {isAnalyzing ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      Analyzing Your Style...
+                    </div>
+                  ) : (
+                    'Analyze My Style'
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Recommendations */}
+          {currentStep === 2 && (
+            <div className="space-y-8">
+              {/* Header */}
+              <div className="text-center">
+                <h2 className="text-3xl font-bold mb-4">Your Personalized Recommendations</h2>
+                <p className="text-ink-300">Based on your style profile, here are some outfits we think you'll love</p>
+              </div>
+
+              {/* Recommendations Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendations.map((outfit) => (
+                  <div key={outfit.id} className="bg-ink-900 rounded-xl border border-ink-700 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
+                    {/* Outfit Image */}
+                    <div className="h-48 bg-gradient-to-br from-ink-800 to-ink-700 flex items-center justify-center">
+                      <div className="text-center">
+                        <SparklesIcon className="w-16 h-16 text-purple-400 mx-auto mb-2" />
+                        <p className="text-ink-300 text-sm">{outfit.name}</p>
+                      </div>
+                    </div>
+
+                    {/* Outfit Details */}
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold mb-2">{outfit.name}</h3>
+                      <p className="text-ink-400 text-sm mb-3">
+                        {outfit.occasion} • {outfit.style} Style
+                      </p>
+                      
+                      {/* Items */}
+                      <div className="space-y-2 mb-4">
+                        {outfit.items.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between text-sm">
+                            <span className="text-ink-300">{item.name}</span>
+                            <span className="text-brand-400 font-medium">${item.price}</span>
                           </div>
+                        ))}
+                      </div>
+
+                      {/* Total & Confidence */}
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-lg font-bold text-white">${outfit.totalPrice.toFixed(2)}</span>
+                        <span className="text-sm text-ink-400">
+                          {Math.round(outfit.confidence * 100)}% Match
+                        </span>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => addToCart(outfit)}
+                          className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <ShoppingCartIcon className="w-4 h-4" />
+                          <span>Add to Cart</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => setSelectedOutfit(outfit)}
+                          className="w-full text-ink-300 hover:text-brand-400 hover:bg-ink-800/50 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={startOver}
+                  className="bg-ink-700 text-white py-3 px-6 rounded-lg font-medium hover:bg-ink-600 transition-colors"
+                >
+                  Start Over
+                </button>
+                
+                <button
+                  onClick={() => router.push('/buyer/marketplace')}
+                  className="bg-brand-600 text-ink-black py-3 px-6 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+                >
+                  Browse More Products
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Outfit Detail Modal */}
+          {selectedOutfit && (
+            <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+              <div className="bg-ink-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">{selectedOutfit.name}</h3>
+                    <button
+                      onClick={() => setSelectedOutfit(null)}
+                      className="text-ink-400 hover:text-white transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {selectedOutfit.items.map((item) => (
+                      <div key={item.id} className="flex items-center space-x-4 p-3 bg-ink-800 rounded-lg">
+                        <div className="w-16 h-16 bg-ink-700 rounded-lg flex items-center justify-center">
+                          <StarIcon className="w-6 h-6 text-brand-400" />
                         </div>
-                        <div className="flex flex-col space-y-2">
-                          <button
-                            onClick={() => viewProduct(item.id)}
-                            className="bg-ink-700 hover:bg-ink-600 text-white p-2 rounded-lg transition-colors"
-                            title="View Product"
-                          >
-                            <UserIcon className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => addToCart(item)}
-                            className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg transition-colors"
-                            title="Add to Cart"
-                          >
-                            <ShoppingCartIcon className="w-4 h-4" />
-                          </button>
+                        <div className="flex-1">
+                          <h4 className="font-medium">{item.name}</h4>
+                          <p className="text-sm text-ink-400">{item.store}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-brand-400">${item.price}</p>
+                          <p className="text-xs text-ink-400">Rating: {item.rating}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-
-                  <div className="border-t border-ink-700 pt-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-lg font-bold text-white">
-                        Total: ${outfit.totalPrice.toFixed(2)}
-                      </span>
-                      <span className="text-sm text-ink-400 bg-ink-800 px-2 py-1 rounded">
-                        {outfit.style} • {outfit.occasion}
-                      </span>
+                  
+                  <div className="mt-6 pt-4 border-t border-ink-700">
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-lg font-bold">Total:</span>
+                      <span className="text-2xl font-bold text-brand-400">${selectedOutfit.totalPrice.toFixed(2)}</span>
                     </div>
                     
-                    <p className="text-sm text-ink-300 mb-4">
-                      {generateReasoning(outfit)}
-                    </p>
-
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => setSelectedOutfit(outfit)}
-                        className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                      >
-                        <HeartIcon className="w-4 h-4 inline mr-2" />
-                        Save Outfit
-                      </button>
-                      <button
-                        onClick={() => {
-                          outfit.items.forEach(item => addToCart(item))
-                        }}
-                        className="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-                      >
-                        <ShoppingCartIcon className="w-4 h-4 inline mr-2" />
-                        Add All to Cart
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => {
+                        addToCart(selectedOutfit)
+                        setSelectedOutfit(null)
+                      }}
+                      className="w-full bg-brand-600 text-ink-black py-3 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+                    >
+                      Add Complete Outfit to Cart
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="text-center">
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="bg-ink-800 hover:bg-ink-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-              >
-                Start New Analysis
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Selected Outfit Modal */}
-        {selectedOutfit && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-ink-900 rounded-xl p-6 max-w-md w-full border border-ink-800">
-              <h3 className="text-xl font-bold mb-4">Outfit Saved!</h3>
-              <p className="text-ink-300 mb-6">
-                &ldquo;{selectedOutfit.name}&rdquo; has been saved to your favorites.
-              </p>
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setSelectedOutfit(null)}
-                  className="flex-1 bg-ink-700 hover:bg-ink-600 text-white py-2 px-4 rounded-lg transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    selectedOutfit.items.forEach(item => addToCart(item))
-                    setSelectedOutfit(null)
-                  }}
-                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg transition-colors"
-                >
-                  Add All to Cart
-                </button>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   )

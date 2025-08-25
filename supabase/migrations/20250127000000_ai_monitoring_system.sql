@@ -218,7 +218,7 @@ BEGIN
   FROM public.monitoring_metrics m
   LEFT JOIN public.monitoring_alerts a ON a.timestamp >= now() - interval '24 hours'
   LEFT JOIN public.system_health_snapshots s ON s.timestamp >= now() - interval '1 hour'
-  WHERE m.timestamp >= now() - interval '24 hours';
+  WHERE public.m.timestamp >= now() - interval '24 hours';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -240,7 +240,7 @@ BEGIN
     p.total_requests,
     p.unique_users
   FROM public.performance_trends p
-  WHERE p.date >= current_date - (days || ' days')::INTERVAL
+  WHERE public.p.date >= current_date - (days || ' days')::INTERVAL
   ORDER BY p.date DESC;
 END;
 $$ LANGUAGE plpgsql;
@@ -253,13 +253,6 @@ INSERT INTO public.monitoring_metrics (
   (now() - interval '30 minutes', '/api/items', 89, 200, 0, 30, 523.1, 38.7),
   (now() - interval '15 minutes', '/buyer/checkout', 120, 200, 0, 28, 518.9, 36.4),
   (now(), '/signup', 95, 200, 0, 32, 525.3, 39.1);
-
--- Create a cron job to clean up old data (runs daily at 2 AM)
-SELECT cron.schedule(
-  'cleanup-monitoring-data',
-  '0 2 * * *',
-  'SELECT public.cleanup_old_monitoring_data();'
-);
 
 -- Grant necessary permissions
 GRANT USAGE ON SCHEMA public TO authenticated;

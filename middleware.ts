@@ -70,13 +70,13 @@ export async function middleware(req: NextRequest) {
           url.pathname = "/";
           return NextResponse.redirect(url);
         }
-      } catch (e) {
+      } catch (_e) {
         // If profile check fails, redirect to home
         const url = req.nextUrl.clone();
         url.pathname = "/";
         return NextResponse.redirect(url);
       }
-    } catch (e) {
+    } catch (_e) {
       // If Supabase fails, redirect to home
       const url = req.nextUrl.clone();
       url.pathname = "/";

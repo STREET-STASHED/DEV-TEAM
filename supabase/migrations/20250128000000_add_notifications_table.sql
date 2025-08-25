@@ -133,7 +133,7 @@ GRANT EXECUTE ON FUNCTION public.get_unread_notifications_count TO authenticated
 --   'info',
 --   '{"welcome": true}'::jsonb
 -- FROM public.profiles p
--- WHERE p.id IS NOT NULL
+-- WHERE public.p.id IS NOT NULL
 -- LIMIT 5;
 
 -- =============================

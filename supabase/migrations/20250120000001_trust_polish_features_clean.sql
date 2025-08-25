@@ -58,9 +58,9 @@ CREATE TABLE IF NOT EXISTS public.disputes (
 ALTER TABLE public.disputes
 ADD CONSTRAINT disputes_order_id_fkey FOREIGN KEY (order_id) REFERENCES public.orders(id) ON DELETE CASCADE;
 ALTER TABLE public.disputes
-ADD CONSTRAINT disputes_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES public.profiles(user_id) ON DELETE CASCADE;
+ADD CONSTRAINT disputes_buyer_id_fkey FOREIGN KEY (buyer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 ALTER TABLE public.disputes
-ADD CONSTRAINT disputes_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES public.profiles(user_id) ON DELETE CASCADE;
+ADD CONSTRAINT disputes_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 -- =============================
 -- REFERRALS TABLE
 -- =============================
@@ -78,9 +78,9 @@ CREATE TABLE IF NOT EXISTS public.referrals (
 );
 -- Add foreign key constraints after table creation
 ALTER TABLE public.referrals
-ADD CONSTRAINT referrals_referrer_id_fkey FOREIGN KEY (referrer_id) REFERENCES public.profiles(user_id) ON DELETE CASCADE;
+ADD CONSTRAINT referrals_referrer_id_fkey FOREIGN KEY (referrer_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 ALTER TABLE public.referrals
-ADD CONSTRAINT referrals_referred_id_fkey FOREIGN KEY (referred_id) REFERENCES public.profiles(user_id) ON DELETE CASCADE;
+ADD CONSTRAINT referrals_referred_id_fkey FOREIGN KEY (referred_id) REFERENCES public.profiles(id) ON DELETE CASCADE;
 -- =============================
 -- EXTEND PROFILES TABLE
 -- =============================
@@ -129,19 +129,19 @@ UPDATE USING (
     OR auth.uid() = referred_id
   );
 -- Admin bypass policies
-CREATE POLICY "Admin bypass - disputes" ON public.disputes FOR ALL USING (
-  EXISTS (
-    SELECT 1
-    FROM public.profiles p
-    WHERE p.user_id = auth.uid()
-      AND p.role = 'admin'
-  )
+CREATE POLICY "Admin bypass - disputes" ON public.disputes FOR ALL USING (  
+  EXISTS (                                                                  
+    SELECT 1                                                                
+    FROM public.profiles p                                                  
+    WHERE p.id = auth.uid()                                          
+      AND p.role = 'admin'                                                  
+  )                                                                         
 );
 CREATE POLICY "Admin bypass - referrals" ON public.referrals FOR ALL USING (
   EXISTS (
     SELECT 1
     FROM public.profiles p
-    WHERE p.user_id = auth.uid()
+    WHERE p.id = auth.uid()
       AND p.role = 'admin'
   )
 );

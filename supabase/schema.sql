@@ -47,10 +47,10 @@ create table if not exists products (
   updated_at timestamptz default now()
 );
 -- ITEMS (for marketplace listings)
-create table if not exists items (
+create table if not exists public.items (
   id uuid primary key default gen_random_uuid(),
-  product_id uuid references products(id) on delete cascade,
-  seller_id uuid not null references profiles(id) on delete cascade,
+  product_id uuid references public.products(id) on delete cascade,
+  seller_id uuid not null references public.profiles(id) on delete cascade,
   name text not null,
   price numeric(10, 2) not null,
   description text,
@@ -61,10 +61,10 @@ create table if not exists items (
   updated_at timestamptz default now()
 );
 -- Helpful indexes for items
-create index if not exists items_seller_id_idx on items (seller_id);
-create index if not exists items_category_idx on items (category);
-create index if not exists items_active_idx on items (active);
-create index if not exists items_created_at_idx on items (created_at);
+create index if not exists items_seller_id_idx on public.items (seller_id);
+create index if not exists items_category_idx on public.items (category);
+create index if not exists items_active_idx on public.items (active);
+create index if not exists items_created_at_idx on public.items (created_at);
 create table if not exists orders (
   id uuid primary key default gen_random_uuid(),
   buyer_id uuid not null references users(id),
@@ -91,17 +91,17 @@ create policy "Sellers can view their own products" on products for
 select using (auth.uid() = seller_id);
 create policy "Sellers can manage their own products" on products for all using (auth.uid() = seller_id) with check (auth.uid() = seller_id);
 -- ITEMS
-alter table items enable row level security;
+alter table public.items enable row level security;
 -- Public read access to active items
-create policy "Public can view active items" on items for
+create policy "Public can view active items" on public.items for
 select using (active = true);
 -- Sellers can manage their own items
-create policy "Sellers can manage their own items" on items for all using (auth.uid() = seller_id) with check (auth.uid() = seller_id);
+create policy "Sellers can manage their own items" on public.items for all using (auth.uid() = seller_id) with check (auth.uid() = seller_id);
 -- Admins can manage all items
-create policy "Admins can manage all items" on items for all using (
+create policy "Admins can manage all items" on public.items for all using (
   exists (
     select 1
-    from profiles p
+    from public.profiles p
     where p.id = auth.uid()
       and p.role = 'admin'
   )

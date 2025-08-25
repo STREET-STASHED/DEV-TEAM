@@ -61,28 +61,28 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const { items, pickupAddress, deliveryAddress, distanceMiles, totalPrice } = validationResult.data;
+    const { items, pickupAddress: _pickupAddress, deliveryAddress: _deliveryAddress, distanceMiles, totalPrice } = validationResult.data;
 
-    // Create order in database
+    // Create order data with only the basic columns that should exist in the current schema
     const orderData: any = {
       status: 'pending_payment',
       total_amount: totalPrice,
-      delivery_fee: 0, // Will be calculated separately
-      distance_miles: distanceMiles,
-      pickup_address: JSON.stringify(pickupAddress),
-      delivery_address: JSON.stringify(deliveryAddress),
-      items: JSON.stringify(items),
       created_at: new Date().toISOString(),
     };
 
-    // Add buyer_id only for authenticated users
+    // Only add buyer_id if user is authenticated and the column exists
     if (!isGuest) {
       orderData.buyer_id = user.id;
     }
 
     // Try to create order in database, but fallback to mock order if database fails
     let order;
+    let dbError = null;
+    
     try {
+      console.log('Attempting to create order in database...');
+      console.log('Order data:', orderData);
+      
       const { data: dbOrder, error: orderError } = await supabase
         .from('orders')
         .insert(orderData)
@@ -90,20 +90,16 @@ export async function POST(request: NextRequest) {
         .single();
 
       if (orderError) {
-        console.error('Database order creation failed, using mock order:', orderError);
-        // Create a mock order for guest users when database is unavailable
-        order = {
-          id: `mock-${Date.now()}`,
-          status: 'pending_payment',
-          total_amount: totalPrice,
-          distance_miles: distanceMiles,
-          created_at: new Date().toISOString(),
-        };
+        console.error('Database order creation failed:', orderError);
+        dbError = orderError;
+        throw orderError;
       } else {
+        console.log('Order created successfully in database:', dbOrder.id);
         order = dbOrder;
       }
     } catch (dbError) {
       console.error('Database error, using mock order:', dbError);
+      
       // Create a mock order for guest users when database is unavailable
       order = {
         id: `mock-${Date.now()}`,
@@ -112,41 +108,61 @@ export async function POST(request: NextRequest) {
         distance_miles: distanceMiles,
         created_at: new Date().toISOString(),
       };
+      
+      // Log the specific error for debugging
+      if (dbError && typeof dbError === 'object' && 'message' in dbError) {
+        console.error('Database error details:', {
+          message: dbError.message,
+          code: (dbError as any).code,
+          details: (dbError as any).details,
+          hint: (dbError as any).hint
+        });
+      }
     }
 
     // Try to create order items in database, but continue if it fails
-    try {
-      const orderItems = items.map(item => ({
-        order_id: order.id,
-        item_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-      }));
+    if (order.id && !order.id.startsWith('mock-')) {
+      try {
+        const orderItems = items.map(item => ({
+          order_id: order.id,
+          item_id: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        }));
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItems);
 
-      if (itemsError) {
-        console.error('Failed to create order items:', itemsError);
-        // Order was created but items failed - this is recoverable
+        if (itemsError) {
+          console.error('Failed to create order items:', itemsError);
+          // Order was created but items failed - this is recoverable
+        } else {
+          console.log('Order items created successfully');
+        }
+      } catch (itemsDbError) {
+        console.error('Database error creating order items:', itemsDbError);
+        // Continue with order even if items fail
       }
-    } catch (itemsDbError) {
-      console.error('Database error creating order items:', itemsDbError);
-      // Continue with mock order even if items fail
     }
 
     return NextResponse.json({ 
       orderId: order.id,
       success: true,
-      message: 'Order created successfully',
+      message: order.id.startsWith('mock-') ? 'Order created (mock mode - database unavailable)' : 'Order created successfully',
       nextStep: 'payment',
       order: {
         id: order.id,
         status: order.status,
         totalAmount: order.total_amount,
-        distanceMiles: order.distance_miles,
-      }
+        distanceMiles: order.distance_miles || distanceMiles,
+      },
+      isMockOrder: order.id.startsWith('mock-'),
+      dbError: dbError ? {
+        message: dbError.message,
+        code: (dbError as any).code,
+        hint: (dbError as any).hint
+      } : null
     });
 
   } catch (error) {

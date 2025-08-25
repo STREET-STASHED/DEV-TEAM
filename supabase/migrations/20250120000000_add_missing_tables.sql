@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS public.user_behaviors (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
-  product_id uuid not null references public.items(id) on delete cascade,
+  product_id uuid not null references public.products(id) on delete cascade,
   action text not null check (action in ('view', 'like', 'purchase', 'cart_add', 'cart_remove')),
   session_id text,
   timestamp timestamptz default now(),
@@ -229,7 +229,7 @@ CREATE POLICY trend_analyses_view_policy ON public.trend_analyses
 -- SALES ANALYTICS table
 CREATE TABLE IF NOT EXISTS public.sales_analytics (
   id uuid primary key default gen_random_uuid(),
-  product_id uuid references public.items(id) on delete cascade,
+  product_id uuid references public.products(id) on delete cascade,
   quantity int not null,
   revenue numeric(10,2) not null,
   date date not null,
@@ -246,7 +246,7 @@ ALTER TABLE public.sales_analytics ENABLE ROW LEVEL SECURITY;
 CREATE POLICY sales_analytics_policy ON public.sales_analytics
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.items i 
+      SELECT 1 FROM public.products i 
       WHERE i.id = sales_analytics.product_id 
       AND i.seller_id = auth.uid()
     )
@@ -255,7 +255,7 @@ CREATE POLICY sales_analytics_policy ON public.sales_analytics
 -- INVENTORY ANALYTICS table
 CREATE TABLE IF NOT EXISTS public.inventory_analytics (
   id uuid primary key default gen_random_uuid(),
-  product_id uuid references public.items(id) on delete cascade,
+  product_id uuid references public.products(id) on delete cascade,
   stock_level int not null,
   reorder_point int not null,
   turnover_rate numeric(5,2),
@@ -273,7 +273,7 @@ ALTER TABLE public.inventory_analytics ENABLE ROW LEVEL SECURITY;
 CREATE POLICY inventory_analytics_policy ON public.inventory_analytics
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.items i 
+      SELECT 1 FROM public.products i 
       WHERE i.id = inventory_analytics.product_id 
       AND i.seller_id = auth.uid()
     )
@@ -282,7 +282,7 @@ CREATE POLICY inventory_analytics_policy ON public.inventory_analytics
 -- PRICE OPTIMIZATIONS table
 CREATE TABLE IF NOT EXISTS public.price_optimizations (
   id uuid primary key default gen_random_uuid(),
-  product_id uuid references public.items(id) on delete cascade,
+  product_id uuid references public.products(id) on delete cascade,
   current_price numeric(10,2) not null,
   suggested_price numeric(10,2) not null,
   confidence_score numeric(3,2) check (confidence_score >= 0 and confidence_score <= 1),
@@ -299,7 +299,7 @@ ALTER TABLE public.price_optimizations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY price_optimizations_policy ON public.price_optimizations
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.items i 
+      SELECT 1 FROM public.products i 
       WHERE i.id = price_optimizations.product_id 
       AND i.seller_id = auth.uid()
     )
@@ -307,10 +307,9 @@ CREATE POLICY price_optimizations_policy ON public.price_optimizations
 
 -- Add missing columns to existing tables
 
--- Add missing columns to items table
-ALTER TABLE public.items 
+-- Add missing columns to products table
+ALTER TABLE public.products 
 ADD COLUMN IF NOT EXISTS brand text,
-ADD COLUMN IF NOT EXISTS tags text[],
 ADD COLUMN IF NOT EXISTS condition text,
 ADD COLUMN IF NOT EXISTS style text,
 ADD COLUMN IF NOT EXISTS size text,
