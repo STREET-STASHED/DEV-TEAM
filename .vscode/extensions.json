@@ -1,10 +1,63 @@
 {
   "recommendations": [
-    "bradlc.vscode-tailwindcss",
+    // Essential Extensions
     "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "bradlc.vscode-tailwindcss",
     "ms-vscode.vscode-typescript-next",
+    
+    // React & Next.js
+    "ms-vscode.vscode-react-native",
     "formulahendry.auto-rename-tag",
     "christian-kohler.path-intellisense",
-    "ms-vscode.vscode-json"
+    "ms-vscode.vscode-json",
+    
+    // Performance & Bundle Analysis
+    "wix.vscode-import-cost",
+    "ms-vscode.vscode-js-profile-flame",
+    "ms-vscode.vscode-js-profile-table",
+    
+    // Git & Collaboration
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+    "github.vscode-pull-request-github",
+    
+    // Code Quality
+    "streetsidesoftware.code-spell-checker",
+    "ms-vscode.vscode-typescript-tslint-plugin",
+    "ms-vscode.vscode-json",
+    
+    // Tailwind CSS
+    "bradlc.vscode-tailwindcss",
+    "austenc.tailwind-docs",
+    
+    // Icons & Themes
+    "pkief.material-icon-theme",
+    "zhuangtongfa.material-theme",
+    
+    // Productivity
+    "ms-vscode.vscode-json",
+    "ms-vscode.vscode-typescript-next",
+    "ms-vscode.vscode-js-debug",
+    "ms-vscode.vscode-js-debug-companion",
+    
+    // Testing
+    "orta.vscode-jest",
+    "ms-vscode.vscode-js-debug",
+    
+    // Database
+    "ms-mssql.mssql",
+    "cweijan.vscode-postgresql-client2",
+    
+    // Docker & Deployment
+    "ms-azuretools.vscode-docker",
+    "ms-vscode.vscode-kubernetes-tools",
+    
+    // Accessibility
+    "deque-systems.vscode-axe-linter",
+    
+    // Performance Monitoring
+    "ms-vscode.vscode-js-profile-flame",
+    "ms-vscode.vscode-js-profile-table"
   ]
 }

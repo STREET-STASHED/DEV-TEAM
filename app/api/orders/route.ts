@@ -1,209 +1,198 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
-import { z } from 'zod';
-import { rateLimit } from '@/lib/rateLimitApp';
+import { NextRequest, NextResponse } from 'next/server'
+import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
 
-const orderSchema = z.object({
-  items: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    price: z.number(),
-    quantity: z.number(),
-    image_url: z.string(),
-    category: z.string(),
-  })),
-  pickupAddress: z.object({
-    street: z.string(),
-    city: z.string(),
-    state: z.string(),
-    zipCode: z.string(),
-  }),
-  deliveryAddress: z.object({
-    street: z.string(),
-    city: z.string(),
-    state: z.string(),
-    zipCode: z.string(),
-  }),
-  distanceMiles: z.number(),
-  totalPrice: z.number(),
-});
 
-export async function POST(request: NextRequest) {
-  try {
-    // Rate limiting
-    const rateLimitResult = await rateLimit(request);
-    if (!rateLimitResult.success) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      );
-    }
-
-    const supabase = await createRouteHandlerClient();
-    
-    // Check authentication - allow guest users
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    const isGuest = !user || authError;
-    
-    // For guest users, we'll create orders without a buyer_id
-    if (isGuest) {
-      console.log('Processing guest checkout');
-    }
-
-    // Parse and validate request
-    const body = await request.json();
-    const validationResult = orderSchema.safeParse(body);
-    
-    if (!validationResult.success) {
-      return NextResponse.json({ 
-        error: 'Invalid request data', 
-        details: validationResult.error.errors 
-      }, { status: 400 });
-    }
-
-    const { items, pickupAddress: _pickupAddress, deliveryAddress: _deliveryAddress, distanceMiles, totalPrice } = validationResult.data;
-
-    // Create order data with only the basic columns that should exist in the current schema
-    const orderData: any = {
-      status: 'pending_payment',
-      total_amount: totalPrice,
-      created_at: new Date().toISOString(),
-    };
-
-    // Only add buyer_id if user is authenticated and the column exists
-    if (!isGuest) {
-      orderData.buyer_id = user.id;
-    }
-
-    // Try to create order in database, but fallback to mock order if database fails
-    let order;
-    let dbError = null;
-    
-    try {
-      console.log('Attempting to create order in database...');
-      console.log('Order data:', orderData);
-      
-      const { data: dbOrder, error: orderError } = await supabase
-        .from('orders')
-        .insert(orderData)
-        .select()
-        .single();
-
-      if (orderError) {
-        console.error('Database order creation failed:', orderError);
-        dbError = orderError;
-        throw orderError;
-      } else {
-        console.log('Order created successfully in database:', dbOrder.id);
-        order = dbOrder;
-      }
-    } catch (dbError) {
-      console.error('Database error, using mock order:', dbError);
-      
-      // Create a mock order for guest users when database is unavailable
-      order = {
-        id: `mock-${Date.now()}`,
-        status: 'pending_payment',
-        total_amount: totalPrice,
-        distance_miles: distanceMiles,
-        created_at: new Date().toISOString(),
-      };
-      
-      // Log the specific error for debugging
-      if (dbError && typeof dbError === 'object' && 'message' in dbError) {
-        console.error('Database error details:', {
-          message: dbError.message,
-          code: (dbError as any).code,
-          details: (dbError as any).details,
-          hint: (dbError as any).hint
-        });
-      }
-    }
-
-    // Try to create order items in database, but continue if it fails
-    if (order.id && !order.id.startsWith('mock-')) {
-      try {
-        const orderItems = items.map(item => ({
-          order_id: order.id,
-          item_id: item.id,
-          quantity: item.quantity,
-          price: item.price,
-        }));
-
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItems);
-
-        if (itemsError) {
-          console.error('Failed to create order items:', itemsError);
-          // Order was created but items failed - this is recoverable
-        } else {
-          console.log('Order items created successfully');
-        }
-      } catch (itemsDbError) {
-        console.error('Database error creating order items:', itemsDbError);
-        // Continue with order even if items fail
-      }
-    }
-
-    return NextResponse.json({ 
-      orderId: order.id,
-      success: true,
-      message: order.id.startsWith('mock-') ? 'Order created (mock mode - database unavailable)' : 'Order created successfully',
-      nextStep: 'payment',
-      order: {
-        id: order.id,
-        status: order.status,
-        totalAmount: order.total_amount,
-        distanceMiles: order.distance_miles || distanceMiles,
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
       },
-      isMockOrder: order.id.startsWith('mock-'),
-      dbError: dbError ? {
-        message: dbError.message,
-        code: (dbError as any).code,
-        hint: (dbError as any).hint
-      } : null
-    });
+    }
+  )
+}
+
+export async function GET(_request: NextRequest) {
+  try {
+    const supabase = await createRouteHandlerClient()
+    
+    // Get the current session
+    const { data: { session }, error: sessionError } = await (await (await (await (await (await (await (await ))))))).auth.getSession()
+    
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Get the user's order history
+    const { data: orders, error: ordersError } = await supabase
+      supabase.from('order_history')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+
+    if (ordersError) {
+      return NextResponse.json(
+        { error: 'Failed to fetch orders', details: ordersError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      orders: orders || []
+    })
 
   } catch (error) {
-    console.error('Order creation error:', error);
-    return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    console.error('Get orders error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
 
-export async function GET() {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = await createRouteHandlerClient();
+    const supabase = await createRouteHandlerClient()
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
-    // Get user's orders
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (
-          item_id,
-          quantity,
-          price
-        )
-      `)
-      .eq('buyer_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (ordersError) {
-      console.error('Failed to fetch orders:', ordersError);
-      return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    const orderData = await request.json()
+    
+    // Validate required fields
+    if (!orderData.items || !orderData.total_amount) {
+      return NextResponse.json(
+        { error: 'Items and total amount are required' },
+        { status: 400 }
+      )
     }
 
-    return NextResponse.json({ orders: orders || [] });
+    // Generate order number
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+
+    // Create the order
+    const { data, error } = await supabase
+      supabase.from('order_history')
+      .insert({
+        user_id: session.user.id,
+        order_number: orderNumber,
+        status: 'pending',
+        total_amount: orderData.total_amount,
+        items: orderData.items,
+        shipping_address: orderData.shipping_address || null,
+        billing_address: orderData.billing_address || null,
+        payment_method: orderData.payment_method || null
+      })
+      .select()
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to create order', details: error.message },
+        { status: 500 }
+      )
+    }
+
+    // Clear the shopping cart after successful order
+    if (orderData.clear_cart) {
+      await supabase
+        supabase.from('shopping_cart')
+        .delete()
+        .eq('user_id', session.user.id)
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Order created successfully',
+      order: data[0]
+    })
 
   } catch (error) {
-    console.error('Orders fetch error:', error);
-    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
+    console.error('Create order error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const supabase = await createRouteHandlerClient()
+    
+    // Get the current session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    
+    if (sessionError || !session) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { orderId, status, ...updateData } = await request.json()
+    
+    if (!orderId) {
+      return NextResponse.json(
+        { error: 'Order ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Update the order
+    const { data, error } = await supabase
+      supabase.from('order_history')
+      .update({
+        status: status || 'pending',
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', orderId)
+      .eq('user_id', session.user.id)
+      .select()
+
+    if (error) {
+      return NextResponse.json(
+        { error: 'Failed to update order', details: error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Order updated successfully',
+      order: data[0]
+    })
+
+  } catch (error) {
+    console.error('Update order error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

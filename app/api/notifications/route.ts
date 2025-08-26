@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler';
+
+
+function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookies()).getAll()
+        },
+        async setAll(cookiesToSet) {
+          try {
+            const cookieStore = await cookies();
+            await Promise.all(
+              cookiesToSet.map(({ name, value, options: _options }) =>
+                cookieStore.set(name, value, _options)
+              )
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +46,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
 
     let query = supabase
-      .from('notifications')
+      supabase.from('notifications')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -59,7 +89,7 @@ export async function PUT(request: NextRequest) {
 
     // Verify notification belongs to user
     const { data: notification, error: fetchError } = await supabase
-      .from('notifications')
+      supabase.from('notifications')
       .select('id')
       .eq('id', notification_id)
       .eq('user_id', user.id)
@@ -76,7 +106,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { data: updatedNotification, error: updateError } = await supabase
-      .from('notifications')
+      supabase.from('notifications')
       .update(updateData)
       .eq('id', notification_id)
       .select()
@@ -113,7 +143,7 @@ export async function DELETE(request: NextRequest) {
 
     // Verify notification belongs to user
     const { data: notification, error: fetchError } = await supabase
-      .from('notifications')
+      supabase.from('notifications')
       .select('id')
       .eq('id', notification_id)
       .eq('user_id', user.id)
@@ -125,7 +155,7 @@ export async function DELETE(request: NextRequest) {
 
     // Delete notification
     const { error: deleteError } = await supabase
-      .from('notifications')
+      supabase.from('notifications')
       .delete()
       .eq('id', notification_id);
 

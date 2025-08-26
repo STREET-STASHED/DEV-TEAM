@@ -650,7 +650,7 @@ export default function BlockchainRewardsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-400">
-                    {rewards.filter(r => r.status === 'claimed').length}
+                    {rewards.filter((r: any) => r.status === 'claimed').length}
                   </div>
                   <div className="text-sm text-ink-400">Rewards Claimed</div>
                 </div>
@@ -824,7 +824,7 @@ export default function BlockchainRewardsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-purple-400">
-                    {rewards.filter(r => r.status === 'claimed').reduce((sum, r) => sum + r.tokens, 0)}
+                    {rewards.filter((r: any) => r.status === 'claimed').reduce((sum, r) => sum + r.tokens, 0)}
                   </div>
                   <div className="text-sm text-ink-400">Rewards Earned</div>
                 </div>

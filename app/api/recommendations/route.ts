@@ -1,6 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
 import { getRecommendations, trackBehavior, UserBehavior } from '@/lib/ai/recommendations'
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(_request:NextRequest) {
   try {
@@ -26,7 +52,7 @@ export async function GET(_request:NextRequest) {
     if (recommendations.length > 0) {
       const productIds = recommendations.map(rec => rec.productId)
       const { data: products, error: productsError } = await supabase
-        .from('items')
+        supabase.from('items')
         .select(`
           id,
           name,
@@ -47,7 +73,7 @@ export async function GET(_request:NextRequest) {
 
       // Combine recommendations with product data
       const enrichedRecommendations = recommendations.map(rec => {
-        const product = products?.find(p => p.id === rec.productId)
+        const product = products?.find((p: any) => p.id === rec.productId)
         return {
           ...rec,
           product: product ? {

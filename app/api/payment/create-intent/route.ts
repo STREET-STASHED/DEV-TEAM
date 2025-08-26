@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers';
 import { rateLimit } from '@/lib/rateLimitApp';
 import Stripe from 'stripe';
 
@@ -9,6 +10,31 @@ function getStripe() {
     throw new Error('STRIPE_SECRET_KEY is not configured');
   }
   return new Stripe(process.env.STRIPE_SECRET_KEY);
+}
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
 }
 
 export async function POST(request: NextRequest) {

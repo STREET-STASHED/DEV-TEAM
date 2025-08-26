@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+
+
+function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookies()).getAll()
+        },
+        async setAll(cookiesToSet) {
+          try {
+            const cookieStore = await cookies();
+            await Promise.all(
+              cookiesToSet.map(({ name, value, options: _options }) =>
+                cookieStore.set(name, value, _options)
+              )
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(request:NextRequest) {
   try {
@@ -11,7 +41,7 @@ export async function GET(request:NextRequest) {
     const supabase = await createRouteHandlerClient()
 
     let query = supabase
-      .from('trend_analyses')
+      supabase.from('trend_analyses')
       .select('*')
       .gte('expires_at', new Date().toISOString())
 
@@ -63,10 +93,10 @@ export async function GET(request:NextRequest) {
       }
 
       // Enhance trends with real-time data
-      const enhancedTrends = await Promise.all(trends.map(async (trend) => {
+      const enhancedTrends = await Promise.all(trends.map(async (trend: any) => {
         // Get sales growth for the category
         const { data: salesData, error: salesError } = await supabase
-          .from('sales_analytics')
+          supabase.from('sales_analytics')
           .select('quantity, created_at')
           .eq('item_id', 'any') // This would be filtered by category in real implementation
           .gte('created_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
@@ -80,14 +110,14 @@ export async function GET(request:NextRequest) {
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
         const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
 
-        const recentSales = (salesData || []).filter(sale => 
+        const recentSales = (salesData || []).filter((sale: any) => 
           new Date(sale.created_at) >= thirtyDaysAgo
-        ).reduce((sum, sale) => sum + sale.quantity, 0)
+        ).reduce((sum: any, sale: any) => sum + sale.quantity, 0)
 
-        const previousSales = (salesData || []).filter(sale => 
+        const previousSales = (salesData || []).filter((sale: any) => 
           new Date(sale.created_at) >= sixtyDaysAgo && 
           new Date(sale.created_at) < thirtyDaysAgo
-        ).reduce((sum, sale) => sum + sale.quantity, 0)
+        ).reduce((sum: any, sale: any) => sum + sale.quantity, 0)
 
         const actualGrowth = previousSales > 0 ? (recentSales - previousSales) / previousSales : 0
 
@@ -150,7 +180,7 @@ export async function POST(request:NextRequest) {
 
     // Store market intelligence data
     const { error: upsertError } = await supabase
-      .from('market_intelligence')
+      supabase.from('market_intelligence')
       .upsert({
         category,
         processed_data: analysis,
@@ -162,7 +192,7 @@ export async function POST(request:NextRequest) {
 
     // Update or create trend analysis
     const { error: trendError } = await supabase
-      .from('trend_analyses')
+      supabase.from('trend_analyses')
       .upsert({
         category,
         subcategory: analysis.subcategory,

@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET() {
   try {
@@ -13,7 +39,7 @@ export async function GET() {
 
     // Get user's style profile
     const { data: profile, error } = await supabase
-      .from('user_style_profiles')
+      supabase.from('user_style_profiles')
       .select('*')
       .eq('user_id', user.id)
       .single()
@@ -25,7 +51,7 @@ export async function GET() {
     // If no profile exists, create a default one
     if (!profile) {
       const { data: newProfile, error: createError } = await supabase
-        .from('user_style_profiles')
+        supabase.from('user_style_profiles')
         .insert({
           user_id: user.id,
           style_preferences: {
@@ -136,7 +162,7 @@ export async function PUT(_request: NextRequest) {
 
     // Update user profile
     const { data: updatedProfile, error } = await supabase
-      .from('user_style_profiles')
+      supabase.from('user_style_profiles')
       .upsert({
         user_id: user.id,
         style_preferences: stylePreferences,
@@ -171,7 +197,7 @@ export async function POST(_request: NextRequest) {
 
     // Track personalization event
     const { data: event, error } = await supabase
-      .from('personalization_events')
+      supabase.from('personalization_events')
       .insert({
         user_id: user.id,
         event_type: eventType,

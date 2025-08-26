@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(request:NextRequest) {
   try {
@@ -12,7 +38,7 @@ export async function GET(request:NextRequest) {
 
     if (type === 'trending') {
       try {
-        const { data, error } = await supabase.rpc('get_trending_posts', { p_limit: limit })
+        const { data, error } = await (await (await (await (await (await (await (await (await )))))))).rpc('get_trending_posts', { p_limit: limit })
         
         if (error) {
           // If RPC function doesn't exist, return mock trending posts
@@ -118,7 +144,7 @@ export async function GET(request:NextRequest) {
     if (type === 'user' && userId) {
       try {
         const { data, error } = await supabase
-          .from('social_posts')
+          supabase.from('social_posts')
           .select(`
             *,
             user_social_profiles!inner(username, display_name, avatar)
@@ -244,7 +270,7 @@ export async function POST(request:NextRequest) {
 
     // Create post
     const { data, error } = await supabase
-      .from('social_posts')
+      supabase.from('social_posts')
       .insert({
         user_id: user.id,
         type,
@@ -261,7 +287,7 @@ export async function POST(request:NextRequest) {
 
     // Award points for creating content
     await supabase
-      .from('social_rewards')
+      supabase.from('social_rewards')
       .insert({
         user_id: user.id,
         type: 'post',

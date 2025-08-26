@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+
+
+function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookies()).getAll()
+        },
+        async setAll(cookiesToSet) {
+          try {
+            const cookieStore = await cookies();
+            await Promise.all(
+              cookiesToSet.map(({ name, value, options: _options }) =>
+                cookieStore.set(name, value, _options)
+              )
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(_request: NextRequest) {
   try {
@@ -27,7 +57,7 @@ export async function GET(_request: NextRequest) {
 
       // Save forecast to database
       const { error: insertError } = await supabase
-        .from('demand_forecasts')
+        supabase.from('demand_forecasts')
         .insert({
           item_id: _itemId,
           forecast_period: forecastDays,
@@ -50,7 +80,7 @@ export async function GET(_request: NextRequest) {
     if (sellerId) {
       // Get forecasts for all seller's items
       const { data: sellerItems, error: itemsError } = await supabase
-        .from('inventory_analytics')
+        supabase.from('inventory_analytics')
         .select('item_id, items(name)')
         .eq('seller_id', sellerId === 'me' ? user.id : sellerId)
 
@@ -98,7 +128,7 @@ export async function POST(_request: NextRequest) {
 
     // Update forecast accuracy
     const { data: forecast, error: fetchError } = await supabase
-      .from('demand_forecasts')
+      supabase.from('demand_forecasts')
       .select('*')
       .eq('id', forecastId)
       .single()
@@ -108,7 +138,7 @@ export async function POST(_request: NextRequest) {
     const accuracy = Math.max(0, 1 - Math.abs(actualDemand - forecast.predicted_demand) / Math.max(forecast.predicted_demand, 1))
 
     const { error: updateError } = await supabase
-      .from('demand_forecasts')
+      supabase.from('demand_forecasts')
       .update({ accuracy_score: accuracy })
       .eq('id', forecastId)
 

@@ -1,7 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
 import { enhancedPersonalizationSystem } from '@/lib/personalization/enhancedUserProfile'
 import { CacheManager, RealTimeManager } from '@/lib/redis/client'
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(_request: NextRequest) {
   try {
@@ -42,7 +68,7 @@ export async function GET(_request: NextRequest) {
     const enhancedRecommendations = await Promise.all(
       recommendations.map(async (rec) => {
         const { data: item } = await supabase
-          .from('items')
+          supabase.from('items')
           .select('name, price, category, images, seller_id, description, tags')
           .eq('id', rec.itemId)
           .single()
@@ -51,7 +77,7 @@ export async function GET(_request: NextRequest) {
         let seller = null
         if (item?.seller_id) {
           const { data: sellerData } = await supabase
-            .from('profiles')
+            supabase.from('profiles')
             .select('username, avatar_url, verified')
             .eq('id', item.seller_id)
             .single()
@@ -179,7 +205,7 @@ export async function POST(_request: NextRequest) {
 
     // Track recommendation interaction
     const { error: eventError } = await supabase
-      .from('personalization_events')
+      supabase.from('personalization_events')
       .insert({
         user_id: user.id,
         event_type: action === 'like' ? 'like' : 'view',
@@ -193,7 +219,7 @@ export async function POST(_request: NextRequest) {
     // Update recommendation score based on feedback
     if (feedback) {
       const { error: updateError } = await supabase
-        .from('personalized_recommendations')
+        supabase.from('personalized_recommendations')
         .update({ 
           score: feedback === 'positive' ? 0.9 : 0.3 
         })

@@ -1,8 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler';
-import { z } from 'zod';
-import { updateDisputeStatus, getDisputeById } from '@/lib/db/disputes';
 import { audit } from '@/lib/audit';
+import { getDisputeById, updateDisputeStatus } from '@/lib/db/disputes';
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler';
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+    return cookieStore.getAll()
+        },
+        setAll(cookiesToSet: any[]) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }: { name: string; value: string; options?: any }) =>
+              cookieStore.set(name, value, _options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -10,7 +38,7 @@ export async function PATCH(
 ) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -33,9 +61,9 @@ export async function PATCH(
     const validationResult = updateDisputeSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json({ 
-        error: 'Invalid request data', 
-        details: validationResult.error.errors 
+      return NextResponse.json({
+        error: 'Invalid request data',
+        details: validationResult.error.errors
       }, { status: 400 });
     }
 
@@ -72,7 +100,7 @@ export async function GET(
 ) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {

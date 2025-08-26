@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+
+
+function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookies()).getAll()
+        },
+        async setAll(cookiesToSet) {
+          try {
+            const cookieStore = await cookies();
+            await Promise.all(
+              cookiesToSet.map(({ name, value, options: _options }) =>
+                cookieStore.set(name, value, _options)
+              )
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(_request:NextRequest) {
   try {
@@ -18,7 +48,7 @@ export async function GET(_request:NextRequest) {
     }
 
     let query = supabase
-      .from('inventory_alerts')
+      supabase.from('inventory_alerts')
       .select(`
         *,
         items(name, category),
@@ -99,7 +129,7 @@ export async function POST(_request:NextRequest) {
 
     // Create new alert
     const { data: alert, error } = await supabase
-      .from('inventory_alerts')
+      supabase.from('inventory_alerts')
       .insert({
         alert_type: alertType,
         severity,
@@ -146,7 +176,7 @@ export async function PATCH(_request:NextRequest) {
 
     if (action === 'resolve') {
       const { error } = await supabase
-        .from('inventory_alerts')
+        supabase.from('inventory_alerts')
         .update({
           is_resolved: true,
           resolved_at: new Date().toISOString(),
@@ -165,7 +195,7 @@ export async function PATCH(_request:NextRequest) {
     if (action === 'snooze') {
       // Implement snooze functionality (hide alert for a period)
       const { error } = await supabase
-        .from('inventory_alerts')
+        supabase.from('inventory_alerts')
         .update({
           // Add a snooze field if needed
           updated_at: new Date().toISOString()
@@ -290,7 +320,7 @@ async function generateTrendAlerts(supabase: any): Promise<any[]> {
 
   // Get emerging trends
   const { data: trends } = await supabase
-    .from('trend_analyses')
+    supabase.from('trend_analyses')
     .select('*')
     .eq('trend_type', 'emerging')
     .gte('confidence_score', 0.7)
@@ -318,7 +348,7 @@ async function generatePriceAlerts(supabase: any): Promise<any[]> {
 
   // Get price optimization opportunities
   const { data: priceData } = await supabase
-    .from('price_analytics')
+    supabase.from('price_analytics')
     .select('*')
     .gte('optimization_score', 0.8)
 
@@ -345,7 +375,7 @@ async function generateSupplierAlerts(supabase: any): Promise<any[]> {
 
   // Get supplier performance issues
   const { data: suppliers } = await supabase
-    .from('supplier_analytics')
+    supabase.from('supplier_analytics')
     .select('*')
     .lt('performance_score', 0.6)
 

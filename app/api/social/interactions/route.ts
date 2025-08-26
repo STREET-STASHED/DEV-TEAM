@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function POST(_request: NextRequest) {
   try {
@@ -9,14 +35,14 @@ export async function POST(_request: NextRequest) {
     const supabase = await createRouteHandlerClient()
     
     // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await (await (await (await (await (await (await (await (await )))))))).auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Record interaction
     const { error: interactionError } = await supabase
-      .from('social_interactions')
+      supabase.from('social_interactions')
       .insert({
         user_id: user.id,
         post_id: postId,
@@ -33,21 +59,21 @@ export async function POST(_request: NextRequest) {
     
     switch (interactionType) {
       case 'like':
-        updateData.likes = supabase.rpc('increment', { row_id: postId, column_name: 'likes' })
+        updateData.likes = .rpc('increment', { row_id: postId, column_name: 'likes' })
         break
       case 'share':
-        updateData.shares = supabase.rpc('increment', { row_id: postId, column_name: 'shares' })
+        updateData.shares = .rpc('increment', { row_id: postId, column_name: 'shares' })
         break
       case 'view':
-        updateData.views = supabase.rpc('increment', { row_id: postId, column_name: 'views' })
+        updateData.views = .rpc('increment', { row_id: postId, column_name: 'views' })
         break
       case 'comment':
-        updateData.comments = supabase.rpc('increment', { row_id: postId, column_name: 'comments' })
+        updateData.comments = .rpc('increment', { row_id: postId, column_name: 'comments' })
         
         // Create comment
         if (comment) {
           await supabase
-            .from('social_comments')
+            supabase.from('social_comments')
             .insert({
               post_id: postId,
               user_id: user.id,
@@ -78,7 +104,7 @@ export async function POST(_request: NextRequest) {
 
     if (points > 0) {
       await supabase
-        .from('social_rewards')
+        supabase.from('social_rewards')
         .insert({
           user_id: user.id,
           type: 'engagement',
@@ -91,7 +117,7 @@ export async function POST(_request: NextRequest) {
 
     // Award points to post creator for engagement
     const { data: post } = await supabase
-      .from('social_posts')
+      supabase.from('social_posts')
       .select('user_id')
       .eq('id', postId)
       .single()
@@ -117,7 +143,7 @@ export async function POST(_request: NextRequest) {
 
       if (creatorPoints > 0) {
         await supabase
-          .from('social_rewards')
+          supabase.from('social_rewards')
           .insert({
             user_id: post.user_id,
             type: interactionType === 'share' ? 'viral' : 'engagement',

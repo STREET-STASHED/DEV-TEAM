@@ -66,7 +66,7 @@ export default function AIStylistPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
 
-  // Load available products for recommendations
+    // Load available products for recommendations
   const loadAvailableProducts = useCallback(async () => {
     setIsLoadingProducts(true)
     try {
@@ -85,13 +85,13 @@ export default function AIStylistPage() {
           store: item.store?.name || 'Unknown Store'
         })))
       } else {
-        // Fallback to mock products if API fails
+        // Use comprehensive mock products from our mock data
         setAvailableProducts([
           {
             id: 'prod-1',
             name: 'Urban Street Hoodie',
             price: 89.99,
-            image: '/mock/default-product.jpg',
+            image: '/mock/hoodie-1.jpg',
             category: 'Clothing',
             colors: ['Black', 'Gray'],
             sizes: ['S', 'M', 'L'],
@@ -102,7 +102,7 @@ export default function AIStylistPage() {
             id: 'prod-2',
             name: 'Vintage Denim Jacket',
             price: 145,
-            image: '/mock/default-product.jpg',
+            image: '/mock/denim-jacket-1.jpg',
             category: 'Clothing',
             colors: ['Blue', 'Light Blue'],
             sizes: ['M', 'L', 'XL'],
@@ -111,26 +111,103 @@ export default function AIStylistPage() {
           },
           {
             id: 'prod-3',
-            name: 'Street Style Sneakers',
-            price: 120,
-            image: '/mock/default-product.jpg',
+            name: 'Performance Leggings',
+            price: 65.99,
+            image: '/mock/leggings-1.jpg',
+            category: 'Clothing',
+            colors: ['Black', 'Navy'],
+            sizes: ['XS', 'S', 'M', 'L'],
+            rating: 4.9,
+            store: 'Athletic Edge'
+          },
+          {
+            id: 'prod-4',
+            name: 'Limited Edition Sneakers',
+            price: 299.99,
+            image: '/mock/sneakers-1.jpg',
             category: 'Footwear',
-            colors: ['White', 'Black'],
+            colors: ['White', 'Red'],
+            sizes: ['7', '8', '9', '10', '11'],
+            rating: 4.9,
+            store: 'Sneaker Haven'
+          },
+          {
+            id: 'prod-5',
+            name: 'Classic Boots',
+            price: 189.99,
+            image: '/mock/boots-1.jpg',
+            category: 'Footwear',
+            colors: ['Brown', 'Black'],
             sizes: ['7', '8', '9', '10'],
             rating: 4.6,
-            store: 'Sneaker Haven'
+            store: 'Urban Threads Collective'
+          },
+          {
+            id: 'prod-6',
+            name: 'Diamond Pendant Necklace',
+            price: 899.99,
+            image: '/mock/necklace-1.jpg',
+            category: 'Jewelry',
+            colors: ['Gold', 'Silver'],
+            sizes: ['16"', '18"', '20"'],
+            rating: 4.8,
+            store: 'Luxe Jewelry Co.'
+          },
+          {
+            id: 'prod-7',
+            name: 'Sterling Silver Ring',
+            price: 145,
+            image: '/mock/ring-1.jpg',
+            category: 'Jewelry',
+            colors: ['Silver'],
+            sizes: ['6', '7', '8', '9'],
+            rating: 4.7,
+            store: 'Luxe Jewelry Co.'
+          },
+          {
+            id: 'prod-8',
+            name: 'Premium Leather Belt',
+            price: 89.99,
+            image: '/mock/hoodie-2.jpg',
+            category: 'Accessories',
+            colors: ['Brown', 'Black'],
+            sizes: ['S', 'M', 'L'],
+            rating: 4.8,
+            store: 'Urban Threads Collective'
+          },
+          {
+            id: 'prod-9',
+            name: 'Designer Crossbody Bag',
+            price: 165,
+            image: '/mock/hoodie-3.jpg',
+            category: 'Accessories',
+            colors: ['Black', 'Brown'],
+            sizes: ['One Size'],
+            rating: 4.6,
+            store: 'Vintage Vault'
+          },
+          {
+            id: 'prod-10',
+            name: 'Luxury Automatic Watch',
+            price: 1299.99,
+            image: '/mock/denim-jacket-2.jpg',
+            category: 'Watches',
+            colors: ['Silver', 'Gold'],
+            sizes: ['One Size'],
+            rating: 4.9,
+            store: 'Luxe Jewelry Co.'
           }
         ])
       }
     } catch (error) {
       console.error('Error loading products:', error)
-      // Fallback to mock products
+      // Use the same comprehensive mock products as fallback
       setAvailableProducts([
         {
           id: 'prod-1',
           name: 'Urban Street Hoodie',
           price: 89.99,
-          image: '/mock/default-product.jpg',
+          image: '/mock/hoodie-1.jpg',
           category: 'Clothing',
           colors: ['Black', 'Gray'],
           sizes: ['S', 'M', 'L'],
@@ -141,7 +218,7 @@ export default function AIStylistPage() {
           id: 'prod-2',
           name: 'Vintage Denim Jacket',
           price: 145,
-          image: '/mock/default-product.jpg',
+          image: '/mock/denim-jacket-1.jpg',
           category: 'Clothing',
           colors: ['Blue', 'Light Blue'],
           sizes: ['M', 'L', 'XL'],
@@ -150,14 +227,91 @@ export default function AIStylistPage() {
         },
         {
           id: 'prod-3',
-          name: 'Street Style Sneakers',
-          price: 120,
-          image: '/mock/default-product.jpg',
+          name: 'Performance Leggings',
+          price: 65.99,
+          image: '/mock/leggings-1.jpg',
+          category: 'Clothing',
+          colors: ['Black', 'Navy'],
+          sizes: ['XS', 'S', 'M', 'L'],
+          rating: 4.9,
+          store: 'Athletic Edge'
+        },
+        {
+          id: 'prod-4',
+          name: 'Limited Edition Sneakers',
+          price: 299.99,
+          image: '/mock/sneakers-1.jpg',
           category: 'Footwear',
-          colors: ['White', 'Black'],
+          colors: ['White', 'Red'],
+          sizes: ['7', '8', '9', '10', '11'],
+          rating: 4.9,
+          store: 'Sneaker Haven'
+        },
+        {
+          id: 'prod-5',
+          name: 'Classic Boots',
+          price: 189.99,
+          image: '/mock/boots-1.jpg',
+          category: 'Footwear',
+          colors: ['Brown', 'Black'],
           sizes: ['7', '8', '9', '10'],
           rating: 4.6,
-          store: 'Sneaker Haven'
+          store: 'Urban Threads Collective'
+        },
+        {
+          id: 'prod-6',
+          name: 'Diamond Pendant Necklace',
+          price: 899.99,
+          image: '/mock/necklace-1.jpg',
+          category: 'Jewelry',
+          colors: ['Gold', 'Silver'],
+          sizes: ['16"', '18"', '20"'],
+          rating: 4.8,
+          store: 'Luxe Jewelry Co.'
+        },
+        {
+          id: 'prod-7',
+          name: 'Sterling Silver Ring',
+          price: 145,
+          image: '/mock/ring-1.jpg',
+          category: 'Jewelry',
+          colors: ['Silver'],
+          sizes: ['6', '7', '8', '9'],
+          rating: 4.7,
+          store: 'Luxe Jewelry Co.'
+        },
+        {
+          id: 'prod-8',
+          name: 'Premium Leather Belt',
+          price: 89.99,
+          image: '/mock/hoodie-2.jpg',
+          category: 'Accessories',
+          colors: ['Brown', 'Black'],
+          sizes: ['S', 'M', 'L'],
+          rating: 4.8,
+          store: 'Urban Threads Collective'
+        },
+        {
+          id: 'prod-9',
+          name: 'Designer Crossbody Bag',
+          price: 165,
+          image: '/mock/hoodie-3.jpg',
+          category: 'Accessories',
+          colors: ['Black', 'Brown'],
+          sizes: ['One Size'],
+          rating: 4.6,
+          store: 'Vintage Vault'
+        },
+        {
+          id: 'prod-10',
+          name: 'Luxury Automatic Watch',
+          price: 1299.99,
+          image: '/mock/denim-jacket-2.jpg',
+          category: 'Watches',
+          colors: ['Silver', 'Gold'],
+          sizes: ['One Size'],
+          rating: 4.9,
+          store: 'Luxe Jewelry Co.'
         }
       ])
     } finally {
@@ -199,30 +353,97 @@ export default function AIStylistPage() {
     const occasions = ['Casual', 'Business', 'Evening', 'Sporty', 'Street Style']
     const styles = ['Modern', 'Vintage', 'Minimalist', 'Bold', 'Classic']
 
-    for (let i = 0; i < 3; i++) {
+    // Create 5 different outfit combinations
+    for (let i = 0; i < 5; i++) {
       const occasion = profile.occasion || occasions[i % occasions.length]
       const style = profile.stylePreferences.length > 0 
         ? profile.stylePreferences[i % profile.stylePreferences.length] 
         : styles[i % styles.length]
       
-      // Select 2-3 products for each outfit
-      const numItems = Math.floor(Math.random() * 2) + 2
-      const outfitItems = availableProducts
-        .filter(p => p.category === 'Clothing' || p.category === 'Footwear')
-        .slice(i * 2, i * 2 + numItems)
-        .map(item => ({ ...item, quantity: 1 }))
+      let outfitItems: Product[] = []
+      
+      // Create different outfit types based on occasion
+      switch (occasion) {
+        case 'Casual':
+          // Casual outfit: Top + Bottom + Shoes
+          const casualTop = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Hoodie'))
+          const casualBottom = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Leggings'))
+          const casualShoes = availableProducts.find((p: any) => p.category === 'Footwear' && p.name.includes('Sneakers'))
+          if (casualTop) outfitItems.push(casualTop)
+          if (casualBottom) outfitItems.push(casualBottom)
+          if (casualShoes) outfitItems.push(casualShoes)
+          break
+          
+        case 'Business':
+          // Business outfit: Jacket + Accessories
+          const businessJacket = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Jacket'))
+          const businessWatch = availableProducts.find((p: any) => p.category === 'Watches')
+          const businessBelt = availableProducts.find((p: any) => p.category === 'Accessories' && p.name.includes('Belt'))
+          if (businessJacket) outfitItems.push(businessJacket)
+          if (businessWatch) outfitItems.push(businessWatch)
+          if (businessBelt) outfitItems.push(businessBelt)
+          break
+          
+        case 'Evening':
+          // Evening outfit: Dressy items + Jewelry
+          const eveningJacket = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Jacket'))
+          const eveningNecklace = availableProducts.find((p: any) => p.category === 'Jewelry' && p.name.includes('Necklace'))
+          const eveningRing = availableProducts.find((p: any) => p.category === 'Jewelry' && p.name.includes('Ring'))
+          if (eveningJacket) outfitItems.push(eveningJacket)
+          if (eveningNecklace) outfitItems.push(eveningNecklace)
+          if (eveningRing) outfitItems.push(eveningRing)
+          break
+          
+        case 'Sporty':
+          // Sporty outfit: Athletic wear + Sneakers
+          const sportyLeggings = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Leggings'))
+          const sportySneakers = availableProducts.find((p: any) => p.category === 'Footwear' && p.name.includes('Sneakers'))
+          const sportyHoodie = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Hoodie'))
+          if (sportyLeggings) outfitItems.push(sportyLeggings)
+          if (sportySneakers) outfitItems.push(sportySneakers)
+          if (sportyHoodie) outfitItems.push(sportyHoodie)
+          break
+          
+        case 'Street Style':
+          // Street style outfit: Hoodie + Jacket + Sneakers
+          const streetHoodie = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Hoodie'))
+          const streetJacket = availableProducts.find((p: any) => p.category === 'Clothing' && p.name.includes('Jacket'))
+          const streetSneakers = availableProducts.find((p: any) => p.category === 'Footwear' && p.name.includes('Sneakers'))
+          if (streetHoodie) outfitItems.push(streetHoodie)
+          if (streetJacket) outfitItems.push(streetJacket)
+          if (streetSneakers) outfitItems.push(streetSneakers)
+          break
+          
+        default:
+          // Default: mix of clothing and accessories
+          const defaultItems = availableProducts
+            .filter(p => ['Clothing', 'Footwear', 'Accessories'].includes(p.category))
+            .slice(i * 2, i * 2 + 3)
+          outfitItems = defaultItems
+      }
+
+      // If we don't have enough items, add some random ones
+      if (outfitItems.length < 2) {
+        const remainingProducts = availableProducts.filter(p => !outfitItems.find(item => item.id === p.id))
+        const additionalItems = remainingProducts.slice(0, 3 - outfitItems.length)
+        outfitItems.push(...additionalItems)
+      }
 
       if (outfitItems.length > 0) {
         const totalPrice = outfitItems.reduce((sum, item) => sum + item.price, 0)
         
+        // Create descriptive outfit names
+        const outfitName = `${occasion} ${style} Look`
+        const confidence = 0.8 + (Math.random() * 0.15)
+        
         outfits.push({
           id: `outfit-${i + 1}`,
-          name: `${occasion} ${style} Outfit`,
-          items: outfitItems,
+          name: outfitName,
+          items: outfitItems.map(item => ({ ...item, quantity: 1 })),
           totalPrice,
           occasion,
           style,
-          confidence: 0.85 + (Math.random() * 0.1)
+          confidence
         })
       }
     }

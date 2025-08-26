@@ -4,7 +4,7 @@ import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler';
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      supabase.from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
@@ -34,11 +34,11 @@ export async function GET(request: NextRequest) {
         { count: activeDisputes },
         { count: totalRevenue }
       ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('*', { count: 'exact', head: true }),
-        supabase.from('disputes').select('*', { count: 'exact', head: true }),
-        supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-        supabase.from('orders').select('total', { count: 'exact', head: true })
+        supabasesupabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabasesupabase.from('orders').select('*', { count: 'exact', head: true }),
+        supabasesupabase.from('disputes').select('*', { count: 'exact', head: true }),
+        supabasesupabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabasesupabase.from('orders').select('total', { count: 'exact', head: true })
       ]);
 
       return NextResponse.json({
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     if (metric === 'disputes') {
       // Get dispute metrics
       const { data: disputes, error: disputesError } = await supabase
-        .from('disputes')
+        supabase.from('disputes')
         .select(`
           *,
           orders!inner(id, total, status, created_at),
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     if (metric === 'orders') {
       // Get order metrics
       const { data: orders, error: ordersError } = await supabase
-        .from('orders')
+        supabase.from('orders')
         .select(`
           *,
           profiles!orders_buyer_id_fkey(full_name),
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
     if (metric === 'users') {
       // Get user metrics
       const { data: users, error: usersError } = await supabase
-        .from('profiles')
+        supabase.from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100);
@@ -116,10 +116,10 @@ export async function GET(request: NextRequest) {
       { count: totalDisputes },
       { count: activeDisputes }
     ] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('orders').select('*', { count: 'exact', head: true }),
-      supabase.from('disputes').select('*', { count: 'exact', head: true }),
-      supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open')
+      supabasesupabase.from('profiles').select('*', { count: 'exact', head: true }),
+      supabasesupabase.from('orders').select('*', { count: 'exact', head: true }),
+      supabasesupabase.from('disputes').select('*', { count: 'exact', head: true }),
+      supabasesupabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status', 'open')
     ]);
 
     return NextResponse.json({
@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -149,7 +149,7 @@ export async function PUT(request: NextRequest) {
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      supabase.from('profiles')
       .select('role')
       .eq('id', user.id)
       .single();
@@ -169,8 +169,8 @@ export async function PUT(request: NextRequest) {
       case 'escalate_dispute': {
         // Escalate a dispute for admin review
         const { data: escalatedDispute, error: escalateError } = await supabase
-          .from('disputes')
-          .update({ 
+          supabase.from('disputes')
+          .update({
             status: 'escalated',
             escalated_at: new Date().toISOString()
           })
@@ -189,7 +189,7 @@ export async function PUT(request: NextRequest) {
       case 'delete_listing': {
         // Delete a fraudulent listing
         const { error: deleteError } = await supabase
-          .from('items')
+          supabase.from('items')
           .delete()
           .eq('id', target_id);
 
@@ -204,8 +204,8 @@ export async function PUT(request: NextRequest) {
       case 'reassign_driver': {
         // Reassign order to different driver
         const { data: reassignedOrder, error: reassignError } = await supabase
-          .from('orders')
-          .update({ 
+          supabase.from('orders')
+          .update({
             driver_id: data.driver_id,
             updated_at: new Date().toISOString()
           })

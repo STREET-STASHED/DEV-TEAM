@@ -1,5 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers'
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(request:NextRequest) {
   try {
@@ -219,7 +245,7 @@ export async function POST(request:NextRequest) {
 
     // Track recommendation interaction
     const { error: eventError } = await supabase
-      .from('personalization_events')
+      supabase.from('personalization_events')
       .insert({
         user_id: user.id,
         event_type: action === 'like' ? 'like' : 'view',
@@ -232,7 +258,7 @@ export async function POST(request:NextRequest) {
     // Update recommendation score based on feedback
     if (feedback) {
       const { error: updateError } = await supabase
-        .from('personalized_recommendations')
+        supabase.from('personalized_recommendations')
         .update({ 
           score: feedback === 'positive' ? 0.9 : 0.3 
         })

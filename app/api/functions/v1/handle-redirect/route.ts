@@ -1,6 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
+import { createRouteHandlerClient } from '../../../../../lib/supabaseRouteHandler'
+import { cookies } from 'next/headers';
 import { rateLimit } from '@/lib/rateLimitApp';
+
+
+function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookies()).getAll()
+        },
+        async setAll(cookiesToSet) {
+          try {
+            const cookieStore = await cookies();
+            await Promise.all(
+              cookiesToSet.map(({ name, value, options: _options }) =>
+                cookieStore.set(name, value, _options)
+              )
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function POST(request: NextRequest) {
   try {

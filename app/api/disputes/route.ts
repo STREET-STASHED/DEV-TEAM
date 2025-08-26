@@ -1,9 +1,37 @@
+import { DisputeStatus, createDispute, listDisputesAdmin, listDisputesForBuyer, listDisputesForSeller, updateDisputeStatus } from '@/lib/db/disputes';
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler';
 import { z } from 'zod';
-import { createDispute, updateDisputeStatus, listDisputesForBuyer, listDisputesForSeller, listDisputesAdmin, DisputeStatus } from '@/lib/db/disputes';
+import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler';
 
 import { audit } from '@/lib/audit';
+
+
+async function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          const cookieStore = await cookies()
+    return cookieStore.getAll()
+        },
+        setAll(cookiesToSet: any[]) {
+          try {
+            cookiesToSet.forEach(({ name, value, _options }: { name: string; value: string; options?: any }) =>
+              cookieStore.set(name, value, _options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting: max 10 disputes per day per user
 
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -29,9 +57,9 @@ export async function POST(request: NextRequest) {
     const validationResult = createDisputeSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json({ 
-        error: 'Invalid request data', 
-        details: validationResult.error.errors 
+      return NextResponse.json({
+        error: 'Invalid request data',
+        details: validationResult.error.errors
       }, { status: 400 });
     }
 
@@ -66,7 +94,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -82,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     // Get user role to determine access level
     const { data: profile } = await supabase
-      .from('profiles')
+      supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -127,7 +155,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -148,9 +176,9 @@ export async function PUT(request: NextRequest) {
     const validationResult = updateDisputeSchema.safeParse(body);
 
     if (!validationResult.success) {
-      return NextResponse.json({ 
-        error: 'Invalid request data', 
-        details: validationResult.error.errors 
+      return NextResponse.json({
+        error: 'Invalid request data',
+        details: validationResult.error.errors
       }, { status: 400 });
     }
 

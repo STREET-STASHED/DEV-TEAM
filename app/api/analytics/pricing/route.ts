@@ -1,5 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler'
+import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
+
+
+function createSupabaseClient() {
+  return createRouteHandlerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        async getAll() {
+          return (await cookies()).getAll()
+        },
+        async setAll(cookiesToSet) {
+          try {
+            const cookieStore = await cookies();
+            await Promise.all(
+              cookiesToSet.map(({ name, value, options: _options }) =>
+                cookieStore.set(name, value, _options)
+              )
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+}
 
 export async function GET(_request: NextRequest) {
   try {
@@ -18,7 +48,7 @@ export async function GET(_request: NextRequest) {
     if (itemId) {
       // Get price optimization for specific item
       const { data: item, error: itemError } = await supabase
-        .from('inventory_analytics')
+        supabase.from('inventory_analytics')
         .select('*, items(name)')
         .eq('item_id', itemId)
         .single()
@@ -97,7 +127,7 @@ export async function GET(_request: NextRequest) {
 
       // Save optimization to database
       const { error: insertError } = await supabase
-        .from('price_optimizations')
+        supabase.from('price_optimizations')
         .insert({
           item_id: itemId,
           current_price: optimization.currentPrice,
@@ -118,7 +148,7 @@ export async function GET(_request: NextRequest) {
     if (sellerId) {
       // Get price optimizations for all seller's items
       const { data: optimizations, error } = await supabase
-        .from('price_optimizations')
+        supabase.from('price_optimizations')
         .select(`
           *,
           items(name)
@@ -154,7 +184,7 @@ export async function POST(_request:NextRequest) {
 
     // Update item price
     const { error: updateItemError } = await supabase
-      .from('items')
+      supabase.from('items')
       .update({ price: newPrice })
       .eq('id', itemId)
 
@@ -162,7 +192,7 @@ export async function POST(_request:NextRequest) {
 
     // Update inventory analytics
     const { error: updateInventoryError } = await supabase
-      .from('inventory_analytics')
+      supabase.from('inventory_analytics')
       .update({ selling_price: newPrice })
       .eq('item_id', itemId)
 
@@ -170,7 +200,7 @@ export async function POST(_request:NextRequest) {
 
     // Mark optimization as implemented
     const { error: updateOptimizationError } = await supabase
-      .from('price_optimizations')
+      supabase.from('price_optimizations')
       .update({ 
         implemented: true, 
         implemented_at: new Date().toISOString() 

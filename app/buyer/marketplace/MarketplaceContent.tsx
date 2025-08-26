@@ -1,23 +1,23 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon, 
-  StarIcon,
-  ShoppingCartIcon,
-  HeartIcon,
-  MapPinIcon,
-  FireIcon,
-  SparklesIcon,
-  CameraIcon,
-  TrophyIcon,
-  ShareIcon,
-  ChatBubbleLeftRightIcon
-} from '@heroicons/react/24/outline'
-import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
+import AdvancedSearch from '@/components/search/AdvancedSearch'
 import { useCart } from '@/context/CartContext'
+import { mockCategories, mockProducts, mockStores } from '@/lib/mockData'
+import {
+    CameraIcon,
+    ChatBubbleLeftRightIcon,
+    FireIcon,
+    HeartIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    ShareIcon,
+    ShoppingCartIcon,
+    SparklesIcon,
+    StarIcon,
+    TrophyIcon
+} from '@heroicons/react/24/outline'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 
 export default function MarketplaceContent() {
   const router = useRouter()
@@ -34,14 +34,14 @@ export default function MarketplaceContent() {
   const [filteredProducts, setFilteredProducts] = useState(mockProducts)
   const [isLoading, _setIsLoading] = useState(false)
   const [error, _setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, _setShowFilters] = useState(false)
   const [_showAIStylist, _setShowAIStylist] = useState(false)
   const [_showARTryOn, _setShowARTryOn] = useState(false)
   const [_showSocialChallenges, _setShowSocialChallenges] = useState(false)
 
   const applyFilters = useCallback(() => {
     let filtered = [...products]
-    
+
     // Apply search filter
     if (searchQuery) {
       filtered = filtered.filter(product =>
@@ -50,22 +50,22 @@ export default function MarketplaceContent() {
         product.category.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
-    
+
     // Apply category filter
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(product => product.category === selectedCategory)
     }
-    
+
     // Apply store filter
     if (selectedStore !== 'all') {
       filtered = filtered.filter(product => product.storeId === selectedStore)
     }
-    
+
     // Apply price filter
-    filtered = filtered.filter(product => 
+    filtered = filtered.filter(product =>
       product.price >= priceRange[0] && product.price <= priceRange[1]
     )
-    
+
     // Apply sorting
     switch (sortBy) {
       case 'price-low':
@@ -83,7 +83,7 @@ export default function MarketplaceContent() {
       default: // trending
         filtered.sort((a, b) => (b.isTrending ? 1 : 0) - (a.isTrending ? 1 : 0))
     }
-    
+
     setFilteredProducts(filtered)
   }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
 
@@ -92,7 +92,7 @@ export default function MarketplaceContent() {
     const search = searchParams.get('search')
     const category = searchParams.get('category')
     const store = searchParams.get('store')
-    
+
     if (search) setSearchQuery(search)
     if (category) setSelectedCategory(category)
     if (store) setSelectedStore(store)
@@ -104,12 +104,12 @@ export default function MarketplaceContent() {
     }
   }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy, applyFilters])
 
-  const handleSearch = () => {
+  const _handleSearch = () => {
     const params = new URLSearchParams()
     if (searchQuery.trim()) params.set('search', searchQuery.trim())
     if (selectedCategory !== 'all') params.set('category', selectedCategory)
     if (selectedStore !== 'all') params.set('store', selectedStore)
-    
+
     const queryString = params.toString()
     router.push(`/buyer/marketplace${queryString ? `?${queryString}` : ''}`)
   }
@@ -127,15 +127,15 @@ export default function MarketplaceContent() {
       image_url: product.images && product.images.length > 0 ? product.images[0] : '/mock/default-product.jpg',
       category: product.category
     }
-    
+
     addItem(cartItem)
-    
+
     // Show success message
     const message = document.createElement('div')
     message.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50'
     message.textContent = `${product.name} added to cart!`
     document.body.appendChild(message)
-    
+
     setTimeout(() => {
       document.body.removeChild(message)
     }, 3000)
@@ -275,7 +275,7 @@ export default function MarketplaceContent() {
           </div>
         </div>
       </div>
-      
+
       {/* Live Activity Section */}
       <div className="bg-ink-900 border-b border-ink-700 p-6">
         <div className="max-w-7xl mx-auto">
@@ -326,47 +326,8 @@ export default function MarketplaceContent() {
       {/* Search and Filters */}
       <div className="bg-ink-800 border-b border-ink-700 p-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search Bar */}
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search for products..."
-                className="w-full bg-ink-900 border border-ink-700 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              />
-              <button
-                onClick={handleSearch}
-                className="absolute right-2 top-2 bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-md transition-colors"
-              >
-                <MagnifyingGlassIcon className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Filter Toggle */}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="bg-ink-900 hover:bg-ink-700 px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <FunnelIcon className="w-5 h-5" />
-              <span>Filters</span>
-            </button>
-
-            {/* Sort */}
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="bg-ink-900 border border-ink-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="trending">Trending</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-              <option value="newest">Newest</option>
-            </select>
-          </div>
+          {/* Advanced Search Component */}
+          <AdvancedSearch />
 
           {/* Filters Panel */}
           {showFilters && (
@@ -491,7 +452,7 @@ export default function MarketplaceContent() {
                       e.currentTarget.src = '/mock/default-product.jpg'
                     }}
                   />
-                   
+
                   {/* Badges */}
                   {product.isTrending && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
@@ -504,7 +465,7 @@ export default function MarketplaceContent() {
                       Sale
                     </div>
                   )}
-                   
+
                   {/* Quick Actions */}
                   <div className="absolute bottom-4 right-4 flex space-x-2">
                     <button
@@ -536,7 +497,7 @@ export default function MarketplaceContent() {
                 {/* Product Info */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 
+                    <h3
                       className="font-semibold text-white text-lg line-clamp-2 cursor-pointer hover:text-purple-400 transition-colors"
                       onClick={() => handleProductClick(product.id)}
                     >
@@ -547,15 +508,15 @@ export default function MarketplaceContent() {
                       <span className="text-ink-300 text-sm">{product.rating}</span>
                     </div>
                   </div>
-                   
+
                   <p className="text-ink-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                   
+
                   {/* Store Info */}
                   <div className="flex items-center space-x-2 mb-3 text-sm">
                     <MapPinIcon className="w-4 h-4 text-ink-400" />
                     <span className="text-ink-300">{product.storeName}</span>
                   </div>
-                   
+
                   {/* Price */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
@@ -564,11 +525,11 @@ export default function MarketplaceContent() {
                         <span className="text-ink-400 line-through">${product.originalPrice}</span>
                       )}
                     </div>
-                    
+
                     {/* Stock Status */}
                     <span className={`text-xs px-2 py-1 rounded-full ${
-                      product.inStock 
-                        ? 'bg-green-500/20 text-green-400' 
+                      product.inStock
+                        ? 'bg-green-500/20 text-green-400'
                         : 'bg-red-500/20 text-red-400'
                     }`}>
                       {product.inStock ? 'In Stock' : 'Out of Stock'}
