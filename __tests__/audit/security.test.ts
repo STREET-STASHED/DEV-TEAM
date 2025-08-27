@@ -1,9 +1,9 @@
-import { createRouteHandlerClient } from '@/lib/supabaseRouteHandler';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabaseAdmin';
 import { audit as _audit } from '@/lib/audit';
 
 // Mock Supabase client for testing
-jest.mock('@/lib/supabaseRouteHandler');
+jest.mock('@/app/lib/supabase/server');
 jest.mock('@/lib/supabaseAdmin');
 jest.mock('@/lib/audit');
 

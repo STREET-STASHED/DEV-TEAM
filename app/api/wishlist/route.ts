@@ -1,39 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -42,8 +20,8 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's wishlist with item details
-    const { data: wishlistItems, error: wishlistError } = await supabase
-      supabase.from('wishlist')
+    const { data: wishlistItems, error: wishlistError } = await (supabase as any)
+      .from('wishlist')
       .select(`
         *,
         items (
@@ -83,10 +61,10 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -95,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { itemId } = await request.json()
-    
+
     if (!itemId) {
       return NextResponse.json(
         { error: 'Item ID is required' },
@@ -104,12 +82,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if item already exists in wishlist
-    const { data: existingItem } = await supabase
-      supabase.from('wishlist')
+    const { data: existingItem } = await (supabase as any)
+      .from('wishlist')
       .select('*')
       .eq('user_id', session.user.id)
       .eq('item_id', itemId)
-      .single()
+      .maybeSingle();
 
     if (existingItem) {
       return NextResponse.json(
@@ -119,13 +97,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Add item to wishlist
-    const { data, error } = await supabase
-      supabase.from('wishlist')
+    const { data, error } = await (supabase as any)
+      .from('wishlist')
       .insert({
         user_id: session.user.id,
         item_id: itemId
       })
-      .select()
+      .select('*')
+      .single();
 
     if (error) {
       return NextResponse.json(
@@ -137,7 +116,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Item added to wishlist successfully',
-      item: data[0]
+      item: data
     })
 
   } catch (error) {
@@ -152,10 +131,10 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -165,7 +144,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const itemId = searchParams.get('itemId')
-    
+
     if (!itemId) {
       return NextResponse.json(
         { error: 'Item ID is required' },
@@ -174,8 +153,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove item from wishlist
-    const { error } = await supabase
-      supabase.from('wishlist')
+    const { error } = await (supabase as any)
+      .from('wishlist')
       .delete()
       .eq('user_id', session.user.id)
       .eq('item_id', itemId)

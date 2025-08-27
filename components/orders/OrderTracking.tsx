@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
 import { 
   MapPinIcon, 
   ClockIcon, 
@@ -59,7 +59,7 @@ const STATUS_STEPS = [
 ]
 
 export default function OrderTracking({ orderId }: OrderTrackingProps) {
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+      const supabase = createSupabaseBrowser()
   const [order, setOrder] = useState<Order | null>(null)
   const [statusHistory, setStatusHistory] = useState<OrderStatus[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -70,8 +70,7 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
   const loadOrderData = useCallback(async () => {
     try {
       // Load order details
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
+      const { data: orderData, error: orderError } = await supabase.from('orders')
         .select(`
           *,
           driver:driver_profiles!orders_driver_id_fkey(full_name, phone, rating, last_location)
@@ -87,11 +86,11 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
       if (orderData) {
         const formattedOrder = {
           ...orderData,
-          driver_name: orderData.driver?.full_name,
-          driver_phone: orderData.driver?.phone,
-          driver_rating: orderData.driver?.rating
+          driver_name: (orderData.driver as any)?.full_name,
+          driver_phone: (orderData.driver as any)?.phone,
+          driver_rating: (orderData.driver as any)?.rating
         }
-        setOrder(formattedOrder)
+        setOrder(formattedOrder as any)
         
         // Update current step
         const stepIndex = STATUS_STEPS.findIndex(step => step.key === formattedOrder.status)
@@ -99,18 +98,17 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
         
         // Calculate estimated delivery time
         if (formattedOrder.status === 'picked_up' || formattedOrder.status === 'in_transit') {
-          calculateEstimatedDelivery(formattedOrder)
+          calculateEstimatedDelivery(formattedOrder as any)
         }
         
         // Update driver location if available
-        if (formattedOrder.driver?.last_location) {
-          _setDriverLocation(formattedOrder.driver.last_location)
+        if ((formattedOrder.driver as any)?.last_location) {
+          _setDriverLocation((formattedOrder.driver as any).last_location)
         }
       }
 
       // Load status history
-      const { data: historyData, error: historyError } = await supabase
-        .from('order_status_history')
+      const { data: historyData, error: historyError } = await supabase.from('order_status_history')
         .select('*')
         .eq('order_id', orderId)
         .order('timestamp', { ascending: true })
@@ -118,7 +116,7 @@ export default function OrderTracking({ orderId }: OrderTrackingProps) {
       if (historyError) {
         console.error('Failed to load status history:', historyError)
       } else if (historyData) {
-        setStatusHistory(historyData)
+        setStatusHistory(historyData as any)
       }
     } catch (error) {
       console.error('Failed to load order data:', error)

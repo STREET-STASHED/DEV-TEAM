@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "./supabaseClient";
+import { useEffect, useState } from "react";
+import { createSupabaseBrowser } from "@/app/lib/supabase/browser";
 
 export function useUser() {
   const [user, setUser] = useState<User | null>(null);
@@ -9,6 +9,7 @@ export function useUser() {
 
   useEffect(() => {
     const getUserAndProfile = async () => {
+      const supabase = createSupabaseBrowser();
       const {
         data: { user },
         error: userError,
@@ -20,8 +21,7 @@ export function useUser() {
 
       setUser(user);
 
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
+      const { data: profileData, error: profileError } = await supabase.from("profiles")
         .select("*")
         .eq("id", user.id)
         .maybeSingle();
@@ -37,6 +37,7 @@ export function useUser() {
 
     void getUserAndProfile();
 
+    const supabase = createSupabaseBrowser();
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null);
@@ -53,8 +54,8 @@ export function useUser() {
 }
 
 export async function getVerifiedProfiles() {
-  const { data, error } = await supabase
-    .from("profiles")
+  const supabase = createSupabaseBrowser();
+  const { data, error } = await supabase.from("profiles")
     .select("id, full_name, verified")
     .eq("verified", true);
 

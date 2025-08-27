@@ -1,39 +1,17 @@
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -42,11 +20,11 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's notification preferences
-    const { data: preferences, error: preferencesError } = await supabase
-      supabase.from('notification_preferences')
+    const { data: preferences, error: preferencesError } = await (supabase as any)
+      .from('notification_preferences')
       .select('*')
       .eq('user_id', session.user.id)
-      .single()
+      .maybeSingle()
 
     if (preferencesError && preferencesError.code !== 'PGRST116') {
       return NextResponse.json(
@@ -71,10 +49,10 @@ export async function GET(_request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -83,7 +61,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const preferenceData = await request.json()
-    
+
     // Validate the preference data
     const validPreferences = [
       'email_notifications',
@@ -110,15 +88,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the notification preferences
-    const { data, error } = await supabase
-      supabase.from('notification_preferences')
+    const { data, error } = await (supabase as any)
+      .from('notification_preferences')
       .update({
         ...updateData,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', session.user.id)
-      .select()
-
+      .select('*')
     if (error) {
       return NextResponse.json(
         { error: 'Failed to update notification preferences', details: error.message },
@@ -144,10 +121,10 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -156,10 +133,10 @@ export async function POST(request: NextRequest) {
     }
 
     const preferenceData = await request.json()
-    
+
     // Create or update notification preferences
-    const { data, error } = await supabase
-      supabase.from('notification_preferences')
+    const { data, error } = await (supabase as any)
+      .from('notification_preferences')
       .upsert({
         user_id: session.user.id,
         email_notifications: preferenceData.email_notifications ?? true,

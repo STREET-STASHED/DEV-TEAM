@@ -1,36 +1,15 @@
+export const runtime = 'nodejs';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+
 
 export async function GET(_request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              )
-            } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
-            }
-          },
-        },
-      }
-    )
-    
+    const supabase = await createRouteHandlerClient()
+
     // Get the current session
     const { data: { session }, error } = await supabase.auth.getSession()
-    
+
     if (error) {
       return NextResponse.json(
         { error: 'Failed to get session', details: error.message },
@@ -46,11 +25,11 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get user profile
-    const { data: profile, error: profileError } = await supabase
-      supabase.from('profiles')
+    const { data: profile, error: profileError } = await (supabase as any)
+      .from('profiles')
       .select('*')
       .eq('id', session.user.id)
-      .single()
+      .maybeSingle();
 
     if (profileError && profileError.code !== 'PGRST116') {
       console.error('Profile fetch error:', profileError)
@@ -61,10 +40,10 @@ export async function GET(_request: NextRequest) {
       user: {
         id: session.user.id,
         email: session.user.email,
-        role: profile?.role || 'buyer',
-        username: profile?.username,
-        full_name: profile?.full_name,
-        avatar_url: profile?.avatar_url
+        role: (profile as any)?.role || 'buyer',
+        username: (profile as any)?.username,
+        full_name: (profile as any)?.full_name,
+        avatar_url: (profile as any)?.avatar_url
       },
       session: {
         expires_at: session.expires_at,
@@ -83,29 +62,7 @@ export async function GET(_request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll()
-          },
-          setAll(cookiesToSet) {
-            try {
-              cookiesToSet.forEach(({ name, value, options }) =>
-                cookieStore.set(name, value, options)
-              )
-            } catch {
-              // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
-            }
-          },
-        },
-      }
-    )
+    const supabase = await createRouteHandlerClient()
     const { email, password } = await request.json()
 
     if (!email || !password) {

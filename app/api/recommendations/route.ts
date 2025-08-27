@@ -1,37 +1,14 @@
+import { UserBehavior, getRecommendations, trackBehavior } from '@/lib/ai/recommendations'
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
-import { getRecommendations, trackBehavior, UserBehavior } from '@/lib/ai/recommendations'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
 
 export async function GET(_request:NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -51,8 +28,7 @@ export async function GET(_request:NextRequest) {
     // Get product details for recommendations
     if (recommendations.length > 0) {
       const productIds = recommendations.map(rec => rec.productId)
-      const { data: products, error: productsError } = await supabase
-        supabase.from('items')
+      const { data: products, error: productsError } = await (supabase as any).from('items')
         .select(`
           id,
           name,
@@ -115,7 +91,7 @@ export async function GET(_request:NextRequest) {
 export async function POST(_request:NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -127,16 +103,16 @@ export async function POST(_request:NextRequest) {
 
     // Validate required fields
     if (!action || !productId || !sessionId) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: action, productId, sessionId' 
+      return NextResponse.json({
+        error: 'Missing required fields: action, productId, sessionId'
       }, { status: 400 })
     }
 
     // Validate action type
     const validActions = ['view', 'like', 'cart', 'purchase', 'share']
     if (!validActions.includes(action)) {
-      return NextResponse.json({ 
-        error: `Invalid action. Must be one of: ${validActions.join(', ')}` 
+      return NextResponse.json({
+        error: `Invalid action. Must be one of: ${validActions.join(', ')}`
       }, { status: 400 })
     }
 
@@ -156,7 +132,7 @@ export async function POST(_request:NextRequest) {
       // Update user preferences in background (non-blocking)
       setTimeout(async () => {
         try {
-          await supabase.rpc('update_user_preferences', { user_uuid: user.id })
+          await (supabase as any).rpc('update_user_preferences', { user_uuid: user.id })
         } catch (error) {
           console.error('Error updating user preferences:', error)
         }

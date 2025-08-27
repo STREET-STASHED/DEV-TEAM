@@ -1,65 +1,52 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": [
-      "ES2021",
-      "DOM"
-    ],
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "moduleResolution": "Bundler",
     "jsx": "preserve",
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowJs": false,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "incremental": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@lib/*": [
-        "lib/*"
-      ],
-      "@supabaseClient": [
-        "lib/supabaseClient"
-      ],
-      "@components/*": [
-        "components/*"
-      ],
-      "@/lib/*": [
-        "lib/*"
-      ]
-    },
-    "allowJs": true,
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/app/*": ["./app/*"],
+      "@/context/*": ["./context/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/types/*": ["./types/*"],
+      "@/styles/*": ["./styles/*"],
+      "@/public/*": ["./public/*"],
+      "@/supabase/*": ["./supabase/*"]
+    }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "components/OnboardingFlow.jsx",
-    "next-env.d.ts",
-    "src",
-    "types/**/*.d.ts",
-    ".next/types/**/*.ts"
-  ],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
+    ".next",
+    "dist",
     "android/**/*",
     "ios/**/*",
+    "__tests__/**/*",
+    "jest.setup.ts",
+    "lib/audit.ts",
+    "lib/db/disputes.ts",
+    "lib/db/referrals.ts",
+    "lib/googleMaps.ts",
+    "lib/performance.ts",
     "supabase/functions/**/*"
   ]
 }

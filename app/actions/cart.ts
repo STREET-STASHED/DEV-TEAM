@@ -1,33 +1,27 @@
 	'use server'
 
-	import { revalidatePath } from 'next/cache'
-	import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-const supabase = createClient(supabaseUrl, supabaseServiceKey)
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
+import { revalidatePath } from 'next/cache'
 
 export async function addToCart(productId: string, quantity: number = 1) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
+    const supabase = await createRouteHandlerClient()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.user?.id) {
       return { error: 'User not authenticated' }
     }
 
     // Check if item already exists in cart
-    const { data: existingItem } = await supabase
-      .from('cart_items')
+    const { data: existingItem } = await (supabase as any).from('cart_items')
       .select('id, quantity')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .eq('id', productId)
       .single()
 
     if (existingItem) {
       // Update existing item
-      const { error } = await supabase
-        .from('cart_items')
+      const { error } = await (supabase as any).from('cart_items')
         .update({ quantity: existingItem.quantity + quantity })
         .eq('id', existingItem.id)
 
@@ -37,8 +31,7 @@ export async function addToCart(productId: string, quantity: number = 1) {
       }
     } else {
       // Look up the item details from items table
-      const { data: item, error: itemError } = await supabase
-        .from('items')
+      const { data: item, error: itemError } = await (supabase as any).from('items')
         .select('id,name,price,image,category,active')
         .eq('id', productId)
         .single()
@@ -53,10 +46,9 @@ export async function addToCart(productId: string, quantity: number = 1) {
       }
 
       // Add new item with real details
-      const { error } = await supabase
-        .from('cart_items')
+      const { error } = await (supabase as any).from('cart_items')
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           id: item.id,
           quantity,
           price: item.price ?? 0,
@@ -82,17 +74,17 @@ export async function addToCart(productId: string, quantity: number = 1) {
 
 export async function removeFromCart(cartItemId: string) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
+    const supabase = await createRouteHandlerClient()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.user?.id) {
       return { error: 'User not authenticated' }
     }
 
-    const { error } = await supabase
-      .from('cart_items')
+    const { error } = await (supabase as any).from('cart_items')
       .delete()
       .eq('id', cartItemId)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
 
     if (error) {
       console.error('Remove from cart error:', error)
@@ -110,9 +102,10 @@ export async function removeFromCart(cartItemId: string) {
 
 export async function updateCartQuantity(cartItemId: string, quantity: number) {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
+    const supabase = await createRouteHandlerClient()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.user?.id) {
       return { error: 'User not authenticated' }
     }
 
@@ -120,11 +113,10 @@ export async function updateCartQuantity(cartItemId: string, quantity: number) {
       return removeFromCart(cartItemId)
     }
 
-    const { error } = await supabase
-      .from('cart_items')
+    const { error } = await (supabase as any).from('cart_items')
       .update({ quantity })
       .eq('id', cartItemId)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
 
     if (error) {
       console.error('Update cart quantity error:', error)
@@ -142,16 +134,16 @@ export async function updateCartQuantity(cartItemId: string, quantity: number) {
 
 export async function clearCart() {
   try {
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
+    const supabase = await createRouteHandlerClient()
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.user?.id) {
       return { error: 'User not authenticated' }
     }
 
-    const { error } = await supabase
-      .from('cart_items')
+    const { error } = await (supabase as any).from('cart_items')
       .delete()
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
 
     if (error) {
       console.error('Clear cart error:', error)

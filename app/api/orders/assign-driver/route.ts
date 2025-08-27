@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     const body = await request.json()
     const { orderId, driverId } = body
 
@@ -19,8 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get order details
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
+    const { data: order, error: orderError } = await (supabase as any).from('orders')
       .select('*')
       .eq('id', orderId)
       .single()
@@ -35,8 +33,7 @@ export async function POST(request: NextRequest) {
     // If driverId is provided, assign that specific driver
     if (driverId) {
       // Verify driver exists and is available
-      const { data: driver, error: driverError } = await supabase
-        .from('driver_profiles')
+      const { data: driver, error: driverError } = await (supabase as any).from('driver_profiles')
         .select('*')
         .eq('user_id', driverId)
         .eq('is_available', true)
@@ -50,8 +47,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Assign driver to order
-      const { error: updateError } = await supabase
-        .from('orders')
+      const { error: updateError } = await (supabase as any).from('orders')
         .update({
           driver_id: driverId,
           status: 'assigned_to_driver',
@@ -68,8 +64,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Add status history
-      await supabase
-        .from('order_status_history')
+      await (supabase as any).from('order_status_history')
         .insert({
           order_id: orderId,
           driver_id: driverId,
@@ -84,7 +79,7 @@ export async function POST(request: NextRequest) {
         data: {
           order_id: orderId,
           driver_id: driverId,
-          driver_name: driver.full_name,
+          driver_name: (driver as any).full_name,
           assigned_at: new Date().toISOString()
         }
       })
@@ -92,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     // Auto-assign best available driver
     const bestDriver = await selectBestDriver(order)
-    
+
     if (!bestDriver) {
       return NextResponse.json(
         { error: 'No available drivers found' },
@@ -101,8 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Assign best driver to order
-    const { error: updateError } = await supabase
-      .from('orders')
+    const { error: updateError } = await (supabase as any).from('orders')
       .update({
         driver_id: bestDriver.id,
         status: 'assigned_to_driver',
@@ -119,8 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Add status history
-    await supabase
-      .from('order_status_history')
+    await (supabase as any).from('order_status_history')
       .insert({
         order_id: orderId,
         driver_id: bestDriver.id,
@@ -135,7 +128,7 @@ export async function POST(request: NextRequest) {
       data: {
         order_id: orderId,
         driver_id: bestDriver.id,
-        driver_name: bestDriver.full_name,
+        driver_name: (bestDriver as any).full_name,
         assigned_at: new Date().toISOString()
       }
     })
@@ -151,9 +144,10 @@ export async function POST(request: NextRequest) {
 
 async function selectBestDriver(order: any) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     // Get all available drivers
-    const { data: availableDrivers, error } = await supabase
-      .from('driver_profiles')
+    const { data: availableDrivers, error } = await (supabase as any).from('driver_profiles')
       .select('*')
       .eq('is_available', true)
       .eq('is_online', true)
@@ -163,29 +157,29 @@ async function selectBestDriver(order: any) {
     }
 
     // Score drivers based on multiple factors
-    const scoredDrivers = availableDrivers.map(driver => {
+    const scoredDrivers = availableDrivers.map((driver: any) => {
       let score = 0
 
       // Rating bonus (0-5 stars)
       score += (driver.rating || 5.0) * 2
 
       // Completion rate bonus (0-100%)
-      score += (driver.completion_rate || 100) * 0.5
+      score += ((driver as any).completion_rate || 100) * 0.5
 
       // Activity recency bonus (more recent = higher score)
-      if (driver.last_activity) {
-        const hoursSinceActivity = (Date.now() - new Date(driver.last_activity).getTime()) / (1000 * 60 * 60)
+      if ((driver as any).last_activity) {
+        const hoursSinceActivity = (Date.now() - new Date((driver as any).last_activity).getTime()) / (1000 * 60 * 60)
         score += Math.max(0, 24 - hoursSinceActivity)
       }
 
       // Location proximity bonus (if available)
-      if (driver.last_location && order.pickup_address) {
+      if ((driver as any).last_location && order.pickup_address) {
         // Simplified distance calculation - in real app, use proper geocoding
         score += 10 // Base proximity bonus
       }
 
       // Vehicle type bonus (if specified)
-      if (driver.vehicle_info?.type === 'motorcycle' && order.distance_miles < 5) {
+      if ((driver.vehicle_info as any)?.type === 'motorcycle' && order.distance_miles < 5) {
         score += 5 // Motorcycles good for short distances
       }
 
@@ -196,7 +190,7 @@ async function selectBestDriver(order: any) {
     })
 
     // Sort by score and return the best driver
-    scoredDrivers.sort((a, b) => b.score - a.score)
+    scoredDrivers.sort((a: any, b: any) => b.score - a.score)
     return scoredDrivers[0]
 
   } catch (error) {
@@ -215,11 +209,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
     }
 
-    const supabase = await createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-    
+    const supabase = await createRouteHandlerClient();
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -227,8 +218,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get order details
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
+    const { data: order, error: orderError } = await (supabase as any).from('orders')
       .select('*')
       .eq('id', orderId)
       .single();
@@ -238,8 +228,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get available drivers count
-    const { count: availableDrivers, error: countError } = await supabase
-      .from('driver_profiles')
+    const { count: availableDrivers, error: countError } = await (supabase as any).from('driver_profiles')
       .select('*', { count: 'exact', head: true })
       .eq('is_online', true)
       .eq('is_available', true);

@@ -1,31 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(request:NextRequest) {
   try {
@@ -38,12 +16,12 @@ export async function GET(request:NextRequest) {
 
     if (type === 'trending') {
       try {
-        const { data, error } = await (await (await (await (await (await (await (await (await )))))))).rpc('get_trending_posts', { p_limit: limit })
-        
+        const { data, error } = await supabase.rpc('get_trending_posts', { p_limit: limit })
+
         if (error) {
           // If RPC function doesn't exist, return mock trending posts
           console.log('RPC function not available, returning mock trending posts')
-          return NextResponse.json({ 
+          return NextResponse.json({
             posts: [
               {
                 id: '1',
@@ -66,12 +44,12 @@ export async function GET(request:NextRequest) {
             ]
           })
         }
-        
+
         return NextResponse.json({ posts: data })
       } catch (_rpcError) {
         // Fallback to mock data if RPC fails
         console.log('RPC call failed, returning mock trending posts')
-        return NextResponse.json({ 
+        return NextResponse.json({
           posts: [
             {
               id: '1',
@@ -98,15 +76,15 @@ export async function GET(request:NextRequest) {
 
     if (type === 'feed' && userId) {
       try {
-        const { data, error } = await supabase.rpc('get_user_feed', { 
-          p_user_id: userId, 
-          p_limit: limit 
+        const { data, error } = await (supabase as any).rpc('get_user_feed', {
+          p_user_id: userId,
+          p_limit: limit
         })
-        
+
         if (error) {
           // If RPC function doesn't exist, return mock feed
           console.log('RPC function not available, returning mock user feed')
-          return NextResponse.json({ 
+          return NextResponse.json({
             posts: [
               {
                 id: '1',
@@ -120,12 +98,12 @@ export async function GET(request:NextRequest) {
             ]
           })
         }
-        
+
         return NextResponse.json({ posts: data })
       } catch (_rpcError) {
         // Fallback to mock data if RPC fails
         console.log('RPC call failed, returning mock user feed')
-        return NextResponse.json({ 
+        return NextResponse.json({
           posts: [
             {
               id: '1',
@@ -143,8 +121,8 @@ export async function GET(request:NextRequest) {
 
     if (type === 'user' && userId) {
       try {
-        const { data, error } = await supabase
-          supabase.from('social_posts')
+        const { data, error } = await (supabase as any)
+          .from('social_posts')
           .select(`
             *,
             user_social_profiles!inner(username, display_name, avatar)
@@ -152,11 +130,11 @@ export async function GET(request:NextRequest) {
           .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(limit)
-        
+
         if (error) {
           // If table doesn't exist, return mock user posts
           console.log('Social posts table not available, returning mock user posts')
-          return NextResponse.json({ 
+          return NextResponse.json({
             posts: [
               {
                 id: '1',
@@ -170,12 +148,12 @@ export async function GET(request:NextRequest) {
             ]
           })
         }
-        
+
         return NextResponse.json({ posts: data })
       } catch (_dbError) {
         // Fallback to mock data if database query fails
         console.log('Database query failed, returning mock user posts')
-        return NextResponse.json({ 
+        return NextResponse.json({
           posts: [
             {
               id: '1',
@@ -193,12 +171,12 @@ export async function GET(request:NextRequest) {
 
     // If no type specified, default to trending
     try {
-      const { data, error } = await supabase.rpc('get_trending_posts', { p_limit: limit })
-      
+      const { data, error } = await (supabase as any).rpc('get_trending_posts', { p_limit: limit })
+
       if (error) {
         // If RPC function doesn't exist, return mock trending posts
         console.log('RPC function not available, returning mock trending posts')
-        return NextResponse.json({ 
+        return NextResponse.json({
           posts: [
             {
               id: '1',
@@ -221,12 +199,12 @@ export async function GET(request:NextRequest) {
           ]
         })
       }
-      
+
       return NextResponse.json({ posts: data })
     } catch (_rpcError) {
       // Fallback to mock data if RPC fails
       console.log('RPC call failed, returning mock trending posts')
-      return NextResponse.json({ 
+      return NextResponse.json({
         posts: [
           {
             id: '1',
@@ -261,7 +239,7 @@ export async function POST(request:NextRequest) {
     const { type, content, images, productIds, tags, location } = body
 
     const supabase = await createRouteHandlerClient()
-    
+
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -269,8 +247,8 @@ export async function POST(request:NextRequest) {
     }
 
     // Create post
-    const { data, error } = await supabase
-      supabase.from('social_posts')
+    const { data, error } = await (supabase as any)
+      .from('social_posts')
       .insert({
         user_id: user.id,
         type,
@@ -280,21 +258,20 @@ export async function POST(request:NextRequest) {
         tags: tags || [],
         location
       })
-      .select()
+      .select('*')
       .single()
 
     if (error) throw error
 
     // Award points for creating content
-    await supabase
-      supabase.from('social_rewards')
+    await (supabase as any)
+      .from('social_rewards')
       .insert({
         user_id: user.id,
-        type: 'post',
-        amount: 10,
-        currency: 'points',
+        points: 10,
         description: 'Earned 10 points for creating a post',
-        status: 'approved'
+        status: 'approved',
+        post_id: data.id
       })
 
     return NextResponse.json({ post: data })

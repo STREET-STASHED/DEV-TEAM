@@ -1,35 +1,8 @@
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers';
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
 
 
-function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookies()).getAll()
-        },
-        async setAll(cookiesToSet) {
-          try {
-            const cookieStore = await cookies();
-            await Promise.all(
-              cookiesToSet.map(({ name, value, options: _options }) =>
-                cookieStore.set(name, value, _options)
-              )
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
 
 export async function GET(request:NextRequest) {
   try {
@@ -40,8 +13,8 @@ export async function GET(request:NextRequest) {
 
     const supabase = await createRouteHandlerClient()
 
-    let query = supabase
-      supabase.from('trend_analyses')
+    let query = (supabase as any)
+      .from('trend_analyses')
       .select('*')
       .gte('expires_at', new Date().toISOString())
 
@@ -65,7 +38,7 @@ export async function GET(request:NextRequest) {
       if (error) {
         // If table doesn't exist, return mock trends data
         console.log('Analytics table not available, returning mock trends')
-        return NextResponse.json({ 
+        return NextResponse.json({
           trends: [
             {
               id: '1',
@@ -95,8 +68,8 @@ export async function GET(request:NextRequest) {
       // Enhance trends with real-time data
       const enhancedTrends = await Promise.all(trends.map(async (trend: any) => {
         // Get sales growth for the category
-        const { data: salesData, error: salesError } = await supabase
-          supabase.from('sales_analytics')
+        const { data: salesData, error: salesError } = await (supabase as any)
+          .from('sales_analytics')
           .select('quantity, created_at')
           .eq('item_id', 'any') // This would be filtered by category in real implementation
           .gte('created_at', new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString())
@@ -110,12 +83,12 @@ export async function GET(request:NextRequest) {
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
         const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
 
-        const recentSales = (salesData || []).filter((sale: any) => 
+        const recentSales = (salesData || []).filter((sale: any) =>
           new Date(sale.created_at) >= thirtyDaysAgo
         ).reduce((sum: any, sale: any) => sum + sale.quantity, 0)
 
-        const previousSales = (salesData || []).filter((sale: any) => 
-          new Date(sale.created_at) >= sixtyDaysAgo && 
+        const previousSales = (salesData || []).filter((sale: any) =>
+          new Date(sale.created_at) >= sixtyDaysAgo &&
           new Date(sale.created_at) < thirtyDaysAgo
         ).reduce((sum: any, sale: any) => sum + sale.quantity, 0)
 
@@ -124,7 +97,7 @@ export async function GET(request:NextRequest) {
         return {
           ...trend,
           actualGrowth,
-          growthAccuracy: trend.predicted_growth > 0 ? 
+          growthAccuracy: trend.predicted_growth > 0 ?
             Math.max(0, 1 - Math.abs(actualGrowth - trend.predicted_growth) / trend.predicted_growth) : 0.5,
           marketOpportunity: calculateMarketOpportunity(trend, actualGrowth),
           recommendedActions: generateRecommendations(trend, actualGrowth)
@@ -135,7 +108,7 @@ export async function GET(request:NextRequest) {
     } catch (_dbError) {
       // If database operations fail, return mock data
       console.log('Database operations failed, returning mock trends')
-      return NextResponse.json({ 
+      return NextResponse.json({
         trends: [
           {
             id: '1',
@@ -179,41 +152,35 @@ export async function POST(request:NextRequest) {
     const analysis = await analyzeTrendData(_trendData, category)
 
     // Store market intelligence data
-    const { error: upsertError } = await supabase
-      supabase.from('market_intelligence')
+    const { error: upsertError } = await (supabase as any)
+      .from('market_intelligence')
       .upsert({
         category,
-        processed_data: analysis,
-        last_updated: new Date().toISOString(),
+        trend_data: analysis,
+        created_at: new Date().toISOString(),
         source: 'trend_analysis'
       })
 
     if (upsertError) throw upsertError
 
     // Update or create trend analysis
-    const { error: trendError } = await supabase
-      supabase.from('trend_analyses')
+    const { error: trendError } = await (supabase as any)
+      .from('trend_analyses')
       .upsert({
         category,
-        subcategory: analysis.subcategory,
-        trend_type: analysis.trendType,
-        confidence_score: analysis.confidenceScore,
-        predicted_growth: analysis.predictedGrowth,
-        timeframe: analysis.timeframe,
-        influencers: analysis.influencers || [],
-        keywords: analysis.keywords || [],
-        social_mentions: analysis.socialMentions || 0,
-        search_volume: analysis.searchVolume || 0,
-        competitor_activity: analysis.competitorActivity || {},
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        trend_name: analysis.trendType || 'Unknown Trend',
+        description: null,
+        popularity_score: analysis.confidenceScore || 0,
+        growth_rate: analysis.predictedGrowth || 0,
+        created_at: new Date().toISOString()
       })
 
     if (trendError) throw trendError
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       analysis,
-      message: 'Trend analysis updated successfully' 
+      message: 'Trend analysis updated successfully'
     })
   } catch (error) {
     console.error('Error updating trend analysis:', error)
@@ -223,8 +190,8 @@ export async function POST(request:NextRequest) {
 
 // Helper functions
 function calculateMarketOpportunity(trend: any, actualGrowth: number): string {
-  const score = (trend.confidence_score * 0.4) + 
-                (Math.min(trend.predicted_growth, 1) * 0.3) + 
+  const score = (trend.confidence_score * 0.4) +
+                (Math.min(trend.predicted_growth, 1) * 0.3) +
                 (Math.min(actualGrowth, 1) * 0.3)
 
   if (score > 0.8) return 'High'

@@ -1,36 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '../../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { rateLimit } from '@/lib/rateLimitApp';
 
 
-function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookies()).getAll()
-        },
-        async setAll(cookiesToSet) {
-          try {
-            const cookieStore = await cookies();
-            await Promise.all(
-              cookiesToSet.map(({ name, value, options: _options }) =>
-                cookieStore.set(name, value, _options)
-              )
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,8 +29,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createRouteHandlerClient();
 
     // Get user profile to determine redirect
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: profile, error: profileError } = await (supabase as any).from('profiles')
       .select('has_completed_onboarding, role')
       .eq('user_id', user_id)
       .single();

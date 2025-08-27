@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs';
+
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -85,8 +84,8 @@ export async function GET(request: NextRequest) {
     }
 
     // For real users, get from database
-    const { data: profile, error: profileError } = await supabase
-      .from('driver_profiles')
+    const supabase = await createRouteHandlerClient();
+    const { data: profile, error: profileError } = await (supabase as any).from('driver_profiles')
       .select('*')
       .eq('user_id', driverId)
       .single()
@@ -99,8 +98,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get driver earnings
-    const { data: earnings, error: earningsError } = await supabase
-      .from('driver_earnings')
+    const { data: earnings, error: earningsError } = await (supabase as any).from('driver_earnings')
       .select('*')
       .eq('driver_id', driverId)
 
@@ -109,8 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get driver orders
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
+    const { data: orders, error: ordersError } = await (supabase as any).from('orders')
       .select('*')
       .eq('driver_id', driverId)
 
@@ -119,11 +116,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate stats
-    const totalEarnings = earnings?.reduce((sum, e) => sum + parseFloat(e.total_earnings || 0), 0) || 0
+    const totalEarnings = earnings?.reduce((sum: any, e: any) => sum + parseFloat(String(e.total_earnings || 0)), 0) || 0
     const totalOrders = orders?.length || 0
-    const completedOrders = orders?.filter(o => o.status === 'delivered').length || 0
-    const activeOrders = orders?.filter(o => ['assigned_to_driver', 'picked_up', 'in_transit'].includes(o.status)).length || 0
-    const totalDistance = earnings?.reduce((sum, e) => sum + (e.distance_bonus || 0), 0) || 0
+    const completedOrders = orders?.filter((o: any) => o.status === 'delivered').length || 0
+    const activeOrders = orders?.filter((o: any) => ['assigned_to_driver', 'picked_up', 'in_transit'].includes(o.status)).length || 0
+    const totalDistance = earnings?.reduce((sum: any, e: any) => sum + (e.distance_bonus || 0), 0) || 0
     const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 100
 
     // Calculate weekly and monthly earnings
@@ -132,29 +129,29 @@ export async function GET(request: NextRequest) {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
     const weeklyEarnings = earnings
-      ?.filter(e => new Date(e.created_at) >= weekAgo)
-      .reduce((sum, e) => sum + parseFloat(e.total_earnings || 0), 0) || 0
+      ?.filter((e: any) => e.created_at && new Date(e.created_at) >= weekAgo)
+      .reduce((sum: any, e: any) => sum + parseFloat(String(e.total_earnings || 0)), 0) || 0
 
     const monthlyEarnings = earnings
-      ?.filter(e => new Date(e.created_at) >= monthAgo)
-      .reduce((sum, e) => sum + parseFloat(e.total_earnings || 0), 0) || 0
+      ?.filter((e: any) => e.created_at && new Date(e.created_at) >= monthAgo)
+      .reduce((sum: any, e: any) => sum + parseFloat(String(e.total_earnings || 0)), 0) || 0
 
     // Get recent activity
     const recentOrders = orders
-      ?.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      ?.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 5) || []
 
     const stats = {
       driver_id: driverId,
       profile: {
-        full_name: profile.full_name,
-        phone: profile.phone,
-        email: profile.email,
+        full_name: (profile as any).full_name,
+        phone: (profile as any).phone,
+        email: (profile as any).email,
         rating: profile.rating || 5.0,
         is_online: profile.is_online || false,
         is_available: profile.is_available || false,
         vehicle_info: profile.vehicle_info,
-        service_areas: profile.service_areas,
+        service_areas: (profile as any).service_areas,
         completion_rate: completionRate,
         total_orders: totalOrders,
         total_earnings: totalEarnings,
@@ -168,7 +165,7 @@ export async function GET(request: NextRequest) {
         average_rating: profile.rating || 5.0,
         completion_rate: completionRate
       },
-      recent_activity: recentOrders.map(order => ({
+      recent_activity: recentOrders.map((order: any) => ({
         id: order.id,
         status: order.status,
         total_amount: order.total_amount,
@@ -178,10 +175,10 @@ export async function GET(request: NextRequest) {
         delivery_address: order.delivery_address
       })),
       earnings_breakdown: {
-        base_delivery_fees: earnings?.reduce((sum, e) => sum + parseFloat(e.base_delivery_fee || 0), 0) || 0,
-        distance_bonuses: earnings?.reduce((sum, e) => sum + parseFloat(e.distance_bonus || 0), 0) || 0,
-        time_bonuses: earnings?.reduce((sum, e) => sum + parseFloat(e.time_bonus || 0), 0) || 0,
-        tips: earnings?.reduce((sum, e) => sum + parseFloat(e.tip_amount || 0), 0) || 0
+        base_delivery_fees: earnings?.reduce((sum: any, e: any) => sum + parseFloat(String(e.base_delivery_fee || 0)), 0) || 0,
+        distance_bonuses: earnings?.reduce((sum: any, e: any) => sum + parseFloat(String(e.distance_bonus || 0)), 0) || 0,
+        time_bonuses: earnings?.reduce((sum: any, e: any) => sum + parseFloat(String(e.time_bonus || 0)), 0) || 0,
+        tips: earnings?.reduce((sum: any, e: any) => sum + parseFloat(String(e.tip_amount || 0)), 0) || 0
       }
     }
 

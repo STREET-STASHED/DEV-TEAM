@@ -1,12 +1,10 @@
-import { Metadata } from 'next'
+'use client'
+
 import { Suspense } from 'react'
 import { BuyerDashboardContent } from './BuyerDashboardContent'
 import { DashboardSkeleton } from './DashboardSkeleton'
 
-export const metadata: Metadata = {
-  title: 'Dashboard',
-  description: 'Track your orders and manage your StreetStashed account',
-}
+
 
 export default function BuyerDashboardPage() {
   return (

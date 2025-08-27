@@ -1,13 +1,14 @@
+export const runtime = 'nodejs';
+
 // Centralized Database Query Library for StreetStashed MVP
 // This file contains all optimized database queries for the application
 
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseServer } from '@/app/lib/supabase/server';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Get supabase client instance
+async function _getSupabaseClient() {
+  return await createSupabaseServer();
+}
 
 // =============================
 // MARKETPLACE ANALYTICS
@@ -18,8 +19,8 @@ export const marketplaceQueries = {
    * Get daily marketplace statistics using materialized view
    */
   getDailyStats: async (days: number = 30) => {
-    const { data, error } = await supabase
-      .from('daily_marketplace_stats')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('daily_marketplace_stats')
       .select('*')
       .gte('date', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
       .order('date', { ascending: false });
@@ -32,6 +33,7 @@ export const marketplaceQueries = {
    * Get overall marketplace statistics using optimized function
    */
   getOverview: async () => {
+    const supabase = await _getSupabaseClient();
     const { data, error } = await supabase.rpc('get_marketplace_stats');
     if (error) throw error;
     return data[0];
@@ -41,8 +43,8 @@ export const marketplaceQueries = {
    * Get top performing products
    */
   getTopProducts: async (limit: number = 10) => {
-    const { data, error } = await supabase
-      .from('product_performance_metrics')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('product_performance_metrics')
       .select('*')
       .order('total_revenue', { ascending: false })
       .limit(limit);
@@ -61,8 +63,8 @@ export const userQueries = {
    * Get user engagement metrics using materialized view
    */
   getEngagement: async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_engagement_metrics')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('user_engagement_metrics')
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -75,6 +77,7 @@ export const userQueries = {
    * Get comprehensive user statistics using optimized function
    */
   getStats: async (userId: string) => {
+    const supabase = await _getSupabaseClient();
     const { data, error } = await supabase.rpc('get_user_stats', { user_uuid: userId });
     if (error) throw error;
     return data[0];
@@ -84,8 +87,8 @@ export const userQueries = {
    * Get active users (engaged in last 7 days)
    */
   getActiveUsers: async () => {
-    const { data, error } = await supabase
-      .from('user_engagement_metrics')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('user_engagement_metrics')
       .select('user_id, username, total_orders, last_order_date')
       .eq('engagement_level', 'active')
       .order('last_order_date', { ascending: false });
@@ -104,8 +107,8 @@ export const orderQueries = {
    * Get active orders with stasher information using optimized view
    */
   getActiveOrders: async () => {
-    const { data, error } = await supabase
-      .from('active_orders_view')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('active_orders_view')
       .select('*')
       .order('created_at', { ascending: false });
 
@@ -117,6 +120,7 @@ export const orderQueries = {
    * Get user orders with optimized composite index
    */
   getUserOrders: async (userId: string, status?: string) => {
+    const supabase = await _getSupabaseClient();
     let query = supabase
       .from('orders')
       .select('*')
@@ -136,6 +140,7 @@ export const orderQueries = {
    * Get seller orders with optimized composite index
    */
   getSellerOrders: async (sellerId: string, status?: string) => {
+    const supabase = await _getSupabaseClient();
     let query = supabase
       .from('orders')
       .select('*')
@@ -161,6 +166,7 @@ export const productQueries = {
    * Get product performance metrics using materialized view
    */
   getPerformance: async (sellerId?: string) => {
+    const supabase = await _getSupabaseClient();
     let query = supabase
       .from('product_performance_metrics')
       .select('*')
@@ -185,8 +191,8 @@ export const stasherQueries = {
    * Get stasher performance metrics using materialized view
    */
   getPerformance: async () => {
-    const { data, error } = await supabase
-      .from('stasher_performance_metrics')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('stasher_performance_metrics')
       .select('*')
       .order('total_payouts', { ascending: false });
 
@@ -198,8 +204,8 @@ export const stasherQueries = {
    * Get available stashers using optimized partial index
    */
   getAvailable: async () => {
-    const { data, error } = await supabase
-      .from('stasher_profiles')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('stasher_profiles')
       .select('*')
       .eq('is_available', true)
       .eq('is_online', true)
@@ -219,8 +225,8 @@ export const socialQueries = {
    * Get user social activity using optimized indexes
    */
   getUserActivity: async (userId: string) => {
-    const { data, error } = await supabase
-      .from('social_posts')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('social_posts')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
@@ -233,6 +239,7 @@ export const socialQueries = {
    * Get social interactions using optimized composite index
    */
   getInteractions: async (userId: string, type?: string) => {
+    const supabase = await _getSupabaseClient();
     let query = supabase
       .from('social_interactions')
       .select('*')
@@ -258,6 +265,7 @@ export const notificationQueries = {
    * Get user notifications using optimized composite index
    */
   getUserNotifications: async (userId: string, unreadOnly: boolean = false) => {
+    const supabase = await _getSupabaseClient();
     let query = supabase
       .from('notifications')
       .select('*')
@@ -277,8 +285,8 @@ export const notificationQueries = {
    * Get unread notification count using optimized index
    */
   getUnreadCount: async (userId: string) => {
-    const { count, error } = await supabase
-      .from('notifications')
+    const supabase = await _getSupabaseClient();
+    const { count, error } = await supabase.from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId)
       .eq('read', false);
@@ -297,6 +305,7 @@ export const analyticsQueries = {
    * Get user analytics events using optimized composite index
    */
   getUserEvents: async (userId: string, eventType?: string) => {
+    const supabase = await _getSupabaseClient();
     let query = supabase
       .from('analytics_events')
       .select('*')
@@ -322,6 +331,7 @@ export const maintenanceQueries = {
    * Get maintenance status
    */
   getStatus: async () => {
+    const supabase = await _getSupabaseClient();
     const { data, error } = await supabase.rpc('get_maintenance_status');
     if (error) throw error;
     return data;
@@ -331,6 +341,7 @@ export const maintenanceQueries = {
    * Get partition statistics
    */
   getPartitionStats: async () => {
+    const supabase = await _getSupabaseClient();
     const { data, error } = await supabase.rpc('get_partition_statistics');
     if (error) throw error;
     return data;
@@ -340,6 +351,7 @@ export const maintenanceQueries = {
    * Manually refresh materialized views
    */
   refreshViews: async () => {
+    const supabase = await _getSupabaseClient();
     const { data, error } = await supabase.rpc('refresh_all_materialized_views');
     if (error) throw error;
     return data;
@@ -349,8 +361,8 @@ export const maintenanceQueries = {
    * Get recent maintenance logs
    */
   getLogs: async (limit: number = 50) => {
-    const { data, error } = await supabase
-      .from('maintenance_logs')
+    const supabase = await _getSupabaseClient();
+    const { data, error } = await supabase.from('maintenance_logs')
       .select('*')
       .order('created_at', { ascending: false })
       .limit(limit);

@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { createClient } from '@supabase/supabase-js'
-import { 
-  MapPinIcon, 
-  CurrencyDollarIcon, 
-  TruckIcon,
-  StarIcon,
-  CheckCircleIcon
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
+import {
+    CheckCircleIcon,
+    CurrencyDollarIcon,
+    MapPinIcon,
+    StarIcon,
+    TruckIcon
 } from '@heroicons/react/24/outline'
+import { useCallback, useEffect, useState } from 'react'
 
 interface Order {
   id: string
@@ -56,7 +56,7 @@ interface EarningsBreakdown {
 }
 
 export default function DriverDashboardPage() {
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createSupabaseBrowser()
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState<DriverStats>({
@@ -81,25 +81,23 @@ export default function DriverDashboardPage() {
       if (!user) return
 
       // Get driver profile and stats
-      const { data: profile } = await supabase
-        .from('driver_profiles')
+      const { data: profile } = await supabase.from('driver_profiles')
         .select('*')
         .eq('user_id', user.id)
         .single()
 
       if (profile) {
         setIsOnline(profile.is_online || false)
-        
+
         // Load driver stats
-        const { data: earnings } = await supabase
-          .from('driver_earnings')
+        const { data: earnings } = await supabase.from('driver_earnings')
           .select('*')
           .eq('driver_id', user.id)
 
         if (earnings) {
-          const totalEarnings = earnings.reduce((sum, e) => sum + e.amount, 0)
+          const totalEarnings = earnings.reduce((sum, e) => sum + (e.total_earnings || 0), 0)
           const totalOrders = earnings.length
-          
+
           setStats(prev => ({
             ...prev,
             totalEarnings,
@@ -109,14 +107,13 @@ export default function DriverDashboardPage() {
       }
 
       // Load orders
-      const { data: driverOrders } = await supabase
-        .from('orders')
+      const { data: driverOrders } = await supabase.from('orders')
         .select('*')
         .eq('driver_id', user.id)
         .order('created_at', { ascending: false })
 
       if (driverOrders) {
-        setOrders(driverOrders)
+        setOrders(driverOrders as unknown as Order[])
       }
     } catch (error) {
       console.error('Failed to load driver data:', error)
@@ -130,10 +127,9 @@ export default function DriverDashboardPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      await supabase
-        .from('driver_profiles')
+      await supabase.from('driver_profiles')
         .update({
-          last_location: { lat, lng },
+          current_location: { lat, lng },
           last_activity: new Date().toISOString()
         })
         .eq('user_id', user.id)
@@ -167,8 +163,7 @@ export default function DriverDashboardPage() {
       if (!user) return
 
       const newStatus = !isOnline
-      await supabase
-        .from('driver_profiles')
+      await supabase.from('driver_profiles')
         .update({
           is_online: newStatus,
           is_available: newStatus,
@@ -188,7 +183,7 @@ export default function DriverDashboardPage() {
       if (!user) return
 
       const updateData: any = { status: newStatus }
-      
+
       if (newStatus === 'picked_up') {
         updateData.picked_up_at = new Date().toISOString()
       } else if (newStatus === 'delivered') {
@@ -196,8 +191,7 @@ export default function DriverDashboardPage() {
         updateData.status = 'delivered'
       }
 
-      const { error } = await supabase
-        .from('orders')
+      const { error } = await supabase.from('orders')
         .update(updateData)
         .eq('id', orderId)
 
@@ -207,20 +201,22 @@ export default function DriverDashboardPage() {
       }
 
       // Update local state
-      setOrders(prev => prev.map(order => 
+      setOrders(prev => prev.map(order =>
         order.id === orderId ? { ...order, ...updateData } : order
       ))
 
       // Send notification to buyer
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: orders.find(o => o.id === orderId)?.buyer_id,
-          type: 'order_status_update',
-          title: `Order ${newStatus.replace('_', ' ')}`,
-          message: `Your order has been ${newStatus.replace('_', ' ')}`,
-          data: { order_id: orderId, status: newStatus }
-        })
+      const buyerId = orders.find(o => o.id === orderId)?.buyer_id
+      if (buyerId) {
+        await supabase.from('notifications')
+          .insert({
+            user_id: buyerId,
+            type: 'order_status_update',
+            title: `Order ${newStatus.replace('_', ' ')}`,
+            message: `Your order has been ${newStatus.replace('_', ' ')}`,
+            data: { order_id: orderId, status: newStatus }
+          })
+      }
 
       alert(`Order status updated to ${newStatus.replace('_', ' ')}`)
     } catch (error) {
@@ -325,8 +321,8 @@ export default function DriverDashboardPage() {
               <button
                 onClick={toggleOnlineStatus}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isOnline 
-                    ? 'bg-red-500 hover:bg-red-600' 
+                  isOnline
+                    ? 'bg-red-500 hover:bg-red-600'
                     : 'bg-green-500 hover:bg-green-600'
                 }`}
               >
@@ -445,7 +441,7 @@ export default function DriverDashboardPage() {
       {/* Orders List */}
       <div className="max-w-7xl mx-auto p-6">
         <h2 className="text-2xl font-bold text-white mb-6">Your Orders</h2>
-        
+
         {filteredOrders.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-24 h-24 bg-ink-800 rounded-full flex items-center justify-center mx-auto mb-6">

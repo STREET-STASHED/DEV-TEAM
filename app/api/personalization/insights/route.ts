@@ -1,36 +1,15 @@
+export const runtime = 'nodejs';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(request:NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const _limit = parseInt(searchParams.get('limit') || '10')
     const insightType = searchParams.get('insightType')
 
     const supabase = await createRouteHandlerClient()
@@ -43,16 +22,15 @@ export async function GET(request:NextRequest) {
 
     // Get user insights using database function
     const { data: insights, error } = await supabase.rpc('get_user_insights', {
-      p_user_id: user.id,
-      p_limit: limit
+      p_user_id: user.id
     })
 
     if (error) throw error
 
     // Filter by insight type if specified
-    const filteredInsights = insightType 
-      ? insights.filter((insight: { insight_type: string }) => insight.insight_type === insightType)
-      : insights
+    const filteredInsights = insightType
+      ? (insights as any[])?.filter((insight: { insight_type: string }) => insight.insight_type === insightType) || []
+      : insights || []
 
     return NextResponse.json({ insights: filteredInsights })
   } catch (error) {
@@ -82,12 +60,12 @@ export async function POST(_request: NextRequest) {
     if (analysisError) throw analysisError
 
     // Generate insights based on behavior analysis
-    const insights = await generateInsightsFromBehavior(behaviorAnalysis, user.id, supabase)
+    const insights = await generateInsightsFromBehavior(behaviorAnalysis as any, user.id, supabase)
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       insightsGenerated: insights.length,
-      behaviorAnalysis 
+      behaviorAnalysis
     })
   } catch (error) {
     console.error('Error generating insights:', error)
@@ -113,12 +91,12 @@ export async function PUT(_request:NextRequest) {
     if (analysisError) throw analysisError
 
     // Generate insights based on behavior analysis
-    const insights = await generateInsightsFromBehavior(behaviorAnalysis, user.id, supabase)
+    const insights = await generateInsightsFromBehavior(behaviorAnalysis as any, user.id, supabase)
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       insightsGenerated: insights.length,
-      behaviorAnalysis 
+      behaviorAnalysis
     })
   } catch (error) {
     console.error('Error generating insights:', error)

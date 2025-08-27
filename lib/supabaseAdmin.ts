@@ -1,4 +1,11 @@
+export const runtime = 'nodejs';
+
+import type { Database } from '@/lib/supabase/database.types';
 import { createClient } from '@supabase/supabase-js';
+
+// Note: This file is for admin operations that require service role access
+// The createClient from @supabase/supabase-js is used here because we need
+// direct access to the service role key for admin operations
 
 // Admin client for operations requiring elevated privileges
 export function createAdminClient() {
@@ -9,7 +16,7 @@ export function createAdminClient() {
     throw new Error('Missing Supabase environment variables for admin operations');
   }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -26,5 +33,5 @@ export function createServiceRoleClient() {
     throw new Error('Missing Supabase environment variables for admin operations');
   }
 
-  return createClient(supabaseUrl, serviceRoleKey);
+  return createClient<Database>(supabaseUrl, serviceRoleKey);
 }

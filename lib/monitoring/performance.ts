@@ -1,13 +1,15 @@
+export const runtime = 'nodejs';
+
 // Performance Monitoring System for StreetStashed MVP
 // Tracks query performance, database health, and optimization improvements
 
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseServer } from '@/app/lib/supabase/server';
 import queries from '../database/queries';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Get supabase client instance
+async function _getSupabaseClient() {
+  return await createSupabaseServer();
+}
 
 // =============================
 // PERFORMANCE METRICS
@@ -197,8 +199,8 @@ export const performanceMonitoring = {
     
     try {
       // Test basic connectivity
-      const { data: _testData, error: testError } = await supabase
-        .from('profiles')
+      const supabase = await _getSupabaseClient();
+      const { data: _testData, error: testError } = await supabase.from('profiles')
         .select('count')
         .limit(1);
       

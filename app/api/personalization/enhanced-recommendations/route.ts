@@ -1,33 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
 import { enhancedPersonalizationSystem } from '@/lib/personalization/enhancedUserProfile'
 import { CacheManager, RealTimeManager } from '@/lib/redis/client'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
@@ -67,27 +45,27 @@ export async function GET(_request: NextRequest) {
     // Enhance recommendations with item details
     const enhancedRecommendations = await Promise.all(
       recommendations.map(async (rec) => {
-        const { data: item } = await supabase
-          supabase.from('items')
-          .select('name, price, category, images, seller_id, description, tags')
+        const { data: item } = await (supabase as any)
+          .from('items')
+          .select('name, price, category, seller_id, description')
           .eq('id', rec.itemId)
-          .single()
+          .maybeSingle()
 
         // Get seller information
         let seller = null
         if (item?.seller_id) {
-          const { data: sellerData } = await supabase
-            supabase.from('profiles')
+          const { data: sellerData } = await (supabase as any)
+            .from('profiles')
             .select('username, avatar_url, verified')
             .eq('id', item.seller_id)
-            .single()
+            .maybeSingle()
           seller = sellerData
         }
 
         return {
           ...rec,
           item: {
-            ...item,
+            ...(item || {} as any),
             seller
           },
           // Enhanced personalization factors
@@ -204,24 +182,28 @@ export async function POST(_request: NextRequest) {
     }
 
     // Track recommendation interaction
-    const { error: eventError } = await supabase
-      supabase.from('personalization_events')
+    const { error: eventError } = await (supabase as any)
+      .from('analytics_events')
       .insert({
         user_id: user.id,
-        event_type: action === 'like' ? 'like' : 'view',
-        item_id: itemId,
-        context: context || {},
-        metadata: { feedback, source: 'enhanced_recommendation' }
+        event_type: 'recommendation_interaction',
+        event_data: {
+          action: action === 'like' ? 'like' : 'view',
+          item_id: itemId,
+          context: context || {},
+          feedback,
+          source: 'enhanced_recommendation'
+        }
       })
 
     if (eventError) throw eventError
 
     // Update recommendation score based on feedback
     if (feedback) {
-      const { error: updateError } = await supabase
-        supabase.from('personalized_recommendations')
-        .update({ 
-          score: feedback === 'positive' ? 0.9 : 0.3 
+      const { error: updateError } = await (supabase as any)
+        .from('personalized_recommendations')
+        .update({
+          score: feedback === 'positive' ? 0.9 : 0.3
         })
         .eq('user_id', user.id)
         .eq('item_id', itemId)
@@ -242,7 +224,7 @@ export async function POST(_request: NextRequest) {
       timestamp: new Date().toISOString()
     })
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
       message: 'Interaction tracked successfully',
       realTime: {
@@ -259,15 +241,15 @@ export async function POST(_request: NextRequest) {
 // Utility methods
 function calculateTimeMatch(timeOfDay?: string): number {
   if (!timeOfDay) return 0.5
-  
+
   const hour = new Date().getHours()
   let currentTimeOfDay = ''
-  
+
   if (hour >= 6 && hour < 12) currentTimeOfDay = 'morning'
   else if (hour >= 12 && hour < 17) currentTimeOfDay = 'afternoon'
   else if (hour >= 17 && hour < 21) currentTimeOfDay = 'evening'
   else currentTimeOfDay = 'night'
-  
+
   return timeOfDay === currentTimeOfDay ? 1.0 : 0.5
 }
 
@@ -286,30 +268,30 @@ function getCurrentSeason(): string {
 
 function calculateOverallPersonalizationScore(recommendations: any[], userContext: Record<string, unknown>): number {
   if (recommendations.length === 0) return 0
-  
+
   const scores = recommendations.map((rec: any) => rec.score)
   const avgScore = scores.reduce((a: number, b: number) => a + b, 0) / scores.length
-  
+
   // Boost score based on context richness
   let contextBoost = 0
   if (userContext.weather) contextBoost += 0.1
   if (userContext.occasion) contextBoost += 0.1
   if (userContext.mood) contextBoost += 0.1
   if (userContext.trendingTopics && Array.isArray(userContext.trendingTopics) && userContext.trendingTopics.length > 0) contextBoost += 0.1
-  
+
   return Math.min(avgScore + contextBoost, 1.0)
 }
 
 function calculateConfidence(recommendations: any[]): number {
   if (recommendations.length === 0) return 0
-  
-  const confidenceScores = recommendations.map((rec: any) => 
+
+  const confidenceScores = recommendations.map((rec: any) =>
     rec.personalizationFactors.styleMatch * 0.3 +
     rec.personalizationFactors.priceMatch * 0.2 +
     rec.personalizationFactors.contextMatch * 0.2 +
     rec.personalizationFactors.trendMatch * 0.15 +
     rec.personalizationFactors.socialProof * 0.15
   )
-  
+
   return confidenceScores.reduce((a: number, b: number) => a + b, 0) / confidenceScores.length
 }

@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabase/client'
 import { NavigationButton } from '@/components/ui/Navigation'
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
 
 type Order = {
   id: string
@@ -9,15 +9,15 @@ type Order = {
 }
 
 async function getOrders(): Promise<Order[]> {
+    const supabase = createSupabaseBrowser();
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     return []
   }
 
-  const { data, error } = await supabase
-    .from('orders')
-    .select('id, status, total, created_at')
+  const { data, error } = await supabase.from('orders')
+    .select('id, status, total_amount, created_at')
     .eq('buyer_id', user.id)
     .order('created_at', { ascending: false })
 
@@ -29,7 +29,7 @@ async function getOrders(): Promise<Order[]> {
   return (data || []).map((order) => ({
     id: order.id,
     status: order.status ?? undefined,
-    total_price: order.total ?? undefined,
+    total_price: order.total_amount ?? undefined,
     created_at: order.created_at ?? undefined,
   }))
 }
@@ -45,7 +45,7 @@ export async function BuyerDashboardContent() {
         <p className="text-ink-300 text-lg mb-6">
           Discover trending styles, connect with top stylists, and earn rewards for your fashion choices
         </p>
-        
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-ink-800/50 rounded-xl p-4 border border-ink-700">
@@ -75,7 +75,7 @@ export async function BuyerDashboardContent() {
             View All
           </NavigationButton>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-ink-800 rounded-xl p-6 border border-ink-700 hover:border-brand-400/50 transition-colors">
             <div className="flex items-center space-x-4 mb-4">
@@ -150,7 +150,7 @@ export async function BuyerDashboardContent() {
             View All
           </NavigationButton>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-gradient-to-r from-brand-500/20 to-brand-600/20 rounded-xl p-6 border border-brand-400/30">
             <div className="flex items-center justify-between mb-3">

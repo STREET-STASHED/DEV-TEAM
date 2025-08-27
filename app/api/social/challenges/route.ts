@@ -1,31 +1,6 @@
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
-
-
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 export async function GET(request:NextRequest) {
   try {
@@ -37,18 +12,18 @@ export async function GET(request:NextRequest) {
 
     if (type === 'active') {
       try {
-        const { data, error } = await supabase
-          supabase.from('social_challenges')
+        const { data, error } = await (supabase as any)
+          .from('social_challenges')
           .select('*')
           .eq('is_active', true)
           .gte('end_date', new Date().toISOString())
           .order('participants', { ascending: false })
           .limit(limit)
-        
+
         if (error) {
           // If table doesn't exist, return mock active challenges
           console.log('Social challenges table not available, returning mock active challenges')
-          return NextResponse.json({ 
+          return NextResponse.json({
             challenges: [
               {
                 id: '1',
@@ -62,12 +37,12 @@ export async function GET(request:NextRequest) {
             ]
           })
         }
-        
+
         return NextResponse.json({ challenges: data })
       } catch (_dbError) {
         // Fallback to mock data if database query fails
         console.log('Database query failed, returning mock active challenges')
-        return NextResponse.json({ 
+        return NextResponse.json({
           challenges: [
             {
               id: '1',
@@ -85,16 +60,16 @@ export async function GET(request:NextRequest) {
 
     // Get all challenges
     try {
-      const { data, error } = await supabase
-        supabase.from('social_challenges')
+      const { data, error } = await (supabase as any)
+        .from('social_challenges')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(limit)
-      
+
       if (error) {
         // If table doesn't exist, return mock challenges
         console.log('Social challenges table not available, returning mock challenges')
-        return NextResponse.json({ 
+        return NextResponse.json({
           challenges: [
             {
               id: '1',
@@ -117,12 +92,12 @@ export async function GET(request:NextRequest) {
           ]
         })
       }
-      
+
       return NextResponse.json({ challenges: data })
     } catch (_dbError) {
       // Fallback to mock data if database query fails
       console.log('Database query failed, returning mock challenges')
-      return NextResponse.json({ 
+      return NextResponse.json({
         challenges: [
           {
             id: '1',
@@ -157,7 +132,7 @@ export async function POST(request:NextRequest) {
     const { title, description, hashtag, startDate, endDate, prize, rules } = body
 
     const supabase = await createRouteHandlerClient()
-    
+
     // Get current user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
@@ -165,19 +140,19 @@ export async function POST(request:NextRequest) {
     }
 
     // Check if user is influencer/admin
-    const { data: profile } = await supabase
-      supabase.from('user_social_profiles')
+    const { data: profile } = await (supabase as any)
+      .from('user_social_profiles')
       .select('is_influencer')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle();
 
-    if (!profile?.is_influencer) {
+    if (!(profile as any)?.is_influencer) {
       return NextResponse.json({ error: 'Only influencers can create challenges' }, { status: 403 })
     }
 
     // Create challenge
-    const { data, error } = await supabase
-      supabase.from('social_challenges')
+    const { data, error } = await (supabase as any)
+      .from('social_challenges')
       .insert({
         title,
         description,
@@ -187,7 +162,7 @@ export async function POST(request:NextRequest) {
         prize,
         rules
       })
-      .select()
+      .select('*')
       .single()
 
     if (error) throw error

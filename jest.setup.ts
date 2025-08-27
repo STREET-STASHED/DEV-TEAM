@@ -21,8 +21,69 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock Supabase
-jest.mock('@/lib/supabase/client', () => ({
-  createClient: jest.fn(() => ({
+jest.mock('@/app/lib/supabase/browser', () => ({
+  createSupabaseBrowser: jest.fn(() => ({
+    auth: {
+      getUser: jest.fn(),
+    },
+    from: jest.fn(() => ({
+      select: jest.fn(),
+      insert: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      eq: jest.fn(),
+      ne: jest.fn(),
+      gt: jest.fn(),
+      lt: jest.fn(),
+      gte: jest.fn(),
+      lte: jest.fn(),
+      like: jest.fn(),
+      ilike: jest.fn(),
+      in: jest.fn(),
+      not: jest.fn(),
+      or: jest.fn(),
+      and: jest.fn(),
+      order: jest.fn(),
+      limit: jest.fn(),
+      range: jest.fn(),
+      single: jest.fn(),
+      then: jest.fn(),
+    })),
+    rpc: jest.fn(),
+  })),
+}));
+
+jest.mock('@/app/lib/supabase/server', () => ({
+  createSupabaseServer: jest.fn(() => ({
+    auth: {
+      getUser: jest.fn(),
+    },
+    from: jest.fn(() => ({
+      select: jest.fn(),
+      insert: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      eq: jest.fn(),
+      ne: jest.fn(),
+      gt: jest.fn(),
+      lt: jest.fn(),
+      gte: jest.fn(),
+      lte: jest.fn(),
+      like: jest.fn(),
+      ilike: jest.fn(),
+      in: jest.fn(),
+      not: jest.fn(),
+      or: jest.fn(),
+      and: jest.fn(),
+      order: jest.fn(),
+      limit: jest.fn(),
+      range: jest.fn(),
+      single: jest.fn(),
+      then: jest.fn(),
+    })),
+    rpc: jest.fn(),
+  })),
+  createRouteHandlerClient: jest.fn(() => ({
     auth: {
       getUser: jest.fn(),
     },

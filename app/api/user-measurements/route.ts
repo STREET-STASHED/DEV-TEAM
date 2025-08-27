@@ -1,39 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -42,11 +20,11 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's measurements
-    const { data: measurements, error: measurementsError } = await supabase
-      supabase.from('user_measurements')
+    const { data: measurements, error: measurementsError } = await (supabase as any)
+      .from('user_measurements')
       .select('*')
       .eq('user_id', session.user.id)
-      .single()
+      .maybeSingle()
 
     if (measurementsError && measurementsError.code !== 'PGRST116') {
       return NextResponse.json(
@@ -71,10 +49,10 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -83,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     const measurementData = await request.json()
-    
+
     // Validate required fields
     if (!measurementData.height || !measurementData.weight) {
       return NextResponse.json(
@@ -93,8 +71,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Upsert the measurements
-    const { data, error } = await supabase
-      supabase.from('user_measurements')
+    const { data, error } = await (supabase as any)
+      .from('user_measurements')
       .upsert({
         user_id: session.user.id,
         height: measurementData.height,
@@ -133,10 +111,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -145,10 +123,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const measurementData = await request.json()
-    
+
     // Update the measurements
-    const { data, error } = await supabase
-      supabase.from('user_measurements')
+    const { data, error } = await (supabase as any)
+      .from('user_measurements')
       .update({
         height: measurementData.height,
         weight: measurementData.weight,
@@ -161,8 +139,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('user_id', session.user.id)
-      .select()
-
+      .select('*')
     if (error) {
       return NextResponse.json(
         { error: 'Failed to update measurements', details: error.message },

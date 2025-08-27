@@ -49,10 +49,33 @@ export class MaintenanceAlertMonitor {
       const logs = await queries.maintenance.getLogs(100);
       
       // Check for failed jobs in the last 24 hours
-      const recentFailures = logs.filter(log => 
+      const recentFailures = logs.filter((log: any) => 
         log.status === 'FAILED' && 
         new Date(log.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000)
       );
+
+      // Check for slow jobs
+      const slowJobs = logs.filter((log: any) => 
+        log.status === 'SUCCESS' && 
+        log.execution_time > 30000 // 30 seconds
+      );
+
+      if (slowJobs.length > 0) {
+        const avgTime = slowJobs.reduce((sum: any, job: any) => sum + job.execution_time, 0) / slowJobs.length;
+        alerts.push({
+          id: `slow_jobs_${Date.now()}`,
+          type: 'performance_degradation',
+          severity: 'medium',
+          title: 'Slow Maintenance Jobs',
+          message: `${slowJobs.length} maintenance job(s) took longer than 30 seconds to complete`,
+          details: {
+            slowJobs,
+            averageExecutionTime: avgTime
+          },
+          timestamp: new Date(),
+          resolved: false
+        });
+      }
 
       if (recentFailures.length > 0) {
         alerts.push({
@@ -72,7 +95,7 @@ export class MaintenanceAlertMonitor {
       }
 
       // Check for long-running jobs
-      const longRunningJobs = logs.filter(log => {
+      const longRunningJobs = logs.filter((log: any) => {
         if (log.completed_at && log.started_at) {
           const duration = new Date(log.completed_at).getTime() - new Date(log.started_at).getTime();
           return duration > 5 * 60 * 1000; // 5 minutes
@@ -81,6 +104,10 @@ export class MaintenanceAlertMonitor {
       });
 
       if (longRunningJobs.length > 0) {
+        const avgDuration = longRunningJobs.reduce((sum: any, job: any) => {
+          const duration = new Date(job.completed_at).getTime() - new Date(job.started_at).getTime();
+          return sum + duration;
+        }, 0) / longRunningJobs.length;
         alerts.push({
           id: `long_running_jobs_${Date.now()}`,
           type: 'performance_degradation',
@@ -89,10 +116,7 @@ export class MaintenanceAlertMonitor {
           message: `${longRunningJobs.length} maintenance job(s) took longer than 5 minutes to complete`,
           details: {
             longRunningJobs,
-            averageDuration: longRunningJobs.reduce((sum, job) => {
-              const duration = new Date(job.completed_at!).getTime() - new Date(job.started_at!).getTime();
-              return sum + duration;
-            }, 0) / longRunningJobs.length
+            averageDuration: avgDuration
           },
           timestamp: new Date(),
           resolved: false

@@ -1,37 +1,16 @@
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const itemId = searchParams.get('itemId')
-    
+
     if (!itemId) {
       return NextResponse.json(
         { error: 'Item ID is required' },
@@ -98,10 +77,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -110,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     const reviewData = await request.json()
-    
+
     // Validate required fields
     if (!reviewData.itemId || !reviewData.rating) {
       return NextResponse.json(
@@ -127,12 +106,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already reviewed this item
-    const { data: existingReview } = await supabase
-      supabase.from('user_reviews')
+    const { data: existingReview } = await (supabase as any)
+      .from('user_reviews')
       .select('*')
       .eq('user_id', session.user.id)
       .eq('item_id', reviewData.itemId)
-      .single()
+      .maybeSingle()
 
     if (existingReview) {
       return NextResponse.json(
@@ -142,16 +121,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the review
-    const { data, error } = await supabase
-      supabase.from('user_reviews')
+    const { data, error } = await (supabase as any)
+      .from('user_reviews')
       .insert({
         user_id: session.user.id,
         item_id: reviewData.itemId,
         rating: reviewData.rating,
         review_text: reviewData.reviewText || null
       })
-      .select()
-
+      .select('*')
     if (error) {
       return NextResponse.json(
         { error: 'Failed to create review', details: error.message },
@@ -177,10 +155,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -189,7 +167,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { reviewId, rating, reviewText } = await request.json()
-    
+
     if (!reviewId) {
       return NextResponse.json(
         { error: 'Review ID is required' },
@@ -205,16 +183,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the review
-    const { data, error } = await supabase
-      supabase.from('user_reviews')
+    const { data, error } = await (supabase as any)
+      .from('user_reviews')
       .update({
         rating: rating || undefined,
         review_text: reviewText || undefined
       })
       .eq('id', reviewId)
       .eq('user_id', session.user.id)
-      .select()
-
+      .select('*')
     if (error) {
       return NextResponse.json(
         { error: 'Failed to update review', details: error.message },
@@ -240,10 +217,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -253,7 +230,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const reviewId = searchParams.get('reviewId')
-    
+
     if (!reviewId) {
       return NextResponse.json(
         { error: 'Review ID is required' },
@@ -262,8 +239,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete the review
-    const { error } = await supabase
-      supabase.from('user_reviews')
+    const { error } = await (supabase as any)
+      .from('user_reviews')
       .delete()
       .eq('id', reviewId)
       .eq('user_id', session.user.id)

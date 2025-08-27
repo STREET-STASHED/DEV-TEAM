@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 import { rateLimit } from '@/lib/rateLimitApp';
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+
+export const runtime = 'nodejs';
 
 // Lazy initialize Stripe to avoid build-time issues
 function getStripe() {
@@ -12,29 +13,35 @@ function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY);
 }
 
-
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+// GET method for endpoint information and testing
+export async function GET(_request: NextRequest) {
+  return NextResponse.json({
+    message: 'Payment Intent Endpoint',
+    method: 'POST',
+    description: 'Create a new payment intent for orders',
+    requiredHeaders: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer <token> (optional for testing)'
+    },
+    requiredBody: {
+      amount: 'number (in dollars)',
+      orderId: 'string',
+      currency: 'string (optional, defaults to usd)'
+    },
+    testMode: 'Use Authorization: Bearer test-token-buyer for testing',
+    example: {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer test-token-buyer'
       },
+      body: {
+        amount: 99.99,
+        orderId: 'order-123',
+        currency: 'usd'
+      }
     }
-  )
+  }, { status: 200 });
 }
 
 export async function POST(request: NextRequest) {
@@ -51,7 +58,7 @@ export async function POST(request: NextRequest) {
     // Check for test authentication header
     const authHeader = request.headers.get('authorization')
     let user = null
-    
+
     if (authHeader && authHeader.startsWith('Bearer test-token-')) {
       // Test user authentication
       const token = authHeader.replace('Bearer ', '')

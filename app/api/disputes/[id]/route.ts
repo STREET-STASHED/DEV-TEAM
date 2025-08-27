@@ -1,36 +1,13 @@
 import { audit } from '@/lib/audit';
 import { getDisputeById, updateDisputeStatus } from '@/lib/db/disputes';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
+
+export const runtime = 'nodejs';
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-    return cookieStore.getAll()
-        },
-        setAll(cookiesToSet: any[]) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }: { name: string; value: string; options?: any }) =>
-              cookieStore.set(name, value, _options)
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
 
 export async function PATCH(
   request: NextRequest,

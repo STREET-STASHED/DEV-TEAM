@@ -1,4 +1,6 @@
-import { createRouteHandlerClient } from '../supabaseRouteHandler';
+export const runtime = 'nodejs';
+
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 
 export interface ReferralStats {
   total_referrals: number;
@@ -54,8 +56,7 @@ export async function getMyReferral(): Promise<{
     }
 
     // Get user's referral code
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: profile, error: profileError } = await supabase.from('profiles')
       .select('referral_code')
       .eq('user_id', user.id)
       .single();
@@ -71,8 +72,7 @@ export async function getMyReferral(): Promise<{
     }
 
     // Get referrals sent by this user
-    const { data: referrals, error: referralsError } = await supabase
-      .from('referrals')
+    const { data: referrals, error: referralsError } = await supabase.from('referrals')
       .select(`
         *,
         profiles (
@@ -145,8 +145,7 @@ export async function redeemReferral(code: string): Promise<{
     }
 
     // Find user with this referral code
-    const { data: referrerProfile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: referrerProfile, error: profileError } = await supabase.from('profiles')
       .select('user_id')
       .eq('referral_code', code)
       .single();
@@ -161,8 +160,7 @@ export async function redeemReferral(code: string): Promise<{
     }
 
     // Check if user already has a referral
-    const { data: existingReferral, error: existingError } = await supabase
-      .from('referrals')
+    const { data: existingReferral, error: existingError } = await supabase.from('referrals')
       .select('id')
       .eq('referred_id', user.id)
       .single();
@@ -178,8 +176,7 @@ export async function redeemReferral(code: string): Promise<{
     }
 
     // Create referral record
-    const { data: referral, error: referralError } = await supabase
-      .from('referrals')
+    const { data: referral, error: referralError } = await supabase.from('referrals')
       .insert({
         referrer_id: referrerProfile.user_id,
         referred_id: user.id,
@@ -222,8 +219,7 @@ export async function getReferralLeaderboard(limit: number = 10): Promise<{
     const supabase = await createRouteHandlerClient();
     
     // Get top referrers by completed referrals
-    const { data: leaderboard, error } = await supabase
-      .from('referrals')
+    const { data: leaderboard, error } = await supabase.from('referrals')
       .select(`
         referrer_id,
         status,
@@ -262,8 +258,7 @@ export async function getReferralLeaderboard(limit: number = 10): Promise<{
     });
 
     // Get total referrals for each user
-    const { data: totalReferrals, error: totalError } = await supabase
-      .from('referrals')
+    const { data: totalReferrals, error: totalError } = await supabase.from('referrals')
       .select('referrer_id')
       .eq('referrer_id', Array.from(referrerStats.keys()));
 
@@ -313,8 +308,7 @@ export async function generateReferralCode(): Promise<{
     }
 
     // Check if user already has a referral code
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: profile, error: profileError } = await supabase.from('profiles')
       .select('referral_code')
       .eq('user_id', user.id)
       .single();
@@ -338,8 +332,7 @@ export async function generateReferralCode(): Promise<{
       attempts++;
       
       // Check if code is unique
-      const { data: existing } = await supabase
-        .from('profiles')
+      const { data: existing } = await supabase.from('profiles')
         .select('id')
         .eq('referral_code', referralCode)
         .single();
@@ -352,8 +345,7 @@ export async function generateReferralCode(): Promise<{
     }
 
     // Update profile with referral code
-    const { error: updateError } = await supabase
-      .from('profiles')
+    const { error: updateError } = await supabase.from('profiles')
       .update({ referral_code: referralCode })
       .eq('user_id', user.id)
       .select('referral_code')
@@ -392,8 +384,7 @@ export async function getReferralById(referralId: string): Promise<{
       return { referral: null, error: 'Unauthorized' };
     }
 
-    const { data: referral, error } = await supabase
-      .from('referrals')
+    const { data: referral, error } = await supabase.from('referrals')
       .select(`
         *,
         profiles (
@@ -410,8 +401,7 @@ export async function getReferralById(referralId: string): Promise<{
     }
 
     // Check permissions
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();

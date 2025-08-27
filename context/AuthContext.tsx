@@ -1,15 +1,15 @@
 'use client'
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabaseClient";
+import { Session, User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import { createSupabaseBrowser } from "../app/lib/supabase/browser";
 
 interface Profile {
   id: string;
@@ -92,8 +92,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Load user profile from database
   const loadProfile = useCallback(async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
+      const supabase = createSupabaseBrowser();
+      const { data, error } = await supabase.from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
-      setProfile(data);
+      setProfile(data as any);
     } catch (error) {
       // Only log unexpected errors
       if (error instanceof Error && !error.message.includes('profiles')) {
@@ -120,6 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         // Get initial session
+        const supabase = createSupabaseBrowser();
         const {
           data: { session: initialSession },
         } = await supabase.auth.getSession();
@@ -160,6 +161,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Sign in
   const signIn = async (email: string, password: string) => {
     try {
+      const supabase = createSupabaseBrowser();
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -182,6 +184,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     profileData: Partial<Profile>,
   ) => {
     try {
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -222,6 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Sign out
   const signOut = async () => {
     try {
+      const supabase = createSupabaseBrowser();
       await supabase.auth.signOut();
       setUser(null);
       setProfile(null);
@@ -235,6 +239,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Reset password
   const resetPassword = async (email: string) => {
     try {
+      const supabase = createSupabaseBrowser();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -254,8 +259,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (!user) return { error: "User not authenticated" };
 
     try {
-      const { error } = await supabase
-        .from("profiles")
+      const supabase = createSupabaseBrowser();
+      const { error } = await supabase.from("profiles")
         .update(updates)
         .eq("id", user.id);
 
@@ -280,6 +285,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
+      const supabase = createSupabaseBrowser();
       const { error: uploadError } = await supabase.storage
         .from("avatars")
         .upload(filePath, file);
@@ -304,6 +310,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Refresh session
   const refreshSession = async () => {
     try {
+      const supabase = createSupabaseBrowser();
       const {
         data: { session: newSession },
         error,

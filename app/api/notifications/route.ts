@@ -1,40 +1,14 @@
+export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 
 
-function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookies()).getAll()
-        },
-        async setAll(cookiesToSet) {
-          try {
-            const cookieStore = await cookies();
-            await Promise.all(
-              cookiesToSet.map(({ name, value, options: _options }) =>
-                cookieStore.set(name, value, _options)
-              )
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -45,8 +19,8 @@ export async function GET(request: NextRequest) {
     const unreadOnly = searchParams.get('unread') === 'true';
     const limit = parseInt(searchParams.get('limit') || '50');
 
-    let query = supabase
-      supabase.from('notifications')
+    let query = (supabase as any)
+      .from('notifications')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -73,7 +47,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -88,8 +62,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify notification belongs to user
-    const { data: notification, error: fetchError } = await supabase
-      supabase.from('notifications')
+    const { data: notification, error: fetchError } = await (supabase as any)
+      .from('notifications')
       .select('id')
       .eq('id', notification_id)
       .eq('user_id', user.id)
@@ -105,11 +79,11 @@ export async function PUT(request: NextRequest) {
       updateData.read_at = read_at;
     }
 
-    const { data: updatedNotification, error: updateError } = await supabase
-      supabase.from('notifications')
+    const { data: updatedNotification, error: updateError } = await (supabase as any)
+      .from('notifications')
       .update(updateData)
       .eq('id', notification_id)
-      .select()
+      .select('*')
       .single();
 
     if (updateError) {
@@ -127,7 +101,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -142,8 +116,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify notification belongs to user
-    const { data: notification, error: fetchError } = await supabase
-      supabase.from('notifications')
+    const { data: notification, error: fetchError } = await (supabase as any)
+      .from('notifications')
       .select('id')
       .eq('id', notification_id)
       .eq('user_id', user.id)
@@ -154,8 +128,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete notification
-    const { error: deleteError } = await supabase
-      supabase.from('notifications')
+    const { error: deleteError } = await (supabase as any)
+      .from('notifications')
       .delete()
       .eq('id', notification_id);
 

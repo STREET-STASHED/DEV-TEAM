@@ -1,38 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -41,11 +19,11 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's style profile
-    const { data: profile, error: profileError } = await supabase
-      supabase.from('user_style_profiles')
+    const { data: profile, error: profileError } = await (supabase as any)
+      .from('user_style_profiles')
       .select('*')
       .eq('user_id', session.user.id)
-      .single()
+      .maybeSingle()
 
     if (profileError && profileError.code !== 'PGRST116') {
       return NextResponse.json(
@@ -70,10 +48,10 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -82,10 +60,10 @@ export async function POST(request: NextRequest) {
     }
 
     const profileData = await request.json()
-    
+
     // Upsert the style profile
-    const { data, error } = await supabase
-      supabase.from('user_style_profiles')
+    const { data, error } = await (supabase as any)
+      .from('user_style_profiles')
       .upsert({
         user_id: session.user.id,
         style_preferences: profileData.stylePreferences || {},
@@ -121,10 +99,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -133,10 +111,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const profileData = await request.json()
-    
+
     // Update the style profile
-    const { data, error } = await supabase
-      supabase.from('user_style_profiles')
+    const { data, error } = await (supabase as any)
+      .from('user_style_profiles')
       .update({
         style_preferences: profileData.stylePreferences,
         body_profile: profileData.bodyProfile,
@@ -146,8 +124,7 @@ export async function PUT(request: NextRequest) {
         updated_at: new Date().toISOString()
       })
       .eq('user_id', session.user.id)
-      .select()
-
+      .select('*')
     if (error) {
       return NextResponse.json(
         { error: 'Failed to update profile', details: error.message },

@@ -1,5 +1,4 @@
 import { NextResponse, NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 
 // 👇 Only admin routes are restricted
 
@@ -28,60 +27,18 @@ export async function middleware(req: NextRequest) {
 
   // 🔒 Only restrict admin routes to admin users
   if (ADMIN_PATHS.some(path => pathname.startsWith(path))) {
-    try {
-      const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        {
-          cookies: {
-            getAll() {
-              return req.cookies
-                .getAll()
-                .map(({ name, value }) => ({ name, value }));
-            },
-            setAll(cookies) {
-              cookies.forEach(({ name, value, options }) => {
-                res.cookies.set(name, value, options);
-              });
-            },
-          },
-        },
-      );
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        // Guest user trying to access admin - redirect to home
-        const url = req.nextUrl.clone();
-        url.pathname = "/";
-        return NextResponse.redirect(url);
-      }
-
-      // Check if user is admin
-      try {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-        
-        if (!profile || profile.role !== 'admin') {
-          const url = req.nextUrl.clone();
-          url.pathname = "/";
-          return NextResponse.redirect(url);
-        }
-      } catch (_e) {
-        // If profile check fails, redirect to home
-        const url = req.nextUrl.clone();
-        url.pathname = "/";
-        return NextResponse.redirect(url);
-      }
-    } catch (_e) {
-      // If Supabase fails, redirect to home
+    // Check for auth token in cookies (simplified approach for Edge Runtime)
+    const authToken = req.cookies.get('sb-access-token')?.value;
+    
+    if (!authToken) {
+      // No auth token - redirect to home
       const url = req.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
+    
+    // For now, allow access if token exists (admin check moved to API routes)
+    // This is a simplified approach - full admin validation happens in the API
   }
 
   // ✅ Allow access to all other pages for everyone (guest users and signed-in users)

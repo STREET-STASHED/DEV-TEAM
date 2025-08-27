@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     const { searchParams } = new URL(request.url)
     const driverId = searchParams.get('driverId')
     const status = searchParams.get('status')
@@ -21,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query
-    let query = supabase
+    let query = (supabase as any)
       .from('orders')
       .select(`
         *,
@@ -52,20 +51,20 @@ export async function GET(request: NextRequest) {
     }
 
     // Format orders with additional information
-    const formattedOrders = orders?.map(order => ({
+    const formattedOrders = orders?.map((order: any) => ({
       id: order.id,
       status: order.status,
       buyer: {
-        id: order.buyer_id,
-        name: order.buyer?.full_name || 'Unknown',
-        phone: order.buyer?.phone || 'N/A',
-        email: order.buyer?.email || 'N/A'
+        user_id: order.buyer_id!,
+        name: (order.buyer as any)?.[0]?.full_name || 'Unknown',
+        phone: (order.buyer as any)?.[0]?.phone || 'N/A',
+        email: (order.buyer as any)?.[0]?.email || 'N/A'
       },
       seller: {
         id: order.seller_id,
-        name: order.seller?.full_name || 'Unknown',
-        phone: order.seller?.phone || 'N/A',
-        email: order.seller?.email || 'N/A'
+        name: (order.seller as any)?.[0]?.full_name || 'Unknown',
+        phone: (order.seller as any)?.[0]?.phone || 'N/A',
+        email: (order.seller as any)?.[0]?.email || 'N/A'
       },
       pickup_address: order.pickup_address,
       delivery_address: order.delivery_address,
@@ -73,9 +72,9 @@ export async function GET(request: NextRequest) {
       delivery_fee: order.delivery_fee,
       distance_miles: order.distance_miles,
       created_at: order.created_at,
-      assigned_at: order.assigned_at,
-      picked_up_at: order.picked_up_at,
-      delivered_at: order.delivered_at,
+      assigned_at: (order as any).assigned_at,
+      picked_up_at: (order as any).picked_up_at,
+      delivered_at: (order as any).delivered_at,
       items: order.order_items || [],
       estimated_earnings: calculateEstimatedEarnings(order),
       status_timeline: getStatusTimeline(order)
@@ -102,6 +101,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     const body = await request.json()
     const { driverId, orderId, action, location } = body
 
@@ -164,10 +165,9 @@ export async function POST(request: NextRequest) {
 
       case 'update_location':
         // Update driver's last known location
-        await supabase
-          .from('driver_profiles')
+        await (supabase as any).from('driver_profiles')
           .update({
-            last_location: location,
+            current_location: location || null,
             last_activity: new Date().toISOString()
           })
           .eq('user_id', driverId)
@@ -185,8 +185,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order
-    const { error: updateError } = await supabase
-      .from('orders')
+    const { error: updateError } = await (supabase as any).from('orders')
       .update(updateData)
       .eq('id', orderId)
       .eq('driver_id', driverId)
@@ -201,8 +200,7 @@ export async function POST(request: NextRequest) {
 
     // Add status history
     if (statusHistoryData.status) {
-      await supabase
-        .from('order_status_history')
+      await (supabase as any).from('order_status_history')
         .insert({
           order_id: orderId,
           driver_id: driverId,
@@ -213,16 +211,18 @@ export async function POST(request: NextRequest) {
 
     // Send notification to buyer
     if (['picked_up', 'in_transit', 'delivered'].includes(action)) {
-      await supabase
-        .from('notifications')
-        .insert({
-          user_id: (await supabase.from('orders').select('buyer_id').eq('id', orderId).single()).data?.buyer_id,
-          type: `delivery_${action}`,
-          title: getNotificationTitle(action),
-          message: getNotificationMessage(action),
-          data: { order_id: orderId, driver_id: driverId },
-          created_at: new Date().toISOString()
-        })
+      const orderData = await (supabase as any).from('orders').select('buyer_id').eq('id', orderId).single()
+      if (orderData.data?.buyer_id) {
+        await (supabase as any).from('notifications')
+          .insert({
+            user_id: orderData.data.buyer_id,
+            type: `delivery_${action}`,
+            title: getNotificationTitle(action),
+            message: getNotificationMessage(action),
+            data: { order_id: orderId, driver_id: driverId },
+            created_at: new Date().toISOString()
+          })
+      }
     }
 
     return NextResponse.json({

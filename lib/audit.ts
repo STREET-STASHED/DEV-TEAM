@@ -1,4 +1,6 @@
-import { createRouteHandlerClient } from './supabaseRouteHandler';
+export const runtime = 'nodejs';
+
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 
 export interface AuditEvent {
   event: string;
@@ -11,12 +13,14 @@ export interface AuditEvent {
 
 export interface AuditLogEntry {
   id: string;
-  event: string;
+  event_type: string;
   user_id: string | null;
-  data: Record<string, unknown> | null;
-  ip_address: string | null;
+  event_data: any;
+  ip_address: unknown;
   user_agent: string | null;
-  created_at: string;
+  created_at: string | null;
+  session_id: string | null;
+  timestamp: string | null;
 }
 
 /**
@@ -57,19 +61,18 @@ export async function audit(
     const safeData = sanitizeAuditData(data);
 
     // Create audit log entry
-    const auditEntry: Partial<AuditLogEntry> = {
-      event,
+    const auditEntry = {
+      event_type: event,
       user_id: userId || null,
-      data: safeData || null,
+      event_data: safeData as any,
       ip_address: ipAddress || null,
       user_agent: userAgent || null,
-      created_at: new Date().toISOString()
+      timestamp: new Date().toISOString()
     };
 
     // Insert into audit_log table
     try {
-      const { error: insertError } = await supabase
-        .from('audit_log')
+      const { error: insertError } = await supabase.from('analytics_events')
         .insert(auditEntry);
 
       if (insertError) {
@@ -160,8 +163,7 @@ export async function getAuditLogs(filters: {
       return { logs: [], total: 0, error: 'Unauthorized' };
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -236,8 +238,7 @@ export async function getUserAuditLogs(
     }
 
     // Users can only see their own audit logs, admins can see any
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -249,8 +250,7 @@ export async function getUserAuditLogs(
       return { logs: [], error: 'Insufficient permissions' };
     }
 
-    const { data: logs, error } = await supabase
-      .from('audit_log')
+    const { data: logs, error } = await supabase.from('audit_log')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -277,8 +277,7 @@ export async function ensureAuditTable(): Promise<{ success: boolean; error?: st
     const supabase = await createRouteHandlerClient();
     
     // Check if audit_log table exists
-    const { data: tables, error: tableError } = await supabase
-      .from('information_schema.tables')
+    const { data: tables, error: tableError } = await (supabase.from as any)('information_schema.tables')
       .select('table_name')
       .eq('table_schema', 'public')
       .eq('table_name', 'audit_log');
@@ -338,11 +337,11 @@ export async function exportAuditLogsCSV(filters: {
     for (const log of logs) {
       const row = [
         log.created_at,
-        log.event,
+        log.event_type,
         log.user_id || '',
         log.ip_address || '',
         (log.user_agent || '').replace(/"/g, '""'), // Escape quotes
-        JSON.stringify(log.data || {}).replace(/"/g, '""') // Escape quotes
+        JSON.stringify(log.event_data || {}).replace(/"/g, '""') // Escape quotes
       ];
       csvRows.push(row.join(','));
     }
@@ -370,8 +369,7 @@ export async function cleanupOldAuditLogs(retentionDays: number = 90): Promise<{
       return { deletedCount: 0, error: 'Unauthorized' };
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -383,8 +381,7 @@ export async function cleanupOldAuditLogs(retentionDays: number = 90): Promise<{
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-    const { data, error } = await supabase
-      .from('audit_log')
+    const { data, error } = await supabase.from('audit_log')
       .delete()
       .lt('created_at', cutoffDate.toISOString())
       .select('id');

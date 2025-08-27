@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
 import { z } from 'zod'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
 
 interface ItemForm {
   name: string
@@ -72,7 +72,7 @@ const popularTags = [
 
 export default function SellerUploadPage() {
   const router = useRouter()
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+  const supabase = createSupabaseBrowser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [currentStep, setCurrentStep] = useState(1)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -201,12 +201,12 @@ export default function SellerUploadPage() {
       const imageUrls = await uploadImages(formData.images)
       
       // Create item in database
-      const { data: item, error } = await supabase
-        .from('items')
+      const user = await supabase.auth.getUser()
+      const { data: item, error } = await supabase.from('items')
         .insert({
           ...validatedData,
-          images: imageUrls,
-          seller_id: (await supabase.auth.getUser()).data.user?.id,
+          image: imageUrls[0], // Use first image as main image
+          seller_id: user.data.user?.id!,
           status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()

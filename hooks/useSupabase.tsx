@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase/client";
-import type { User, Session } from "@supabase/supabase-js";
+import { createSupabaseBrowser } from "@/app/lib/supabase/browser";
+import type { Session, User } from "@supabase/supabase-js";
+import { useEffect, useState } from "react";
 
 export const useSupabase = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -9,9 +9,10 @@ export const useSupabase = () => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const getInitialSession = async () => {
       try {
+        const supabase = createSupabaseBrowser();
         const { data, error } = await supabase.auth.getSession();
         if (error) console.error("getSession error:", error);
         if (mounted) {
@@ -26,17 +27,18 @@ export const useSupabase = () => {
         }
       }
     };
-    
+
     void getInitialSession();
-    
+
     // Subscribe to auth changes
+    const supabase = createSupabaseBrowser();
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
       },
     );
-    
+
     return () => {
       mounted = false;
       listener?.subscription.unsubscribe();
@@ -44,6 +46,7 @@ export const useSupabase = () => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    const supabase = createSupabaseBrowser();
     return await supabase.auth.signInWithPassword({
       email,
       password,
@@ -51,6 +54,7 @@ export const useSupabase = () => {
   };
 
   const signUp = async (email: string, password: string) => {
+    const supabase = createSupabaseBrowser();
     return await supabase.auth.signUp({
       email,
       password,
@@ -58,12 +62,14 @@ export const useSupabase = () => {
   };
 
   const resetPassword = async (email: string) => {
+    const supabase = createSupabaseBrowser();
     return await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
   };
 
   const updatePassword = async (newPassword: string) => {
+    const supabase = createSupabaseBrowser();
     return await supabase.auth.updateUser({ password: newPassword });
   };
 

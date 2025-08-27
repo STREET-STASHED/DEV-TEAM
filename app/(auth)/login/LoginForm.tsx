@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
+import { useState } from 'react'
 
 export function LoginForm() {
   const [email, setEmail] = useState('')
@@ -17,6 +17,7 @@ export function LoginForm() {
     setIsLoading(true)
 
     try {
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -28,8 +29,7 @@ export function LoginForm() {
         return
       }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
+      const { error: profileError } = await supabase.from('profiles')
         .select('has_completed_onboarding')
         .eq('user_id', data.user.id)
         .single()
@@ -90,7 +90,7 @@ export function LoginForm() {
             placeholder="Enter your email"
           />
         </div>
-        
+
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-white">
             Password

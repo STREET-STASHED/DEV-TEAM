@@ -1,14 +1,14 @@
 'use client'
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
 import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "../lib/supabaseClient";
+import {
+    ReactNode,
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import { createSupabaseBrowser } from "../app/lib/supabase/browser";
 
 // Define the Profile type to match a realistic Supabase marketplace schema
 type Profile = {
@@ -55,8 +55,8 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   // Fetch profile from the database
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
+      const supabase = createSupabaseBrowser();
+      const { data, error } = await supabase.from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
@@ -64,7 +64,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
         setProfile(null);
         return;
       }
-      setProfile(data);
+      setProfile(data as any);
     } catch (error) {
       console.error("Failed to fetch profile:", error);
       setProfile(null);
@@ -76,6 +76,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
     const getSessionAndProfile = async () => {
       try {
         setLoading(true);
+        const supabase = createSupabaseBrowser();
         const {
           data: { session: activeSession },
         } = await supabase.auth.getSession();
@@ -95,9 +96,10 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
         }
       }
     };
-    
+
     void getSessionAndProfile();
 
+    const supabase = createSupabaseBrowser();
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, newSession) => {
         try {
@@ -120,7 +122,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
       mounted = false;
       authListener.subscription.unsubscribe();
     };
-     
+
   }, []);
 
   const signIn = async ({
@@ -132,6 +134,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   }) => {
     setLoading(true);
     try {
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -153,6 +156,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
   }) => {
     setLoading(true);
     try {
+      const supabase = createSupabaseBrowser();
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -167,6 +171,7 @@ export const SupabaseProvider = ({ children }: SupabaseProviderProps) => {
 
   const signOut = async () => {
     setLoading(true);
+    const supabase = createSupabaseBrowser();
     await supabase.auth.signOut();
     setLoading(false);
   };

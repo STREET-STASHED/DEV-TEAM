@@ -1,37 +1,10 @@
 import { DisputeStatus, createDispute, listDisputesAdmin, listDisputesForBuyer, listDisputesForSeller, updateDisputeStatus } from '@/lib/db/disputes';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler';
-
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 import { audit } from '@/lib/audit';
 
-
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-    return cookieStore.getAll()
-        },
-        setAll(cookiesToSet: any[]) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }: { name: string; value: string; options?: any }) =>
-              cookieStore.set(name, value, _options)
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
@@ -109,11 +82,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // Get user role to determine access level
-    const { data: profile } = await supabase
-      supabase.from('profiles')
+    const { data: profile } = await (supabase as any)
+      .from('profiles')
       .select('role')
-      .eq('user_id', user.id)
-      .single();
+      .eq('id', user.id)
+      .maybeSingle();
 
     let disputes;
     let error;

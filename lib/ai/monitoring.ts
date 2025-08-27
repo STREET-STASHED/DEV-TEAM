@@ -1,7 +1,9 @@
+export const runtime = 'nodejs';
+
 // 🤖 AI-Powered Production Monitoring System
 // Tracks app health, detects issues, and provides intelligent insights
 
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
 interface MonitoringMetrics {
   timestamp: string
@@ -46,10 +48,8 @@ class AIProductionMonitor {
 
     // Initialize Supabase for metrics storage
     if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      this.supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL,
-        process.env.SUPABASE_SERVICE_ROLE_KEY
-      )
+      // Note: This will be initialized when methods are called
+      this.supabase = null
     }
   }
 
@@ -333,12 +333,21 @@ class AIProductionMonitor {
 
   // 💾 Store metrics in database
   private async storeMetrics(metrics: MonitoringMetrics[]) {
-    if (!this.supabase) return
-
     try {
-      await this.supabase
+      const supabase = await createRouteHandlerClient()
+      const formattedMetrics = metrics.map(metric => ({
+        endpoint: metric.endpoint,
+        response_time: metric.responseTime,
+        status_code: metric.statusCode,
+        error_rate: metric.errorRate,
+        user_count: metric.userCount,
+        memory_usage: metric.memoryUsage,
+        cpu_usage: metric.cpuUsage,
+        timestamp: metric.timestamp
+      }))
+      await supabase
         .from('monitoring_metrics')
-        .insert(metrics)
+        .insert(formattedMetrics)
     } catch (error) {
       console.error('Failed to store metrics:', error)
     }
@@ -346,10 +355,9 @@ class AIProductionMonitor {
 
   // 💾 Store insights in database
   private async storeInsights(insights: AIInsight[]) {
-    if (!this.supabase) return
-
     try {
-      await this.supabase
+      const supabase = await createRouteHandlerClient()
+      await supabase
         .from('monitoring_insights')
         .insert(insights)
     } catch (error) {
@@ -377,10 +385,9 @@ class AIProductionMonitor {
 
   // 🚨 Get recent alerts
   private async getRecentAlerts() {
-    if (!this.supabase) return []
-    
     try {
-      const { data } = await this.supabase
+      const supabase = await createRouteHandlerClient()
+      const { data } = await supabase
         .from('monitoring_alerts')
         .select('*')
         .order('timestamp', { ascending: false })
@@ -393,10 +400,9 @@ class AIProductionMonitor {
 
   // 💡 Get recent insights
   private async getRecentInsights() {
-    if (!this.supabase) return []
-    
     try {
-      const { data } = await this.supabase
+      const supabase = await createRouteHandlerClient()
+      const { data } = await supabase
         .from('monitoring_insights')
         .select('*')
         .order('timestamp', { ascending: false })

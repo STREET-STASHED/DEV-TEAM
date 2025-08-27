@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rateLimitApp';
 import { audit } from '@/lib/audit';
@@ -9,33 +8,6 @@ import { pushSubscriptionSchema } from '@/lib/schemas/viral';
 import { analytics } from '@/lib/analytics';
 
 
-function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookies()).getAll()
-        },
-        async setAll(cookiesToSet) {
-          try {
-            const cookieStore = await cookies();
-            await Promise.all(
-              cookiesToSet.map(({ name, value, options: _options }) =>
-                cookieStore.set(name, value, _options)
-              )
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
 
 export async function POST(request: NextRequest) {
   if (!flags.push) {
@@ -66,8 +38,7 @@ export async function POST(request: NextRequest) {
     const validatedData = pushSubscriptionSchema.parse(body);
 
     // Store or update push token
-    const { data: token, error: insertError } = await supabase
-      .from('push_tokens')
+    const { data: token, error: insertError } = await (supabase as any).from('push_tokens')
       .upsert({
         user_id: user.id,
         token: validatedData.token,
@@ -140,8 +111,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove specific token
-    const { error: deleteError } = await supabase
-      .from('push_tokens')
+    const { error: deleteError } = await (supabase as any).from('push_tokens')
       .delete()
       .eq('user_id', user.id)
       .eq('token', token);
@@ -187,8 +157,7 @@ export async function GET() {
     }
 
     // Get user's active push tokens
-    const { data: tokens, error: fetchError } = await supabase
-      .from('push_tokens')
+    const { data: tokens, error: fetchError } = await (supabase as any).from('push_tokens')
       .select('id, token, platform, created_at, last_used')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });

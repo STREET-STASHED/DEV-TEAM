@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+// import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/rateLimitApp';
+
+export const runtime = 'nodejs';
 
 // Signup request schema
 const signupSchema = z.object({
@@ -43,16 +45,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create admin client for user creation
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      serviceRoleKey || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false
-        }
-      }
-    );
+    const { createServiceRoleClient } = await import('@/lib/supabaseAdmin')
+    const supabaseAdmin = createServiceRoleClient()
 
     // Create user account in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({

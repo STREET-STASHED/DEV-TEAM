@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase/client'
+import { useState } from 'react'
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
 
 type Role = 'buyer' | 'seller' | 'stylist' | 'driver'
 
@@ -105,6 +105,7 @@ export function SignupForm() {
 
       // Auto-login after successful signup using existing client
 
+      const supabase = createSupabaseBrowser();
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -162,7 +163,7 @@ export function SignupForm() {
             Join the Revolution
           </h1>
           <p className="text-xl text-ink-300 max-w-5xl mx-auto">
-            StreetStashed isn&apos;t just a marketplace - it&apos;s a social commerce platform where fashion meets community, 
+            StreetStashed isn&apos;t just a marketplace - it&apos;s a social commerce platform where fashion meets community,
             creativity earns rewards, and every interaction builds your influence.
           </p>
         </div>
@@ -377,7 +378,7 @@ export function SignupForm() {
                   Exclusive member benefits
                 </div>
               </div>
-              
+
               <div className="text-center text-sm text-ink-400">
                 <p>Already have an account? <a href="/login" className="text-brand-400 hover:text-brand-300 font-medium">Sign in</a></p>
               </div>

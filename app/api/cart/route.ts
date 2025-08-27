@@ -1,38 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+export const runtime = 'nodejs';
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-    return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -41,20 +20,20 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's shopping cart with item details
-    const { data: cartItems, error: cartError } = await supabase
-      supabase.from('shopping_cart')
+    const { data: cartItems, error: cartError } = await (supabase as any)
+      .from('cart_items')
       .select(`
         *,
         items (
           id,
           name,
           price,
-          image,
           category,
-          colors,
-          sizes,
-          rating,
-          store
+          seller_id,
+          profiles!items_seller_id_fkey (
+            username,
+            avatar_url
+          )
         )
       `)
       .eq('user_id', session.user.id)
@@ -82,10 +61,10 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -94,7 +73,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { itemId, quantity = 1 } = await request.json()
-    
+
     if (!itemId) {
       return NextResponse.json(
         { error: 'Item ID is required' },
@@ -103,21 +82,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if item already exists in cart
-    const { data: existingItem } = await supabase
-      supabase.from('shopping_cart')
+    const { data: existingItem } = await (supabase as any)
+      .from('cart_items')
       .select('*')
       .eq('user_id', session.user.id)
       .eq('item_id', itemId)
-      .single()
+      .maybeSingle()
 
     if (existingItem) {
       // Update quantity
-      const { data, error } = await supabase
-        supabase.from('shopping_cart')
+      const { data, error } = await (supabase as any)
+        .from('cart_items')
         .update({ quantity: existingItem.quantity + quantity })
         .eq('id', existingItem.id)
-        .select()
-
+        .select('*')
       if (error) {
         return NextResponse.json(
           { error: 'Failed to update cart', details: error.message },
@@ -132,15 +110,14 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Add new item to cart
-      const { data, error } = await supabase
-        supabase.from('shopping_cart')
+      const { data, error } = await (supabase as any)
+        .from('cart_items')
         .insert({
           user_id: session.user.id,
           item_id: itemId,
           quantity: quantity
         })
-        .select()
-
+        .select('*')
       if (error) {
         return NextResponse.json(
           { error: 'Failed to add item to cart', details: error.message },
@@ -167,10 +144,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -179,7 +156,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { itemId, quantity } = await request.json()
-    
+
     if (!itemId || quantity === undefined) {
       return NextResponse.json(
         { error: 'Item ID and quantity are required' },
@@ -189,8 +166,8 @@ export async function PUT(request: NextRequest) {
 
     if (quantity <= 0) {
       // Remove item from cart
-      const { error } = await supabase
-        supabase.from('shopping_cart')
+      const { error } = await (supabase as any)
+        .from('cart_items')
         .delete()
         .eq('user_id', session.user.id)
         .eq('item_id', itemId)
@@ -208,13 +185,12 @@ export async function PUT(request: NextRequest) {
       })
     } else {
       // Update quantity
-      const { data, error } = await supabase
-        supabase.from('shopping_cart')
+      const { data, error } = await (supabase as any)
+        .from('cart_items')
         .update({ quantity: quantity })
         .eq('user_id', session.user.id)
         .eq('item_id', itemId)
-        .select()
-
+        .select('*')
       if (error) {
         return NextResponse.json(
           { error: 'Failed to update cart', details: error.message },
@@ -241,10 +217,10 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -254,7 +230,7 @@ export async function DELETE(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const itemId = searchParams.get('itemId')
-    
+
     if (!itemId) {
       return NextResponse.json(
         { error: 'Item ID is required' },
@@ -263,8 +239,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove item from cart
-    const { error } = await supabase
-      supabase.from('shopping_cart')
+    const { error } = await (supabase as any)
+      .from('cart_items')
       .delete()
       .eq('user_id', session.user.id)
       .eq('item_id', itemId)

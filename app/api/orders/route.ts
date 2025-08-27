@@ -1,39 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+export const runtime = 'nodejs';
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
-    const { data: { session }, error: sessionError } = await (await (await (await (await (await (await (await ))))))).auth.getSession()
-    
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -42,8 +18,8 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's order history
-    const { data: orders, error: ordersError } = await supabase
-      supabase.from('order_history')
+    const { data: orders, error: ordersError } = await (supabase as any)
+      .from('order_history')
       .select('*')
       .eq('user_id', session.user.id)
       .order('created_at', { ascending: false })
@@ -71,10 +47,10 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -83,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     const orderData = await request.json()
-    
+
     // Validate required fields
     if (!orderData.items || !orderData.total_amount) {
       return NextResponse.json(
@@ -93,22 +69,27 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate order number
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    const _orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
     // Create the order
-    const { data, error } = await supabase
-      supabase.from('order_history')
+    const { data, error } = await (supabase as any)
+      .from('orders')
       .insert({
-        user_id: session.user.id,
-        order_number: orderNumber,
+        buyer_id: session.user.id,
         status: 'pending',
         total_amount: orderData.total_amount,
+        item_total: orderData.total_amount,
         items: orderData.items,
-        shipping_address: orderData.shipping_address || null,
-        billing_address: orderData.billing_address || null,
-        payment_method: orderData.payment_method || null
+        delivery_address: orderData.shipping_address || {},
+        pickup_address: {},
+        distance_miles: 0,
+        driver_payout: 0,
+        platform_margin: 0,
+        support_fee_total: 0,
+        seller_id: '00000000-0000-0000-0000-000000000000' // Default seller ID
       })
       .select()
+      .single()
 
     if (error) {
       return NextResponse.json(
@@ -118,17 +99,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Clear the shopping cart after successful order
-    if (orderData.clear_cart) {
-      await supabase
-        supabase.from('shopping_cart')
-        .delete()
-        .eq('user_id', session.user.id)
-    }
+    // TODO: Implement shopping cart functionality
+    // if (orderData.clear_cart) {
+    //   await supabase.from('shopping_cart')
+    //     .delete()
+    //     .eq('user_id', session.user.id)
+    // }
 
     return NextResponse.json({
       success: true,
       message: 'Order created successfully',
-      order: data[0]
+      order: data
     })
 
   } catch (error) {
@@ -143,10 +124,10 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -155,7 +136,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const { orderId, status, ...updateData } = await request.json()
-    
+
     if (!orderId) {
       return NextResponse.json(
         { error: 'Order ID is required' },
@@ -164,15 +145,15 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update the order
-    const { data, error } = await supabase
-      supabase.from('order_history')
+    const { data, error } = await (supabase as any)
+      .from('orders')
       .update({
         status: status || 'pending',
         ...updateData,
         updated_at: new Date().toISOString()
       })
       .eq('id', orderId)
-      .eq('user_id', session.user.id)
+      .eq('buyer_id', session.user.id)
       .select()
 
     if (error) {

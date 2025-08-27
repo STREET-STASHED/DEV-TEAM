@@ -1,37 +1,9 @@
 import { rateLimit } from '@/lib/rateLimitApp'
-import { createRouteHandlerClient } from '../../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 
 // Unused function - keeping for future use
-function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          return (await cookies()).getAll()
-        },
-        async setAll(cookiesToSet) {
-          try {
-            const cookieStore = await cookies();
-            await Promise.all(
-              cookiesToSet.map(({ name, value, options: _options }) =>
-                cookieStore.set(name, value, _options)
-              )
-            )
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,8 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await (supabase as any).from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single()
@@ -63,20 +34,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Get monitoring data from database
-    const { data: metrics } = await supabase
-      .from('monitoring_metrics')
+    const { data: metrics } = await (supabase as any).from('monitoring_metrics')
       .select('*')
       .order('timestamp', { ascending: false })
       .limit(100)
 
-    const { data: alerts } = await supabase
-      .from('monitoring_alerts')
+    const { data: alerts } = await (supabase as any).from('monitoring_alerts')
       .select('*')
       .order('timestamp', { ascending: false })
       .limit(10)
 
-    const { data: insights } = await supabase
-      .from('monitoring_insights')
+    const { data: insights } = await (supabase as any).from('monitoring_insights')
       .select('*')
       .order('timestamp', { ascending: false })
       .limit(10)
@@ -84,13 +52,13 @@ export async function GET(request: NextRequest) {
     // Calculate performance metrics
     const recentMetrics = metrics?.slice(0, 50) || []
     const avgResponseTime = recentMetrics.length > 0
-      ? recentMetrics.reduce((sum, m) => sum + m.response_time, 0) / recentMetrics.length
+      ? recentMetrics.reduce((sum: any, m: any) => sum + m.response_time, 0) / recentMetrics.length
       : 0
     const errorRate = recentMetrics.length > 0
-      ? recentMetrics.reduce((sum, m) => sum + m.error_rate, 0) / recentMetrics.length
+      ? recentMetrics.reduce((sum: any, m: any) => sum + m.error_rate, 0) / recentMetrics.length
       : 0
     const uptime = recentMetrics.length > 0
-      ? (recentMetrics.filter(m => m.status_code < 400).length / recentMetrics.length) * 100
+      ? (recentMetrics.filter((m: any) => m.status_code < 400).length / recentMetrics.length) * 100
       : 100
 
     return NextResponse.json({

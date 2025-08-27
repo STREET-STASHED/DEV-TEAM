@@ -1,39 +1,17 @@
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '../../../lib/supabaseRouteHandler'
-import { cookies } from 'next/headers'
 
 
-async function createSupabaseClient() {
-  return createRouteHandlerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        async getAll() {
-          const cookieStore = await cookies()
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, _options }) => cookieStore.set(name, value, _options))
-          } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  )
-}
+
+
 
 export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
-    const { data: { session }, error: sessionError } = await (await (await (await (await (await (await (await (await (await ))))))))).auth.getSession()
-    
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -42,15 +20,14 @@ export async function GET(_request: NextRequest) {
     }
 
     // Get the user's rewards profile
-    const { data: rewards, error: rewardsError } = await supabase
-      supabase.from('user_rewards')
+    const { data: rewards, error: _rewardsError } = await (supabase as any).from('user_rewards')
       .select('*')
       .eq('user_id', session.user.id)
-      .single()
+      .maybeSingle();
 
-    if (rewardsError && rewardsError.code !== 'PGRST116') {
+    if (_rewardsError && _rewardsError.code !== 'PGRST116') {
       return NextResponse.json(
-        { error: 'Failed to fetch rewards', details: rewardsError.message },
+        { error: 'Failed to fetch rewards', details: _rewardsError.message },
         { status: 500 }
       )
     }
@@ -71,10 +48,10 @@ export async function GET(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get the current session
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -83,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { action, points, reason } = await request.json()
-    
+
     if (!action || !points) {
       return NextResponse.json(
         { error: 'Action and points are required' },
@@ -92,35 +69,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current rewards profile
-    const { data: currentRewards } = await supabase
-      supabase.from('user_rewards')
+    const { data: updatedRewards, error: _rewardsError2 } = await (supabase as any).from('user_rewards')
       .select('*')
       .eq('user_id', session.user.id)
-      .single()
+      .maybeSingle();
 
     let newPoints = points
     let newTotalEarned = points
-    let newTotalSpent = 0
+    let _newTotalSpent = 0
 
     if (action === 'earn') {
       // Earning points
-      if (currentRewards) {
-        newPoints = currentRewards.points + points
-        newTotalEarned = currentRewards.total_earned + points
-        newTotalSpent = currentRewards.total_spent
+      if (updatedRewards) {
+        newPoints = updatedRewards.points + points
+        newTotalEarned = updatedRewards.total_earned + points
+        _newTotalSpent = updatedRewards.total_spent
       }
     } else if (action === 'spend') {
       // Spending points
-      if (currentRewards) {
-        if (currentRewards.points < points) {
+      if (updatedRewards) {
+        if (updatedRewards.points < points) {
           return NextResponse.json(
             { error: 'Insufficient points' },
             { status: 400 }
           )
         }
-        newPoints = currentRewards.points - points
-        newTotalEarned = currentRewards.total_earned
-        newTotalSpent = currentRewards.total_spent + points
+        newPoints = updatedRewards.points - points
+        newTotalEarned = updatedRewards.total_earned
+        _newTotalSpent = (updatedRewards.total_spent || 0) + points
       } else {
         return NextResponse.json(
           { error: 'No rewards profile found' },
@@ -142,29 +118,29 @@ export async function POST(request: NextRequest) {
     else if (newTotalEarned >= 500) newLevel = 'silver'
 
     // Upsert the rewards profile
-    const { data, error } = await supabase
-      supabase.from('user_rewards')
+    const { data: updatedData, error: updateError } = await (supabase as any)
+      .from('user_rewards')
       .upsert({
         user_id: session.user.id,
         points: newPoints,
         total_earned: newTotalEarned,
-        total_spent: newTotalSpent,
-        level: newLevel,
-        last_activity: new Date().toISOString()
+        total_spent: _newTotalSpent,
+        level: newLevel
       }, {
         onConflict: 'user_id'
       })
+      .select()
 
-    if (error) {
+    if (updateError) {
       return NextResponse.json(
-        { error: 'Failed to update rewards', details: error.message },
+        { error: 'Failed to update rewards', details: updateError.message },
         { status: 500 }
       )
     }
 
     // Log the reward event
-    await supabase
-      supabase.from('personalization_events')
+    await (supabase as any)
+      .from('personalization_events')
       .insert({
         user_id: session.user.id,
         event_type: action === 'earn' ? 'reward_earned' : 'reward_spent',
@@ -172,16 +148,15 @@ export async function POST(request: NextRequest) {
         price: points,
         context: {
           reason: reason || 'No reason provided',
-          previousPoints: currentRewards?.points || 0,
-          newPoints: newPoints,
-          level: newLevel
+          previousPoints: updatedRewards?.points || 0,
+          newPoints: newPoints
         }
       })
 
     return NextResponse.json({
       success: true,
       message: `Points ${action === 'earn' ? 'earned' : 'spent'} successfully`,
-      rewards: data?.[0] || null
+      rewards: updatedData?.[0] || null
     })
 
   } catch (error) {

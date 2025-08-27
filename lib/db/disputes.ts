@@ -1,4 +1,6 @@
-import { createRouteHandlerClient } from '../supabaseRouteHandler';
+export const runtime = 'nodejs';
+
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 
 export type DisputeStatus = 'open' | 'pending' | 'approved' | 'denied' | 'refunded' | 'resolved';
 export type ResolutionType = 'refund' | 'exchange' | 'partial_credit' | 'decline';
@@ -23,16 +25,16 @@ export interface DisputeWithOrder {
   buyer_id: string;
   seller_id: string;
   reason: string;
-  description: string;
-  status: DisputeStatus;
+  description: string | null;
+  status: string;
   resolution_notes: string | null;
   escalated_at: string | null;
   resolved_at: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
   orders: {
     id: string;
-    total: number;
+    total_amount: number;
     status: string;
     buyer_id: string;
     seller_id: string;
@@ -57,7 +59,7 @@ export interface DisputeFilters {
 export async function createDispute(payload: CreateDisputePayload): Promise<{ dispute: Record<string, unknown> | null; error?: string }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Get user info
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -65,9 +67,8 @@ export async function createDispute(payload: CreateDisputePayload): Promise<{ di
     }
 
     // Verify order exists and user is the buyer
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .select('id, buyer_id, seller_id, total, status')
+    const { data: order, error: orderError } = await supabase.from('orders')
+      .select('id, buyer_id, seller_id, total_amount, status')
       .eq('id', payload.orderId)
       .single();
 
@@ -84,8 +85,7 @@ export async function createDispute(payload: CreateDisputePayload): Promise<{ di
     }
 
     // Create dispute
-    const { data: dispute, error: disputeError } = await supabase
-      .from('disputes')
+    const { data: dispute, error: disputeError } = await supabase.from('disputes')
       .insert({
         order_id: payload.orderId,
         buyer_id: user.id,
@@ -121,12 +121,12 @@ export async function createDispute(payload: CreateDisputePayload): Promise<{ di
  * Update dispute status and resolution
  */
 export async function updateDisputeStatus(
-  disputeId: string, 
+  disputeId: string,
   payload: UpdateDisputeStatusPayload
 ): Promise<{ dispute: Record<string, unknown> | null; error?: string }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     // Get user info
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -134,8 +134,7 @@ export async function updateDisputeStatus(
     }
 
     // Get dispute and verify permissions
-    const { data: dispute, error: disputeError } = await supabase
-      .from('disputes')
+    const { data: dispute, error: disputeError } = await supabase.from('disputes')
       .select('*')
       .eq('id', disputeId)
       .single();
@@ -145,8 +144,7 @@ export async function updateDisputeStatus(
     }
 
     // Check permissions: seller can update their disputes, admin can update any
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -171,8 +169,7 @@ export async function updateDisputeStatus(
       }
     }
 
-    const { data: updatedDispute, error: updateError } = await supabase
-      .from('disputes')
+    const { data: updatedDispute, error: updateError } = await supabase.from('disputes')
       .update(updateData)
       .eq('id', disputeId)
       .select()
@@ -205,19 +202,18 @@ export async function updateDisputeStatus(
 export async function listDisputesForBuyer(): Promise<{ disputes: DisputeWithOrder[]; error?: string }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { disputes: [], error: 'Unauthorized' };
     }
 
-    const { data: disputes, error } = await supabase
-      .from('disputes')
+    const { data: disputes, error } = await supabase.from('disputes')
       .select(`
         *,
         orders (
           id,
-          total,
+          total_amount,
           status,
           buyer_id,
           seller_id,
@@ -236,7 +232,7 @@ export async function listDisputesForBuyer(): Promise<{ disputes: DisputeWithOrd
       return { disputes: [], error: 'Failed to fetch disputes' };
     }
 
-    return { disputes: disputes || [] };
+    return { disputes: (disputes || []) as any };
   } catch (error) {
     console.error('Error in listDisputesForBuyer:', error);
     return { disputes: [], error: 'Internal server error' };
@@ -249,19 +245,18 @@ export async function listDisputesForBuyer(): Promise<{ disputes: DisputeWithOrd
 export async function listDisputesForSeller(): Promise<{ disputes: DisputeWithOrder[]; error?: string }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { disputes: [], error: 'Unauthorized' };
     }
 
-    const { data: disputes, error } = await supabase
-      .from('disputes')
+    const { data: disputes, error } = await supabase.from('disputes')
       .select(`
         *,
         orders (
           id,
-          total,
+          total_amount,
           status,
           buyer_id,
           seller_id,
@@ -280,7 +275,7 @@ export async function listDisputesForSeller(): Promise<{ disputes: DisputeWithOr
       return { disputes: [], error: 'Failed to fetch disputes' };
     }
 
-    return { disputes: disputes || [] };
+    return { disputes: (disputes || []) as any };
   } catch (error) {
     console.error('Error in listDisputesForSeller:', error);
     return { disputes: [], error: 'Internal server error' };
@@ -293,15 +288,14 @@ export async function listDisputesForSeller(): Promise<{ disputes: DisputeWithOr
 export async function listDisputesAdmin(filters: DisputeFilters = {}): Promise<{ disputes: DisputeWithOrder[]; total: number; error?: string }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { disputes: [], total: 0, error: 'Unauthorized' };
     }
 
     // Verify admin role
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -352,9 +346,9 @@ export async function listDisputesAdmin(filters: DisputeFilters = {}): Promise<{
       return { disputes: [], total: 0, error: 'Failed to fetch disputes' };
     }
 
-    return { 
-      disputes: disputes || [], 
-      total: count || 0 
+    return {
+      disputes: (disputes || []) as any,
+      total: count || 0
     };
   } catch (error) {
     console.error('Error in listDisputesAdmin:', error);
@@ -368,14 +362,13 @@ export async function listDisputesAdmin(filters: DisputeFilters = {}): Promise<{
 export async function getDisputeById(disputeId: string): Promise<{ dispute: DisputeWithOrder | null; error?: string }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { dispute: null, error: 'Unauthorized' };
     }
 
-    const { data: dispute, error } = await supabase
-      .from('disputes')
+    const { data: dispute, error } = await supabase.from('disputes')
       .select(`
         *,
         orders (
@@ -399,8 +392,7 @@ export async function getDisputeById(disputeId: string): Promise<{ dispute: Disp
     }
 
     // Check permissions
-    const { data: profile } = await supabase
-      .from('profiles')
+    const { data: profile } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -413,7 +405,7 @@ export async function getDisputeById(disputeId: string): Promise<{ dispute: Disp
       return { dispute: null, error: 'Insufficient permissions' };
     }
 
-    return { dispute };
+    return { dispute: dispute as any };
   } catch {
     console.error('Error in getDisputeById');
     return { dispute: null, error: 'Internal server error' };

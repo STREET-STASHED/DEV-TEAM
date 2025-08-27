@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     const body = await request.json()
     const { orderId, type, message, driverInfo, estimatedDelivery } = body
 
@@ -19,8 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get order details
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
+    const { data: order, error: orderError } = await (supabase as any).from('orders')
       .select('buyer_id, seller_id, driver_id, status')
       .eq('id', orderId)
       .single()
@@ -49,8 +47,7 @@ export async function POST(request: NextRequest) {
       created_at: new Date().toISOString()
     }
 
-    const { data: notification, error: notificationError } = await supabase
-      .from('notifications')
+    const { data: notification, error: notificationError } = await (supabase as any).from('notifications')
       .insert(notificationData)
       .select()
       .single()
@@ -64,8 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send real-time notification via Supabase Realtime
-    await supabase
-      .channel('delivery_notifications')
+    await (supabase as any).channel('delivery_notifications')
       .send({
         type: 'broadcast',
         event: 'delivery_update',
@@ -90,13 +86,11 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString()
       }
 
-      await supabase
-        .from('notifications')
+      await (supabase as any).from('notifications')
         .insert(sellerNotification)
 
       // Send real-time notification to seller
-      await supabase
-        .channel('delivery_notifications')
+      await (supabase as any).channel('delivery_notifications')
         .send({
           type: 'broadcast',
           event: 'delivery_update',
@@ -174,6 +168,8 @@ function getNotificationPriority(type: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
     const type = searchParams.get('type')
@@ -185,7 +181,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    let query = supabase
+    let query = (supabase as any)
       .from('notifications')
       .select('*')
       .eq('user_id', userId)

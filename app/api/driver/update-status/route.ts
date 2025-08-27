@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     const body = await request.json()
     const { driverId, status, isOnline, isAvailable } = body
 
@@ -36,8 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update driver status
-    const { error } = await supabase
-      .from('driver_profiles')
+    const { error } = await supabase.from('driver_profiles')
       .update(updateData)
       .eq('user_id', driverId)
 

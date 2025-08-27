@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createRouteHandlerClient } from '@/app/lib/supabase/server'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     // Check for cron service authentication (optional for testing)
     const authHeader = request.headers.get('authorization')
     const isCronService = authHeader === `Bearer ${process.env.CRON_SECRET_KEY}`
@@ -21,8 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get all orders ready for pickup
-    const { data: readyOrders, error: ordersError } = await supabase
-      .from('orders')
+    const { data: readyOrders, error: ordersError } = await (supabase as any).from('orders')
       .select('*')
       .eq('status', 'ready_for_pickup')
       .is('driver_id', null)
@@ -44,8 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get all available drivers
-    const { data: availableDrivers, error: driversError } = await supabase
-      .from('driver_profiles')
+    const { data: availableDrivers, error: driversError } = await (supabase as any).from('driver_profiles')
       .select(`
         *,
         profiles!driver_profiles_user_id_fkey(full_name, phone, avatar_url)
@@ -82,8 +79,7 @@ export async function POST(request: NextRequest) {
       if (bestDriver) {
         try {
           // Assign the order
-          const { error: assignmentError } = await supabase
-            .from('orders')
+          const { error: assignmentError } = await (supabase as any).from('orders')
             .update({
               driver_id: bestDriver.user_id,
               status: 'assigned_to_driver',
@@ -97,8 +93,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Add status history
-          await supabase
-            .from('order_status_history')
+          await (supabase as any).from('order_status_history')
             .insert({
               order_id: order.id,
               driver_id: bestDriver.user_id,
@@ -108,8 +103,7 @@ export async function POST(request: NextRequest) {
             })
 
           // Send notification to driver
-          await supabase
-            .from('notifications')
+          await (supabase as any).from('notifications')
             .insert({
               user_id: bestDriver.user_id,
               type: 'new_order_assigned',
@@ -125,8 +119,7 @@ export async function POST(request: NextRequest) {
             })
 
           // Send notification to buyer
-          await supabase
-            .from('notifications')
+          await (supabase as any).from('notifications')
             .insert({
               user_id: order.buyer_id,
               type: 'driver_assigned',
@@ -161,18 +154,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Log the cron job execution
-    await supabase
-      .from('cron_job_logs')
+    await (supabase as any).from('cron_job_logs')
       .insert({
         job_name: 'auto_assign_orders',
-        status: 'completed',
+        executed_at: new Date().toISOString(),
+        success: true,
         details: {
           orders_processed: readyOrders.length,
           orders_assigned: assignedCount,
           available_drivers: availableDrivers.length,
           assignments: assignmentResults
-        },
-        executed_at: new Date().toISOString()
+        }
       })
 
     return NextResponse.json({
@@ -231,21 +223,20 @@ function findBestDriverForOrder(availableDrivers: any[], order: any) {
 // GET endpoint to check auto-assignment status
 export async function GET() {
   try {
+    const supabase = await createRouteHandlerClient()
+    
     // Get statistics
-    const { count: readyOrders } = await supabase
-      .from('orders')
+    const { count: readyOrders } = await (supabase as any).from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'ready_for_pickup')
       .is('driver_id', null)
 
-    const { count: availableDrivers } = await supabase
-      .from('driver_profiles')
+    const { count: availableDrivers } = await (supabase as any).from('driver_profiles')
       .select('*', { count: 'exact', head: true })
       .eq('is_online', true)
       .eq('is_available', true)
 
-    const { count: assignedOrders } = await supabase
-      .from('orders')
+    const { count: assignedOrders } = await (supabase as any).from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'assigned_to_driver')
 

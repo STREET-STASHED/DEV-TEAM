@@ -60,5 +60,18 @@
   "prettier.useEditorConfig": false,
   "javascript.preferences.importModuleSpecifier": "relative",
   "javascript.suggest.autoImports": true,
-  "javascript.updateImportsOnFileMove.enabled": "always"
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "cSpell.enabled": true,
+  "cSpell.allowCompoundWords": true,
+  "cSpell.ignorePaths": [
+    "node_modules/**",
+    ".next/**",
+    "dist/**",
+    "coverage/**",
+    "*.min.js",
+    "*.bundle.js",
+    "pnpm-lock.yaml",
+    "package-lock.json",
+    "yarn.lock"
+  ]
 }

@@ -1,4 +1,6 @@
-import { createRouteHandlerClient } from '../supabaseRouteHandler';
+export const runtime = 'nodejs';
+
+import { createRouteHandlerClient } from '@/app/lib/supabase/server';
 
 export interface RewardPoints {
   current_balance: number;
@@ -26,33 +28,32 @@ export interface CheckoutPointsApplication {
 /**
  * Get current user's reward points and balance
  */
-export async function getMyPoints(): Promise<{ 
-  points: RewardPoints; 
-  error?: string 
+export async function getMyPoints(): Promise<{
+  points: RewardPoints;
+  error?: string
 }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      return { 
-        points: { current_balance: 0, total_earned: 0, total_spent: 0 }, 
-        error: 'Unauthorized' 
+      return {
+        points: { current_balance: 0, total_earned: 0, total_spent: 0 },
+        error: 'Unauthorized'
       };
     }
 
     // Get user's current points balance
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: profile, error: profileError } = await supabase.from('profiles')
       .select('reward_points')
       .eq('user_id', user.id)
       .single();
 
     if (profileError) {
       console.error('Error fetching profile:', profileError);
-      return { 
-        points: { current_balance: 0, total_earned: 0, total_spent: 0 }, 
-        error: 'Failed to fetch profile' 
+      return {
+        points: { current_balance: 0, total_earned: 0, total_spent: 0 },
+        error: 'Failed to fetch profile'
       };
     }
 
@@ -71,9 +72,9 @@ export async function getMyPoints(): Promise<{
     return { points };
   } catch (error) {
     console.error('Error in getMyPoints:', error);
-    return { 
-      points: { current_balance: 0, total_earned: 0, total_spent: 0 }, 
-      error: 'Internal server error' 
+    return {
+      points: { current_balance: 0, total_earned: 0, total_spent: 0 },
+      error: 'Internal server error'
     };
   }
 }
@@ -82,12 +83,12 @@ export async function getMyPoints(): Promise<{
  * Spend points (deduct from balance)
  */
 export async function spendPoints(
-  amount: number, 
+  amount: number,
   meta?: Record<string, unknown>
-): Promise<{ 
-  success: boolean; 
-  newBalance: number; 
-  error?: string 
+): Promise<{
+  success: boolean;
+  newBalance: number;
+  error?: string
 }> {
   try {
     if (amount <= 0) {
@@ -95,15 +96,14 @@ export async function spendPoints(
     }
 
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { success: false, newBalance: 0, error: 'Unauthorized' };
     }
 
     // Get current balance
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: profile, error: profileError } = await supabase.from('profiles')
       .select('reward_points')
       .eq('user_id', user.id)
       .single();
@@ -116,17 +116,16 @@ export async function spendPoints(
     const currentBalance = profile.reward_points || 0;
 
     if (currentBalance < amount) {
-      return { 
-        success: false, 
-        newBalance: currentBalance, 
-        error: 'Insufficient points balance' 
+      return {
+        success: false,
+        newBalance: currentBalance,
+        error: 'Insufficient points balance'
       };
     }
 
     // Update balance
     const newBalance = currentBalance - amount;
-    const { error: updateError } = await supabase
-      .from('profiles')
+    const { error: updateError } = await supabase.from('profiles')
       .update({ reward_points: newBalance })
       .eq('user_id', user.id);
 
@@ -155,12 +154,12 @@ export async function spendPoints(
  * Award points to user
  */
 export async function awardPoints(
-  amount: number, 
+  amount: number,
   meta?: Record<string, unknown>
-): Promise<{ 
-  success: boolean; 
-  newBalance: number; 
-  error?: string 
+): Promise<{
+  success: boolean;
+  newBalance: number;
+  error?: string
 }> {
   try {
     if (amount <= 0) {
@@ -168,15 +167,14 @@ export async function awardPoints(
     }
 
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { success: false, newBalance: 0, error: 'Unauthorized' };
     }
 
     // Get current balance
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: profile, error: profileError } = await supabase.from('profiles')
       .select('reward_points')
       .eq('user_id', user.id)
       .single();
@@ -190,8 +188,7 @@ export async function awardPoints(
     const newBalance = currentBalance + amount;
 
     // Update balance
-    const { error: updateError } = await supabase
-      .from('profiles')
+    const { error: updateError } = await supabase.from('profiles')
       .update({ reward_points: newBalance })
       .eq('user_id', user.id);
 
@@ -221,13 +218,13 @@ export async function awardPoints(
  */
 export async function awardPointsToUser(
   userId: string,
-  amount: number, 
+  amount: number,
   reason: string,
   meta?: Record<string, unknown>
-): Promise<{ 
-  success: boolean; 
-  newBalance: number; 
-  error?: string 
+): Promise<{
+  success: boolean;
+  newBalance: number;
+  error?: string
 }> {
   try {
     if (amount <= 0) {
@@ -235,15 +232,14 @@ export async function awardPointsToUser(
     }
 
     const supabase = await createRouteHandlerClient();
-    
+
     // Verify current user is admin
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { success: false, newBalance: 0, error: 'Unauthorized' };
     }
 
-    const { data: adminProfile, error: profileError } = await supabase
-      .from('profiles')
+    const { data: adminProfile, error: profileError } = await supabase.from('profiles')
       .select('role')
       .eq('user_id', user.id)
       .single();
@@ -253,8 +249,7 @@ export async function awardPointsToUser(
     }
 
     // Get target user's current balance
-    const { data: targetProfile, error: targetProfileError } = await supabase
-      .from('profiles')
+    const { data: targetProfile, error: targetProfileError } = await supabase.from('profiles')
       .select('reward_points')
       .eq('user_id', userId)
       .single();
@@ -268,8 +263,7 @@ export async function awardPointsToUser(
     const newBalance = currentBalance + amount;
 
     // Update balance
-    const { error: updateError } = await supabase
-      .from('profiles')
+    const { error: updateError } = await supabase.from('profiles')
       .update({ reward_points: newBalance })
       .eq('user_id', userId);
 
@@ -304,9 +298,9 @@ export async function calculateCheckoutPointsApplication(
   pointsToApply: number,
   supportFee: number,
   orderTotal: number
-): Promise<{ 
-  application: CheckoutPointsApplication; 
-  error?: string 
+): Promise<{
+  application: CheckoutPointsApplication;
+  error?: string
 }> {
   try {
     if (pointsToApply <= 0) {
@@ -349,11 +343,11 @@ export async function calculateCheckoutPointsApplication(
 
     // Convert points to dollars (1 point = $0.10)
     const pointsValue = pointsToApply * 0.1;
-    
+
     // Apply to support fee first
     const supportFeeReduction = Math.min(pointsValue, supportFee);
     let orderTotalReduction = 0;
-    
+
     // If there are remaining points after support fee, apply to order total
     if (pointsValue > supportFee) {
       orderTotalReduction = Math.min(pointsValue - supportFee, orderTotal);
@@ -392,10 +386,10 @@ export async function applyPointsToCheckout(
   supportFee: number,
   orderTotal: number,
   orderId: string
-): Promise<{ 
-  success: boolean; 
-  application: CheckoutPointsApplication | null; 
-  error?: string 
+): Promise<{
+  success: boolean;
+  application: CheckoutPointsApplication | null;
+  error?: string
 }> {
   try {
     // Calculate how points should be applied
@@ -444,14 +438,14 @@ export async function applyPointsToCheckout(
 /**
  * Get reward points history for current user
  */
-export async function getPointsHistory(): Promise<{ 
-  transactions: RewardTransaction[]; 
-  total: number; 
-  error?: string 
+export async function getPointsHistory(): Promise<{
+  transactions: RewardTransaction[];
+  total: number;
+  error?: string
 }> {
   try {
     const supabase = await createRouteHandlerClient();
-    
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return { transactions: [], total: 0, error: 'Unauthorized' };
@@ -460,10 +454,10 @@ export async function getPointsHistory(): Promise<{
     // TODO: Implement actual rewards transaction table
     // For now, return empty array
     // In a full implementation, you'd query a rewards_transactions table
-    
-    return { 
-      transactions: [], 
-      total: 0 
+
+    return {
+      transactions: [],
+      total: 0
     };
   } catch {
     console.error('Error in getPointsHistory');
