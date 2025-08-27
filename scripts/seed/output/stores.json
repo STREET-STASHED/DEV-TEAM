@@ -1,0 +1,84 @@
+[
+  {
+    "id": "store-1",
+    "name": "Urban Threads Collective",
+    "description": "Premium streetwear and urban fashion from local designers",
+    "rating": 4.8,
+    "reviewCount": 1247,
+    "deliveryTime": "45-75 min",
+    "minOrder": 25,
+    "categories": [
+      "clothing",
+      "shoes",
+      "accessories"
+    ],
+    "image": "/images/mock/streetwear/hoodie-01.webp",
+    "location": "Downtown District",
+    "isVerified": true
+  },
+  {
+    "id": "store-2",
+    "name": "Sneaker Haven",
+    "description": "Exclusive sneakers and athletic wear from top brands",
+    "rating": 4.9,
+    "reviewCount": 892,
+    "deliveryTime": "30-60 min",
+    "minOrder": 50,
+    "categories": [
+      "shoes",
+      "clothing"
+    ],
+    "image": "/images/mock/sneakers/sneakers-01.webp",
+    "location": "Sports District",
+    "isVerified": true
+  },
+  {
+    "id": "store-3",
+    "name": "Luxe Jewelry Co.",
+    "description": "Handcrafted jewelry and luxury accessories",
+    "rating": 4.7,
+    "reviewCount": 567,
+    "deliveryTime": "60-90 min",
+    "minOrder": 75,
+    "categories": [
+      "jewelry",
+      "accessories"
+    ],
+    "image": "/images/mock/jewelry/jewelry-01.webp",
+    "location": "Fashion Quarter",
+    "isVerified": true
+  },
+  {
+    "id": "store-4",
+    "name": "Vintage Vault",
+    "description": "Curated vintage clothing and retro accessories",
+    "rating": 4.6,
+    "reviewCount": 423,
+    "deliveryTime": "45-75 min",
+    "minOrder": 30,
+    "categories": [
+      "clothing",
+      "accessories"
+    ],
+    "image": "/images/mock/streetwear/streetwear-01.webp",
+    "location": "Arts District",
+    "isVerified": false
+  },
+  {
+    "id": "store-5",
+    "name": "Athletic Edge",
+    "description": "Performance sportswear and fitness gear",
+    "rating": 4.8,
+    "reviewCount": 756,
+    "deliveryTime": "30-60 min",
+    "minOrder": 40,
+    "categories": [
+      "clothing",
+      "shoes",
+      "accessories"
+    ],
+    "image": "/images/mock/streetwear/streetwear-02.webp",
+    "location": "Fitness District",
+    "isVerified": true
+  }
+]

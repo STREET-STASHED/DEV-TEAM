@@ -17,6 +17,8 @@
     "test:coverage": "jest --coverage",
     "performance": "lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html",
     "bundle-size": "pnpm build:analyze",
+    "mock:fetch": "tsx scripts/fetch-mock-images.ts",
+    "db:seed:products": "tsx scripts/seed/products.seed.ts",
     "native:sync": "cap sync",
     "native:sync:ios": "cap sync ios",
     "native:sync:android": "cap sync android",
@@ -71,7 +73,9 @@
     "eslint-plugin-react-hooks": "5",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^30.0.5",
+    "sharp": "^0.34.3",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.5",
     "typescript": "^5",
     "typescript-eslint": "8"
   },
