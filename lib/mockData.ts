@@ -4,7 +4,8 @@ export const mockProducts = [
     "id": "prod-001",
     "name": "Air Jordan Retro High OG",
     "description": "Classic retro basketball sneakers with premium materials",
-    "price": 205,
+    "price": 233,
+    "originalPrice": 302,
     "category": "sneakers",
     "subcategory": "basketball",
     "storeId": "store-2",
@@ -29,8 +30,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 66,
+    "rating": 4.3,
+    "reviewCount": 160,
     "inStock": true,
     "isTrending": true,
     "tags": [
@@ -40,13 +41,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-30T15:48:36.385Z"
+    "created_at": "2025-08-23T18:05:15.231Z"
   },
   {
     "id": "prod-002",
     "name": "Nike Air Force 1 Low",
     "description": "Timeless street style with superior comfort",
-    "price": 160,
+    "price": 176,
     "category": "sneakers",
     "subcategory": "lifestyle",
     "storeId": "store-2",
@@ -71,10 +72,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.5,
-    "reviewCount": 256,
+    "rating": 5.3,
+    "reviewCount": 304,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "sneakers",
       "lifestyle",
@@ -82,13 +83,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-02T23:43:11.231Z"
+    "created_at": "2025-08-20T21:52:45.823Z"
   },
   {
     "id": "prod-003",
     "name": "Adidas Yeezy Boost 350",
     "description": "Innovative design meets urban fashion",
-    "price": 208,
+    "price": 144,
     "category": "sneakers",
     "subcategory": "running",
     "storeId": "store-2",
@@ -113,10 +114,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 315,
+    "rating": 4.6,
+    "reviewCount": 198,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "sneakers",
       "running",
@@ -124,14 +125,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-13T05:57:11.112Z"
+    "created_at": "2025-07-31T00:37:59.507Z"
   },
   {
     "id": "prod-004",
     "name": "Converse Chuck Taylor All Star",
     "description": "Iconic canvas sneakers for everyday wear",
-    "price": 131,
-    "originalPrice": 170,
+    "price": 295,
     "category": "sneakers",
     "subcategory": "skate",
     "storeId": "store-2",
@@ -156,8 +156,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 133,
+    "rating": 4.7,
+    "reviewCount": 408,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -167,14 +167,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-14T13:10:09.425Z"
+    "created_at": "2025-08-01T08:46:43.052Z"
   },
   {
     "id": "prod-005",
     "name": "Vans Old Skool",
     "description": "Skate-inspired design with classic side stripe",
-    "price": 243,
-    "originalPrice": 315,
+    "price": 173,
     "category": "sneakers",
     "subcategory": "retro",
     "storeId": "store-2",
@@ -199,8 +198,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 76,
+    "rating": 5.1,
+    "reviewCount": 130,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -210,13 +209,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-15T10:15:27.751Z"
+    "created_at": "2025-08-17T07:39:17.189Z"
   },
   {
     "id": "prod-006",
     "name": "New Balance 574",
     "description": "Comfortable lifestyle sneakers with heritage appeal",
-    "price": 259,
+    "price": 239,
     "category": "sneakers",
     "subcategory": "premium",
     "storeId": "store-2",
@@ -241,10 +240,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 229,
+    "rating": 4.3,
+    "reviewCount": 459,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "sneakers",
       "premium",
@@ -252,14 +251,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-21T21:54:38.918Z"
+    "created_at": "2025-08-16T03:12:56.596Z"
   },
   {
     "id": "prod-007",
     "name": "Nike Dunk Low",
     "description": "Basketball-inspired street style",
-    "price": 120,
-    "originalPrice": 156,
+    "price": 227,
+    "originalPrice": 295,
     "category": "sneakers",
     "subcategory": "basketball",
     "storeId": "store-2",
@@ -284,10 +283,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 472,
+    "rating": 4.8,
+    "reviewCount": 384,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "sneakers",
       "basketball",
@@ -295,14 +294,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-10T22:38:52.342Z"
+    "created_at": "2025-08-07T16:40:44.624Z"
   },
   {
     "id": "prod-008",
     "name": "Adidas Ultraboost",
     "description": "Revolutionary running technology for street wear",
-    "price": 150,
-    "originalPrice": 195,
+    "price": 138,
     "category": "sneakers",
     "subcategory": "lifestyle",
     "storeId": "store-2",
@@ -327,10 +325,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4,
-    "reviewCount": 500,
+    "rating": 4.3,
+    "reviewCount": 263,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "sneakers",
       "lifestyle",
@@ -338,14 +336,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-31T05:43:45.701Z"
+    "created_at": "2025-08-04T02:02:50.531Z"
   },
   {
     "id": "prod-009",
     "name": "Jordan 1 Mid",
     "description": "Mid-top basketball heritage with modern comfort",
-    "price": 152,
-    "originalPrice": 197,
+    "price": 244,
     "category": "sneakers",
     "subcategory": "running",
     "storeId": "store-2",
@@ -370,10 +367,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 219,
+    "rating": 4.5,
+    "reviewCount": 77,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "sneakers",
       "running",
@@ -381,13 +378,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-01T02:37:02.413Z"
+    "created_at": "2025-08-15T05:09:04.059Z"
   },
   {
     "id": "prod-010",
     "name": "Nike Air Max 90",
     "description": "Air cushioning technology for ultimate comfort",
-    "price": 244,
+    "price": 231,
+    "originalPrice": 300,
     "category": "sneakers",
     "subcategory": "skate",
     "storeId": "store-2",
@@ -412,8 +410,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 200,
+    "rating": 5,
+    "reviewCount": 387,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -423,13 +421,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-13T17:26:15.092Z"
+    "created_at": "2025-07-29T04:38:46.612Z"
   },
   {
     "id": "prod-011",
     "name": "Yeezy 700 V3",
     "description": "Futuristic design with innovative materials",
-    "price": 110,
+    "price": 144,
     "category": "sneakers",
     "subcategory": "retro",
     "storeId": "store-2",
@@ -454,8 +452,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.2,
-    "reviewCount": 473,
+    "rating": 4.2,
+    "reviewCount": 479,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -465,13 +463,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-23T19:19:27.365Z"
+    "created_at": "2025-08-13T20:54:32.565Z"
   },
   {
     "id": "prod-012",
     "name": "Nike SB Dunk",
     "description": "Skateboarding heritage meets street fashion",
-    "price": 272,
+    "price": 123,
     "category": "sneakers",
     "subcategory": "premium",
     "storeId": "store-2",
@@ -496,10 +494,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.5,
-    "reviewCount": 275,
+    "rating": 4.2,
+    "reviewCount": 357,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "sneakers",
       "premium",
@@ -507,14 +505,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-14T18:27:36.345Z"
+    "created_at": "2025-08-14T03:56:16.529Z"
   },
   {
     "id": "prod-013",
     "name": "Adidas NMD",
     "description": "Revolutionary running technology for lifestyle",
-    "price": 153,
-    "originalPrice": 198,
+    "price": 165,
+    "originalPrice": 214,
     "category": "sneakers",
     "subcategory": "basketball",
     "storeId": "store-2",
@@ -537,10 +535,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 390,
+    "rating": 5.1,
+    "reviewCount": 93,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "sneakers",
       "basketball",
@@ -548,13 +546,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-14T18:34:20.196Z"
+    "created_at": "2025-08-09T16:54:32.966Z"
   },
   {
     "id": "prod-014",
     "name": "Jordan 4 Retro",
     "description": "Basketball heritage with premium materials",
-    "price": 160,
+    "price": 117,
     "category": "sneakers",
     "subcategory": "lifestyle",
     "storeId": "store-2",
@@ -577,10 +575,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 361,
+    "rating": 4,
+    "reviewCount": 139,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "sneakers",
       "lifestyle",
@@ -588,13 +586,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-03T18:17:49.487Z"
+    "created_at": "2025-08-01T14:51:51.743Z"
   },
   {
     "id": "prod-015",
     "name": "Nike Air Jordan 6",
     "description": "Classic basketball design with modern comfort",
-    "price": 116,
+    "price": 281,
     "category": "sneakers",
     "subcategory": "running",
     "storeId": "store-2",
@@ -617,8 +615,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 347,
+    "rating": 5,
+    "reviewCount": 147,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -628,13 +626,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-16T03:32:48.829Z"
+    "created_at": "2025-08-25T23:27:09.685Z"
   },
   {
     "id": "prod-016",
     "name": "Adidas Stan Smith",
     "description": "Timeless tennis-inspired street style",
-    "price": 218,
+    "price": 169,
+    "originalPrice": 219,
     "category": "sneakers",
     "subcategory": "skate",
     "storeId": "store-2",
@@ -657,8 +656,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 380,
+    "rating": 4.4,
+    "reviewCount": 491,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -668,13 +667,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-13T01:29:05.550Z"
+    "created_at": "2025-08-19T13:19:24.056Z"
   },
   {
     "id": "prod-017",
     "name": "Nike Blazer Mid",
     "description": "Basketball heritage meets skate culture",
-    "price": 204,
+    "price": 190,
     "category": "sneakers",
     "subcategory": "retro",
     "storeId": "store-2",
@@ -697,8 +696,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 130,
+    "rating": 4.7,
+    "reviewCount": 50,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -708,13 +707,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-02T16:24:36.471Z"
+    "created_at": "2025-08-07T18:20:50.247Z"
   },
   {
     "id": "prod-018",
     "name": "Jordan 11 Retro",
     "description": "Basketball excellence with premium materials",
-    "price": 250,
+    "price": 254,
+    "originalPrice": 330,
     "category": "sneakers",
     "subcategory": "premium",
     "storeId": "store-2",
@@ -737,8 +737,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 100,
+    "rating": 5,
+    "reviewCount": 91,
     "inStock": true,
     "isTrending": true,
     "tags": [
@@ -748,14 +748,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-22T16:18:49.538Z"
+    "created_at": "2025-08-12T05:22:31.037Z"
   },
   {
     "id": "prod-019",
     "name": "Nike Air Jordan 3",
     "description": "Basketball heritage with innovative comfort",
-    "price": 156,
-    "originalPrice": 202,
+    "price": 194,
     "category": "sneakers",
     "subcategory": "basketball",
     "storeId": "store-2",
@@ -778,8 +777,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4,
-    "reviewCount": 390,
+    "rating": 5,
+    "reviewCount": 160,
     "inStock": true,
     "isTrending": true,
     "tags": [
@@ -789,14 +788,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-09T00:05:49.822Z"
+    "created_at": "2025-08-14T06:09:20.256Z"
   },
   {
     "id": "prod-020",
     "name": "Adidas Gazelle",
     "description": "Classic tennis heritage for street style",
-    "price": 146,
-    "originalPrice": 189,
+    "price": 291,
     "category": "sneakers",
     "subcategory": "lifestyle",
     "storeId": "store-2",
@@ -819,8 +817,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 170,
+    "rating": 4.8,
+    "reviewCount": 501,
     "inStock": true,
     "isTrending": true,
     "tags": [
@@ -830,13 +828,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-03T21:16:15.334Z"
+    "created_at": "2025-08-26T19:39:08.781Z"
   },
   {
     "id": "prod-021",
     "name": "Nike Air Jordan 5",
     "description": "Basketball heritage with innovative design",
-    "price": 106,
+    "price": 289,
     "category": "sneakers",
     "subcategory": "running",
     "storeId": "store-2",
@@ -859,8 +857,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.8,
-    "reviewCount": 186,
+    "rating": 5.4,
+    "reviewCount": 455,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -870,14 +868,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-08T08:32:21.729Z"
+    "created_at": "2025-08-09T23:18:53.318Z"
   },
   {
     "id": "prod-022",
     "name": "Yeezy 500",
     "description": "Futuristic design with premium comfort",
-    "price": 248,
-    "originalPrice": 322,
+    "price": 234,
     "category": "sneakers",
     "subcategory": "skate",
     "storeId": "store-2",
@@ -900,8 +897,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 308,
+    "rating": 4.6,
+    "reviewCount": 262,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -911,13 +908,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-18T08:01:41.187Z"
+    "created_at": "2025-08-03T11:38:16.792Z"
   },
   {
     "id": "prod-023",
     "name": "Nike Air Jordan 12",
     "description": "Basketball heritage with luxury materials",
-    "price": 272,
+    "price": 123,
     "category": "sneakers",
     "subcategory": "retro",
     "storeId": "store-2",
@@ -941,8 +938,8 @@ export const mockProducts = [
       "Gray"
     ],
     "rating": 4,
-    "reviewCount": 373,
-    "inStock": true,
+    "reviewCount": 280,
+    "inStock": false,
     "isTrending": false,
     "tags": [
       "sneakers",
@@ -951,13 +948,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-11T10:44:50.042Z"
+    "created_at": "2025-08-05T01:41:58.027Z"
   },
   {
     "id": "prod-024",
     "name": "Adidas Superstar",
     "description": "Iconic tennis heritage for street culture",
-    "price": 262,
+    "price": 173,
     "category": "sneakers",
     "subcategory": "premium",
     "storeId": "store-2",
@@ -980,8 +977,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.4,
-    "reviewCount": 287,
+    "rating": 5.3,
+    "reviewCount": 463,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -991,13 +988,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-06T18:07:33.301Z"
+    "created_at": "2025-08-25T22:36:47.280Z"
   },
   {
     "id": "prod-025",
     "name": "Oversized Street Hoodie",
     "description": "Premium cotton blend with street art graphics",
-    "price": 49,
+    "price": 61,
     "category": "streetwear",
     "subcategory": "hoodies",
     "storeId": "store-1",
@@ -1022,8 +1019,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 539,
+    "rating": 4.7,
+    "reviewCount": 471,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1033,13 +1030,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-05T12:12:36.734Z"
+    "created_at": "2025-08-27T15:08:36.828Z"
   },
   {
     "id": "prod-026",
     "name": "Vintage Denim Jacket",
     "description": "Authentic vintage denim with distressed details",
-    "price": 40,
+    "price": 83,
+    "originalPrice": 103,
     "category": "streetwear",
     "subcategory": "jackets",
     "storeId": "store-1",
@@ -1064,10 +1062,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.8,
-    "reviewCount": 388,
+    "rating": 4.2,
+    "reviewCount": 529,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "jackets",
@@ -1075,13 +1073,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-31T05:44:40.374Z"
+    "created_at": "2025-08-27T11:33:59.626Z"
   },
   {
     "id": "prod-027",
     "name": "Cargo Pants",
     "description": "Functional cargo design with street style",
-    "price": 48,
+    "price": 90,
     "category": "streetwear",
     "subcategory": "pants",
     "storeId": "store-1",
@@ -1106,8 +1104,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4,
-    "reviewCount": 417,
+    "rating": 4.1,
+    "reviewCount": 62,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1117,13 +1115,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-23T11:31:29.549Z"
+    "created_at": "2025-08-26T05:44:37.410Z"
   },
   {
     "id": "prod-028",
     "name": "Bomber Jacket",
     "description": "Classic bomber silhouette with urban edge",
-    "price": 61,
+    "price": 107,
+    "originalPrice": 133,
     "category": "streetwear",
     "subcategory": "tops",
     "storeId": "store-1",
@@ -1148,8 +1147,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 461,
+    "rating": 4.7,
+    "reviewCount": 349,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1159,13 +1158,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-27T15:51:58.699Z"
+    "created_at": "2025-08-11T21:27:41.829Z"
   },
   {
     "id": "prod-029",
     "name": "Track Suit Set",
     "description": "Co-ordinated set for ultimate street style",
     "price": 100,
+    "originalPrice": 125,
     "category": "streetwear",
     "subcategory": "sets",
     "storeId": "store-1",
@@ -1190,8 +1190,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.6,
-    "reviewCount": 402,
+    "rating": 5,
+    "reviewCount": 210,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1201,13 +1201,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-26T06:47:56.447Z"
+    "created_at": "2025-08-04T22:27:56.956Z"
   },
   {
     "id": "prod-030",
     "name": "Oversized T-Shirt",
     "description": "Oversized fit with bold street graphics",
-    "price": 55,
+    "price": 92,
     "category": "streetwear",
     "subcategory": "accessories",
     "storeId": "store-1",
@@ -1232,8 +1232,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5,
-    "reviewCount": 503,
+    "rating": 5.4,
+    "reviewCount": 152,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1243,13 +1243,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-12T13:51:51.031Z"
+    "created_at": "2025-08-19T07:06:49.411Z"
   },
   {
     "id": "prod-031",
     "name": "Street Style Sweatpants",
     "description": "Comfortable sweatpants with street aesthetic",
-    "price": 47,
+    "price": 55,
     "category": "streetwear",
     "subcategory": "hoodies",
     "storeId": "store-1",
@@ -1274,10 +1274,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.2,
-    "reviewCount": 491,
+    "rating": 4.3,
+    "reviewCount": 332,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "hoodies",
@@ -1285,13 +1285,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-19T16:59:14.521Z"
+    "created_at": "2025-08-09T23:38:25.074Z"
   },
   {
     "id": "prod-032",
     "name": "Urban Windbreaker",
     "description": "Lightweight protection with urban style",
-    "price": 68,
+    "price": 104,
+    "originalPrice": 130,
     "category": "streetwear",
     "subcategory": "jackets",
     "storeId": "store-1",
@@ -1316,10 +1317,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5,
-    "reviewCount": 548,
+    "rating": 5.3,
+    "reviewCount": 316,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "jackets",
@@ -1327,14 +1328,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-23T22:45:54.074Z"
+    "created_at": "2025-08-11T05:39:08.140Z"
   },
   {
     "id": "prod-033",
     "name": "Street Fashion Blazer",
     "description": "Sophisticated street style with urban edge",
-    "price": 52,
-    "originalPrice": 65,
+    "price": 43,
+    "originalPrice": 53,
     "category": "streetwear",
     "subcategory": "pants",
     "storeId": "store-1",
@@ -1359,9 +1360,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 288,
-    "inStock": true,
+    "rating": 4.2,
+    "reviewCount": 480,
+    "inStock": false,
     "isTrending": false,
     "tags": [
       "streetwear",
@@ -1370,14 +1371,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-21T17:18:46.310Z"
+    "created_at": "2025-08-14T02:54:58.684Z"
   },
   {
     "id": "prod-034",
     "name": "Urban Cargo Shorts",
     "description": "Functional shorts with street fashion appeal",
-    "price": 49,
-    "originalPrice": 61,
+    "price": 45,
+    "originalPrice": 56,
     "category": "streetwear",
     "subcategory": "tops",
     "storeId": "store-1",
@@ -1402,8 +1403,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 314,
+    "rating": 4.4,
+    "reviewCount": 540,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1413,13 +1414,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-21T07:42:19.374Z"
+    "created_at": "2025-08-22T19:00:04.209Z"
   },
   {
     "id": "prod-035",
     "name": "Street Style Cardigan",
     "description": "Layered street style with urban comfort",
-    "price": 106,
+    "price": 108,
+    "originalPrice": 135,
     "category": "streetwear",
     "subcategory": "sets",
     "storeId": "store-1",
@@ -1444,10 +1446,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 177,
+    "rating": 4.6,
+    "reviewCount": 83,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "sets",
@@ -1455,13 +1457,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-30T11:05:15.699Z"
+    "created_at": "2025-08-14T12:12:19.765Z"
   },
   {
     "id": "prod-036",
     "name": "Urban Bomber Vest",
     "description": "Lightweight vest with bomber aesthetics",
-    "price": 44,
+    "price": 106,
     "category": "streetwear",
     "subcategory": "accessories",
     "storeId": "store-1",
@@ -1486,10 +1488,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 297,
+    "rating": 5.1,
+    "reviewCount": 350,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "accessories",
@@ -1497,13 +1499,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-21T14:28:37.249Z"
+    "created_at": "2025-08-18T07:43:29.791Z"
   },
   {
     "id": "prod-037",
     "name": "Street Fashion Shirt",
     "description": "Street fashion with urban sophistication",
-    "price": 49,
+    "price": 117,
     "category": "streetwear",
     "subcategory": "hoodies",
     "storeId": "store-1",
@@ -1526,8 +1528,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 283,
+    "rating": 4.8,
+    "reviewCount": 330,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1537,14 +1539,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-21T04:15:17.547Z"
+    "created_at": "2025-08-09T19:13:58.625Z"
   },
   {
     "id": "prod-038",
     "name": "Urban Track Jacket",
     "description": "Athletic heritage with street style",
-    "price": 67,
-    "originalPrice": 83,
+    "price": 51,
+    "originalPrice": 63,
     "category": "streetwear",
     "subcategory": "jackets",
     "storeId": "store-1",
@@ -1567,8 +1569,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 371,
+    "rating": 5,
+    "reviewCount": 71,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1578,13 +1580,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-25T18:49:17.097Z"
+    "created_at": "2025-08-13T06:43:43.353Z"
   },
   {
     "id": "prod-039",
     "name": "Street Style Sweater",
     "description": "Cozy street style with urban comfort",
-    "price": 108,
+    "price": 42,
+    "originalPrice": 52,
     "category": "streetwear",
     "subcategory": "pants",
     "storeId": "store-1",
@@ -1607,10 +1610,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 382,
+    "rating": 4.7,
+    "reviewCount": 74,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "pants",
@@ -1618,14 +1621,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-24T22:28:03.705Z"
+    "created_at": "2025-08-27T03:50:45.144Z"
   },
   {
     "id": "prod-040",
     "name": "Urban Cargo Joggers",
     "description": "Functional joggers with street fashion",
     "price": 70,
-    "originalPrice": 87,
     "category": "streetwear",
     "subcategory": "tops",
     "storeId": "store-1",
@@ -1648,8 +1650,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 120,
+    "rating": 5.4,
+    "reviewCount": 482,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1659,14 +1661,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-01T07:01:23.612Z"
+    "created_at": "2025-08-22T10:18:26.482Z"
   },
   {
     "id": "prod-041",
     "name": "Street Fashion Blouse",
     "description": "Elegant street style with urban appeal",
-    "price": 101,
-    "originalPrice": 126,
+    "price": 110,
     "category": "streetwear",
     "subcategory": "sets",
     "storeId": "store-1",
@@ -1689,8 +1690,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 449,
+    "rating": 4,
+    "reviewCount": 516,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1700,14 +1701,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-13T19:24:35.144Z"
+    "created_at": "2025-08-25T13:04:32.594Z"
   },
   {
     "id": "prod-042",
     "name": "Urban Track Pants",
     "description": "Athletic comfort with street aesthetics",
-    "price": 91,
-    "originalPrice": 113,
+    "price": 60,
     "category": "streetwear",
     "subcategory": "accessories",
     "storeId": "store-1",
@@ -1730,10 +1730,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 238,
+    "rating": 5.1,
+    "reviewCount": 63,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "streetwear",
       "accessories",
@@ -1741,13 +1741,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-30T15:55:21.430Z"
+    "created_at": "2025-08-20T03:09:18.337Z"
   },
   {
     "id": "prod-043",
     "name": "Street Style Jacket",
     "description": "Versatile street style with urban edge",
-    "price": 57,
+    "price": 44,
     "category": "streetwear",
     "subcategory": "hoodies",
     "storeId": "store-1",
@@ -1770,9 +1770,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 398,
-    "inStock": false,
+    "rating": 5.1,
+    "reviewCount": 435,
+    "inStock": true,
     "isTrending": false,
     "tags": [
       "streetwear",
@@ -1781,13 +1781,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-29T08:07:05.570Z"
+    "created_at": "2025-08-17T04:18:41.262Z"
   },
   {
     "id": "prod-044",
     "name": "Urban Bomber Jacket",
     "description": "Classic bomber with street fashion",
-    "price": 99,
+    "price": 68,
+    "originalPrice": 85,
     "category": "streetwear",
     "subcategory": "jackets",
     "storeId": "store-1",
@@ -1810,8 +1811,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 370,
+    "rating": 4.5,
+    "reviewCount": 103,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1821,13 +1822,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-22T07:58:29.575Z"
+    "created_at": "2025-08-22T00:25:09.760Z"
   },
   {
     "id": "prod-045",
     "name": "Street Fashion Dress",
     "description": "Street style elegance with urban comfort",
-    "price": 40,
+    "price": 50,
     "category": "streetwear",
     "subcategory": "pants",
     "storeId": "store-1",
@@ -1850,8 +1851,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.8,
-    "reviewCount": 249,
+    "rating": 4.7,
+    "reviewCount": 125,
     "inStock": true,
     "isTrending": true,
     "tags": [
@@ -1861,13 +1862,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-11T20:52:11.951Z"
+    "created_at": "2025-08-21T03:36:44.149Z"
   },
   {
     "id": "prod-046",
     "name": "Urban Cargo Vest",
     "description": "Functional vest with street aesthetics",
-    "price": 59,
+    "price": 97,
+    "originalPrice": 121,
     "category": "streetwear",
     "subcategory": "tops",
     "storeId": "store-1",
@@ -1890,8 +1892,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 56,
+    "rating": 4.1,
+    "reviewCount": 305,
     "inStock": false,
     "isTrending": false,
     "tags": [
@@ -1901,13 +1903,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-20T13:42:29.249Z"
+    "created_at": "2025-07-30T08:55:30.072Z"
   },
   {
     "id": "prod-047",
     "name": "Street Style Top",
     "description": "Street fashion with urban sophistication",
-    "price": 73,
+    "price": 119,
+    "originalPrice": 148,
     "category": "streetwear",
     "subcategory": "sets",
     "storeId": "store-1",
@@ -1930,8 +1933,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.6,
-    "reviewCount": 74,
+    "rating": 4.1,
+    "reviewCount": 461,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -1941,13 +1944,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-03T00:18:50.264Z"
+    "created_at": "2025-08-22T02:51:47.578Z"
   },
   {
     "id": "prod-048",
     "name": "Urban Track Vest",
     "description": "Lightweight vest with street style",
-    "price": 105,
+    "price": 107,
+    "originalPrice": 133,
     "category": "streetwear",
     "subcategory": "accessories",
     "storeId": "store-1",
@@ -1970,10 +1974,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 488,
+    "rating": 5.3,
+    "reviewCount": 72,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "streetwear",
       "accessories",
@@ -1981,13 +1985,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-26T22:27:50.990Z"
+    "created_at": "2025-08-20T15:50:00.707Z"
   },
   {
     "id": "prod-049",
     "name": "Gold Chain Necklace",
     "description": "Premium 14k gold chain with urban style",
-    "price": 488,
+    "price": 231,
     "category": "jewelry",
     "subcategory": "necklaces",
     "storeId": "store-3",
@@ -2012,10 +2016,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 241,
+    "rating": 5,
+    "reviewCount": 447,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "jewelry",
       "necklaces",
@@ -2023,13 +2027,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-11T08:27:28.998Z"
+    "created_at": "2025-08-14T19:12:43.748Z"
   },
   {
     "id": "prod-050",
     "name": "Diamond Pendant",
     "description": "Genuine diamond pendant with luxury appeal",
-    "price": 427,
+    "price": 442,
     "category": "jewelry",
     "subcategory": "rings",
     "storeId": "store-3",
@@ -2054,8 +2058,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 277,
+    "rating": 5.4,
+    "reviewCount": 113,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2065,13 +2069,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-17T00:51:14.079Z"
+    "created_at": "2025-08-14T02:07:21.827Z"
   },
   {
     "id": "prod-051",
     "name": "Sterling Silver Ring",
     "description": "Handcrafted sterling silver with unique design",
-    "price": 459,
+    "price": 301,
     "category": "jewelry",
     "subcategory": "earrings",
     "storeId": "store-3",
@@ -2096,9 +2100,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.5,
-    "reviewCount": 501,
-    "inStock": false,
+    "rating": 4,
+    "reviewCount": 350,
+    "inStock": true,
     "isTrending": false,
     "tags": [
       "jewelry",
@@ -2107,13 +2111,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-29T10:41:21.966Z"
+    "created_at": "2025-08-12T12:02:25.056Z"
   },
   {
     "id": "prod-052",
     "name": "Luxury Bracelet",
     "description": "Premium gold bracelet with urban aesthetics",
-    "price": 468,
+    "price": 250,
     "category": "jewelry",
     "subcategory": "bracelets",
     "storeId": "store-3",
@@ -2138,10 +2142,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 427,
+    "rating": 5.4,
+    "reviewCount": 478,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "jewelry",
       "bracelets",
@@ -2149,13 +2153,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-11T04:27:57.868Z"
+    "created_at": "2025-08-19T06:20:13.011Z"
   },
   {
     "id": "prod-053",
     "name": "Gold Hoop Earrings",
     "description": "Classic gold hoops with street style",
-    "price": 413,
+    "price": 400,
     "category": "jewelry",
     "subcategory": "watches",
     "storeId": "store-3",
@@ -2180,8 +2184,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 297,
+    "rating": 4.1,
+    "reviewCount": 499,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2191,13 +2195,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-04T08:23:17.562Z"
+    "created_at": "2025-07-29T13:44:47.176Z"
   },
   {
     "id": "prod-054",
     "name": "Diamond Studs",
     "description": "Genuine diamond studs with luxury comfort",
-    "price": 466,
+    "price": 558,
+    "originalPrice": 781,
     "category": "jewelry",
     "subcategory": "pendants",
     "storeId": "store-3",
@@ -2222,10 +2227,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.4,
-    "reviewCount": 506,
+    "rating": 4.9,
+    "reviewCount": 340,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "pendants",
@@ -2233,13 +2238,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-22T18:56:30.469Z"
+    "created_at": "2025-08-18T16:55:13.715Z"
   },
   {
     "id": "prod-055",
     "name": "Gold Cuban Link Chain",
     "description": "Cuban link chain with urban heritage",
-    "price": 548,
+    "price": 284,
     "category": "jewelry",
     "subcategory": "necklaces",
     "storeId": "store-3",
@@ -2264,8 +2269,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.3,
-    "reviewCount": 303,
+    "rating": 4.1,
+    "reviewCount": 232,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2275,13 +2280,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-12T12:26:33.992Z"
+    "created_at": "2025-08-17T11:57:06.549Z"
   },
   {
     "id": "prod-056",
     "name": "Luxury Watch",
     "description": "Swiss-made luxury timepiece with premium craftsmanship",
-    "price": 314,
+    "price": 267,
     "category": "jewelry",
     "subcategory": "rings",
     "storeId": "store-3",
@@ -2307,7 +2312,7 @@ export const mockProducts = [
       "Gray"
     ],
     "rating": 4.9,
-    "reviewCount": 505,
+    "reviewCount": 426,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2317,13 +2322,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-14T13:27:39.661Z"
+    "created_at": "2025-08-02T23:45:41.095Z"
   },
   {
     "id": "prod-057",
     "name": "Gold Ring",
     "description": "Premium gold ring with urban design",
-    "price": 633,
+    "price": 501,
     "category": "jewelry",
     "subcategory": "earrings",
     "storeId": "store-3",
@@ -2348,8 +2353,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 363,
+    "rating": 5.2,
+    "reviewCount": 466,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2359,13 +2364,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-10T17:06:28.313Z"
+    "created_at": "2025-08-09T13:32:19.202Z"
   },
   {
     "id": "prod-058",
     "name": "Diamond Necklace",
     "description": "Genuine diamond necklace with luxury appeal",
-    "price": 389,
+    "price": 352,
+    "originalPrice": 492,
     "category": "jewelry",
     "subcategory": "bracelets",
     "storeId": "store-3",
@@ -2391,9 +2397,9 @@ export const mockProducts = [
       "Gray"
     ],
     "rating": 5.1,
-    "reviewCount": 115,
+    "reviewCount": 254,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "bracelets",
@@ -2401,13 +2407,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-08T12:49:49.947Z"
+    "created_at": "2025-08-24T03:52:49.833Z"
   },
   {
     "id": "prod-059",
     "name": "Gold Bracelet",
     "description": "Premium gold bracelet with urban style",
-    "price": 454,
+    "price": 373,
     "category": "jewelry",
     "subcategory": "watches",
     "storeId": "store-3",
@@ -2432,10 +2438,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 388,
+    "rating": 4.6,
+    "reviewCount": 346,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "watches",
@@ -2443,13 +2449,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-25T18:25:37.251Z"
+    "created_at": "2025-08-07T03:20:50.535Z"
   },
   {
     "id": "prod-060",
     "name": "Silver Chain",
     "description": "Sterling silver chain with street aesthetics",
-    "price": 338,
+    "price": 684,
     "category": "jewelry",
     "subcategory": "pendants",
     "storeId": "store-3",
@@ -2474,10 +2480,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 386,
+    "rating": 4.6,
+    "reviewCount": 247,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "pendants",
@@ -2485,14 +2491,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-16T18:54:16.475Z"
+    "created_at": "2025-08-16T21:00:14.743Z"
   },
   {
     "id": "prod-061",
     "name": "Luxury Pendant",
     "description": "Luxury pendant with urban sophistication",
-    "price": 526,
-    "originalPrice": 736,
+    "price": 209,
+    "originalPrice": 292,
     "category": "jewelry",
     "subcategory": "necklaces",
     "storeId": "store-3",
@@ -2516,9 +2522,9 @@ export const mockProducts = [
       "Gray"
     ],
     "rating": 4.4,
-    "reviewCount": 518,
+    "reviewCount": 458,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "jewelry",
       "necklaces",
@@ -2526,13 +2532,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-19T08:18:08.193Z"
+    "created_at": "2025-08-09T16:36:24.603Z"
   },
   {
     "id": "prod-062",
     "name": "Gold Earrings",
     "description": "Premium gold earrings with street style",
-    "price": 407,
+    "price": 355,
     "category": "jewelry",
     "subcategory": "rings",
     "storeId": "store-3",
@@ -2555,10 +2561,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.6,
-    "reviewCount": 299,
+    "rating": 4.1,
+    "reviewCount": 96,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "rings",
@@ -2566,13 +2572,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-07T13:01:23.221Z"
+    "created_at": "2025-08-07T05:21:48.799Z"
   },
   {
     "id": "prod-063",
     "name": "Diamond Ring",
     "description": "Genuine diamond ring with luxury design",
-    "price": 677,
+    "price": 434,
     "category": "jewelry",
     "subcategory": "earrings",
     "storeId": "store-3",
@@ -2596,9 +2602,9 @@ export const mockProducts = [
       "Gray"
     ],
     "rating": 4.9,
-    "reviewCount": 137,
+    "reviewCount": 142,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "jewelry",
       "earrings",
@@ -2606,13 +2612,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-03T12:30:30.765Z"
+    "created_at": "2025-08-15T00:59:03.884Z"
   },
   {
     "id": "prod-064",
     "name": "Gold Necklace",
     "description": "Premium gold necklace with urban appeal",
-    "price": 447,
+    "price": 624,
     "category": "jewelry",
     "subcategory": "bracelets",
     "storeId": "store-3",
@@ -2635,10 +2641,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4,
-    "reviewCount": 220,
+    "rating": 5.4,
+    "reviewCount": 507,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "bracelets",
@@ -2646,13 +2652,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-13T21:06:26.931Z"
+    "created_at": "2025-07-31T10:16:57.662Z"
   },
   {
     "id": "prod-065",
     "name": "Luxury Bracelet",
     "description": "Luxury bracelet with street aesthetics",
-    "price": 508,
+    "price": 586,
     "category": "jewelry",
     "subcategory": "watches",
     "storeId": "store-3",
@@ -2675,10 +2681,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.8,
-    "reviewCount": 507,
+    "rating": 4.6,
+    "reviewCount": 503,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "watches",
@@ -2686,13 +2692,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-04T09:56:51.245Z"
+    "created_at": "2025-08-02T12:35:26.689Z"
   },
   {
     "id": "prod-066",
     "name": "Silver Ring",
     "description": "Sterling silver ring with urban design",
-    "price": 350,
+    "price": 488,
     "category": "jewelry",
     "subcategory": "pendants",
     "storeId": "store-3",
@@ -2715,8 +2721,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5,
-    "reviewCount": 419,
+    "rating": 4.2,
+    "reviewCount": 475,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2726,14 +2732,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-01T07:32:15.668Z"
+    "created_at": "2025-08-22T13:13:35.448Z"
   },
   {
     "id": "prod-067",
     "name": "Gold Pendant",
     "description": "Premium gold pendant with street style",
-    "price": 484,
-    "originalPrice": 677,
+    "price": 286,
     "category": "jewelry",
     "subcategory": "necklaces",
     "storeId": "store-3",
@@ -2756,10 +2761,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.8,
-    "reviewCount": 272,
+    "rating": 5,
+    "reviewCount": 149,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "necklaces",
@@ -2767,13 +2772,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-25T23:00:34.442Z"
+    "created_at": "2025-08-05T07:01:31.547Z"
   },
   {
     "id": "prod-068",
     "name": "Diamond Earrings",
     "description": "Genuine diamond earrings with luxury appeal",
-    "price": 573,
+    "price": 342,
     "category": "jewelry",
     "subcategory": "rings",
     "storeId": "store-3",
@@ -2796,10 +2801,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 50,
+    "rating": 4.9,
+    "reviewCount": 77,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "rings",
@@ -2807,13 +2812,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-25T16:57:48.903Z"
+    "created_at": "2025-08-21T10:19:11.434Z"
   },
   {
     "id": "prod-069",
     "name": "Luxury Chain",
     "description": "Luxury chain with urban aesthetics",
-    "price": 567,
+    "price": 543,
     "category": "jewelry",
     "subcategory": "earrings",
     "storeId": "store-3",
@@ -2836,10 +2841,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.5,
-    "reviewCount": 181,
-    "inStock": false,
-    "isTrending": true,
+    "rating": 5.4,
+    "reviewCount": 321,
+    "inStock": true,
+    "isTrending": false,
     "tags": [
       "jewelry",
       "earrings",
@@ -2847,13 +2852,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-06T01:28:55.666Z"
+    "created_at": "2025-08-15T17:26:20.476Z"
   },
   {
     "id": "prod-070",
     "name": "Gold Studs",
     "description": "Premium gold studs with street style",
-    "price": 512,
+    "price": 556,
     "category": "jewelry",
     "subcategory": "bracelets",
     "storeId": "store-3",
@@ -2876,9 +2881,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 271,
-    "inStock": true,
+    "rating": 4.9,
+    "reviewCount": 456,
+    "inStock": false,
     "isTrending": false,
     "tags": [
       "jewelry",
@@ -2887,13 +2892,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-30T18:03:47.087Z"
+    "created_at": "2025-08-16T08:09:23.486Z"
   },
   {
     "id": "prod-071",
     "name": "Silver Necklace",
     "description": "Sterling silver necklace with urban appeal",
-    "price": 419,
+    "price": 333,
+    "originalPrice": 466,
     "category": "jewelry",
     "subcategory": "watches",
     "storeId": "store-3",
@@ -2916,10 +2922,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4,
-    "reviewCount": 381,
+    "rating": 4.2,
+    "reviewCount": 292,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "jewelry",
       "watches",
@@ -2927,14 +2933,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-15T10:08:31.229Z"
+    "created_at": "2025-08-19T22:45:18.772Z"
   },
   {
     "id": "prod-072",
     "name": "Diamond Bracelet",
     "description": "Genuine diamond bracelet with luxury design",
-    "price": 434,
-    "originalPrice": 607,
+    "price": 395,
     "category": "jewelry",
     "subcategory": "pendants",
     "storeId": "store-3",
@@ -2958,7 +2963,7 @@ export const mockProducts = [
       "Gray"
     ],
     "rating": 5.2,
-    "reviewCount": 354,
+    "reviewCount": 240,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -2968,13 +2973,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-20T21:27:28.632Z"
+    "created_at": "2025-08-27T23:05:57.225Z"
   },
   {
     "id": "prod-073",
     "name": "Urban Street Bundle",
     "description": "Complete street style outfit with urban edge",
-    "price": 113,
+    "price": 120,
+    "originalPrice": 144,
     "category": "stylist-bundles",
     "subcategory": "outfits",
     "storeId": "store-4",
@@ -2999,10 +3005,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 163,
+    "rating": 4.4,
+    "reviewCount": 416,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "stylist-bundles",
       "outfits",
@@ -3010,14 +3016,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-25T00:24:40.309Z"
+    "created_at": "2025-08-12T01:25:53.893Z"
   },
   {
     "id": "prod-074",
     "name": "Street Style Ensemble",
     "description": "Co-ordinated ensemble for ultimate street fashion",
-    "price": 145,
-    "originalPrice": 174,
+    "price": 137,
     "category": "stylist-bundles",
     "subcategory": "ensembles",
     "storeId": "store-4",
@@ -3042,9 +3047,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 419,
-    "inStock": true,
+    "rating": 4.1,
+    "reviewCount": 458,
+    "inStock": false,
     "isTrending": false,
     "tags": [
       "stylist-bundles",
@@ -3053,14 +3058,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-17T15:17:48.924Z"
+    "created_at": "2025-08-12T19:41:19.616Z"
   },
   {
     "id": "prod-075",
     "name": "Urban Fashion Set",
     "description": "Curated fashion set with urban sophistication",
-    "price": 194,
-    "originalPrice": 232,
+    "price": 184,
+    "originalPrice": 220,
     "category": "stylist-bundles",
     "subcategory": "sets",
     "storeId": "store-4",
@@ -3085,8 +3090,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.4,
-    "reviewCount": 305,
+    "rating": 4.3,
+    "reviewCount": 191,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3096,14 +3101,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-21T13:25:45.337Z"
+    "created_at": "2025-08-22T04:45:21.632Z"
   },
   {
     "id": "prod-076",
     "name": "Streetwear Coordination",
     "description": "Perfectly matched streetwear coordination",
-    "price": 84,
-    "originalPrice": 100,
+    "price": 141,
+    "originalPrice": 169,
     "category": "stylist-bundles",
     "subcategory": "collections",
     "storeId": "store-4",
@@ -3128,10 +3133,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 327,
-    "inStock": false,
-    "isTrending": false,
+    "rating": 4.5,
+    "reviewCount": 294,
+    "inStock": true,
+    "isTrending": true,
     "tags": [
       "stylist-bundles",
       "collections",
@@ -3139,13 +3144,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-22T23:24:15.516Z"
+    "created_at": "2025-08-26T13:04:30.684Z"
   },
   {
     "id": "prod-077",
     "name": "Urban Lifestyle Bundle",
     "description": "Lifestyle bundle with urban comfort and style",
-    "price": 109,
+    "price": 91,
+    "originalPrice": 109,
     "category": "stylist-bundles",
     "subcategory": "bundles",
     "storeId": "store-4",
@@ -3170,8 +3176,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 100,
+    "rating": 4.2,
+    "reviewCount": 406,
     "inStock": true,
     "isTrending": true,
     "tags": [
@@ -3181,14 +3187,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-22T00:05:13.462Z"
+    "created_at": "2025-08-20T05:07:14.234Z"
   },
   {
     "id": "prod-078",
     "name": "Street Fashion Pack",
     "description": "Complete street fashion pack with urban appeal",
-    "price": 148,
-    "originalPrice": 177,
+    "price": 109,
     "category": "stylist-bundles",
     "subcategory": "packs",
     "storeId": "store-4",
@@ -3213,8 +3218,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 475,
+    "rating": 4.1,
+    "reviewCount": 143,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3224,13 +3229,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-09T18:44:45.068Z"
+    "created_at": "2025-08-24T16:03:03.046Z"
   },
   {
     "id": "prod-079",
     "name": "Urban Style Collection",
     "description": "Urban style collection with street aesthetics",
-    "price": 133,
+    "price": 181,
     "category": "stylist-bundles",
     "subcategory": "outfits",
     "storeId": "store-4",
@@ -3255,8 +3260,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 464,
+    "rating": 5,
+    "reviewCount": 528,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3266,13 +3271,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-14T23:41:49.633Z"
+    "created_at": "2025-08-03T23:29:22.903Z"
   },
   {
     "id": "prod-080",
     "name": "Streetwear Essentials",
     "description": "Essential streetwear pieces for urban lifestyle",
-    "price": 146,
+    "price": 104,
     "category": "stylist-bundles",
     "subcategory": "ensembles",
     "storeId": "store-4",
@@ -3297,9 +3302,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.8,
-    "reviewCount": 115,
-    "inStock": true,
+    "rating": 4.3,
+    "reviewCount": 299,
+    "inStock": false,
     "isTrending": false,
     "tags": [
       "stylist-bundles",
@@ -3308,13 +3313,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-15T05:36:31.162Z"
+    "created_at": "2025-08-19T10:56:47.027Z"
   },
   {
     "id": "prod-081",
     "name": "Urban Fashion Bundle",
     "description": "Complete fashion bundle with urban edge",
-    "price": 209,
+    "price": 187,
     "category": "stylist-bundles",
     "subcategory": "sets",
     "storeId": "store-4",
@@ -3339,8 +3344,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 262,
+    "rating": 5.2,
+    "reviewCount": 178,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3350,13 +3355,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-13T04:17:08.190Z"
+    "created_at": "2025-08-04T08:11:21.073Z"
   },
   {
     "id": "prod-082",
     "name": "Street Style Set",
     "description": "Perfectly styled street set with urban comfort",
-    "price": 166,
+    "price": 111,
+    "originalPrice": 133,
     "category": "stylist-bundles",
     "subcategory": "collections",
     "storeId": "store-4",
@@ -3381,10 +3387,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 508,
+    "rating": 4.9,
+    "reviewCount": 115,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "stylist-bundles",
       "collections",
@@ -3392,14 +3398,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-02T10:08:22.208Z"
+    "created_at": "2025-08-16T07:50:29.403Z"
   },
   {
     "id": "prod-083",
     "name": "Urban Lifestyle Pack",
     "description": "Lifestyle pack with street fashion appeal",
-    "price": 105,
-    "originalPrice": 126,
+    "price": 134,
     "category": "stylist-bundles",
     "subcategory": "bundles",
     "storeId": "store-4",
@@ -3424,8 +3429,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.3,
-    "reviewCount": 311,
+    "rating": 5.1,
+    "reviewCount": 127,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3435,13 +3440,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-26T19:18:56.657Z"
+    "created_at": "2025-08-22T04:50:23.872Z"
   },
   {
     "id": "prod-084",
     "name": "Street Fashion Bundle",
     "description": "Complete fashion bundle with urban style",
-    "price": 178,
+    "price": 225,
+    "originalPrice": 270,
     "category": "stylist-bundles",
     "subcategory": "packs",
     "storeId": "store-4",
@@ -3466,8 +3472,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.4,
-    "reviewCount": 143,
+    "rating": 4.2,
+    "reviewCount": 481,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3477,14 +3483,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-19T09:25:39.728Z"
+    "created_at": "2025-08-22T04:54:37.668Z"
   },
   {
     "id": "prod-085",
     "name": "Urban Style Pack",
     "description": "Urban style pack with street aesthetics",
-    "price": 146,
-    "originalPrice": 175,
+    "price": 84,
     "category": "stylist-bundles",
     "subcategory": "outfits",
     "storeId": "store-4",
@@ -3507,10 +3512,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.1,
-    "reviewCount": 451,
+    "rating": 5,
+    "reviewCount": 363,
     "inStock": true,
-    "isTrending": false,
+    "isTrending": true,
     "tags": [
       "stylist-bundles",
       "outfits",
@@ -3518,14 +3523,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-14T09:22:52.897Z"
+    "created_at": "2025-08-02T04:13:03.946Z"
   },
   {
     "id": "prod-086",
     "name": "Streetwear Collection",
     "description": "Curated streetwear collection with urban edge",
-    "price": 140,
-    "originalPrice": 168,
+    "price": 132,
     "category": "stylist-bundles",
     "subcategory": "ensembles",
     "storeId": "store-4",
@@ -3548,9 +3552,9 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.6,
-    "reviewCount": 495,
-    "inStock": true,
+    "rating": 4.4,
+    "reviewCount": 311,
+    "inStock": false,
     "isTrending": false,
     "tags": [
       "stylist-bundles",
@@ -3559,14 +3563,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-01T01:14:46.726Z"
+    "created_at": "2025-08-25T13:54:15.845Z"
   },
   {
     "id": "prod-087",
     "name": "Urban Fashion Set",
     "description": "Complete fashion set with street style",
-    "price": 142,
-    "originalPrice": 170,
+    "price": 92,
     "category": "stylist-bundles",
     "subcategory": "sets",
     "storeId": "store-4",
@@ -3589,10 +3592,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 344,
+    "rating": 5,
+    "reviewCount": 72,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "stylist-bundles",
       "sets",
@@ -3600,13 +3603,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-26T09:48:31.551Z"
+    "created_at": "2025-08-04T13:12:06.548Z"
   },
   {
     "id": "prod-088",
     "name": "Street Style Bundle",
     "description": "Urban lifestyle set with fashion appeal",
-    "price": 217,
+    "price": 211,
     "category": "stylist-bundles",
     "subcategory": "collections",
     "storeId": "store-4",
@@ -3629,10 +3632,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.9,
-    "reviewCount": 307,
-    "inStock": false,
-    "isTrending": false,
+    "rating": 5.2,
+    "reviewCount": 156,
+    "inStock": true,
+    "isTrending": true,
     "tags": [
       "stylist-bundles",
       "collections",
@@ -3640,13 +3643,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-03T20:06:13.709Z"
+    "created_at": "2025-08-09T23:15:06.742Z"
   },
   {
     "id": "prod-089",
     "name": "Urban Lifestyle Set",
     "description": "Complete street fashion pack with urban style",
-    "price": 188,
+    "price": 113,
+    "originalPrice": 135,
     "category": "stylist-bundles",
     "subcategory": "bundles",
     "storeId": "store-4",
@@ -3669,10 +3673,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5.3,
-    "reviewCount": 364,
+    "rating": 4.7,
+    "reviewCount": 535,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "stylist-bundles",
       "bundles",
@@ -3680,14 +3684,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-17T09:39:19.904Z"
+    "created_at": "2025-08-26T01:51:27.893Z"
   },
   {
     "id": "prod-090",
     "name": "Street Fashion Pack",
     "description": "Urban style bundle with street aesthetics",
-    "price": 150,
-    "originalPrice": 180,
+    "price": 99,
+    "originalPrice": 118,
     "category": "stylist-bundles",
     "subcategory": "packs",
     "storeId": "store-4",
@@ -3710,8 +3714,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5,
-    "reviewCount": 368,
+    "rating": 4.9,
+    "reviewCount": 106,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3721,14 +3725,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-07T06:51:24.207Z"
+    "created_at": "2025-08-26T14:02:12.492Z"
   },
   {
     "id": "prod-091",
     "name": "Urban Style Bundle",
     "description": "Complete streetwear pack with urban edge",
-    "price": 183,
-    "originalPrice": 219,
+    "price": 81,
+    "originalPrice": 97,
     "category": "stylist-bundles",
     "subcategory": "outfits",
     "storeId": "store-4",
@@ -3751,8 +3755,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5,
-    "reviewCount": 126,
+    "rating": 5.3,
+    "reviewCount": 248,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3762,14 +3766,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-26T22:12:50.729Z"
+    "created_at": "2025-08-11T10:19:55.640Z"
   },
   {
     "id": "prod-092",
     "name": "Streetwear Pack",
     "description": "Curated fashion collection with street style",
-    "price": 201,
-    "originalPrice": 241,
+    "price": 150,
     "category": "stylist-bundles",
     "subcategory": "ensembles",
     "storeId": "store-4",
@@ -3792,8 +3795,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.7,
-    "reviewCount": 84,
+    "rating": 4.8,
+    "reviewCount": 132,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3803,13 +3806,14 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-05T13:53:24.404Z"
+    "created_at": "2025-08-09T09:40:35.421Z"
   },
   {
     "id": "prod-093",
     "name": "Urban Fashion Collection",
     "description": "Perfect street style collection with urban appeal",
-    "price": 95,
+    "price": 135,
+    "originalPrice": 162,
     "category": "stylist-bundles",
     "subcategory": "sets",
     "storeId": "store-4",
@@ -3832,10 +3836,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 517,
+    "rating": 4,
+    "reviewCount": 183,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "stylist-bundles",
       "sets",
@@ -3843,13 +3847,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-17T00:47:12.767Z"
+    "created_at": "2025-08-07T23:19:54.676Z"
   },
   {
     "id": "prod-094",
     "name": "Street Style Collection",
     "description": "Complete lifestyle bundle with street fashion",
-    "price": 224,
+    "price": 140,
     "category": "stylist-bundles",
     "subcategory": "collections",
     "storeId": "store-4",
@@ -3872,8 +3876,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 5,
-    "reviewCount": 408,
+    "rating": 4.3,
+    "reviewCount": 100,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3883,14 +3887,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-08-27T15:15:18.130Z"
+    "created_at": "2025-08-21T07:39:40.306Z"
   },
   {
     "id": "prod-095",
     "name": "Urban Lifestyle Bundle",
     "description": "Urban style collection with street appeal",
-    "price": 184,
-    "originalPrice": 220,
+    "price": 121,
     "category": "stylist-bundles",
     "subcategory": "bundles",
     "storeId": "store-4",
@@ -3913,8 +3916,8 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.2,
-    "reviewCount": 87,
+    "rating": 4.1,
+    "reviewCount": 489,
     "inStock": true,
     "isTrending": false,
     "tags": [
@@ -3924,14 +3927,13 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-29T17:44:33.770Z"
+    "created_at": "2025-08-17T12:20:21.340Z"
   },
   {
     "id": "prod-096",
     "name": "Street Fashion Set",
     "description": "Complete streetwear bundle with urban style",
-    "price": 119,
-    "originalPrice": 142,
+    "price": 98,
     "category": "stylist-bundles",
     "subcategory": "packs",
     "storeId": "store-4",
@@ -3954,10 +3956,10 @@ export const mockProducts = [
       "Navy",
       "Gray"
     ],
-    "rating": 4.1,
-    "reviewCount": 385,
+    "rating": 4,
+    "reviewCount": 437,
     "inStock": true,
-    "isTrending": true,
+    "isTrending": false,
     "tags": [
       "stylist-bundles",
       "packs",
@@ -3965,9 +3967,9 @@ export const mockProducts = [
       "urban",
       "fashion"
     ],
-    "created_at": "2025-07-31T02:48:38.059Z"
+    "created_at": "2025-08-22T09:50:49.263Z"
   }
-] as const
+]
 
 export const mockCategories = [
   {
@@ -4002,7 +4004,7 @@ export const mockCategories = [
     "productCount": 24,
     "image": "/images/mock/stylist-bundles/streetwear-outfit-01.webp"
   }
-] as const
+]
 
 export const mockStores = [
   {
@@ -4087,7 +4089,7 @@ export const mockStores = [
     "location": "Fitness District",
     "isVerified": true
   }
-] as const
+]
 
 // Types
 export interface MockProduct {

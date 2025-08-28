@@ -274,7 +274,7 @@ function generateMockProducts(): MockProduct[] {
     if (fs.existsSync(manifestPath)) {
       manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
     }
-  } catch (error) {
+  } catch (_error) {
     console.warn('⚠️  Could not load manifest, using fallback images')
   }
 
@@ -442,11 +442,11 @@ async function main() {
     // Create mock data file for the app
     const mockDataPath = path.join(process.cwd(), 'lib/mockData.ts')
     const mockDataContent = `// Auto-generated mock data
-export const mockProducts = ${JSON.stringify(products, null, 2)} as const
+export const mockProducts = ${JSON.stringify(products, null, 2)}
 
-export const mockCategories = ${JSON.stringify(categories, null, 2)} as const
+export const mockCategories = ${JSON.stringify(categories, null, 2)}
 
-export const mockStores = ${JSON.stringify(stores, null, 2)} as const
+export const mockStores = ${JSON.stringify(stores, null, 2)}
 
 // Types
 export interface MockProduct {
