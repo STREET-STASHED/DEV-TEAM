@@ -47,7 +47,11 @@ export default function ARTryOnPage() {
   const [debugInfo, setDebugInfo] = useState<string>('')
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
   const [demoMode, setDemoMode] = useState(false) // Start with real camera mode
-  const [isHydrated, setIsHydrated] = useState(false)
+  const [_isHydrated, setIsHydrated] = useState(false)
+  const [multipleProducts, setMultipleProducts] = useState<ARProduct[]>([])
+  const [outfitMode, setOutfitMode] = useState(false)
+  const [measurementHistory, setMeasurementHistory] = useState<BodyMeasurements[]>([])
+  const [arEffects, setArEffects] = useState<string>('standard')
 
   // Check browser compatibility for camera and AR features
   const [isBrowserCompatible, setIsBrowserCompatible] = useState(false)
@@ -203,7 +207,7 @@ export default function ARTryOnPage() {
       // Generate realistic body measurements based on common ranges
       // These would come from actual camera analysis in a real implementation
       const baseHeight = 165 + Math.random() * 30 // 165-195 cm
-      const height = Math.round(baseHeight * 10) / 10
+      const _height = Math.round(baseHeight * 10) / 10
 
       const baseWeight = 60 + Math.random() * 40 // 60-100 kg
       const weight = Math.round(baseWeight * 10) / 10
@@ -212,11 +216,11 @@ export default function ARTryOnPage() {
       const chest = Math.round((80 + Math.random() * 25) * 10) / 10 // 80-105 cm
       const waist = Math.round((chest * 0.8 + Math.random() * 10) * 10) / 10 // Proportional to chest
       const hips = Math.round((chest * 0.9 + Math.random() * 15) * 10) / 10 // Proportional to chest
-      const inseam = Math.round((height * 0.4 + Math.random() * 8) * 10) / 10 // Proportional to height
+      const inseam = Math.round((_height * 0.4 + Math.random() * 8) * 10) / 10 // Proportional to height
       const shoulder = Math.round((chest * 0.45 + Math.random() * 6) * 10) / 10 // Proportional to chest
 
       const measurements: BodyMeasurements = {
-        height,
+        height: _height,
         weight,
         chest,
         waist,
@@ -228,9 +232,12 @@ export default function ARTryOnPage() {
       setBodyMeasurements(measurements)
       setScanProgress(100)
 
+      // Save measurements to history
+      saveMeasurements()
+
       // Show detailed success message
       const message = `Body scan complete!\n\n` +
-        `Height: ${height} cm\n` +
+        `Height: ${_height} cm\n` +
         `Weight: ${weight} kg\n` +
         `Chest: ${chest} cm\n` +
         `Waist: ${waist} cm\n` +
@@ -340,6 +347,85 @@ export default function ARTryOnPage() {
     }
   }, [bodyMeasurements, isBrowserCompatible, demoMode])
 
+  // Try on multiple products for outfit combinations
+  const tryOnOutfit = useCallback(async (products: ARProduct[]) => {
+    if (!isBrowserCompatible && !demoMode) {
+      alert('AR features not supported in this browser. Please enable demo mode.')
+      return
+    }
+
+    if (!bodyMeasurements && !demoMode) {
+      alert('Please complete body scanning first or enable demo mode')
+      return
+    }
+
+    setMultipleProducts(products)
+    setOutfitMode(true)
+    setArOverlay(true)
+    setIsProcessing(true)
+
+    try {
+      setDebugInfo('Initializing outfit try-on with ' + products.length + ' items...')
+
+      // Simulate outfit processing
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      setDebugInfo('Analyzing outfit compatibility...')
+
+      await new Promise(resolve => setTimeout(resolve, 800))
+      setDebugInfo('Generating virtual outfit fit...')
+
+      await new Promise(resolve => setTimeout(resolve, 600))
+      setDebugInfo('Applying multi-item AR overlay...')
+
+      // Calculate overall outfit fit
+      const totalPrice = products.reduce((sum, p) => sum + p.price, 0)
+      const outfitRating = 4.2 + (Math.random() * 0.6) // 4.2-4.8 rating
+
+      setTimeout(() => {
+        const message = `Outfit Try-On activated!\n\n` +
+          `Items: ${products.length}\n` +
+          `Total Price: $${totalPrice.toFixed(2)}\n` +
+          `Style Rating: ${outfitRating.toFixed(1)}/5.0\n\n` +
+          `You can now see how all items work together on your body!`
+        alert(message)
+      }, 500)
+
+    } catch (error) {
+      console.error('Outfit try-on error:', error)
+      alert('Outfit try-on failed. Please try again.')
+      setOutfitMode(false)
+      setArOverlay(false)
+    } finally {
+      setIsProcessing(false)
+    }
+  }, [bodyMeasurements, isBrowserCompatible, demoMode])
+
+  // Save measurements to history
+  const saveMeasurements = useCallback(() => {
+    if (bodyMeasurements) {
+      const newHistory = [bodyMeasurements, ...measurementHistory].slice(0, 10) // Keep last 10
+      setMeasurementHistory(newHistory)
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ar-tryon-measurements', JSON.stringify(newHistory))
+      }
+    }
+  }, [bodyMeasurements, measurementHistory])
+
+  // Load measurement history
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('ar-tryon-measurements')
+        if (saved) {
+          setMeasurementHistory(JSON.parse(saved))
+        }
+      } catch (error) {
+        console.error('Failed to load measurement history:', error)
+      }
+    }
+  }, [])
+
   // Capture photo with AR overlay
   const capturePhoto = useCallback(() => {
     if ((!isBrowserCompatible && !demoMode) || !canvasRef.current) return
@@ -406,70 +492,35 @@ export default function ARTryOnPage() {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
           if (currentProduct && arOverlay) {
-            // Add AR overlay effects
-            ctx.fillStyle = 'rgba(0, 255, 136, 0.2)'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-            // Add product information overlay
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
-            ctx.fillRect(20, 20, 300, 120)
-
-            ctx.fillStyle = '#00ff88'
-            ctx.font = 'bold 18px Arial'
-            ctx.fillText(currentProduct.name, 35, 45)
-
-            ctx.fillStyle = '#ffffff'
-            ctx.font = '14px Arial'
-            ctx.fillText(`Size: ${recommendedSize}`, 35, 65)
-            ctx.fillStyle = '#00ff88'
-            ctx.fillText(`Price: $${currentProduct.price}`, 35, 85)
-
-            // Add fit confidence indicator
-            const confidence = Math.round(85 + Math.random() * 10)
-            ctx.fillStyle = confidence > 90 ? '#00ff88' : confidence > 80 ? '#ffff00' : '#ff6b6b'
-            ctx.fillText(`Fit Confidence: ${confidence}%`, 35, 105)
-
-            // Add AR tracking indicators
-            ctx.strokeStyle = '#00ff88'
-            ctx.lineWidth = 2
-            ctx.setLineDash([5, 5])
-
-            // Draw body outline indicators
-            const centerX = canvas.width / 2
-            const centerY = canvas.height / 2
-
-            // Head circle
-            ctx.beginPath()
-            ctx.arc(centerX, centerY - 120, 30, 0, 2 * Math.PI)
-            ctx.stroke()
-
-            // Torso rectangle
-            ctx.strokeRect(centerX - 60, centerY - 80, 120, 160)
-
-            // Arms
-            ctx.strokeRect(centerX - 80, centerY - 60, 20, 120)
-            ctx.strokeRect(centerX + 60, centerY - 60, 20, 120)
-
-            ctx.setLineDash([])
-          }
-        } catch (error) {
-          console.error('Error capturing photo:', error)
-          // Fallback to demo mode if real capture fails
-          ctx.fillStyle = '#ff6b6b'
-          ctx.font = '16px Arial'
-          ctx.textAlign = 'center'
-          ctx.fillText('Photo capture failed', canvas.width / 2, canvas.height / 2)
-        }
-      } else if (video && video.videoWidth && video.videoHeight) {
-        // Real camera capture with AR overlay
-        try {
-          // Draw the video frame
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-
-          if (currentProduct && arOverlay) {
-            // Add AR overlay effects
-            ctx.fillStyle = 'rgba(0, 255, 136, 0.2)'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            // Add enhanced AR overlay effects based on selected effect
+            switch (arEffects) {
+              case 'glow':
+                // Glow effect
+                ctx.shadowColor = '#00ff88'
+                ctx.shadowBlur = 20
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.15)'
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+                ctx.shadowBlur = 0
+                break
+              case 'neon':
+                // Neon effect
+                ctx.fillStyle = 'rgba(138, 43, 226, 0.2)'
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+                break
+              case 'hologram':
+                // Hologram effect
+                const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height)
+                gradient.addColorStop(0, 'rgba(0, 255, 255, 0.1)')
+                gradient.addColorStop(0.5, 'rgba(255, 0, 255, 0.1)')
+                gradient.addColorStop(1, 'rgba(0, 255, 255, 0.1)')
+                ctx.fillStyle = gradient
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+                break
+              default:
+                // Standard effect
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.2)'
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+            }
 
             // Add product information overlay
             ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'
@@ -791,6 +842,73 @@ export default function ARTryOnPage() {
                       <span>{demoMode ? 'Simulate Capture' : 'Capture Photo'}</span>
                     </button>
                   </div>
+
+                  {/* Enhanced AR Controls */}
+                  {arOverlay && (
+                    <div className="mt-6 space-y-4">
+                      <div className="border-t border-ink-700 pt-4">
+                        <h4 className="text-sm font-medium text-ink-300 mb-3">AR Effects</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { value: 'standard', label: 'Standard', color: 'from-green-500 to-green-600' },
+                            { value: 'glow', label: 'Glow', color: 'from-blue-500 to-blue-600' },
+                            { value: 'neon', label: 'Neon', color: 'from-purple-500 to-purple-600' },
+                            { value: 'hologram', label: 'Hologram', color: 'from-cyan-500 to-pink-500' }
+                          ].map((effect) => (
+                            <button
+                              key={effect.value}
+                              onClick={() => setArEffects(effect.value)}
+                              className={`py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 ${
+                                arEffects === effect.value
+                                  ? `bg-gradient-to-r ${effect.color} text-white shadow-lg`
+                                  : 'bg-ink-800 text-ink-300 hover:bg-ink-700'
+                              }`}
+                            >
+                              {effect.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Outfit Mode Toggle */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-ink-300">Outfit Mode</span>
+                        <button
+                          onClick={() => setOutfitMode(!outfitMode)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            outfitMode ? 'bg-brand-600' : 'bg-ink-700'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              outfitMode ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Measurement History */}
+                      {measurementHistory.length > 0 && (
+                        <div className="border-t border-ink-700 pt-4">
+                          <h4 className="text-sm font-medium text-ink-300 mb-3">Measurement History</h4>
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {measurementHistory.slice(0, 3).map((measurement, index) => (
+                              <div key={index} className="text-xs text-ink-400 bg-ink-800 p-2 rounded">
+                                <div className="flex justify-between">
+                                  <span>Height: {measurement.height}cm</span>
+                                  <span>Weight: {measurement.weight}kg</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Chest: {measurement.chest}cm</span>
+                                  <span>Waist: {measurement.waist}cm</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -867,6 +985,53 @@ export default function ARTryOnPage() {
               <div className="bg-ink-900 rounded-lg p-6 border border-ink-700">
                 <h3 className="text-lg font-semibold mb-4">Try On Products</h3>
 
+                {/* Outfit Mode Controls */}
+                <div className="mb-4 p-3 bg-ink-800 rounded-lg border border-ink-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-ink-300">Outfit Mode</h4>
+                    <button
+                      onClick={() => setOutfitMode(!outfitMode)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        outfitMode ? 'bg-brand-600' : 'bg-ink-700'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                          outfitMode ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {outfitMode && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-ink-400">Select multiple products to try on together</p>
+                      <div className="flex flex-wrap gap-2">
+                        {multipleProducts.map((product) => (
+                          <div key={product.id} className="flex items-center space-x-2 bg-brand-600/20 border border-brand-500/50 rounded-lg px-2 py-1">
+                            <span className="text-xs text-brand-400">{product.name}</span>
+                            <button
+                              onClick={() => setMultipleProducts(multipleProducts.filter(p => p.id !== product.id))}
+                              className="text-brand-400 hover:text-brand-300 text-xs"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                      {multipleProducts.length > 0 && (
+                        <button
+                          onClick={() => tryOnOutfit(multipleProducts)}
+                          disabled={isProcessing}
+                          className="w-full bg-brand-600 text-ink-black py-2 px-3 rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors disabled:opacity-50"
+                        >
+                          Try On Outfit ({multipleProducts.length} items)
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-3">
                   {mockProducts.map((product) => (
                     <div key={product.id} className="flex items-center space-x-4 p-3 bg-ink-800 rounded-lg">
@@ -882,25 +1047,46 @@ export default function ARTryOnPage() {
                         <p className="text-sm text-ink-400">{product.category}</p>
                         <p className="text-sm text-brand-400">${product.price}</p>
                       </div>
-                      <button
-                        onClick={() => tryOnProduct(product)}
-                        disabled={(!bodyMeasurements && !demoMode) || isProcessing}
-                        className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 min-w-[80px]"
-                      >
-                        {isProcessing && currentProduct?.id === product.id ? (
-                          <>
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            <span>AR...</span>
-                          </>
+                      <div className="flex space-x-2">
+                        {outfitMode ? (
+                          <button
+                            onClick={() => {
+                              if (multipleProducts.some(p => p.id === product.id)) {
+                                setMultipleProducts(multipleProducts.filter(p => p.id !== product.id))
+                              } else {
+                                setMultipleProducts([...multipleProducts, product])
+                              }
+                            }}
+                            className={`py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
+                              multipleProducts.some(p => p.id === product.id)
+                                ? 'bg-brand-600 text-ink-black'
+                                : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
+                            }`}
+                          >
+                            {multipleProducts.some(p => p.id === product.id) ? 'Selected' : 'Select'}
+                          </button>
                         ) : (
-                          <>
-                            <span>Try On</span>
-                            {currentProduct?.id === product.id && arOverlay && (
-                              <div className="w-2 h-2 bg-green-400 rounded-full ml-1"></div>
+                          <button
+                            onClick={() => tryOnProduct(product)}
+                            disabled={(!bodyMeasurements && !demoMode) || isProcessing}
+                            className="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 min-w-[80px]"
+                          >
+                            {isProcessing && currentProduct?.id === product.id ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                <span>AR...</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>Try On</span>
+                                {currentProduct?.id === product.id && arOverlay && (
+                                  <div className="w-2 h-2 bg-green-400 rounded-full ml-1"></div>
+                                )}
+                              </>
                             )}
-                          </>
+                          </button>
                         )}
-                      </button>
+                      </div>
                     </div>
                   ))}
                 </div>

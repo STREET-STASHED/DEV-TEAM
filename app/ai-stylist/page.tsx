@@ -1,9 +1,9 @@
 'use client'
 
 import {
-    ShoppingCartIcon,
-    SparklesIcon,
-    StarIcon
+  ShoppingCartIcon,
+  SparklesIcon,
+  StarIcon
 } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
@@ -61,10 +61,16 @@ export default function AIStylistPage() {
   const [recommendations, setRecommendations] = useState<Outfit[]>([])
   const [selectedOutfit, setSelectedOutfit] = useState<Outfit | null>(null)
   const [availableProducts, setAvailableProducts] = useState<Product[]>([])
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false)
+  const [_isLoadingProducts, setIsLoadingProducts] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [favoriteOutfits, setFavoriteOutfits] = useState<Outfit[]>([])
+  const [showFavorites, setShowFavorites] = useState(false)
+  const [showSocial, setShowSocial] = useState(false)
+  const [sharedOutfits, setSharedOutfits] = useState<Outfit[]>([])
+  const [communityLikes, setCommunityLikes] = useState<{ [key: string]: number }>({})
+  const [userComments, setUserComments] = useState<{ [key: string]: string[] }>({})
 
   // Set client-side flag
   useEffect(() => {
@@ -98,63 +104,41 @@ export default function AIStylistPage() {
         category: 'Clothing',
         colors: ['Blue', 'Light Blue'],
         sizes: ['M', 'L', 'XL'],
-        rating: 4.7,
-        store: 'Vintage Vault'
+        rating: 4.6,
+        store: 'Retro Fashion Hub'
       },
       {
         id: 'prod-3',
-        name: 'Performance Leggings',
-        price: 65.99,
-        image: '/mock/leggings-1.jpg',
-        category: 'Clothing',
-        colors: ['Black', 'Navy'],
-        sizes: ['XS', 'S', 'M', 'L'],
+        name: 'Street Style Sneakers',
+        price: 120,
+        image: '/mock/sneakers-1.jpg',
+        category: 'Footwear',
+        colors: ['White', 'Black'],
+        sizes: ['7', '8', '9', '10'],
         rating: 4.9,
-        store: 'Athletic Edge'
+        store: 'Sneaker Paradise'
       },
       {
         id: 'prod-4',
-        name: 'Limited Edition Sneakers',
-        price: 299.99,
-        image: '/mock/sneakers-1.jpg',
-        category: 'Footwear',
-        colors: ['White', 'Red'],
-        sizes: ['7', '8', '9', '10', '11'],
-        rating: 4.9,
-        store: 'Sneaker Haven'
+        name: 'Leather Belt',
+        price: 45,
+        image: '/mock/belt-1.jpg',
+        category: 'Accessories',
+        colors: ['Brown', 'Black'],
+        sizes: ['S', 'M', 'L'],
+        rating: 4.5,
+        store: 'Accessory World'
       },
       {
         id: 'prod-5',
-        name: 'Classic Boots',
-        price: 189.99,
-        image: '/mock/boots-1.jpg',
-        category: 'Footwear',
-        colors: ['Brown', 'Black'],
-        sizes: ['7', '8', '9', '10'],
-        rating: 4.6,
-        store: 'Urban Threads Collective'
-      },
-      {
-        id: 'prod-6',
-        name: 'Diamond Pendant Necklace',
-        price: 899.99,
-        image: '/mock/necklace-1.jpg',
-        category: 'Jewelry',
-        colors: ['Gold', 'Silver'],
-        sizes: ['16"', '18"', '20"'],
-        rating: 4.8,
-        store: 'Luxe Jewelry Co.'
-      },
-      {
-        id: 'prod-7',
-        name: 'Sterling Silver Ring',
-        price: 145,
+        name: 'Silver Ring',
+        price: 89,
         image: '/mock/ring-1.jpg',
         category: 'Jewelry',
         colors: ['Silver'],
-        sizes: ['6', '7', '8', '9'],
+        sizes: ['7', '8', '9'],
         rating: 4.7,
-        store: 'Luxe Jewelry Co.'
+        store: 'Jewelry Box'
       }
     ]
 
@@ -162,22 +146,17 @@ export default function AIStylistPage() {
 
     try {
       console.log('AI Stylist: Fetching from /api/items...')
-      const response = await fetch('/api/items?limit=50')
-      const data = await response.json()
-      console.log('AI Stylist: API response:', data)
-      if (data.items && data.items.length > 0) {
-        console.log('AI Stylist: Using API products:', data.items.length)
-        setAvailableProducts(data.items.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          image: item.images?.[0] || '/mock/default-product.jpg',
-          category: item.category,
-          colors: item.colors || ['Black', 'White'],
-          sizes: item.sizes || ['M', 'L'],
-          rating: item.rating || 4.5,
-          store: item.store?.name || 'Unknown Store'
-        })))
+      const response = await fetch('/api/items?limit=20')
+      if (response.ok) {
+        const data = await response.json()
+        if (data.items && data.items.length > 0) {
+          console.log('AI Stylist: Using API data')
+          setAvailableProducts(data.items)
+        } else {
+          console.log('AI Stylist: API returned no items, using fallback')
+        }
+      } else {
+        console.log('AI Stylist: API request failed, using fallback')
       }
     } catch (error) {
       console.error('AI Stylist: Error loading products:', error)
@@ -193,17 +172,24 @@ export default function AIStylistPage() {
     loadAvailableProducts()
   }, [loadAvailableProducts])
 
-  // Load saved profile from localStorage
+  // Load saved profile and favorites from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
+        // Load profile
         const saved = localStorage.getItem('ai-stylist-profile')
         if (saved) {
           const parsed = JSON.parse(saved)
           setStyleProfile({ ...defaultStyleProfile, ...parsed })
         }
+
+        // Load favorites
+        const savedFavorites = localStorage.getItem('ai-stylist-favorites')
+        if (savedFavorites) {
+          setFavoriteOutfits(JSON.parse(savedFavorites))
+        }
       } catch (error) {
-        console.error('Failed to load saved profile:', error)
+        console.error('Failed to load saved data:', error)
       }
     }
   }, [])
@@ -247,7 +233,7 @@ export default function AIStylistPage() {
           // Casual outfit: Comfortable, everyday wear
           const casualTops = filteredProducts.filter(p =>
             p.category === 'Clothing' &&
-            (p.name.toLowerCase().includes('hoodie') || p.name.toLowerCase().includes('sweatshirt') || p.name.toLowerCase().includes('tshirt'))
+            (p.name.toLowerCase().includes('hoodie') || p.name.toLowerCase().includes('sweatshirt') || p.name.toLowerCase().includes('t-shirt'))
           )
           const casualBottoms = filteredProducts.filter(p =>
             p.category === 'Clothing' &&
@@ -260,7 +246,7 @@ export default function AIStylistPage() {
 
           if (casualTops.length > 0) outfitItems.push(casualTops[Math.floor(Math.random() * casualTops.length)])
           if (casualBottoms.length > 0) outfitItems.push(casualBottoms[Math.floor(Math.random() * casualBottoms.length)])
-          if (casualShoes.length > 0) outfitItems.push(casualShoes[Math.floor(Math.random() * casualShoes.length)])
+          if (casualShoes.length > 0) outfitItems.push(casualShoes[Math.floor(Math.random() * casualBottoms.length)])
           break
 
         case 'Business':
@@ -394,6 +380,72 @@ export default function AIStylistPage() {
     }
   }
 
+    // Toggle favorite outfit
+  const toggleFavorite = (outfit: Outfit) => {
+    const isFavorite = favoriteOutfits.some(fav => fav.id === outfit.id)
+    let newFavorites: Outfit[]
+
+    if (isFavorite) {
+      newFavorites = favoriteOutfits.filter(fav => fav.id !== outfit.id)
+    } else {
+      newFavorites = [...favoriteOutfits, outfit]
+    }
+
+    setFavoriteOutfits(newFavorites)
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ai-stylist-favorites', JSON.stringify(newFavorites))
+    }
+  }
+
+  // Share outfit to community
+  const shareOutfit = (outfit: Outfit) => {
+    const isShared = sharedOutfits.some(shared => shared.id === outfit.id)
+
+    if (!isShared) {
+      const newShared = [...sharedOutfits, outfit]
+      setSharedOutfits(newShared)
+
+      // Initialize community engagement
+      setCommunityLikes(prev => ({ ...prev, [outfit.id]: 0 }))
+      setUserComments(prev => ({ ...prev, [outfit.id]: [] }))
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ai-stylist-shared', JSON.stringify(newShared))
+        localStorage.setItem('ai-stylist-likes', JSON.stringify({ ...communityLikes, [outfit.id]: 0 }))
+        localStorage.setItem('ai-stylist-comments', JSON.stringify({ ...userComments, [outfit.id]: [] }))
+      }
+
+      alert(`Outfit "${outfit.name}" shared to community!`)
+    } else {
+      alert('This outfit is already shared!')
+    }
+  }
+
+  // Like community outfit
+  const likeOutfit = (outfitId: string) => {
+    setCommunityLikes(prev => {
+      const newLikes = { ...prev, [outfitId]: (prev[outfitId] || 0) + 1 }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ai-stylist-likes', JSON.stringify(newLikes))
+      }
+      return newLikes
+    })
+  }
+
+  // Add comment to community outfit
+  const addComment = (outfitId: string, comment: string) => {
+    if (comment.trim()) {
+      setUserComments(prev => {
+        const newComments = { ...prev, [outfitId]: [...(prev[outfitId] || []), comment] }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('ai-stylist-comments', JSON.stringify(newComments))
+        }
+        return newComments
+      })
+    }
+  }
+
   // Start style analysis
   const startAnalysis = async () => {
     if (!styleProfile.name || !styleProfile.gender || !styleProfile.occasion) {
@@ -494,46 +546,45 @@ export default function AIStylistPage() {
     <div className="min-h-screen bg-ink-black text-white py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
-          {/* Test Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6">
-              <SparklesIcon className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold mb-4">AI Personal Stylist</h1>
-            <p className="text-xl text-ink-300">Get personalized style recommendations powered by AI</p>
-            <p className="text-sm text-green-400 mt-2">✅ Component is rendering!</p>
-          </div>
-
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mb-8 bg-green-900/20 border border-green-500/50 rounded-lg p-4">
-              <p className="text-green-400 text-center">{successMessage}</p>
-            </div>
-          )}
-
-          {/* Error Message */}
-          {profileError && (
-            <div className="mb-8 bg-red-900/20 border border-red-500/50 rounded-lg p-4">
-              <p className="text-red-400 text-center">{profileError}</p>
-            </div>
-          )}
-
-          {/* Step 1: Style Profile */}
+          {/* Step 1: Style Profile Form */}
           {currentStep === 1 && (
-            <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 shadow-2xl">
-              <h2 className="text-2xl font-bold mb-6 text-center">Tell Us About Your Style</h2>
+            <div className="space-y-8">
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-6">
+                  <SparklesIcon className="w-10 h-10 text-white" />
+                </div>
+                <h1 className="text-4xl font-bold mb-4">AI Personal Stylist</h1>
+                <p className="text-xl text-ink-300">Get personalized style recommendations powered by AI</p>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Basic Info */}
-                <div className="space-y-4">
+              {/* Success Message */}
+              {successMessage && (
+                <div className="mb-8 bg-green-900/20 border border-green-500/50 rounded-lg p-4">
+                  <p className="text-green-400 text-center">{successMessage}</p>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {profileError && (
+                <div className="mb-8 bg-red-900/20 border border-red-500/50 rounded-lg p-4">
+                  <p className="text-red-400 text-center">{profileError}</p>
+                </div>
+              )}
+
+              {/* Style Profile Form */}
+              <div className="bg-ink-900 rounded-2xl p-8 border border-ink-700 shadow-2xl">
+                <h2 className="text-2xl font-bold mb-6 text-center">Tell Us About Your Style</h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Basic Info */}
                   <div>
                     <label className="block text-sm font-medium mb-2">Name *</label>
                     <input
                       type="text"
                       value={styleProfile.name}
                       onChange={(e) => setStyleProfile({ ...styleProfile, name: e.target.value })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-400"
-                      placeholder="Your name"
+                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none transition-colors"
+                      placeholder="Enter your name"
                     />
                   </div>
 
@@ -543,7 +594,8 @@ export default function AIStylistPage() {
                       type="number"
                       value={styleProfile.age}
                       onChange={(e) => setStyleProfile({ ...styleProfile, age: parseInt(e.target.value) || 25 })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none transition-colors"
+                      placeholder="25"
                       min="13"
                       max="100"
                     />
@@ -554,7 +606,7 @@ export default function AIStylistPage() {
                     <select
                       value={styleProfile.gender}
                       onChange={(e) => setStyleProfile({ ...styleProfile, gender: e.target.value })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:border-brand-400 focus:outline-none transition-colors"
                     >
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
@@ -569,7 +621,7 @@ export default function AIStylistPage() {
                     <select
                       value={styleProfile.occasion}
                       onChange={(e) => setStyleProfile({ ...styleProfile, occasion: e.target.value })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:border-brand-400 focus:outline-none transition-colors"
                     >
                       <option value="">Select occasion</option>
                       <option value="Casual">Casual</option>
@@ -579,22 +631,19 @@ export default function AIStylistPage() {
                       <option value="Street Style">Street Style</option>
                     </select>
                   </div>
-                </div>
 
-                {/* Style Preferences */}
-                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium mb-3">Style Preferences</label>
                     <div className="space-y-2">
-                      {['Modern', 'Vintage', 'Minimalist', 'Bold', 'Classic', 'Streetwear', 'Athletic'].map((style) => (
-                        <label key={style} className="flex items-center space-x-3">
+                      {['Modern', 'Vintage', 'Minimalist', 'Bold', 'Classic'].map((preference) => (
+                        <label key={preference} className="flex items-center space-x-3">
                           <input
                             type="checkbox"
-                            checked={styleProfile.stylePreferences.includes(style)}
-                            onChange={(e) => handleStylePreferenceChange(style, e.target.checked)}
+                            checked={styleProfile.stylePreferences.includes(preference)}
+                            onChange={(e) => handleStylePreferenceChange(preference, e.target.checked)}
                             className="w-4 h-4 text-brand-400 bg-ink-800 border-ink-600 rounded focus:ring-brand-400 focus:ring-2"
                           />
-                          <span className="text-sm">{style}</span>
+                          <span className="text-sm">{preference}</span>
                         </label>
                       ))}
                     </div>
@@ -638,58 +687,112 @@ export default function AIStylistPage() {
                     <label className="block text-sm font-medium mb-2">Budget Range</label>
                     <select
                       value={styleProfile.budget}
-                      onChange={(e) => setStyleProfile({ ...styleProfile, budget: parseInt(e.target.value) || 500 })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-brand-400"
+                      onChange={(e) => setStyleProfile({ ...styleProfile, budget: parseInt(e.target.value) })}
+                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white focus:border-brand-400 focus:outline-none transition-colors"
                     >
-                      <option value={100}>Under $100</option>
-                      <option value={250}>Under $250</option>
+                      <option value={200}>Under $200</option>
                       <option value={500}>Under $500</option>
-                      <option value={1000}>Under $1,000</option>
+                      <option value={1000}>Under $1000</option>
+                      <option value={2000}>Under $2000</option>
                       <option value={5000}>No limit</option>
                     </select>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-8 text-center">
-                <button
-                  onClick={startAnalysis}
-                  disabled={isAnalyzing}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-8 rounded-lg font-bold text-lg hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-4 focus:ring-purple-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-3 mx-auto"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-                      <span>Analyzing Your Style...</span>
-                    </>
-                  ) : (
-                    <>
-                      <SparklesIcon className="w-6 h-6" />
-                      <span>Get AI Style Recommendations</span>
-                    </>
-                  )}
-                </button>
+                <div className="mt-8 text-center">
+                  <button
+                    onClick={startAnalysis}
+                    disabled={isAnalyzing}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 px-8 rounded-lg font-bold text-lg hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 mx-auto"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        <span>Analyzing Your Style...</span>
+                      </>
+                    ) : (
+                      <>
+                        <SparklesIcon className="w-6 h-6" />
+                        <span>Start Style Analysis</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* Step 2: Recommendations */}
-          {currentStep === 2 && recommendations.length > 0 && (
+          {currentStep === 2 && (
             <div className="space-y-8">
-              <div className="text-center">
-                <h2 className="text-3xl font-bold mb-4">Your Personalized Style Recommendations</h2>
-                <p className="text-ink-300 text-lg">Based on your preferences, here are some perfect outfit combinations:</p>
+              {/* Navigation Tabs */}
+              <div className="flex justify-center space-x-4 mb-8">
+                <button
+                  onClick={() => {
+                    setShowFavorites(false)
+                    setShowSocial(false)
+                  }}
+                  className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                    !showFavorites && !showSocial
+                      ? 'bg-brand-600 text-ink-black'
+                      : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
+                  }`}
+                >
+                  Recommendations
+                </button>
+                <button
+                  onClick={() => setShowFavorites(true)}
+                  className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                    showFavorites
+                      ? 'bg-brand-600 text-ink-black'
+                      : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
+                  }`}
+                >
+                  Favorites ({favoriteOutfits.length})
+                </button>
+                <button
+                  onClick={() => setShowSocial(true)}
+                  className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                    showSocial
+                      ? 'bg-brand-600 text-ink-black'
+                      : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
+                  }`}
+                >
+                  Community ({sharedOutfits.length})
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {recommendations.map((outfit) => (
-                  <div key={outfit.id} className="bg-ink-900 rounded-2xl p-6 border border-ink-700 shadow-xl">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xl font-bold">{outfit.name}</h3>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-ink-400">
-                          {outfit.occasion} • {outfit.style} Style
-                        </span>
+              {/* Recommendations Tab */}
+              {!showFavorites && !showSocial && recommendations.length > 0 && (
+                <div className="space-y-8">
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold mb-4">Your Personalized Style Recommendations</h2>
+                    <p className="text-ink-300 text-lg">Based on your preferences, here are some perfect outfit combinations:</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {recommendations.map((outfit) => (
+                      <div key={outfit.id} className="bg-ink-900 rounded-2xl p-6 border border-ink-700 shadow-xl">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-xl font-bold">{outfit.name}</h3>
+                          <button
+                            onClick={() => toggleFavorite(outfit)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              favoriteOutfits.some(fav => fav.id === outfit.id)
+                                ? 'text-red-400 bg-red-900/20'
+                                : 'text-ink-400 hover:text-red-400 hover:bg-red-900/20'
+                            }`}
+                            title={favoriteOutfits.some(fav => fav.id === outfit.id) ? 'Remove from favorites' : 'Add to favorites'}
+                          >
+                            <StarIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+
+                        <div className="mb-4">
+                          <span className="text-sm text-ink-400">
+                            {outfit.occasion} • {outfit.style} Style • Confidence: {Math.round(outfit.confidence * 100)}%
+                          </span>
+                        </div>
 
                         {/* Items */}
                         <div className="space-y-2 mb-4">
@@ -731,10 +834,218 @@ export default function AIStylistPage() {
                           </button>
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+                            {/* Favorites Tab */}
+              {showFavorites && (
+                <div className="space-y-8">
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold mb-4">Your Favorite Outfits</h2>
+                    <p className="text-ink-300 text-lg">Outfits you&apos;ve saved for later</p>
+                  </div>
+
+                  {favoriteOutfits.length === 0 ? (
+                    <div className="text-center py-12">
+                      <StarIcon className="w-16 h-16 text-ink-600 mx-auto mb-4" />
+                      <p className="text-ink-400 text-lg">No favorite outfits yet</p>
+                      <p className="text-ink-500">Start getting recommendations to save your favorites!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {favoriteOutfits.map((outfit) => (
+                        <div key={outfit.id} className="bg-ink-900 rounded-2xl p-6 border border-ink-700 shadow-xl">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold">{outfit.name}</h3>
+                            <button
+                              onClick={() => toggleFavorite(outfit)}
+                              className="p-2 rounded-lg text-red-400 bg-red-900/20 hover:bg-red-900/30 transition-colors"
+                              title="Remove from favorites"
+                            >
+                              <StarIcon className="w-5 h-5" />
+                            </button>
+                          </div>
+
+                          <div className="mb-4">
+                            <span className="text-sm text-ink-400">
+                              {outfit.occasion} • {outfit.style} Style • Confidence: {Math.round(outfit.confidence * 100)}%
+                            </span>
+                          </div>
+
+                          {/* Items */}
+                          <div className="space-y-2 mb-4">
+                            {outfit.items.map((item) => (
+                              <div key={item.id} className="flex items-center space-x-3 p-3 bg-ink-800 rounded-lg">
+                                <div className="w-12 h-12 bg-ink-700 rounded-lg overflow-hidden">
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-sm">{item.name}</h4>
+                                  <p className="text-xs text-ink-400">{item.store}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-brand-400 text-sm">${item.price}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="space-y-2">
+                            <button
+                              onClick={() => addToCart(outfit)}
+                              className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <ShoppingCartIcon className="w-4 h-4" />
+                              <span>Add to Cart</span>
+                            </button>
+
+                            <button
+                              onClick={() => setSelectedOutfit(outfit)}
+                              className="w-full text-ink-300 hover:text-brand-400 hover:bg-ink-800/50 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200"
+                            >
+                              View Details
+                            </button>
+
+                            <button
+                              onClick={() => shareOutfit(outfit)}
+                              className="w-full text-ink-300 hover:text-brand-400 hover:bg-ink-800/50 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200"
+                            >
+                              Share to Community
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Community Tab */}
+              {showSocial && (
+                <div className="space-y-8">
+                  <div className="text-center">
+                    <h2 className="text-3xl font-bold mb-4">Style Community</h2>
+                    <p className="text-ink-300 text-lg">Discover and share amazing outfit combinations</p>
+                  </div>
+
+                  {sharedOutfits.length === 0 ? (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                        <span className="text-white text-2xl">👥</span>
+                      </div>
+                      <p className="text-ink-400 text-lg">No shared outfits yet</p>
+                      <p className="text-ink-500">Share your favorite outfits to start building the community!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {sharedOutfits.map((outfit) => (
+                        <div key={outfit.id} className="bg-ink-900 rounded-2xl p-6 border border-ink-700 shadow-xl">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold">{outfit.name}</h3>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => likeOutfit(outfit.id)}
+                                className="p-2 rounded-lg text-red-400 hover:bg-red-900/20 transition-colors"
+                                title="Like this outfit"
+                              >
+                                <span className="text-sm">❤️ {communityLikes[outfit.id] || 0}</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <span className="text-sm text-ink-400">
+                              {outfit.occasion} • {outfit.style} Style • Confidence: {Math.round(outfit.confidence * 100)}%
+                            </span>
+                          </div>
+
+                          {/* Items */}
+                          <div className="space-y-2 mb-4">
+                            {outfit.items.map((item) => (
+                              <div key={item.id} className="flex items-center space-x-3 p-3 bg-ink-800 rounded-lg">
+                                <div className="w-12 h-12 bg-ink-700 rounded-lg overflow-hidden">
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-medium text-sm">{item.name}</h4>
+                                  <p className="text-xs text-ink-400">{item.store}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-bold text-brand-400 text-sm">${item.price}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Community Engagement */}
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-ink-400">Community Rating:</span>
+                              <span className="text-brand-400 font-medium">
+                                {((communityLikes[outfit.id] || 0) / Math.max(sharedOutfits.length, 1) * 5).toFixed(1)}/5.0
+                              </span>
+                            </div>
+
+                            {/* Comments Section */}
+                            <div className="border-t border-ink-700 pt-3">
+                              <h4 className="text-sm font-medium text-ink-300 mb-2">Comments</h4>
+                              <div className="space-y-2 max-h-24 overflow-y-auto">
+                                {(userComments[outfit.id] || []).map((comment, index) => (
+                                  <div key={index} className="text-xs text-ink-400 bg-ink-800 p-2 rounded">
+                                    {comment}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-2">
+                                <input
+                                  type="text"
+                                  placeholder="Add a comment..."
+                                  className="w-full bg-ink-800 border border-ink-600 rounded-lg px-3 py-2 text-sm text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none"
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                      addComment(outfit.id, e.currentTarget.value)
+                                      e.currentTarget.value = ''
+                                    }
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="space-y-2 mt-4">
+                            <button
+                              onClick={() => addToCart(outfit)}
+                              className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
+                            >
+                              <ShoppingCartIcon className="w-4 h-4" />
+                              <span>Add to Cart</span>
+                            </button>
+
+                            <button
+                              onClick={() => setSelectedOutfit(outfit)}
+                              className="w-full text-ink-300 hover:text-brand-400 hover:bg-ink-800/50 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200"
+                            >
+                              View Details
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex justify-center space-x-4">

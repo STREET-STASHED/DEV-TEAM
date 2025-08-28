@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { calculateFees, getDriverPayBreakdown } from '@/lib/fees';
 import { feeConfig } from '@/lib/feeConfig';
+import { calculateFees } from '@/lib/fees';
+import { useCallback, useEffect, useState } from 'react';
 
 interface CartItem {
   id: string;
@@ -97,11 +97,6 @@ export function CheckoutSummary({
     }
   }, [calculateFeesForOrder, distanceMiles]);
 
-  const getDriverPayBreakdownData = () => {
-    if (!fees) return null;
-    return getDriverPayBreakdown(distanceMiles, new Date().getHours());
-  };
-
   if (isCalculating) {
     return (
       <div className="bg-ink-900 border border-ink-800 rounded-lg p-6 animate-pulse">
@@ -137,8 +132,6 @@ export function CheckoutSummary({
     );
   }
 
-  const breakdown = getDriverPayBreakdownData();
-
   return (
     <div className="bg-ink-900 border border-ink-800 rounded-lg p-6 shadow-card">
       <h3 className="text-xl font-semibold text-white mb-4">Order Summary</h3>
@@ -160,52 +153,16 @@ export function CheckoutSummary({
           <span>${subtotal.toFixed(2)}</span>
         </div>
 
-        {/* Stashed Support Fee Breakdown */}
+        {/* Stashed Support Fee - Clean and Simple */}
         <div className="bg-ink-800/50 rounded-lg p-3">
           <div className="flex justify-between text-white font-medium mb-2">
             <span>Stashed Support Fee</span>
             <span>${fees.stashedSupportFee.buyerShare.toFixed(2)}</span>
           </div>
 
-          <div className="text-xs text-ink-400 space-y-1">
-            <div className="flex justify-between">
-              <span>Your Share:</span>
-              <span>${fees.stashedSupportFee.buyerShare.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Seller Share:</span>
-              <span>${fees.stashedSupportFee.sellerShare.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Total Support Fee:</span>
-              <span>${fees.stashedSupportFee.total.toFixed(2)}</span>
-            </div>
+          <div className="text-xs text-ink-400 text-center">
+            This fee helps cover driver pay and delivery operations
           </div>
-
-          {/* Driver Compensation Breakdown */}
-          <div className="mt-3 p-2 bg-ink-700/50 rounded text-xs">
-            <div className="text-brand-400 font-medium mb-1">Driver Compensation:</div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-300">
-              <div>Driver Pay: ${fees.driverCompensation.driverPay.toFixed(2)}</div>
-              <div>Platform: ${fees.driverCompensation.platformMargin.toFixed(2)}</div>
-              <div className="text-brand-400 font-medium">
-                Driver Gets: {fees.driverCompensation.percentage}%
-              </div>
-            </div>
-          </div>
-
-          {/* Driver Pay Breakdown Tooltip */}
-          {breakdown && (
-            <div className="mt-2 p-2 bg-ink-600/50 rounded text-xs">
-              <div className="text-brand-400 font-medium mb-1">Driver Pay Breakdown:</div>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-ink-300">
-                <div>Base: ${breakdown.base.toFixed(2)}</div>
-                <div>Mileage: ${breakdown.mileage.toFixed(2)}</div>
-                <div>Bonuses: ${breakdown.bonuses.toFixed(2)}</div>
-                <div>Total: ${breakdown.total.toFixed(2)}</div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Distance & ETA */}
@@ -224,13 +181,12 @@ export function CheckoutSummary({
           <span>${fees.meta.totalOrderAmount.toFixed(2)}</span>
         </div>
 
-        {/* Support Fee Explanation */}
+        {/* Trust Message */}
         <div className="mt-4 p-3 bg-ink-800/30 rounded-lg">
           <div className="text-xs text-ink-400 text-center">
-            <div className="text-brand-400 font-medium mb-1">About Stashed Support Fee</div>
+            <div className="text-brand-400 font-medium mb-1">Fast & Fair Delivery</div>
             <div className="text-ink-300">
-              This fee covers driver compensation, platform operations, and delivery costs.
-              The total is shared between you and the seller to ensure fair pricing for everyone.
+              Your Stashed Support Fee ensures drivers are fairly compensated and orders arrive quickly and safely.
             </div>
           </div>
         </div>

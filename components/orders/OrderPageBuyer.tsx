@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Order } from '@/lib/types';
 import { getDriverPayBreakdown } from '@/lib/fees';
+import { Order } from '@/lib/types';
+import { useCallback, useEffect, useState } from 'react';
 
 interface OrderPageBuyerProps {
   orderId: string;
@@ -163,7 +163,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
               {getStatusIcon(order.status)} {order.status.replace('_', ' ').toUpperCase()}
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-2xl font-bold text-brand-400">{order.distance_miles.toFixed(1)}</div>
@@ -183,7 +183,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
         {/* Order Items */}
         <div className="bg-ink-800 border border-ink-700 rounded-lg p-6 mb-8 shadow-card">
           <h2 className="text-xl font-semibold text-white mb-4">Order Items</h2>
-          
+
           <div className="space-y-4">
             {order.items.map((item) => (
               <div key={item.id} className="flex items-center space-x-4 p-4 bg-ink-700/50 rounded-lg">
@@ -209,7 +209,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
         {/* Delivery Details */}
         <div className="bg-ink-800 border border-ink-700 rounded-lg p-6 mb-8 shadow-card">
           <h2 className="text-xl font-semibold text-white mb-4">Delivery Details</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h3 className="text-brand-400 font-medium mb-2">Pickup Location</h3>
@@ -220,7 +220,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
               <p className="text-ink-300">{formatAddress(order.delivery_address)}</p>
             </div>
           </div>
-          
+
           {order.delivery_instructions && (
             <div className="mt-4 p-3 bg-ink-700/50 rounded-lg">
               <h4 className="text-ink-300 font-medium mb-1">Delivery Instructions</h4>
@@ -232,7 +232,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
         {/* Fee Breakdown */}
         <div className="bg-ink-800 border border-ink-700 rounded-lg p-6 mb-8 shadow-card">
           <h2 className="text-xl font-semibold text-white mb-4">Fee Breakdown</h2>
-          
+
           <div className="space-y-4">
             {/* Items Subtotal */}
             <div className="flex justify-between items-center">
@@ -246,7 +246,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
                 <span className="text-white font-medium">Delivery Fee</span>
                 <span className="text-white font-medium">${order.delivery_fee_amount.toFixed(2)}</span>
               </div>
-              
+
               <div className="text-sm text-ink-400 space-y-1">
                 <div className="flex justify-between">
                   <span>Driver Pay:</span>
@@ -290,7 +290,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
         {order.driver_id && (
           <div className="bg-ink-800 border border-ink-700 rounded-lg p-6 mb-8 shadow-card">
             <h2 className="text-xl font-semibold text-white mb-4">Driver Information</h2>
-            
+
             <div className="bg-ink-700/50 rounded-lg p-4">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center">
@@ -301,7 +301,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
                   <div className="text-ink-400 text-sm">Driver ID: {order.driver_id}</div>
                 </div>
               </div>
-              
+
               <div className="mt-4 text-center">
                 <div className="text-brand-400 font-medium">
                   Expected Payout: ${order.driver_payout_amount.toFixed(2)}
@@ -317,7 +317,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
         {/* Order Timeline */}
         <div className="bg-ink-800 border border-ink-700 rounded-lg p-6 shadow-card">
           <h2 className="text-xl font-semibold text-white mb-4">Order Timeline</h2>
-          
+
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <div className="w-3 h-3 bg-success-400 rounded-full"></div>
@@ -326,7 +326,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
                 <div className="text-ink-400 text-sm">{new Date(order.created_at).toLocaleString()}</div>
               </div>
             </div>
-            
+
             {order.status !== 'pending' && (
               <div className="flex items-center space-x-4">
                 <div className="w-3 h-3 bg-blue-400 rounded-full"></div>
@@ -336,7 +336,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
                 </div>
               </div>
             )}
-            
+
             {order.status === 'picked_up' && (
               <div className="flex items-center space-x-4">
                 <div className="w-3 h-3 bg-orange-400 rounded-full"></div>
@@ -346,7 +346,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
                 </div>
               </div>
             )}
-            
+
             {order.status === 'delivered' && (
               <div className="flex items-center space-x-4">
                 <div className="w-3 h-3 bg-success-400 rounded-full"></div>

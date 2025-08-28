@@ -103,7 +103,7 @@ export default function CheckoutPage() {
     setStripeAmount(summary.total)
   }
 
-  const handleGuestCheckout = async (_guestData: GuestUser, address: Address) => {
+  const handleGuestCheckout = async (guestData: GuestUser, address: Address) => {
     if (items.length === 0) {
       setError('Your cart is empty')
       return
@@ -127,10 +127,11 @@ export default function CheckoutPage() {
         pickupAddress,
         deliveryAddress: address,
         distanceMiles: distanceMiles || 8,
-        totalPrice
+        totalPrice,
+        guestUser: guestData // Include guest user data
       }
 
-      const response = await fetch('/api/orders', {
+      const response = await fetch('/api/orders/guest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)

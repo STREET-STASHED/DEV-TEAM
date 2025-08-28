@@ -1,9 +1,9 @@
 'use client'
 
 import { useCart } from '@/context/CartContext'
-import { CartItem } from './CartItem'
-import { useRouter } from 'next/navigation'
 import { computeStashedSupportFee } from '@/lib/feeConfig'
+import { useRouter } from 'next/navigation'
+import { CartItem } from './CartItem'
 
 export function CartItems() {
   const { items, totalCount, totalPrice, totalAmount } = useCart()
@@ -21,7 +21,7 @@ export function CartItems() {
   // Calculate Stashed Support Fee using the new comprehensive structure
   const defaultDistanceMiles = 8.0 // Default distance for cart preview
   const currentHour = new Date().getHours()
-  
+
   const feeBreakdown = items.length > 0 ? computeStashedSupportFee({
     distanceMiles: defaultDistanceMiles,
     cartSubtotal: totalPrice,
