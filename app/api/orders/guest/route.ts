@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the guest order with minimal required fields
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('orders')
       .insert({
         buyer_id: null, // Set to null for guest orders
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Guest order created successfully',
-      orderId: data.id,
-      order: data
+      orderId: data?.id || 'unknown',
+      order: data || {}
     })
 
   } catch (error) {
