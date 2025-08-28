@@ -22,7 +22,7 @@ export class PerformanceOptimizer {
     } = {}
   ): Promise<string> {
     const cacheKey = `${src}-${JSON.stringify(options)}`
-    
+
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey)
     }
@@ -31,17 +31,17 @@ export class PerformanceOptimizer {
       // In a real app, this would use a service like Cloudinary or ImageKit
       // For now, we'll return the original src with query parameters
       const params = new URLSearchParams()
-      
+
       if (options.width) params.append('w', options.width.toString())
       if (options.height) params.append('h', options.height.toString())
       if (options.quality) params.append('q', options.quality.toString())
       if (options.format) params.append('f', options.format)
-      
+
       const optimizedSrc = params.toString() ? `${src}?${params.toString()}` : src
-      
+
       // Cache the result
       this.cache.set(cacheKey, optimizedSrc)
-      
+
       return optimizedSrc
     } catch (error) {
       console.error('Image optimization failed:', error)
@@ -68,18 +68,18 @@ export class PerformanceOptimizer {
             if (entry.isIntersecting) {
               // Load the actual image
               const actualImg = new Image()
-              
+
               actualImg.onload = () => {
                 img.src = actualImg.src
                 img.classList.remove('lazy')
                 observer.unobserve(img)
                 resolve()
               }
-              
+
               actualImg.onerror = () => {
                 reject(new Error(`Failed to load image: ${src}`))
               }
-              
+
               actualImg.src = src
             }
           })
@@ -203,7 +203,7 @@ export class PerformanceOptimizer {
     wait: number
   ): (...args: Parameters<T>) => void {
     let timeout: NodeJS.Timeout
-    
+
     return (...args: Parameters<T>) => {
       clearTimeout(timeout)
       timeout = setTimeout(() => func(...args), wait)
@@ -216,7 +216,7 @@ export class PerformanceOptimizer {
     limit: number
   ): (...args: Parameters<T>) => void {
     let inThrottle: boolean
-    
+
     return (...args: Parameters<T>) => {
       if (!inThrottle) {
         func(...args)
@@ -249,7 +249,7 @@ export class PerformanceOptimizer {
       try {
         const registration = await navigator.serviceWorker.register('/sw.js')
         console.log('Service Worker registered:', registration)
-        
+
         // Set up cache strategies
         await this.setupCacheStrategies()
       } catch (error) {
@@ -269,9 +269,9 @@ export class PerformanceOptimizer {
     const start = performance.now()
     const result = fn()
     const end = performance.now()
-    
+
     console.log(`${name} took ${(end - start).toFixed(2)}ms`)
-    
+
     // Send to analytics if available
     if (typeof window !== 'undefined' && (window as any).gtag) {
       (window as any).gtag('event', 'performance', {
@@ -280,7 +280,7 @@ export class PerformanceOptimizer {
         value: Math.round(end - start)
       })
     }
-    
+
     return result
   }
 
@@ -289,12 +289,12 @@ export class PerformanceOptimizer {
     // Clear caches
     this.cache.clear()
     this.imageCache.clear()
-    
+
     // Force garbage collection if available
     if ((window as any).gc) {
       (window as any).gc()
     }
-    
+
     console.log('Memory cleanup completed')
   }
 
@@ -309,7 +309,7 @@ export class PerformanceOptimizer {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
     const paintEntries = performance.getEntriesByType('paint')
     const layoutShiftEntries = performance.getEntriesByType('layout-shift')
-    
+
     return {
       loadTime: navigation ? navigation.loadEventEnd - navigation.navigationStart : 0,
       domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - navigation.navigationStart : 0,

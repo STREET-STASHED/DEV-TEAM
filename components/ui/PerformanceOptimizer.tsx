@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { AlertTriangle, CheckCircle, Info, Loader2 } from 'lucide-react'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 
 interface PerformanceMetrics {
   loadTime: number
@@ -35,7 +35,7 @@ export default function PerformanceOptimizer({
   // Measure performance metrics
   const measurePerformance = useCallback(() => {
     const startTime = performance.now()
-    
+
     // Measure load time
     if (typeof window !== 'undefined') {
       const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
@@ -75,16 +75,16 @@ export default function PerformanceOptimizer({
       // Simulate optimization steps
       await new Promise(resolve => setTimeout(resolve, 1000))
       setOptimizationStatus('Optimizing bundle...')
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000))
       setOptimizationStatus('Compressing assets...')
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000))
       setOptimizationStatus('Optimizing images...')
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000))
       setOptimizationStatus('Performance optimized!')
-      
+
       // Re-measure metrics after optimization
       setTimeout(() => {
         measurePerformance()
@@ -100,7 +100,7 @@ export default function PerformanceOptimizer({
   // Monitor performance on mount
   useEffect(() => {
     measurePerformance()
-    
+
     // Set up performance monitoring
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
@@ -149,21 +149,21 @@ export default function PerformanceOptimizer({
               </div>
               <div className="text-xs text-ink-400">Load Time</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-lg font-bold text-ink-100">
                 {metrics.renderTime > 0 ? `${Math.round(metrics.renderTime)}ms` : 'N/A'}
               </div>
               <div className="text-xs text-ink-400">Render Time</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-lg font-bold text-ink-100">
                 {metrics.memoryUsage > 0 ? `${metrics.memoryUsage.toFixed(1)}MB` : 'N/A'}
               </div>
               <div className="text-xs text-ink-400">Memory Usage</div>
             </div>
-            
+
             <div className="text-center">
               <div className="text-lg font-bold text-ink-100">
                 {metrics.networkRequests}
@@ -184,7 +184,7 @@ export default function PerformanceOptimizer({
             <div className="flex items-start space-x-2">
               <Info className="w-4 h-4 text-ink-400 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-ink-400">
-                <strong>Performance Tips:</strong> Use lazy loading for images, implement code splitting, 
+                <strong>Performance Tips:</strong> Use lazy loading for images, implement code splitting,
                 and optimize bundle size for better performance.
               </div>
             </div>
@@ -201,10 +201,10 @@ export default function PerformanceOptimizer({
 }
 
 // Loading State Component
-export function LoadingState({ 
-  message = "Loading...", 
+export function LoadingState({
+  message = "Loading...",
   size = "default",
-  className = "" 
+  className = ""
 }: {
   message?: string
   size?: "small" | "default" | "large"
@@ -227,10 +227,10 @@ export function LoadingState({
 }
 
 // Error Boundary Component
-export function ErrorBoundary({ 
-  children, 
+export function ErrorBoundary({
+  children,
   fallback,
-  onError 
+  onError
 }: {
   children: ReactNode
   fallback?: ReactNode
@@ -294,8 +294,8 @@ export function ErrorBoundary({
 }
 
 // Lazy Load Component
-export function LazyLoad({ 
-  children, 
+export function LazyLoad({
+  children,
   threshold = 0.1,
   fallback,
   className = ""
@@ -368,7 +368,7 @@ export function usePerformanceMonitor() {
 
   const measurePerformance = useCallback(() => {
     const startTime = performance.now()
-    
+
     // Measure various performance metrics
     const newMetrics: PerformanceMetrics = {
       loadTime: 0,

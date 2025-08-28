@@ -1,5 +1,4 @@
 import { createRequire } from 'module';
-import process from "process";
 
 const require = createRequire(import.meta.url);
 
