@@ -25,28 +25,81 @@ ADD COLUMN IF NOT EXISTS total_amount NUMERIC(10,2) DEFAULT 0;
 -- Add index for guest orders
 CREATE INDEX IF NOT EXISTS idx_orders_guest_orders ON public.orders(is_guest_order) WHERE is_guest_order = TRUE;
 
--- Update RLS policies to allow guest orders
--- Drop existing policies that are too restrictive
-DROP POLICY IF EXISTS "orders_buyer_select_insert" ON public.orders;
-DROP POLICY IF EXISTS "orders_buyer_insert" ON public.orders;
-DROP POLICY IF EXISTS "orders_buyer_select_insert" ON public.orders;
-DROP POLICY IF EXISTS "orders_buyer_insert" ON public.orders;
+-- Temporarily disable RLS to allow guest order creation
+ALTER TABLE public.orders DISABLE ROW LEVEL SECURITY;
 
--- Create new policies that allow guest orders
-CREATE POLICY "orders_buyer_select_insert" ON public.orders
+-- Create a function to handle guest order creation
+CREATE OR REPLACE FUNCTION public.create_guest_order(
+  p_items JSONB,
+  p_total_amount NUMERIC,
+  p_pickup_address JSONB,
+  p_delivery_address JSONB,
+  p_distance_miles NUMERIC,
+  p_guest_info JSONB
+) RETURNS UUID AS $$
+DECLARE
+  v_order_id UUID;
+BEGIN
+  INSERT INTO public.orders (
+    buyer_id,
+    seller_id,
+    status,
+    items,
+    pickup_address,
+    delivery_address,
+    distance_miles,
+    item_total,
+    total_amount,
+    support_fee_total,
+    driver_payout,
+    platform_margin,
+    guest_info,
+    is_guest_order,
+    created_at,
+    updated_at
+  ) VALUES (
+    NULL, -- buyer_id is NULL for guest orders
+    '00000000-0000-0000-0000-000000000000', -- Default seller ID
+    'pending',
+    p_items,
+    p_pickup_address,
+    p_delivery_address,
+    p_distance_miles,
+    p_total_amount,
+    p_total_amount,
+    0, -- support_fee_total
+    0, -- driver_payout
+    0, -- platform_margin
+    p_guest_info,
+    TRUE, -- is_guest_order
+    NOW(),
+    NOW()
+  ) RETURNING id INTO v_order_id;
+
+  RETURN v_order_id;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Grant execute permission on the function
+GRANT EXECUTE ON FUNCTION public.create_guest_order TO anon;
+GRANT EXECUTE ON FUNCTION public.create_guest_order TO authenticated;
+
+-- Re-enable RLS
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+
+-- Create policies for authenticated users
+CREATE POLICY "authenticated_users_can_manage_own_orders" ON public.orders
+FOR ALL USING (buyer_id = auth.uid());
+
+-- Create policies for guest orders (read-only access)
+CREATE POLICY "guest_orders_readable_by_email" ON public.orders
 FOR SELECT USING (
-  (buyer_id = auth.uid()) OR
-  (is_guest_order = TRUE AND guest_info->>'email' IS NOT NULL)
+  is_guest_order = TRUE AND
+  guest_info->>'email' IS NOT NULL
 );
 
-CREATE POLICY "orders_buyer_insert" ON public.orders
-FOR INSERT WITH CHECK (
-  (buyer_id = auth.uid()) OR
-  (is_guest_order = TRUE AND guest_info->>'email' IS NOT NULL)
-);
-
--- Allow admins to view all orders including guest orders
-CREATE POLICY IF NOT EXISTS "admin_view_all_orders" ON public.orders
+-- Allow admins to view all orders
+CREATE POLICY "admin_view_all_orders" ON public.orders
 FOR ALL USING (
   EXISTS (
     SELECT 1 FROM public.profiles p

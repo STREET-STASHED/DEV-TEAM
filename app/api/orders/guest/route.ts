@@ -3,6 +3,14 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+// GET method for debugging
+export async function GET() {
+  return NextResponse.json({
+    message: 'Guest orders API is working',
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
@@ -24,22 +32,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create the guest order
-    const { data, error } = await (supabase as any)
+    // Create the guest order with minimal required fields
+    const { data, error } = await supabase
       .from('orders')
       .insert({
-        buyer_id: null, // Set to null for guest orders since we can't reference auth.users
+        buyer_id: null, // Set to null for guest orders
+        seller_id: null, // Set to null for guest orders (no specific seller)
         status: 'pending',
-        total_amount: orderData.totalPrice,
-        item_total: orderData.totalPrice,
         items: orderData.items,
-        delivery_address: orderData.deliveryAddress || {},
         pickup_address: orderData.pickupAddress || {},
+        delivery_address: orderData.deliveryAddress || {},
         distance_miles: orderData.distanceMiles || 0,
+        item_total: orderData.totalPrice,
+        total_amount: orderData.totalPrice,
+        support_fee_total: 0,
         driver_payout: 0,
         platform_margin: 0,
-        support_fee_total: 0,
-        seller_id: '00000000-0000-0000-0000-000000000000', // Default seller ID
         guest_info: {
           email: orderData.guestUser.email,
           full_name: orderData.guestUser.fullName,
@@ -47,7 +55,7 @@ export async function POST(request: NextRequest) {
         },
         is_guest_order: true
       })
-      .select()
+      .select('id, status, total_amount, guest_info, created_at')
       .single()
 
     if (error) {
