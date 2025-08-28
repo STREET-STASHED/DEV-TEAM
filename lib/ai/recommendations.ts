@@ -1,158 +1,437 @@
+import { createClient } from '@supabase/supabase-js'
 
-
-// Types for recommendation system
-export interface UserPreference {
-  userId: string
-  category: string
-  brand: string
-  priceRange: { min: number; max: number }
-  style: string[]
-  weight: number // 0-1, how much this preference matters
-}
-
-export interface ProductFeatures {
+export interface ProductRecommendation {
   id: string
+  name: string
   category: string
-  brand: string
   price: number
-  tags: string[]
-  condition: string
-  style: string[]
-  sellerRating: number
-  popularity: number // based on views, likes, purchases
-}
-
-export interface RecommendationScore {
-  productId: string
+  image_url: string
   score: number
   reason: string
-  confidence: number
 }
 
 export interface UserBehavior {
-  userId: string
-  productId: string
-  action: 'view' | 'like' | 'cart' | 'purchase' | 'share'
-  timestamp: Date
+  userId?: string
   sessionId: string
+  productId: string
+  action: 'view' | 'add_to_cart' | 'purchase' | 'like' | 'share'
+  timestamp: Date
+  category?: string
+  price?: number
+}
+
+export interface RecommendationContext {
+  userId?: string
+  sessionId: string
+  currentCategory?: string
+  priceRange?: { min: number; max: number }
+  recentViews: string[]
+  cartItems: string[]
+  purchaseHistory: string[]
 }
 
 class AIRecommendationEngine {
+  private supabase: any
 
+  constructor() {
+    this.supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
 
-  // 1. COLLABORATIVE FILTERING - Find similar users and recommend their liked items
-  async getCollaborativeRecommendations(userId: string, limit: number = 10): Promise<RecommendationScore[]> {
+  /**
+   * Generate personalized product recommendations
+   */
+  async getPersonalizedRecommendations(
+    context: RecommendationContext,
+    limit: number = 10
+  ): Promise<ProductRecommendation[]> {
     try {
-      // Mock implementation since user_behaviors table doesn't exist
-      console.log(`[AI] Mock collaborative recommendations for user ${userId}, limit ${limit}`);
+      // Get user behavior data
+      const userBehavior = await this.getUserBehavior(context.userId, context.sessionId)
       
-      // Return mock popular items
-      return this.getPopularItems(limit)
+      // Calculate recommendation scores
+      const recommendations = await this.calculateRecommendationScores(
+        userBehavior,
+        context,
+        limit
+      )
+
+      // Apply diversity and freshness filters
+      const filteredRecommendations = this.applyDiversityFilters(recommendations, limit)
+
+      return filteredRecommendations
     } catch (error) {
-      console.error('Collaborative filtering error:', error)
-      return this.getPopularItems(limit)
+      console.error('Error generating recommendations:', error)
+      return this.getFallbackRecommendations(limit)
     }
   }
 
-  // 2. CONTENT-BASED FILTERING - Recommend items similar to what user has liked
-  async getContentBasedRecommendations(userId: string, limit: number = 10): Promise<RecommendationScore[]> {
+  /**
+   * Get category-based recommendations
+   */
+  async getCategoryRecommendations(
+    category: string,
+    context: RecommendationContext,
+    limit: number = 8
+  ): Promise<ProductRecommendation[]> {
     try {
-      // Mock implementation since user_behaviors table doesn't exist
-      console.log(`[AI] Mock content-based recommendations for user ${userId}, limit ${limit}`);
+      // Get trending products in category
+      const trendingProducts = await this.getTrendingProducts(category, limit)
       
-      // Return mock popular items
-      return this.getPopularItems(limit)
+      // Get similar products based on user preferences
+      const similarProducts = await this.getSimilarProducts(category, context, limit)
+      
+      // Merge and rank recommendations
+      const merged = this.mergeRecommendations(trendingProducts, similarProducts, limit)
+      
+      return merged
     } catch (error) {
-      console.error('Content-based filtering error:', error)
-      return this.getPopularItems(limit)
+      console.error('Error getting category recommendations:', error)
+      return this.getFallbackRecommendations(limit)
     }
   }
 
-  // 3. HYBRID RECOMMENDATIONS - Combine collaborative and content-based
-  async getHybridRecommendations(userId: string, limit: number = 10): Promise<RecommendationScore[]> {
+  /**
+   * Get trending products based on recent activity
+   */
+  async getTrendingProducts(category: string, limit: number): Promise<ProductRecommendation[]> {
     try {
-      // Mock implementation since user_behaviors table doesn't exist
-      console.log(`[AI] Mock hybrid recommendations for user ${userId}, limit ${limit}`);
-      
-      // Return mock popular items
-      return this.getPopularItems(limit)
+      const { data, error } = await this.supabase
+        .from('products')
+        .select('id, name, category, price, image_url')
+        .eq('category', category)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (error) throw error
+
+      return data.map((product: any) => ({
+        ...product,
+        score: 0.8, // Base trending score
+        reason: 'Trending in this category'
+      }))
     } catch (error) {
-      console.error('Hybrid recommendations error:', error)
-      return this.getPopularItems(limit)
+      console.error('Error getting trending products:', error)
+      return []
     }
   }
 
-  // 4. REAL-TIME PERSONALIZATION - Based on current session
-  async getRealTimeRecommendations(userId: string, sessionId: string, limit: number = 10): Promise<RecommendationScore[]> {
+  /**
+   * Get similar products based on user preferences
+   */
+  async getSimilarProducts(
+    category: string,
+    context: RecommendationContext,
+    limit: number
+  ): Promise<ProductRecommendation[]> {
     try {
-      // Mock implementation since user_behaviors table doesn't exist
-      console.log(`[AI] Mock real-time recommendations for user ${userId}, session ${sessionId}, limit ${limit}`);
+      // Analyze user preferences from behavior
+      const preferences = this.analyzeUserPreferences(context)
       
-      // Return mock popular items
-      return this.getPopularItems(limit)
+      // Get products matching preferences
+      const { data, error } = await this.supabase
+        .from('products')
+        .select('id, name, category, price, image_url')
+        .eq('category', category)
+        .eq('status', 'active')
+        .gte('price', preferences.priceRange.min)
+        .lte('price', preferences.priceRange.max)
+        .limit(limit * 2) // Get more to filter
+
+      if (error) throw error
+
+      // Score products based on user preferences
+      const scoredProducts = data.map((product: any) => ({
+        ...product,
+        score: this.calculatePreferenceScore(product, preferences),
+        reason: 'Matches your preferences'
+      }))
+
+      // Return top scored products
+      return scoredProducts
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
     } catch (error) {
-      console.error('Real-time recommendations error:', error)
-      return this.getPopularItems(limit)
+      console.error('Error getting similar products:', error)
+      return []
     }
   }
 
-  // 5. CONTEXTUAL RECOMMENDATIONS - Based on time, location, weather, etc.
-  async getContextualRecommendations(userId: string, context: {
-    timeOfDay?: string
-    dayOfWeek?: string
-    season?: string
-    location?: string
-    weather?: string
-  }, limit: number = 10): Promise<RecommendationScore[]> {
+  /**
+   * Calculate recommendation scores based on user behavior
+   */
+  private async calculateRecommendationScores(
+    userBehavior: UserBehavior[],
+    context: RecommendationContext,
+    limit: number
+  ): Promise<ProductRecommendation[]> {
     try {
-      // Mock implementation since items table doesn't exist in schema
-      console.log(`[AI] Mock contextual recommendations for user ${userId}, limit ${limit}`);
-      console.log(`[AI] Context:`, context);
-      
-      // Return mock popular items
-      return this.getPopularItems(limit)
+      // Get all active products
+      const { data: products, error } = await this.supabase
+        .from('products')
+        .select('id, name, category, price, image_url')
+        .eq('status', 'active')
+        .limit(limit * 3) // Get more to filter
+
+      if (error) throw error
+
+      // Calculate scores for each product
+      const scoredProducts = products.map((product: any) => {
+        const score = this.calculateProductScore(product, userBehavior, context)
+        return {
+          ...product,
+          score,
+          reason: this.getRecommendationReason(product, userBehavior, context)
+        }
+      })
+
+      // Sort by score and return top results
+      return scoredProducts
+        .sort((a, b) => b.score - a.score)
+        .slice(0, limit)
     } catch (error) {
-      console.error('Contextual recommendations error:', error)
-      return this.getHybridRecommendations(userId, limit)
+      console.error('Error calculating recommendation scores:', error)
+      return []
     }
   }
 
+  /**
+   * Calculate individual product score
+   */
+  private calculateProductScore(
+    product: any,
+    userBehavior: UserBehavior[],
+    context: RecommendationContext
+  ): number {
+    let score = 0
 
+    // Category preference score
+    if (context.currentCategory === product.category) {
+      score += 0.3
+    }
 
+    // Price preference score
+    if (context.priceRange) {
+      const { min, max } = context.priceRange
+      if (product.price >= min && product.price <= max) {
+        score += 0.2
+      }
+    }
 
+    // Recent views score
+    if (context.recentViews.includes(product.id)) {
+      score += 0.1
+    }
 
-  private async getPopularItems(limit: number): Promise<RecommendationScore[]> {
-    // Mock implementation since items table doesn't exist in schema
-    console.log(`[AI] Mock getPopularItems, limit: ${limit}`);
+    // Cart similarity score
+    if (context.cartItems.includes(product.id)) {
+      score += 0.15
+    }
+
+    // Purchase history score
+    if (context.purchaseHistory.includes(product.id)) {
+      score += 0.25
+    }
+
+    // Popularity score (based on views)
+    const popularityScore = this.calculatePopularityScore(product, userBehavior)
+    score += popularityScore * 0.1
+
+    return Math.min(score, 1.0) // Cap at 1.0
+  }
+
+  /**
+   * Calculate popularity score based on user behavior
+   */
+  private calculatePopularityScore(product: any, userBehavior: UserBehavior[]): number {
+    const productViews = userBehavior.filter(
+      behavior => behavior.productId === product.id && behavior.action === 'view'
+    ).length
+
+    const totalViews = userBehavior.filter(behavior => behavior.action === 'view').length
     
-    // Return mock recommendations
-    const mockProducts = Array.from({ length: Math.min(limit, 5) }, (_, i) => ({
-      productId: `mock-product-${i + 1}`,
-      score: 1 - (i * 0.1),
-      reason: 'Popular streetwear item',
-      confidence: 0.7
-    }))
-
-    return mockProducts
+    if (totalViews === 0) return 0.5 // Default score
+    
+    return Math.min(productViews / totalViews * 2, 1.0) // Normalize to 0-1
   }
 
+  /**
+   * Analyze user preferences from behavior
+   */
+  private analyzeUserPreferences(context: RecommendationContext): any {
+    const preferences = {
+      priceRange: { min: 0, max: 1000 },
+      preferredCategories: [],
+      activityLevel: 'medium'
+    }
 
+    // Analyze price preferences from cart and purchases
+    if (context.cartItems.length > 0 || context.purchaseHistory.length > 0) {
+      // This would be enhanced with actual price data from products
+      preferences.priceRange = { min: 10, max: 500 }
+    }
 
+    return preferences
+  }
 
+  /**
+   * Get recommendation reason for display
+   */
+  private getRecommendationReason(
+    product: any,
+    userBehavior: UserBehavior[],
+    context: RecommendationContext
+  ): string {
+    if (context.purchaseHistory.includes(product.id)) {
+      return 'You purchased this before'
+    }
+    if (context.cartItems.includes(product.id)) {
+      return 'In your cart'
+    }
+    if (context.recentViews.includes(product.id)) {
+      return 'Recently viewed'
+    }
+    if (context.currentCategory === product.category) {
+      return 'Popular in this category'
+    }
+    return 'Recommended for you'
+  }
 
+  /**
+   * Apply diversity filters to avoid repetitive recommendations
+   */
+  private applyDiversityFilters(
+    recommendations: ProductRecommendation[],
+    limit: number
+  ): ProductRecommendation[] {
+    const filtered: ProductRecommendation[] = []
+    const categories = new Set<string>()
+    const priceRanges = new Set<string>()
 
+    for (const rec of recommendations) {
+      if (filtered.length >= limit) break
 
-  // Track user behavior for learning
+      const category = rec.category
+      const priceRange = this.getPriceRange(rec.price)
+
+      // Ensure diversity in categories and price ranges
+      if (!categories.has(category) || !priceRanges.has(priceRange)) {
+        filtered.push(rec)
+        categories.add(category)
+        priceRanges.add(priceRange)
+      }
+    }
+
+    // Fill remaining slots if needed
+    if (filtered.length < limit) {
+      const remaining = recommendations.filter(rec => !filtered.includes(rec))
+      filtered.push(...remaining.slice(0, limit - filtered.length))
+    }
+
+    return filtered
+  }
+
+  /**
+   * Get price range category
+   */
+  private getPriceRange(price: number): string {
+    if (price < 25) return 'budget'
+    if (price < 75) return 'mid-range'
+    if (price < 150) return 'premium'
+    return 'luxury'
+  }
+
+  /**
+   * Merge different recommendation sources
+   */
+  private mergeRecommendations(
+    trending: ProductRecommendation[],
+    similar: ProductRecommendation[],
+    limit: number
+  ): ProductRecommendation[] {
+    const merged = [...trending, ...similar]
+    
+    // Remove duplicates
+    const unique = merged.filter((item, index, self) => 
+      index === self.findIndex(t => t.id === item.id)
+    )
+
+    // Sort by score and return top results
+    return unique
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+  }
+
+  /**
+   * Get fallback recommendations when AI fails
+   */
+  private async getFallbackRecommendations(limit: number): Promise<ProductRecommendation[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('products')
+        .select('id, name, category, price, image_url')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (error) throw error
+
+      return data.map((product: any) => ({
+        ...product,
+        score: 0.5,
+        reason: 'Popular items'
+      }))
+    } catch (error) {
+      console.error('Error getting fallback recommendations:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get user behavior data
+   */
+  private async getUserBehavior(userId?: string, sessionId?: string): Promise<UserBehavior[]> {
+    try {
+      let query = this.supabase.from('user_behavior').select('*')
+      
+      if (userId) {
+        query = query.eq('user_id', userId)
+      } else if (sessionId) {
+        query = query.eq('session_id', sessionId)
+      }
+
+      const { data, error } = await query
+        .order('timestamp', { ascending: false })
+        .limit(100)
+
+      if (error) throw error
+
+      return data || []
+    } catch (error) {
+      console.error('Error getting user behavior:', error)
+      return []
+    }
+  }
+
+  /**
+   * Track user behavior for recommendations
+   */
   async trackUserBehavior(behavior: UserBehavior): Promise<void> {
     try {
-      // Mock implementation since user_behaviors table doesn't exist
-      console.log(`[AI] Mock trackUserBehavior:`, {
-        userId: behavior.userId,
-        productId: behavior.productId,
-        action: behavior.action,
-        sessionId: behavior.sessionId,
-        timestamp: behavior.timestamp.toISOString()
-      })
+      await this.supabase
+        .from('user_behavior')
+        .insert({
+          user_id: behavior.userId,
+          session_id: behavior.sessionId,
+          product_id: behavior.productId,
+          action: behavior.action,
+          timestamp: behavior.timestamp.toISOString(),
+          category: behavior.category,
+          price: behavior.price
+        })
     } catch (error) {
       console.error('Error tracking user behavior:', error)
     }
@@ -160,24 +439,14 @@ class AIRecommendationEngine {
 }
 
 // Export singleton instance
-export const recommendationEngine = new AIRecommendationEngine()
+export const aiRecommendationEngine = new AIRecommendationEngine()
 
-// Convenience functions
-export async function getRecommendations(userId: string, type: 'hybrid' | 'collaborative' | 'content' | 'realtime' | 'contextual' = 'hybrid', options?: { limit?: number, sessionId?: string, context?: any }) {
-  switch (type) {
-    case 'collaborative':
-      return recommendationEngine.getCollaborativeRecommendations(userId, options?.limit)
-    case 'content':
-      return recommendationEngine.getContentBasedRecommendations(userId, options?.limit)
-    case 'realtime':
-      return recommendationEngine.getRealTimeRecommendations(userId, options?.sessionId || '', options?.limit)
-    case 'contextual':
-      return recommendationEngine.getContextualRecommendations(userId, options?.context || {}, options?.limit)
-    default:
-      return recommendationEngine.getHybridRecommendations(userId, options?.limit)
-  }
-}
+// Export utility functions
+export const getPersonalizedRecommendations = (context: RecommendationContext, limit?: number) =>
+  aiRecommendationEngine.getPersonalizedRecommendations(context, limit)
 
-export async function trackBehavior(behavior: UserBehavior) {
-  return recommendationEngine.trackUserBehavior(behavior)
-}
+export const getCategoryRecommendations = (category: string, context: RecommendationContext, limit?: number) =>
+  aiRecommendationEngine.getCategoryRecommendations(category, context, limit)
+
+export const trackUserBehavior = (behavior: UserBehavior) =>
+  aiRecommendationEngine.trackUserBehavior(behavior)
