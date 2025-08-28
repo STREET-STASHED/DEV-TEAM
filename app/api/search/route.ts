@@ -3,15 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
-interface SearchFilters {
-  category?: string[]
-  priceRange?: { min: number; max: number }
-  condition?: string[]
-  sellerRating?: number
-  tags?: string[]
-  sortBy?: 'relevance' | 'price_low' | 'price_high' | 'rating' | 'newest'
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)

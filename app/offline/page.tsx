@@ -71,15 +71,23 @@ export default function OfflinePage() {
 
         {/* Title */}
         <h1 className="text-2xl font-bold text-ink-100 mb-4">
-          You're Offline
+          You&apos;re Offline
         </h1>
 
         {/* Description */}
-        <p className="text-ink-400 mb-8 leading-relaxed">
-          It looks like you've lost your internet connection.
-          Don't worry - you can still browse previously viewed products
-          and access your saved information.
+        <p className="text-ink-300 text-center mb-8">
+          You&apos;re currently offline. Don&apos;t worry - you can still browse previously loaded content and access your saved items.
         </p>
+
+        <div className="bg-ink-800 rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-semibold text-ink-100 mb-4">What&apos;s Available Offline?</h3>
+          <p className="text-ink-400 text-sm">
+            • Previously viewed products<br/>
+            • Your shopping cart<br/>
+            • Saved favorites<br/>
+            • User preferences
+          </p>
+        </div>
 
         {/* Status */}
         <div className="mb-8 p-4 bg-ink-800 rounded-lg">

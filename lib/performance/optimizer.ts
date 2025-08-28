@@ -138,10 +138,10 @@ export class PerformanceOptimizer {
     items: T[],
     itemHeight: number,
     containerHeight: number,
-    renderItem: (item: T, index: number) => HTMLElement
+    renderItem: (_item: T, _index: number) => HTMLElement
   ): {
     container: HTMLElement
-    updateItems: (newItems: T[]) => void
+    updateItems: (_newItems: T[]) => void
   } {
     const container = document.createElement('div')
     container.style.height = `${containerHeight}px`
@@ -188,38 +188,63 @@ export class PerformanceOptimizer {
 
     return {
       container,
-      updateItems: (newItems: T[]) => {
-        currentItems = newItems
-        const newTotalHeight = newItems.length * itemHeight
+      updateItems: (_newItems: T[]) => {
+        currentItems = _newItems
+        const newTotalHeight = _newItems.length * itemHeight
         content.style.height = `${newTotalHeight}px`
         updateVisibleItems()
       }
     }
   }
 
+  // Optimize array operations
+  static optimizeArrayOperations<T>(items: T[], operation: 'map' | 'filter' | 'reduce'): T[] {
+    const startTime = performance.now()
+
+    let result: T[]
+    switch (operation) {
+      case 'map':
+        result = items.map((item) => item)
+        break
+      case 'filter':
+        result = items.filter(() => true)
+        break
+      case 'reduce':
+        result = items.reduce((acc, item) => [...acc, item], [] as T[])
+        break
+      default:
+        result = items
+    }
+
+    const endTime = performance.now()
+    console.log(`Array ${operation} operation took ${endTime - startTime}ms`)
+
+    return result
+  }
+
   // Implement debounced function calls
-  debounce<T extends (...args: any[]) => any>(
+  debounce<T extends (..._args: any[]) => any>(
     func: T,
     wait: number
-  ): (...args: Parameters<T>) => void {
+  ): (..._args: Parameters<T>) => void {
     let timeout: NodeJS.Timeout
 
-    return (...args: Parameters<T>) => {
+    return (..._args: Parameters<T>) => {
       clearTimeout(timeout)
-      timeout = setTimeout(() => func(...args), wait)
+      timeout = setTimeout(() => func(..._args), wait)
     }
   }
 
   // Implement throttled function calls
-  throttle<T extends (...args: any[]) => any>(
+  throttle<T extends (..._args: any[]) => any>(
     func: T,
     limit: number
-  ): (...args: Parameters<T>) => void {
+  ): (..._args: Parameters<T>) => void {
     let inThrottle: boolean
 
-    return (...args: Parameters<T>) => {
+    return (..._args: Parameters<T>) => {
       if (!inThrottle) {
-        func(...args)
+        func(..._args)
         inThrottle = true
         setTimeout(() => inThrottle = false, limit)
       }
@@ -311,8 +336,8 @@ export class PerformanceOptimizer {
     const layoutShiftEntries = performance.getEntriesByType('layout-shift')
 
     return {
-      loadTime: navigation ? navigation.loadEventEnd - navigation.navigationStart : 0,
-      domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - navigation.navigationStart : 0,
+      loadTime: navigation ? navigation.loadEventEnd - (navigation.activationStart || 0) : 0,
+      domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - (navigation.activationStart || 0) : 0,
       firstContentfulPaint: paintEntries.find(entry => entry.name === 'first-contentful-paint')?.startTime || 0,
       largestContentfulPaint: 0, // Would need to observe LCP
       cumulativeLayoutShift: layoutShiftEntries.reduce((sum, entry) => sum + (entry as any).value, 0)
@@ -324,10 +349,10 @@ export class PerformanceOptimizer {
 export const performanceOptimizer = PerformanceOptimizer.getInstance()
 
 // Utility functions
-export const debounce = <T extends (...args: any[]) => any>(func: T, wait: number) =>
+export const debounce = <T extends (..._args: any[]) => any>(func: T, wait: number) =>
   performanceOptimizer.debounce(func, wait)
 
-export const throttle = <T extends (...args: any[]) => any>(func: T, limit: number) =>
+export const throttle = <T extends (..._args: any[]) => any>(func: T, limit: number) =>
   performanceOptimizer.throttle(func, limit)
 
 export const measurePerformance = (name: string, fn: () => any) =>

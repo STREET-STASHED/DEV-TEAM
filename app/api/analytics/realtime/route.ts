@@ -3,14 +3,14 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
 
     // Get current timestamp for calculations
     const now = new Date()
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
-    const oneMinuteAgo = new Date(now.getTime() - 60 * 1000)
+    const _oneMinuteAgo = new Date(now.getTime() - 60 * 1000)
 
     // Fetch real-time data from database
     const [
@@ -22,10 +22,10 @@ export async function GET(request: NextRequest) {
     ] = await Promise.all([
       // Active users (users with activity in last 15 minutes)
       supabase
-        .from('user_behavior')
+        .from('user_behaviors')
         .select('user_id')
         .gte('timestamp', new Date(now.getTime() - 15 * 60 * 1000).toISOString())
-        .neq('user_id', null),
+        .not('user_id', 'is', null),
 
       // Orders in last hour
       supabase
@@ -43,14 +43,14 @@ export async function GET(request: NextRequest) {
 
       // Page views in last hour
       supabase
-        .from('user_behavior')
+        .from('user_behaviors')
         .select('id')
         .gte('timestamp', oneHourAgo.toISOString())
         .eq('action', 'view'),
 
       // Session time data
       supabase
-        .from('user_behavior')
+        .from('user_behaviors')
         .select('timestamp, user_id')
         .gte('timestamp', oneHourAgo.toISOString())
         .order('timestamp', { ascending: true })
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
       sessionTimeResult.data.forEach(record => {
         const userId = record.user_id || 'anonymous'
-        const timestamp = new Date(record.timestamp)
+        const timestamp = new Date(record.timestamp || new Date())
 
         if (!sessions.has(userId)) {
           sessions.set(userId, { start: timestamp, end: timestamp })

@@ -2,7 +2,7 @@
 
 import { useDebounce } from '@/hooks/useDebounce'
 import { Filter, Search, Sparkles } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface SearchResult {
   id: string
@@ -33,8 +33,8 @@ interface SearchFilters {
 }
 
 interface SmartSearchProps {
-  onSearch: (query: string, filters: SearchFilters) => void
-  onResultSelect: (result: SearchResult) => void
+  onSearch: (_query: string, _filters: SearchFilters) => void
+  onResultSelect: (_result: SearchResult) => void
   placeholder?: string
   className?: string
 }
@@ -60,7 +60,6 @@ export default function SmartSearch({
   })
   const [categories, setCategories] = useState<FilterOption[]>([])
   const [conditions, setConditions] = useState<FilterOption[]>([])
-  const [tags, setTags] = useState<FilterOption[]>([])
   const [showResults, setShowResults] = useState(false)
 
   const debouncedQuery = useDebounce(query, 300)
@@ -72,6 +71,34 @@ export default function SmartSearch({
     loadFilterOptions()
   }, [])
 
+  // Perform search with AI-powered relevance
+  const performSearch = useCallback(async (searchQuery: string) => {
+    setIsSearching(true)
+    try {
+      // In a real app, this would be an API call with AI relevance scoring
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
+      if (response.ok) {
+        const data = await response.json()
+        setResults(data.results || [])
+        setSuggestions(data.suggestions || [])
+      } else {
+        // Fallback to mock data
+        const mockResults = generateMockResults(searchQuery)
+        setResults(mockResults)
+        setSuggestions(generateMockSuggestions(searchQuery))
+      }
+    } catch (error) {
+      console.error('Search error:', error)
+      // Use mock data as fallback
+      const mockResults = generateMockResults(searchQuery)
+      setResults(mockResults)
+      setSuggestions(generateMockSuggestions(searchQuery))
+    } finally {
+      setIsSearching(false)
+      setShowResults(true)
+    }
+  }, [])
+
   // Handle search query changes
   useEffect(() => {
     if (debouncedQuery.length >= 2) {
@@ -80,7 +107,7 @@ export default function SmartSearch({
       setResults([])
       setSuggestions([])
     }
-  }, [debouncedQuery])
+  }, [debouncedQuery, performSearch])
 
   // Handle clicks outside search
   useEffect(() => {
@@ -113,47 +140,10 @@ export default function SmartSearch({
         { id: 'fair', label: 'Fair', value: 'fair', count: 67 }
       ]
 
-      const mockTags: FilterOption[] = [
-        { id: 'limited-edition', label: 'Limited Edition', value: 'limited-edition', count: 45 },
-        { id: 'vintage', label: 'Vintage', value: 'vintage', count: 78 },
-        { id: 'streetwear', label: 'Streetwear', value: 'streetwear', count: 234 },
-        { id: 'luxury', label: 'Luxury', value: 'luxury', count: 56 },
-        { id: 'sustainable', label: 'Sustainable', value: 'sustainable', count: 34 }
-      ]
-
       setCategories(mockCategories)
       setConditions(mockConditions)
-      setTags(mockTags)
     } catch (error) {
       console.error('Error loading filter options:', error)
-    }
-  }
-
-  // Perform search with AI-powered relevance
-  const performSearch = async (searchQuery: string) => {
-    setIsSearching(true)
-    try {
-      // In a real app, this would be an API call with AI relevance scoring
-      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
-      if (response.ok) {
-        const data = await response.json()
-        setResults(data.results || [])
-        setSuggestions(data.suggestions || [])
-      } else {
-        // Fallback to mock data
-        const mockResults = generateMockResults(searchQuery)
-        setResults(mockResults)
-        setSuggestions(generateMockSuggestions(searchQuery))
-      }
-    } catch (error) {
-      console.error('Search error:', error)
-      // Use mock data as fallback
-      const mockResults = generateMockResults(searchQuery)
-      setResults(mockResults)
-      setSuggestions(generateMockSuggestions(searchQuery))
-    } finally {
-      setIsSearching(false)
-      setShowResults(true)
     }
   }
 

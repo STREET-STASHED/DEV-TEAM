@@ -149,15 +149,15 @@ export default function PWAInstallPrompt() {
         <div className="mt-3 text-xs text-ink-500 text-center">
           {navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad') ? (
             <span>
-              Tap the share button and select "Add to Home Screen"
+              Tap the share button and select &ldquo;Add to Home Screen&rdquo;
             </span>
           ) : navigator.userAgent.includes('Android') ? (
             <span>
-              Tap "Install" or "Add to Home Screen"
+              Tap &ldquo;Install&rdquo; or &ldquo;Add to Home Screen&rdquo;
             </span>
           ) : (
             <span>
-              Click "Install" to add to your desktop
+              Click &ldquo;Install&rdquo; to add to your desktop
             </span>
           )}
         </div>

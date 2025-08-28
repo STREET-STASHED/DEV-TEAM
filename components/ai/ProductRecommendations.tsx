@@ -4,10 +4,9 @@ import {
     getCategoryRecommendations,
     getPersonalizedRecommendations,
     trackUserBehavior,
-    type ProductRecommendation,
-    type RecommendationContext
+    type ProductRecommendation
 } from '@/lib/ai/recommendations'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface ProductRecommendationsProps {
   userId?: string
@@ -32,43 +31,44 @@ export default function ProductRecommendations({
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadRecommendations()
-  }, [userId, sessionId, category, limit])
+  const loadRecommendations = useCallback(async () => {
+    setLoading(true)
+    setError(null)
 
-  const loadRecommendations = async () => {
     try {
-      setLoading(true)
-      setError(null)
-
-      // Create recommendation context
-      const context: RecommendationContext = {
-        userId,
-        sessionId,
-        currentCategory: category,
-        recentViews: [], // Would be populated from user session
-        cartItems: [], // Would be populated from cart context
-        purchaseHistory: [] // Would be populated from user profile
-      }
-
-      let results: ProductRecommendation[]
+      let recommendations: ProductRecommendation[]
 
       if (category) {
-        // Get category-specific recommendations
-        results = await getCategoryRecommendations(category, context, limit)
+        recommendations = await getCategoryRecommendations(category, {
+          userId,
+          sessionId,
+          currentCategory: category,
+          recentViews: [],
+          cartItems: [],
+          purchaseHistory: []
+        }, limit)
       } else {
-        // Get personalized recommendations
-        results = await getPersonalizedRecommendations(context, limit)
+        recommendations = await getPersonalizedRecommendations({
+          userId,
+          sessionId,
+          recentViews: [],
+          cartItems: [],
+          purchaseHistory: []
+        }, limit)
       }
 
-      setRecommendations(results)
+      setRecommendations(recommendations)
     } catch (err) {
-      console.error('Error loading recommendations:', err)
       setError('Failed to load recommendations')
+      console.error('Error loading recommendations:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId, sessionId, category, limit])
+
+  useEffect(() => {
+    loadRecommendations()
+  }, [userId, sessionId, category, limit, loadRecommendations])
 
   const handleProductClick = (product: ProductRecommendation) => {
     // Track user behavior

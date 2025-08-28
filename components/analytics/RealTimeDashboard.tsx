@@ -38,31 +38,16 @@ export default function RealTimeDashboard() {
   const [isLoading, setIsLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
 
-  // Fetch real-time data
-  const fetchRealTimeData = useCallback(async () => {
-    try {
-      // In a real app, this would be a WebSocket connection or server-sent events
-      const response = await fetch('/api/analytics/realtime')
-      if (response.ok) {
-        const data: RealTimeData = await response.json()
-        updateMetrics(data)
-      }
-    } catch (error) {
-      console.error('Error fetching real-time data:', error)
-      // Use mock data for demo
-      const mockData: RealTimeData = {
-        activeUsers: Math.floor(Math.random() * 100) + 50,
-        ordersPerMinute: Math.floor(Math.random() * 10) + 2,
-        revenuePerHour: Math.floor(Math.random() * 1000) + 500,
-        conversionRate: Math.random() * 5 + 2,
-        pageViews: Math.floor(Math.random() * 1000) + 500,
-        averageSessionTime: Math.floor(Math.random() * 300) + 120,
-        serverResponseTime: Math.random() * 100 + 50,
-        cacheHitRate: Math.random() * 20 + 80
-      }
-      updateMetrics(mockData)
+
+
+  // Get change type based on value
+  const getChangeType = (change: number, lowerIsBetter: boolean = false): 'increase' | 'decrease' | 'neutral' => {
+    if (change === 0) return 'neutral'
+    if (lowerIsBetter) {
+      return change < 0 ? 'increase' : 'decrease'
     }
-  }, [])
+    return change > 0 ? 'increase' : 'decrease'
+  }
 
   // Update metrics with new data
   const updateMetrics = useCallback((data: RealTimeData) => {
@@ -146,14 +131,31 @@ export default function RealTimeDashboard() {
     setIsLoading(false)
   }, [])
 
-  // Get change type based on value
-  const getChangeType = (change: number, lowerIsBetter: boolean = false): 'increase' | 'decrease' | 'neutral' => {
-    if (change === 0) return 'neutral'
-    if (lowerIsBetter) {
-      return change < 0 ? 'increase' : 'decrease'
+  // Fetch real-time data
+  const fetchRealTimeData = useCallback(async () => {
+    try {
+      // In a real app, this would be a WebSocket connection or server-sent events
+      const response = await fetch('/api/analytics/realtime')
+      if (response.ok) {
+        const data: RealTimeData = await response.json()
+        updateMetrics(data)
+      }
+    } catch (error) {
+      console.error('Error fetching real-time data:', error)
+      // Use mock data for demo
+      const mockData: RealTimeData = {
+        activeUsers: Math.floor(Math.random() * 100) + 50,
+        ordersPerMinute: Math.floor(Math.random() * 10) + 2,
+        revenuePerHour: Math.floor(Math.random() * 1000) + 500,
+        conversionRate: Math.random() * 5 + 2,
+        pageViews: Math.floor(Math.random() * 1000) + 500,
+        averageSessionTime: Math.floor(Math.random() * 300) + 120,
+        serverResponseTime: Math.random() * 100 + 50,
+        cacheHitRate: Math.random() * 20 + 80
+      }
+      updateMetrics(mockData)
     }
-    return change > 0 ? 'increase' : 'decrease'
-  }
+  }, [updateMetrics])
 
   // Format change value
   const formatChange = (change: number, changeType: 'increase' | 'decrease' | 'neutral') => {

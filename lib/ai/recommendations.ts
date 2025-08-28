@@ -146,13 +146,13 @@ class AIRecommendationEngine {
       // Score products based on user preferences
       const scoredProducts = data.map((product: any) => ({
         ...product,
-        score: this.calculatePreferenceScore(product, preferences),
+        score: this.calculateProductScore(product, [], { sessionId: 'default', currentCategory: '', priceRange: undefined, recentViews: [], cartItems: [], purchaseHistory: [] }),
         reason: 'Matches your preferences'
       }))
 
       // Return top scored products
       return scoredProducts
-        .sort((a, b) => b.score - a.score)
+        .sort((a: any, b: any) => b.score - a.score)
         .slice(0, limit)
     } catch (error) {
       console.error('Error getting similar products:', error)
@@ -190,7 +190,7 @@ class AIRecommendationEngine {
 
       // Sort by score and return top results
       return scoredProducts
-        .sort((a, b) => b.score - a.score)
+        .sort((a: any, b: any) => b.score - a.score)
         .slice(0, limit)
     } catch (error) {
       console.error('Error calculating recommendation scores:', error)

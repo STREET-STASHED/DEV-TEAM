@@ -1,11 +1,15 @@
-import { UserBehavior, getRecommendations, trackBehavior } from '@/lib/ai/recommendations'
-import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/app/lib/supabase/server'
+import {
+    getCategoryRecommendations,
+    getPersonalizedRecommendations,
+    trackUserBehavior,
+    type RecommendationContext
+} from '@/lib/ai/recommendations'
+import { NextRequest, NextResponse } from 'next/server'
 
+export const runtime = 'nodejs'
 
-
-
-export async function GET(_request:NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
 
@@ -16,69 +20,33 @@ export async function GET(_request:NextRequest) {
     }
 
     // Parse query parameters
-    const { searchParams } = new URL(_request.url)
-    const type = searchParams.get('type') as 'hybrid' | 'collaborative' | 'content' | 'realtime' | 'contextual' || 'hybrid'
+    const { searchParams } = new URL(request.url)
+    const category = searchParams.get('category')
     const limit = parseInt(searchParams.get('limit') || '10')
+    const sessionId = searchParams.get('sessionId') || 'default'
 
-    // Get recommendations
-    const recommendations = await getRecommendations(user.id, type, {
-      limit
-    })
+    // Create recommendation context
+    const context: RecommendationContext = {
+      userId: user.id,
+      sessionId,
+      currentCategory: category || undefined,
+      recentViews: [],
+      cartItems: [],
+      purchaseHistory: []
+    }
 
-    // Get product details for recommendations
-    if (recommendations.length > 0) {
-      const productIds = recommendations.map(rec => rec.productId)
-      const { data: products, error: productsError } = await (supabase as any).from('items')
-        .select(`
-          id,
-          name,
-          description,
-          price,
-          image,
-          category,
-          seller_id,
-          profiles!inner(full_name)
-        `)
-        .in('id', productIds)
-        .eq('active', true)
-
-      if (productsError) {
-        console.error('Error fetching products:', productsError)
-        return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 })
-      }
-
-      // Combine recommendations with product data
-      const enrichedRecommendations = recommendations.map(rec => {
-        const product = products?.find((p: any) => p.id === rec.productId)
-        return {
-          ...rec,
-          product: product ? {
-            id: product.id,
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            image: product.image,
-            category: product.category,
-            seller: {
-              id: product.seller_id,
-              name: (product as any).profiles?.full_name
-            }
-          } : null
-        }
-      }).filter(rec => rec.product !== null)
-
-      return NextResponse.json({
-        recommendations: enrichedRecommendations,
-        type,
-        total: enrichedRecommendations.length,
-        timestamp: new Date().toISOString()
-      })
+    // Get recommendations based on category or personalized
+    let recommendations
+    if (category) {
+      recommendations = await getCategoryRecommendations(category, context, limit)
+    } else {
+      recommendations = await getPersonalizedRecommendations(context, limit)
     }
 
     return NextResponse.json({
-      recommendations: [],
-      type,
-      total: 0,
+      recommendations,
+      category: category || 'personalized',
+      total: recommendations.length,
       timestamp: new Date().toISOString()
     })
 
@@ -88,7 +56,7 @@ export async function GET(_request:NextRequest) {
   }
 }
 
-export async function POST(_request:NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
 
@@ -98,8 +66,8 @@ export async function POST(_request:NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const body = await _request.json()
-    const { action, productId, sessionId } = body
+    const body = await request.json()
+    const { action, productId, sessionId, category, price } = body
 
     // Validate required fields
     if (!action || !productId || !sessionId) {
@@ -109,7 +77,7 @@ export async function POST(_request:NextRequest) {
     }
 
     // Validate action type
-    const validActions = ['view', 'like', 'cart', 'purchase', 'share']
+    const validActions = ['view', 'add_to_cart', 'purchase', 'like', 'share']
     if (!validActions.includes(action)) {
       return NextResponse.json({
         error: `Invalid action. Must be one of: ${validActions.join(', ')}`
@@ -117,27 +85,15 @@ export async function POST(_request:NextRequest) {
     }
 
     // Track user behavior
-    const behavior: UserBehavior = {
+    await trackUserBehavior({
       userId: user.id,
-      productId,
-      action: action as UserBehavior['action'],
       sessionId,
+      productId,
+      action: action as any,
       timestamp: new Date(),
-    }
-
-    await trackBehavior(behavior)
-
-    // For certain actions, trigger preference updates
-    if (['purchase', 'like', 'cart'].includes(action)) {
-      // Update user preferences in background (non-blocking)
-      setTimeout(async () => {
-        try {
-          await (supabase as any).rpc('update_user_preferences', { user_uuid: user.id })
-        } catch (error) {
-          console.error('Error updating user preferences:', error)
-        }
-      }, 0)
-    }
+      category,
+      price
+    })
 
     return NextResponse.json({
       success: true,
