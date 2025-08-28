@@ -111,7 +111,7 @@ RETURNS TABLE(
 BEGIN
   RETURN QUERY
   WITH current_period AS (
-    SELECT 
+    SELECT
       pm.metric_name,
       AVG(pm.metric_value) as current_value
     FROM public.performance_metrics pm
@@ -119,7 +119,7 @@ BEGIN
     GROUP BY pm.metric_name
   ),
   previous_period AS (
-    SELECT 
+    SELECT
       pm.metric_name,
       AVG(pm.metric_value) as previous_value
     FROM public.performance_metrics pm
@@ -127,15 +127,15 @@ BEGIN
       AND pm.timestamp < NOW() - (p_hours_back || ' hours')::INTERVAL
     GROUP BY pm.metric_name
   )
-  SELECT 
+  SELECT
     cp.metric_name,
     cp.current_value,
     pp.previous_value,
-    CASE 
+    CASE
       WHEN pp.previous_value = 0 THEN 0
       ELSE ((cp.current_value - pp.previous_value) / pp.previous_value) * 100
     END as change_percentage,
-    CASE 
+    CASE
       WHEN cp.current_value > pp.previous_value THEN 'increasing'
       WHEN cp.current_value < pp.previous_value THEN 'decreasing'
       ELSE 'stable'

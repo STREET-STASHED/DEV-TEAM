@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/app/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createRouteHandlerClient()
-    
+
     // Get current timestamp for calculations
     const now = new Date()
     const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000)
@@ -58,23 +58,23 @@ export async function GET(request: NextRequest) {
 
     // Calculate metrics
     const activeUsers = activeUsersResult.data?.length || 0
-    
+
     const ordersPerMinute = ordersResult.data?.length || 0
-    
-    const revenuePerHour = revenueResult.data?.reduce((sum, order) => 
+
+    const revenuePerHour = revenueResult.data?.reduce((sum, order) =>
       sum + (order.total_amount || 0), 0) || 0
-    
+
     const pageViews = pageViewsResult.data?.length || 0
-    
+
     // Calculate average session time
     let averageSessionTime = 0
     if (sessionTimeResult.data) {
       const sessions = new Map<string, { start: Date; end: Date }>()
-      
+
       sessionTimeResult.data.forEach(record => {
         const userId = record.user_id || 'anonymous'
         const timestamp = new Date(record.timestamp)
-        
+
         if (!sessions.has(userId)) {
           sessions.set(userId, { start: timestamp, end: timestamp })
         } else {
@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
           session.end = timestamp
         }
       })
-      
-      const sessionTimes = Array.from(sessions.values()).map(session => 
+
+      const sessionTimes = Array.from(sessions.values()).map(session =>
         session.end.getTime() - session.start.getTime()
       )
-      
+
       if (sessionTimes.length > 0) {
         averageSessionTime = sessionTimes.reduce((sum, time) => sum + time, 0) / sessionTimes.length / 1000 // Convert to seconds
       }
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching real-time analytics:', error)
-    
+
     // Return fallback data
     return NextResponse.json({
       activeUsers: 0,
