@@ -1,25 +1,25 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useCart } from '@/context/CartContext'
-import { CheckoutSummary } from '@/components/orders/CheckoutSummary'
-import { AddressForm } from '@/components/forms/AddressForm'
 import { GuestCheckoutForm } from '@/components/checkout/GuestCheckoutForm'
-import { useRouter } from 'next/navigation'
-import { loadStripe } from '@stripe/stripe-js'
+import { AddressForm } from '@/components/forms/AddressForm'
+import { CheckoutSummary } from '@/components/orders/CheckoutSummary'
 import { useAuth } from '@/context/AuthContext'
+import { useCart } from '@/context/CartContext'
+import { loadStripe } from '@stripe/stripe-js'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 
 // Initialize Stripe with automatic environment detection
 const stripePromise = (() => {
   const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_IS_TEST_MODE === 'true';
   const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-  
+
   if (isDevelopment && key?.startsWith('pk_live_')) {
     // Convert live key to test key for development
     const testKey = key.replace('pk_live_', 'pk_test_');
     return loadStripe(testKey);
   }
-  
+
   return loadStripe(key || 'pk_test_fallback');
 })()
 
@@ -40,7 +40,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart()
   const { isAuthenticated, user: _user } = useAuth()
   const router = useRouter()
-  
+
   const [checkoutMode, setCheckoutMode] = useState<'guest' | 'authenticated'>('authenticated')
   const [pickupAddress] = useState<Address>({
     street: '123 Main St',
@@ -48,14 +48,14 @@ export default function CheckoutPage() {
     state: 'PA',
     zipCode: '15201'
   })
-  
+
   const [deliveryAddress, setDeliveryAddress] = useState<Address>({
     street: '',
     city: '',
     state: '',
     zipCode: ''
   })
-  
+
   const [distanceMiles, setDistanceMiles] = useState(0)
   const [_isCalculatingDistance, setIsCalculatingDistance] = useState(false)
   const [isProcessingOrder, setIsProcessingOrder] = useState(false)
@@ -73,7 +73,7 @@ export default function CheckoutPage() {
 
   const calculateDistance = useCallback(async () => {
     if (!deliveryAddress.street || !deliveryAddress.city) return
-    
+
     setIsCalculatingDistance(true)
     try {
       // Simple distance calculation for demo
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
       if (response.ok) {
         const order = await response.json()
         setOrderId(order.orderId)
-        
+
         // For now, always redirect to success for guest checkout
         // In production, you'd handle payment here
         clearCart()
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
 
   const handleAuthenticatedCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (items.length === 0) {
       setError('Your cart is empty')
       return
@@ -214,16 +214,19 @@ export default function CheckoutPage() {
       try {
         const paymentResponse = await fetch('/api/payment/create-intent', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            amount: stripeAmount, 
-            orderId: newOrderId 
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer test-token-buyer' // Test authentication for development
+          },
+          body: JSON.stringify({
+            amount: stripeAmount,
+            orderId: newOrderId
           })
         })
 
         if (paymentResponse.ok) {
           const { clientSecret, isTestMode } = await paymentResponse.json()
-          
+
           if (isTestMode) {
             // Test mode - redirect to success
             clearCart()
@@ -302,14 +305,14 @@ export default function CheckoutPage() {
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>
-          
+
           {/* Error Display */}
           {error && (
             <div className="mb-6 bg-red-900/20 border border-red-500/50 rounded-lg p-4">
               <p className="text-red-400">{error}</p>
             </div>
           )}
-          
+
           {/* Checkout Mode Selection */}
           {!isAuthenticated && (
             <div className="mb-8">
@@ -330,7 +333,7 @@ export default function CheckoutPage() {
                       <p className="text-sm text-ink-300">Quick purchase without account</p>
                     </div>
                   </button>
-                  
+
                   <button
                     onClick={() => setCheckoutMode('authenticated')}
                     className={`p-4 rounded-lg border-2 transition-all duration-200 ${
@@ -367,7 +370,7 @@ export default function CheckoutPage() {
                     onChange={setDeliveryAddress}
                     title="Delivery Address"
                   />
-                  
+
                   <div className="mt-6">
                     <h3 className="text-lg font-semibold text-white mb-4">Payment Method</h3>
                     <div className="space-y-3">
