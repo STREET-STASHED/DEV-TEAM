@@ -309,7 +309,7 @@ export default function ARTryOnPage() {
         setDebugInfo(`Demo mode: Recommended size ${recommended} for ${product.name}`)
       } else if (bodyMeasurements) {
         // Calculate size based on comprehensive measurements
-        const { chest, waist, height } = bodyMeasurements
+        const { chest, waist } = bodyMeasurements
 
         // More sophisticated size calculation
         if (chest < 85 && waist < 75) recommended = 'S'
@@ -583,7 +583,7 @@ export default function ARTryOnPage() {
         alert('Photo captured with AR overlay! Check the preview below.')
       }, 500)
     }
-  }, [arOverlay, currentProduct, recommendedSize, isBrowserCompatible, demoMode])
+  }, [arOverlay, currentProduct, recommendedSize, isBrowserCompatible, demoMode, arEffects])
 
   // Cleanup camera on unmount
   useEffect(() => {
