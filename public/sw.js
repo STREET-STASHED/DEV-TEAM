@@ -46,8 +46,8 @@ self.addEventListener('activate', (event) => {
       .then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
-            if (cacheName !== STATIC_CACHE && 
-                cacheName !== DYNAMIC_CACHE && 
+            if (cacheName !== STATIC_CACHE &&
+                cacheName !== DYNAMIC_CACHE &&
                 cacheName !== API_CACHE) {
               console.log('Deleting old cache:', cacheName)
               return caches.delete(cacheName)
@@ -91,7 +91,7 @@ async function cacheFirst(request, cacheName) {
     if (cachedResponse) {
       return cachedResponse
     }
-    
+
     const networkResponse = await fetch(request)
     if (networkResponse.ok) {
       const cache = await caches.open(cacheName)
@@ -115,13 +115,13 @@ async function networkFirst(request, cacheName) {
     return networkResponse
   } catch (error) {
     console.error('Network first strategy failed:', error)
-    
+
     // Try to get from cache
     const cachedResponse = await caches.match(request)
     if (cachedResponse) {
       return cachedResponse
     }
-    
+
     // Return offline response
     return getOfflineResponse(request)
   }
@@ -152,7 +152,7 @@ function isImageRequest(request) {
 // Get offline response
 async function getOfflineResponse(request) {
   const url = new URL(request.url)
-  
+
   // Try to serve offline page for navigation requests
   if (request.mode === 'navigate') {
     const offlineResponse = await caches.match('/offline')
@@ -160,7 +160,7 @@ async function getOfflineResponse(request) {
       return offlineResponse
     }
   }
-  
+
   // Return a simple offline response
   return new Response(
     JSON.stringify({
@@ -191,7 +191,7 @@ async function doBackgroundSync() {
   try {
     // Get pending offline actions from IndexedDB
     const pendingActions = await getPendingOfflineActions()
-    
+
     for (const action of pendingActions) {
       try {
         await processOfflineAction(action)
@@ -272,7 +272,7 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting()
   }
-  
+
   if (event.data && event.data.type === 'CACHE_URLS') {
     event.waitUntil(
       caches.open(DYNAMIC_CACHE)
@@ -298,7 +298,7 @@ async function updateContent() {
     // Update cached content
     const cache = await caches.open(DYNAMIC_CACHE)
     const requests = await cache.keys()
-    
+
     for (const request of requests) {
       try {
         const response = await fetch(request)

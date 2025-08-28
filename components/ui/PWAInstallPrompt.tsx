@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { X, Download, Smartphone } from 'lucide-react'
+import { Download, Smartphone, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
@@ -20,7 +20,7 @@ export default function PWAInstallPrompt() {
   useEffect(() => {
     // Check if app is already installed
     const checkIfInstalled = () => {
-      if (window.matchMedia('(display-mode: standalone)').matches || 
+      if (window.matchMedia('(display-mode: standalone)').matches ||
           (window.navigator as any).standalone === true) {
         setIsInstalled(true)
         return
@@ -58,10 +58,10 @@ export default function PWAInstallPrompt() {
     try {
       // Show the install prompt
       await deferredPrompt.prompt()
-      
+
       // Wait for the user to respond to the prompt
       const { outcome } = await deferredPrompt.userChoice
-      
+
       if (outcome === 'accepted') {
         console.log('User accepted the install prompt')
         setIsInstalled(true)
@@ -69,7 +69,7 @@ export default function PWAInstallPrompt() {
       } else {
         console.log('User dismissed the install prompt')
       }
-      
+
       // Clear the deferredPrompt
       setDeferredPrompt(null)
     } catch (error) {
@@ -107,7 +107,7 @@ export default function PWAInstallPrompt() {
 
         {/* Content */}
         <p className="text-sm text-ink-300 mb-4">
-          Install StreetStashed on your device for a better experience. 
+          Install StreetStashed on your device for a better experience.
           Get quick access, offline support, and app-like features.
         </p>
 
@@ -136,7 +136,7 @@ export default function PWAInstallPrompt() {
             <Download className="w-4 h-4" />
             <span>Install</span>
           </button>
-          
+
           <button
             onClick={handleDismiss}
             className="flex-1 bg-ink-700 hover:bg-ink-600 text-ink-200 font-medium py-2 px-4 rounded-md transition-colors"
@@ -198,7 +198,7 @@ export function usePWAInstall() {
     try {
       await deferredPrompt.prompt()
       const { outcome } = await deferredPrompt.userChoice
-      
+
       if (outcome === 'accepted') {
         setDeferredPrompt(null)
         setIsInstallable(false)
