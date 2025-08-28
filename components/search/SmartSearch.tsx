@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { Search, Filter, X, ChevronDown, Sparkles } from 'lucide-react'
 import { useDebounce } from '@/hooks/useDebounce'
+import { Filter, Search, Sparkles } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 interface SearchResult {
   id: string
@@ -62,7 +62,7 @@ export default function SmartSearch({
   const [conditions, setConditions] = useState<FilterOption[]>([])
   const [tags, setTags] = useState<FilterOption[]>([])
   const [showResults, setShowResults] = useState(false)
-  
+
   const debouncedQuery = useDebounce(query, 300)
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -168,7 +168,7 @@ export default function SmartSearch({
 
     // Filter and sort by relevance
     return mockProducts
-      .filter(product => 
+      .filter(product =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -254,7 +254,7 @@ export default function SmartSearch({
             className="w-full pl-10 pr-20 py-3 bg-ink-800 border border-ink-700 rounded-lg text-ink-100 placeholder-ink-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             onFocus={() => setShowResults(true)}
           />
-          
+
           {/* AI Indicator */}
           <div className="absolute right-16 top-1/2 transform -translate-y-1/2">
             <Sparkles className="w-4 h-4 text-brand-400" />

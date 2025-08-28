@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@/app/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 
@@ -147,11 +147,11 @@ async function applyRelevanceScoring(products: any[], query: string) {
   try {
     // In a real app, this would use an AI service for relevance scoring
     // For now, we'll implement a sophisticated scoring algorithm
-    
+
     const scoredProducts = products.map(product => {
       let score = 0
       const queryLower = query.toLowerCase()
-      
+
       // Name relevance (highest weight)
       if (product.name?.toLowerCase().includes(queryLower)) {
         score += 0.4
@@ -164,44 +164,44 @@ async function applyRelevanceScoring(products: any[], query: string) {
           score += 0.1
         }
       }
-      
+
       // Description relevance
       if (product.description?.toLowerCase().includes(queryLower)) {
         score += 0.2
       }
-      
+
       // Category relevance
       if (product.category?.toLowerCase().includes(queryLower)) {
         score += 0.15
       }
-      
+
       // Tags relevance
       if (product.tags && Array.isArray(product.tags)) {
-        const tagMatches = product.tags.filter((tag: string) => 
+        const tagMatches = product.tags.filter((tag: string) =>
           tag.toLowerCase().includes(queryLower)
         ).length
         score += tagMatches * 0.1
       }
-      
+
       // Recency bonus (newer products get slight boost)
       if (product.created_at) {
         const daysSinceCreation = (Date.now() - new Date(product.created_at).getTime()) / (1000 * 60 * 60 * 24)
         if (daysSinceCreation < 7) score += 0.05
         else if (daysSinceCreation < 30) score += 0.02
       }
-      
+
       // Seller rating bonus
       if (product.profiles?.avg_rating) {
         score += (product.profiles.avg_rating - 3) * 0.02 // Small bonus for high ratings
       }
-      
+
       // Condition bonus
       if (product.condition === 'new') {
         score += 0.03
       } else if (product.condition === 'like-new') {
         score += 0.02
       }
-      
+
       return {
         ...product,
         relevance_score: Math.min(score, 1.0) // Cap at 1.0
@@ -226,7 +226,7 @@ async function generateSearchSuggestions(query: string, products: any[]) {
   try {
     const suggestions: string[] = []
     const queryLower = query.toLowerCase()
-    
+
     // Category-based suggestions
     const categories = [...new Set(products.map(p => p.category).filter(Boolean))]
     categories.forEach(category => {
@@ -234,7 +234,7 @@ async function generateSearchSuggestions(query: string, products: any[]) {
         suggestions.push(`${query} ${category}`)
       }
     })
-    
+
     // Tag-based suggestions
     const allTags = products.flatMap(p => p.tags || []).filter(Boolean)
     const uniqueTags = [...new Set(allTags)]
@@ -243,7 +243,7 @@ async function generateSearchSuggestions(query: string, products: any[]) {
         suggestions.push(`${query} ${tag}`)
       }
     })
-    
+
     // Common search patterns
     const commonPatterns = [
       `${query} sneakers`,
@@ -252,12 +252,12 @@ async function generateSearchSuggestions(query: string, products: any[]) {
       `${query} limited edition`,
       `${query} vintage`
     ]
-    
+
     suggestions.push(...commonPatterns)
-    
+
     // Remove duplicates and limit results
     return [...new Set(suggestions)].slice(0, 8)
-    
+
   } catch (error) {
     console.error('Suggestion generation error:', error)
     return []
@@ -274,7 +274,7 @@ function generateMockResults(query: string) {
   ]
 
   return mockProducts
-    .filter(product => 
+    .filter(product =>
       product.name.toLowerCase().includes(query.toLowerCase()) ||
       product.category.toLowerCase().includes(query.toLowerCase()) ||
       product.tags.some(tag => tag.toLowerCase().includes(query.toLowerCase()))
