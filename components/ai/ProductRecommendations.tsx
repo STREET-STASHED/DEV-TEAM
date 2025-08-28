@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { 
-  getPersonalizedRecommendations, 
-  getCategoryRecommendations,
-  trackUserBehavior,
-  type ProductRecommendation,
-  type RecommendationContext 
+import {
+    getCategoryRecommendations,
+    getPersonalizedRecommendations,
+    trackUserBehavior,
+    type ProductRecommendation,
+    type RecommendationContext
 } from '@/lib/ai/recommendations'
+import { useEffect, useState } from 'react'
 
 interface ProductRecommendationsProps {
   userId?: string
@@ -117,7 +117,7 @@ export default function ProductRecommendations({
     return (
       <div className={`text-center py-8 ${className}`}>
         <p className="text-ink-400">{error}</p>
-        <button 
+        <button
           onClick={loadRecommendations}
           className="mt-2 text-brand-400 hover:text-brand-300 underline"
         >
@@ -138,11 +138,11 @@ export default function ProductRecommendations({
   return (
     <div className={`space-y-4 ${className}`}>
       <h3 className="text-lg font-semibold text-ink-100">{title}</h3>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {recommendations.map((product) => (
-          <div 
-            key={product.id} 
+          <div
+            key={product.id}
             className="group cursor-pointer"
             onClick={() => handleProductClick(product)}
           >
@@ -153,7 +153,7 @@ export default function ProductRecommendations({
                 alt={product.name}
                 className="w-full h-48 object-cover rounded-lg group-hover:scale-105 transition-transform duration-200"
               />
-              
+
               {/* Recommendation Score Badge */}
               <div className="absolute top-2 right-2">
                 <div className="bg-brand-500 text-white text-xs px-2 py-1 rounded-full">
@@ -167,11 +167,11 @@ export default function ProductRecommendations({
               <h4 className="font-medium text-ink-100 text-sm line-clamp-2">
                 {product.name}
               </h4>
-              
+
               <p className="text-brand-400 font-semibold">
                 ${product.price.toFixed(2)}
               </p>
-              
+
               {showReason && (
                 <p className="text-xs text-ink-400 line-clamp-1">
                   {product.reason}
@@ -190,7 +190,7 @@ export default function ProductRecommendations({
               >
                 Add to Cart
               </button>
-              
+
               <button
                 onClick={(e) => {
                   e.stopPropagation()

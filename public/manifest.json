@@ -1,27 +1,27 @@
 {
-  "name": "StreetStashed",
+  "name": "StreetStashed - Streetwear Marketplace",
   "short_name": "StreetStashed",
-  "description": "The first-of-its-kind marketplace connecting buyers, sellers, and stylists",
+  "description": "Discover and buy authentic streetwear from verified sellers with AI-powered recommendations",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "background_color": "#000000",
+  "theme_color": "#FFD700",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["shopping", "lifestyle", "business"],
+  "categories": ["shopping", "fashion", "lifestyle"],
   "icons": [
     {
       "src": "/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/apple-touch-icon.png",
@@ -31,44 +31,62 @@
   ],
   "screenshots": [
     {
-      "src": "/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "src": "/screenshot-narrow.png",
-      "sizes": "750x1334",
+      "src": "/screenshots/mobile-home.png",
+      "sizes": "390x844",
       "type": "image/png",
       "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshots/desktop-home.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide"
     }
   ],
   "shortcuts": [
     {
-      "name": "Marketplace",
-      "short_name": "Shop",
-      "description": "Browse products and services",
-      "url": "/buyer/marketplace",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "name": "Search Products",
+      "short_name": "Search",
+      "description": "Quick access to product search",
+      "url": "/buyer/marketplace?action=search",
+      "icons": [
+        {
+          "src": "/icons/search.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View your account dashboard",
-      "url": "/dashboard",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "name": "My Cart",
+      "short_name": "Cart",
+      "description": "View your shopping cart",
+      "url": "/buyer/marketplace/@cart",
+      "icons": [
+        {
+          "src": "/icons/cart.png",
+          "sizes": "96x96"
+        }
+      ]
     },
     {
-      "name": "Referrals",
-      "short_name": "Referrals",
-      "description": "Manage your referrals and rewards",
-      "url": "/referrals",
-      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+      "name": "My Orders",
+      "short_name": "Orders",
+      "description": "Track your orders",
+      "url": "/buyer/orders",
+      "icons": [
+        {
+          "src": "/icons/orders.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ],
-  "prefer_related_applications": false,
   "related_applications": [],
+  "prefer_related_applications": false,
   "edge_side_panel": {
     "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
   }
 }

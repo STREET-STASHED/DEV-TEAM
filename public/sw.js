@@ -1,1 +1,315 @@
-if(!self.define){let e,s={};const a=(a,c)=>(a=new URL(a+".js",c).href,s[a]||new Promise(s=>{if("document"in self){const e=document.createElement("script");e.src=a,e.onload=s,document.head.appendChild(e)}else e=a,importScripts(a),s()}).then(()=>{let e=s[a];if(!e)throw new Error(`Module ${a} didn’t register its module`);return e}));self.define=(c,n)=>{const t=e||("document"in self?document.currentScript.src:"")||location.href;if(s[t])return;let i={};const r=e=>a(e,t),o={module:{uri:t},exports:i,require:r};s[t]=Promise.all(c.map(e=>o[e]||r(e))).then(e=>(n(...e),i))}}define(["./workbox-e9849328"],function(e){"use strict";importScripts(),self.skipWaiting(),e.clientsClaim(),e.precacheAndRoute([{url:"/_next/dynamic-css-manifest.json",revision:"d751713988987e9331980363e24189ce"},{url:"/_next/static/2jwSUT-f4BpvggFo4fIta/_buildManifest.js",revision:"2865e640ac29c44ae425d932b4cbc932"},{url:"/_next/static/2jwSUT-f4BpvggFo4fIta/_ssgManifest.js",revision:"b6652df95db52feb4daf4eca35380933"},{url:"/_next/static/chunks/396-aa2ae44e7c20666d.js",revision:"aa2ae44e7c20666d"},{url:"/_next/static/chunks/464-9beff246e0294cc3.js",revision:"9beff246e0294cc3"},{url:"/_next/static/chunks/5061aac0-2564d43cebe48c2d.js",revision:"2564d43cebe48c2d"},{url:"/_next/static/chunks/709.78d89037da7ba846.js",revision:"78d89037da7ba846"},{url:"/_next/static/chunks/785.c9893ef0358cb126.js",revision:"c9893ef0358cb126"},{url:"/_next/static/chunks/965-cf305e5566c78c4c.js",revision:"cf305e5566c78c4c"},{url:"/_next/static/chunks/d299fe4a-f2fbfd49c4352cfb.js",revision:"f2fbfd49c4352cfb"},{url:"/_next/static/chunks/framework-2c6f896dc7053407.js",revision:"2c6f896dc7053407"},{url:"/_next/static/chunks/main-9a569f1272d6e6ff.js",revision:"9a569f1272d6e6ff"},{url:"/_next/static/chunks/pages/_app-53b02e907752f395.js",revision:"53b02e907752f395"},{url:"/_next/static/chunks/pages/_error-0bc4885c6f3da25d.js",revision:"0bc4885c6f3da25d"},{url:"/_next/static/chunks/pages/admin/dashboard-d8aa3fe50274e97b.js",revision:"d8aa3fe50274e97b"},{url:"/_next/static/chunks/pages/admin/transactions-638d2a02acaf893c.js",revision:"638d2a02acaf893c"},{url:"/_next/static/chunks/pages/book-stylist-345a38c561e1b56a.js",revision:"345a38c561e1b56a"},{url:"/_next/static/chunks/pages/buyer-7fe34ab769f19d2c.js",revision:"7fe34ab769f19d2c"},{url:"/_next/static/chunks/pages/buyer/checkout-673f7eedbadd27fa.js",revision:"673f7eedbadd27fa"},{url:"/_next/static/chunks/pages/buyer/dashboard-c4ce597c39176cef.js",revision:"c4ce597c39176cef"},{url:"/_next/static/chunks/pages/buyer/marketplace-894cdc98a8c43a9c.js",revision:"894cdc98a8c43a9c"},{url:"/_next/static/chunks/pages/buyer/orders-f2751c377501e83e.js",revision:"f2751c377501e83e"},{url:"/_next/static/chunks/pages/cancel-e10a6b28ef6cb5a4.js",revision:"e10a6b28ef6cb5a4"},{url:"/_next/static/chunks/pages/driver-c96e5aa39e50e637.js",revision:"c96e5aa39e50e637"},{url:"/_next/static/chunks/pages/driver/dashboard-16d585abb19bfe77.js",revision:"16d585abb19bfe77"},{url:"/_next/static/chunks/pages/index-82dbb649ff1c1da0.js",revision:"82dbb649ff1c1da0"},{url:"/_next/static/chunks/pages/login-a9dc7c3c094f117c.js",revision:"a9dc7c3c094f117c"},{url:"/_next/static/chunks/pages/onboarding-774bc766ec702b85.js",revision:"774bc766ec702b85"},{url:"/_next/static/chunks/pages/seller-2e6782f2745c58e7.js",revision:"2e6782f2745c58e7"},{url:"/_next/static/chunks/pages/seller/dashboard-be2a11dbe737aa28.js",revision:"be2a11dbe737aa28"},{url:"/_next/static/chunks/pages/seller/upload-91ad08080d3d5caa.js",revision:"91ad08080d3d5caa"},{url:"/_next/static/chunks/pages/signup-649e4955af4405cf.js",revision:"649e4955af4405cf"},{url:"/_next/static/chunks/pages/stores-8b2394ef86122a54.js",revision:"8b2394ef86122a54"},{url:"/_next/static/chunks/pages/stores/%5Bstoreid%5D-847df4531e3e9130.js",revision:"847df4531e3e9130"},{url:"/_next/static/chunks/pages/stylist-d281c5d1d1fd2603.js",revision:"d281c5d1d1fd2603"},{url:"/_next/static/chunks/pages/stylist/dashboard-04b08561825a9530.js",revision:"04b08561825a9530"},{url:"/_next/static/chunks/pages/stylist/upload-05ab8b3cad4f4013.js",revision:"05ab8b3cad4f4013"},{url:"/_next/static/chunks/pages/success-1341a9c991fc4c08.js",revision:"1341a9c991fc4c08"},{url:"/_next/static/chunks/polyfills-42372ed130431b0a.js",revision:"846118c33b2c0e922d7b3a7676f81f6f"},{url:"/_next/static/chunks/webpack-9690bece90d95e51.js",revision:"9690bece90d95e51"},{url:"/_next/static/css/ffe709052b2d9435.css",revision:"ffe709052b2d9435"},{url:"/background.png",revision:"a0b3c99399e4e0773cf5129f05a23eeb"},{url:"/favicon.ico",revision:"d4d323cd2085addc355771e025929309"},{url:"/fonts/Urbanist-Regular.ttf",revision:"d089bea3460a89ab3a8124a3e6c890dd"},{url:"/images/sneaker1.jpg",revision:"d41d8cd98f00b204e9800998ecf8427e"},{url:"/logo-new.png",revision:"ded27167fcfff9f0b480f4df014d16b4"},{url:"/manifest.json",revision:"85f6342e2f9c026ff19f7dcf5216f2f3"},{url:"/mock/default-product.jpg",revision:"211b8e34667a10592fb88a4904396e50"},{url:"/mock/default-stylist.jpg",revision:"9b7f6abfae56d30e35bfa25c30a8610d"}],{ignoreURLParametersMatching:[]}),e.cleanupOutdatedCaches(),e.registerRoute("/",new e.NetworkFirst({cacheName:"start-url",plugins:[{cacheWillUpdate:async({request:e,response:s,event:a,state:c})=>s&&"opaqueredirect"===s.type?new Response(s.body,{status:200,statusText:"OK",headers:s.headers}):s}]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,new e.CacheFirst({cacheName:"google-fonts-webfonts",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:31536e3})]}),"GET"),e.registerRoute(/^https:\/\/fonts\.(?:googleapis)\.com\/.*/i,new e.StaleWhileRevalidate({cacheName:"google-fonts-stylesheets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,new e.StaleWhileRevalidate({cacheName:"static-font-assets",plugins:[new e.ExpirationPlugin({maxEntries:4,maxAgeSeconds:604800})]}),"GET"),e.registerRoute(/\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,new e.StaleWhileRevalidate({cacheName:"static-image-assets",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/image\?url=.+$/i,new e.StaleWhileRevalidate({cacheName:"next-image",plugins:[new e.ExpirationPlugin({maxEntries:64,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp3|wav|ogg)$/i,new e.CacheFirst({cacheName:"static-audio-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:mp4)$/i,new e.CacheFirst({cacheName:"static-video-assets",plugins:[new e.RangeRequestsPlugin,new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:js)$/i,new e.StaleWhileRevalidate({cacheName:"static-js-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:css|less)$/i,new e.StaleWhileRevalidate({cacheName:"static-style-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\/_next\/data\/.+\/.+\.json$/i,new e.StaleWhileRevalidate({cacheName:"next-data",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(/\.(?:json|xml|csv)$/i,new e.NetworkFirst({cacheName:"static-data-assets",plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;const s=e.pathname;return!s.startsWith("/api/auth/")&&!!s.startsWith("/api/")},new e.NetworkFirst({cacheName:"apis",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:16,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>{if(!(self.origin===e.origin))return!1;return!e.pathname.startsWith("/api/")},new e.NetworkFirst({cacheName:"others",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:86400})]}),"GET"),e.registerRoute(({url:e})=>!(self.origin===e.origin),new e.NetworkFirst({cacheName:"cross-origin",networkTimeoutSeconds:10,plugins:[new e.ExpirationPlugin({maxEntries:32,maxAgeSeconds:3600})]}),"GET")});
+// Enhanced Service Worker for StreetStashed PWA
+const CACHE_NAME = 'streetstashed-v2'
+const STATIC_CACHE = 'streetstashed-static-v2'
+const DYNAMIC_CACHE = 'streetstashed-dynamic-v2'
+const API_CACHE = 'streetstashed-api-v2'
+
+// Files to cache immediately
+const STATIC_FILES = [
+  '/',
+  '/offline',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/apple-touch-icon.png'
+]
+
+// API endpoints to cache
+const API_ENDPOINTS = [
+  '/api/health',
+  '/api/products',
+  '/api/categories'
+]
+
+// Install event - cache static files
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE)
+      .then(cache => {
+        console.log('Caching static files')
+        return cache.addAll(STATIC_FILES)
+      })
+      .then(() => {
+        console.log('Static files cached successfully')
+        return self.skipWaiting()
+      })
+      .catch(error => {
+        console.error('Error caching static files:', error)
+      })
+  )
+})
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then(cacheNames => {
+        return Promise.all(
+          cacheNames.map(cacheName => {
+            if (cacheName !== STATIC_CACHE && 
+                cacheName !== DYNAMIC_CACHE && 
+                cacheName !== API_CACHE) {
+              console.log('Deleting old cache:', cacheName)
+              return caches.delete(cacheName)
+            }
+          })
+        )
+      })
+      .then(() => {
+        console.log('Service worker activated')
+        return self.clients.claim()
+      })
+  )
+})
+
+// Fetch event - implement caching strategies
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  const url = new URL(request.url)
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
+    return
+  }
+
+  // Handle different types of requests
+  if (isStaticFile(request)) {
+    event.respondWith(cacheFirst(request, STATIC_CACHE))
+  } else if (isAPIRequest(request)) {
+    event.respondWith(networkFirst(request, API_CACHE))
+  } else if (isImageRequest(request)) {
+    event.respondWith(cacheFirst(request, DYNAMIC_CACHE))
+  } else {
+    event.respondWith(networkFirst(request, DYNAMIC_CACHE))
+  }
+})
+
+// Cache First Strategy - for static files
+async function cacheFirst(request, cacheName) {
+  try {
+    const cachedResponse = await caches.match(request)
+    if (cachedResponse) {
+      return cachedResponse
+    }
+    
+    const networkResponse = await fetch(request)
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName)
+      cache.put(request, networkResponse.clone())
+    }
+    return networkResponse
+  } catch (error) {
+    console.error('Cache first strategy failed:', error)
+    return getOfflineResponse(request)
+  }
+}
+
+// Network First Strategy - for dynamic content
+async function networkFirst(request, cacheName) {
+  try {
+    const networkResponse = await fetch(request)
+    if (networkResponse.ok) {
+      const cache = await caches.open(cacheName)
+      cache.put(request, networkResponse.clone())
+    }
+    return networkResponse
+  } catch (error) {
+    console.error('Network first strategy failed:', error)
+    
+    // Try to get from cache
+    const cachedResponse = await caches.match(request)
+    if (cachedResponse) {
+      return cachedResponse
+    }
+    
+    // Return offline response
+    return getOfflineResponse(request)
+  }
+}
+
+// Check if request is for static files
+function isStaticFile(request) {
+  const url = new URL(request.url)
+  return STATIC_FILES.includes(url.pathname) ||
+         url.pathname.startsWith('/_next/static/') ||
+         url.pathname.startsWith('/icons/') ||
+         url.pathname.startsWith('/images/')
+}
+
+// Check if request is for API
+function isAPIRequest(request) {
+  const url = new URL(request.url)
+  return url.pathname.startsWith('/api/')
+}
+
+// Check if request is for images
+function isImageRequest(request) {
+  const url = new URL(request.url)
+  return url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ||
+         url.pathname.includes('/storage/')
+}
+
+// Get offline response
+async function getOfflineResponse(request) {
+  const url = new URL(request.url)
+  
+  // Try to serve offline page for navigation requests
+  if (request.mode === 'navigate') {
+    const offlineResponse = await caches.match('/offline')
+    if (offlineResponse) {
+      return offlineResponse
+    }
+  }
+  
+  // Return a simple offline response
+  return new Response(
+    JSON.stringify({
+      error: 'You are offline',
+      message: 'Please check your internet connection and try again',
+      timestamp: new Date().toISOString()
+    }),
+    {
+      status: 503,
+      statusText: 'Service Unavailable',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache'
+      }
+    }
+  )
+}
+
+// Background sync for offline actions
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync') {
+    event.waitUntil(doBackgroundSync())
+  }
+})
+
+// Handle background sync
+async function doBackgroundSync() {
+  try {
+    // Get pending offline actions from IndexedDB
+    const pendingActions = await getPendingOfflineActions()
+    
+    for (const action of pendingActions) {
+      try {
+        await processOfflineAction(action)
+        await removePendingAction(action.id)
+      } catch (error) {
+        console.error('Failed to process offline action:', error)
+      }
+    }
+  } catch (error) {
+    console.error('Background sync failed:', error)
+  }
+}
+
+// Get pending offline actions (placeholder)
+async function getPendingOfflineActions() {
+  // This would integrate with IndexedDB to get pending actions
+  return []
+}
+
+// Process offline action (placeholder)
+async function processOfflineAction(action) {
+  // This would process different types of offline actions
+  console.log('Processing offline action:', action)
+}
+
+// Remove pending action (placeholder)
+async function removePendingAction(actionId) {
+  // This would remove the action from IndexedDB
+  console.log('Removing pending action:', actionId)
+}
+
+// Push notification handling
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    const data = event.data.json()
+    const options = {
+      body: data.body || 'You have a new notification',
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      vibrate: [100, 50, 100],
+      data: {
+        url: data.url || '/',
+        timestamp: Date.now()
+      },
+      actions: [
+        {
+          action: 'view',
+          title: 'View',
+          icon: '/icons/view.png'
+        },
+        {
+          action: 'dismiss',
+          title: 'Dismiss',
+          icon: '/icons/dismiss.png'
+        }
+      ]
+    }
+
+    event.waitUntil(
+      self.registration.showNotification(data.title || 'StreetStashed', options)
+    )
+  }
+})
+
+// Notification click handling
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+
+  if (event.action === 'view') {
+    event.waitUntil(
+      clients.openWindow(event.notification.data.url)
+    )
+  }
+})
+
+// Message handling for communication with main thread
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
+  
+  if (event.data && event.data.type === 'CACHE_URLS') {
+    event.waitUntil(
+      caches.open(DYNAMIC_CACHE)
+        .then(cache => {
+          return cache.addAll(event.data.urls)
+        })
+    )
+  }
+})
+
+// Periodic background sync (if supported)
+if ('periodicSync' in self.registration) {
+  self.addEventListener('periodicsync', (event) => {
+    if (event.tag === 'content-update') {
+      event.waitUntil(updateContent())
+    }
+  })
+}
+
+// Update content periodically
+async function updateContent() {
+  try {
+    // Update cached content
+    const cache = await caches.open(DYNAMIC_CACHE)
+    const requests = await cache.keys()
+    
+    for (const request of requests) {
+      try {
+        const response = await fetch(request)
+        if (response.ok) {
+          await cache.put(request, response)
+        }
+      } catch (error) {
+        console.error('Failed to update cached content:', error)
+      }
+    }
+  } catch (error) {
+    console.error('Periodic content update failed:', error)
+  }
+}

@@ -50,8 +50,8 @@ CREATE OR REPLACE FUNCTION public.cleanup_old_anonymous_behavior()
 RETURNS void AS $$
 BEGIN
   -- Delete anonymous behavior older than 30 days
-  DELETE FROM public.user_behavior 
-  WHERE user_id IS NULL 
+  DELETE FROM public.user_behavior
+  WHERE user_id IS NULL
     AND timestamp < NOW() - INTERVAL '30 days';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -70,7 +70,7 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
   RETURN QUERY
-  SELECT 
+  SELECT
     ub.product_id,
     ub.action,
     COUNT(*) as count,

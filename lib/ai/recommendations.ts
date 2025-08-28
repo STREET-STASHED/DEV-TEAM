@@ -50,7 +50,7 @@ class AIRecommendationEngine {
     try {
       // Get user behavior data
       const userBehavior = await this.getUserBehavior(context.userId, context.sessionId)
-      
+
       // Calculate recommendation scores
       const recommendations = await this.calculateRecommendationScores(
         userBehavior,
@@ -79,13 +79,13 @@ class AIRecommendationEngine {
     try {
       // Get trending products in category
       const trendingProducts = await this.getTrendingProducts(category, limit)
-      
+
       // Get similar products based on user preferences
       const similarProducts = await this.getSimilarProducts(category, context, limit)
-      
+
       // Merge and rank recommendations
       const merged = this.mergeRecommendations(trendingProducts, similarProducts, limit)
-      
+
       return merged
     } catch (error) {
       console.error('Error getting category recommendations:', error)
@@ -130,7 +130,7 @@ class AIRecommendationEngine {
     try {
       // Analyze user preferences from behavior
       const preferences = this.analyzeUserPreferences(context)
-      
+
       // Get products matching preferences
       const { data, error } = await this.supabase
         .from('products')
@@ -252,9 +252,9 @@ class AIRecommendationEngine {
     ).length
 
     const totalViews = userBehavior.filter(behavior => behavior.action === 'view').length
-    
+
     if (totalViews === 0) return 0.5 // Default score
-    
+
     return Math.min(productViews / totalViews * 2, 1.0) // Normalize to 0-1
   }
 
@@ -353,9 +353,9 @@ class AIRecommendationEngine {
     limit: number
   ): ProductRecommendation[] {
     const merged = [...trending, ...similar]
-    
+
     // Remove duplicates
-    const unique = merged.filter((item, index, self) => 
+    const unique = merged.filter((item, index, self) =>
       index === self.findIndex(t => t.id === item.id)
     )
 
@@ -396,7 +396,7 @@ class AIRecommendationEngine {
   private async getUserBehavior(userId?: string, sessionId?: string): Promise<UserBehavior[]> {
     try {
       let query = this.supabase.from('user_behavior').select('*')
-      
+
       if (userId) {
         query = query.eq('user_id', userId)
       } else if (sessionId) {
