@@ -31,8 +31,8 @@ Add these to your Vercel dashboard:
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_51RVGJqJZXftPvY1jkg5b3mBQ4HEpDXLTrGZnLwPAk2uBFm6Dl9RljkrW16OHGvGZIbe5nQqClLMh3l7k365B43rW00lMEa3bd3
 STRIPE_SECRET_KEY=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
 
-# You'll need to get this from Stripe Dashboard
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+# Stripe Webhook Secret (from Stripe Dashboard)
+STRIPE_WEBHOOK_SECRET=whsec_KlbQTGtCsT7rUXTsK5aZeIy1cb9tbPpN
 ```
 
 ## 🔧 Stripe Dashboard Configuration
@@ -145,6 +145,6 @@ For marketplace functionality, you'll need to:
 
 ---
 
-**Status**: 🟡 **CONFIGURATION REQUIRED** - Keys provided, need webhook setup  
-**Next Step**: Configure webhooks in Stripe Dashboard and add environment variables to Vercel  
-**Estimated Time**: 15-30 minutes for complete setup
+**Status**: 🟢 **WEBHOOK CONFIGURED** - Keys and webhook secret provided
+**Next Step**: Add environment variables to Vercel dashboard
+**Estimated Time**: 5-10 minutes for environment variable setup

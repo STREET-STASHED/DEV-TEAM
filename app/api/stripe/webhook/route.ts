@@ -73,6 +73,18 @@ export async function POST(request: NextRequest) {
         await handlePayoutFailed(event.data.object as Stripe.Payout, supabase);
         break;
 
+      case 'setup_intent.created':
+        await handleSetupIntentCreated(event.data.object as Stripe.SetupIntent, supabase);
+        break;
+
+      case 'setup_intent.succeeded':
+        await handleSetupIntentSucceeded(event.data.object as Stripe.SetupIntent, supabase);
+        break;
+
+      case 'setup_intent.canceled':
+        await handleSetupIntentCanceled(event.data.object as Stripe.SetupIntent, supabase);
+        break;
+
       default:
         console.log(`Unhandled event type: ${event.type}`);
     }
@@ -463,5 +475,90 @@ async function handlePayoutFailed(payout: Stripe.Payout, supabase: any) {
     console.log(`Payout failed: ${payout.id}`);
   } catch (error) {
     console.error('Error handling payout failed:', error);
+  }
+}
+
+async function handleSetupIntentCreated(setupIntent: Stripe.SetupIntent, supabase: any) {
+  try {
+    const { customerId, metadata } = setupIntent;
+
+    if (customerId) {
+      // Log setup intent creation
+      await supabase
+        .from('payment_setups')
+        .insert({
+          stripe_setup_intent_id: setupIntent.id,
+          customer_id: customerId,
+          status: 'created',
+          created_at: new Date(setupIntent.created * 1000).toISOString(),
+          metadata: {
+            payment_method_types: setupIntent.payment_method_types,
+            usage: setupIntent.usage,
+            ...metadata
+          }
+        });
+
+      console.log(`Setup intent created: ${setupIntent.id} for customer: ${customerId}`);
+    }
+  } catch (error) {
+    console.error('Error handling setup intent created:', error);
+  }
+}
+
+async function handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent, supabase: any) {
+  try {
+    const { customerId, metadata } = setupIntent;
+
+    if (customerId) {
+      // Update setup intent status to succeeded
+      await supabase
+        .from('payment_setups')
+        .update({
+          status: 'succeeded',
+          succeeded_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('stripe_setup_intent_id', setupIntent.id);
+
+      // Create notification for customer
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: customerId,
+          type: 'payment_method_saved',
+          title: 'Payment Method Saved',
+          message: 'Your payment method has been successfully saved for future use.',
+          data: {
+            setup_intent_id: setupIntent.id,
+            payment_method_types: setupIntent.payment_method_types
+          }
+        });
+
+      console.log(`Setup intent succeeded: ${setupIntent.id} for customer: ${customerId}`);
+    }
+  } catch (error) {
+    console.error('Error handling setup intent succeeded:', error);
+  }
+}
+
+async function handleSetupIntentCanceled(setupIntent: Stripe.SetupIntent, supabase: any) {
+  try {
+    const { customerId } = setupIntent;
+
+    if (customerId) {
+      // Update setup intent status to canceled
+      await supabase
+        .from('payment_setups')
+        .update({
+          status: 'canceled',
+          canceled_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('stripe_setup_intent_id', setupIntent.id);
+
+      console.log(`Setup intent canceled: ${setupIntent.id} for customer: ${customerId}`);
+    }
+  } catch (error) {
+    console.error('Error handling setup intent canceled:', error);
   }
 }
