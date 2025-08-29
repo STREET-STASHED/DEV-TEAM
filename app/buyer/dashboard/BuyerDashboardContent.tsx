@@ -1,5 +1,8 @@
+'use client'
+
 import { NavigationButton } from '@/components/ui/Navigation'
 import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
+import { useEffect, useState } from 'react'
 
 type Order = {
   id: string
@@ -8,34 +11,70 @@ type Order = {
   created_at?: string
 }
 
-async function getOrders(): Promise<Order[]> {
-    const supabase = createSupabaseBrowser();
-  const { data: { user } } = await supabase.auth.getUser()
+export function BuyerDashboardContent() {
+  const [orders, setOrders] = useState<Order[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  if (!user) {
-    return []
+  useEffect(() => {
+    async function getOrders() {
+      try {
+        const supabase = createSupabaseBrowser()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+          setOrders([])
+          setIsLoading(false)
+          return
+        }
+
+        const { data, error } = await supabase.from('orders')
+          .select('id, status, total_amount, created_at')
+          .eq('buyer_id', user.id)
+          .order('created_at', { ascending: false })
+
+        if (error) {
+          console.error('Error fetching orders:', error)
+          setOrders([])
+        } else {
+          const mappedOrders = (data || []).map((order) => ({
+            id: order.id,
+            status: order.status ?? undefined,
+            total_price: order.total_amount ?? undefined,
+            created_at: order.created_at ?? undefined,
+          }))
+          setOrders(mappedOrders)
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+        setOrders([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    getOrders()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-gradient-to-r from-brand-500/10 to-purple-500/10 rounded-2xl p-8 border border-brand-400/20">
+          <div className="animate-pulse">
+            <div className="h-8 bg-ink-700 rounded mb-4"></div>
+            <div className="h-6 bg-ink-700 rounded mb-6"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="bg-ink-800/50 rounded-xl p-4 border border-ink-700">
+                  <div className="h-8 bg-ink-700 rounded mb-1"></div>
+                  <div className="h-4 bg-ink-700 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
-
-  const { data, error } = await supabase.from('orders')
-    .select('id, status, total_amount, created_at')
-    .eq('buyer_id', user.id)
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Error fetching orders:', error)
-    return []
-  }
-
-  return (data || []).map((order) => ({
-    id: order.id,
-    status: order.status ?? undefined,
-    total_price: order.total_amount ?? undefined,
-    created_at: order.created_at ?? undefined,
-  }))
-}
-
-export async function BuyerDashboardContent() {
-  const orders = await getOrders()
 
   return (
     <div className="space-y-8">

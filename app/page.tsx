@@ -1,21 +1,21 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon, 
-  StarIcon,
-  ShoppingCartIcon,
-  HeartIcon,
-  MapPinIcon,
-  FireIcon,
-  SparklesIcon,
-  CameraIcon,
-  TrophyIcon,
-  ChatBubbleLeftRightIcon
+import { mockCategories, mockProducts, mockStores } from '@/lib/mockData'
+import {
+    CameraIcon,
+    ChatBubbleLeftRightIcon,
+    FireIcon,
+    FunnelIcon,
+    HeartIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    ShoppingCartIcon,
+    SparklesIcon,
+    StarIcon,
+    TrophyIcon
 } from '@heroicons/react/24/outline'
-import { mockProducts, mockCategories, mockStores } from '@/lib/mockData'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function HomePage() {
   const router = useRouter()
@@ -26,6 +26,7 @@ export default function HomePage() {
   const [categories, _setCategories] = useState(mockCategories)
   const [isLoading, _setIsLoading] = useState(false)
   const [error, _setError] = useState<string | null>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
 
 
@@ -85,6 +86,85 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-ink-black text-white">
+      {/* Header with Join Us Button */}
+      <header className="bg-ink-900/80 backdrop-blur-sm border-b border-ink-700 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-brand-400 rounded-lg flex items-center justify-center">
+                <span className="text-ink-black font-bold text-xl">S</span>
+              </div>
+              <span className="text-xl font-bold text-white">STREETSTASHED</span>
+            </div>
+
+            {/* Navigation */}
+            <nav className="hidden md:flex items-center space-x-8">
+              <a href="/buyer/marketplace" className="text-ink-300 hover:text-white transition-colors">
+                Marketplace
+              </a>
+              <a href="/social/challenges" className="text-ink-300 hover:text-white transition-colors">
+                Challenges
+              </a>
+              <a href="/ai-stylist" className="text-ink-300 hover:text-white transition-colors">
+                AI Stylist
+              </a>
+            </nav>
+
+            {/* Join Us Button */}
+            <div className="flex items-center space-x-4">
+              <a
+                href="/login"
+                className="text-ink-300 hover:text-white transition-colors px-4 py-2"
+              >
+                Sign In
+              </a>
+              <a
+                href="/signup"
+                className="bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-500/25"
+              >
+                Join Us
+              </a>
+
+              {/* Mobile Menu Button */}
+              <button
+                className="md:hidden p-2 text-ink-300 hover:text-white"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-ink-800 border-t border-ink-700">
+            <div className="px-4 py-2 space-y-2">
+              <a href="/buyer/marketplace" className="block px-4 py-2 text-ink-300 hover:text-white hover:bg-ink-700 rounded-lg transition-colors">
+                Marketplace
+              </a>
+              <a href="/social/challenges" className="block px-4 py-2 text-ink-300 hover:text-white hover:bg-ink-700 rounded-lg transition-colors">
+                Challenges
+              </a>
+              <a href="/ai-stylist" className="block px-4 py-2 text-ink-300 hover:text-white hover:bg-ink-700 rounded-lg transition-colors">
+                AI Stylist
+              </a>
+              <div className="border-t border-ink-700 pt-2 mt-2">
+                <a href="/login" className="block px-4 py-2 text-ink-300 hover:text-white hover:bg-ink-700 rounded-lg transition-colors">
+                  Sign In
+                </a>
+                <a href="/signup" className="block px-4 py-2 text-brand-400 hover:text-brand-300 hover:bg-ink-700 rounded-lg transition-colors">
+                  Join Us
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -95,7 +175,7 @@ export default function HomePage() {
             <p className="text-xl md:text-2xl text-ink-300 mb-8 max-w-3xl mx-auto">
               Discover the latest streetwear, connect with local stores, and get your style delivered in minutes
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto mb-8">
               <div className="relative">
@@ -144,7 +224,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white mb-4">🚀 Advanced Features</h2>
             <p className="text-ink-300">Experience the future of fashion shopping</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* AI Stylist */}
             <button
@@ -196,7 +276,7 @@ export default function HomePage() {
           </div>
         </div>
       </div>
-      
+
       {/* Live Activity Section */}
       <div className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-red-500/10 to-orange-500/10">
         <div className="max-w-7xl mx-auto">
@@ -243,7 +323,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white mb-4">Shop by Category</h2>
             <p className="text-ink-300">Find exactly what you&apos;re looking for</p>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
             {categories.map((category) => (
               <button
@@ -269,7 +349,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white mb-4">Trending Now</h2>
             <p className="text-ink-300">The hottest items everyone&apos;s talking about</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProducts.map((product) => (
               <div
@@ -298,7 +378,7 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-white text-lg line-clamp-2">{product.name}</h3>
@@ -307,9 +387,9 @@ export default function HomePage() {
                       <span className="text-ink-300 text-sm">{product.rating}</span>
                     </div>
                   </div>
-                  
+
                   <p className="text-ink-400 text-sm mb-3 line-clamp-2">{product.description}</p>
-                  
+
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <span className="text-2xl font-bold text-white">${product.price}</span>
@@ -323,7 +403,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          
+
           <div className="text-center mt-12">
             <button
               onClick={() => router.push('/buyer/marketplace')}
@@ -342,7 +422,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white mb-4">🌟 Social & Viral Features</h2>
             <p className="text-ink-300">Connect, compete, and earn rewards</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Referrals */}
             <button
@@ -399,7 +479,7 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-white mb-4">Featured Stores</h2>
             <p className="text-ink-300">Discover amazing local businesses</p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {stores.map((store) => (
               <div
@@ -422,7 +502,7 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold text-white text-xl">{store.name}</h3>
@@ -432,9 +512,9 @@ export default function HomePage() {
                       <span className="text-ink-400 text-sm">({store.reviewCount})</span>
                     </div>
                   </div>
-                  
+
                   <p className="text-ink-400 text-sm mb-4 line-clamp-2">{store.description}</p>
-                  
+
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center space-x-2 text-sm">
                       <MapPinIcon className="w-4 h-4 text-ink-400" />
@@ -449,7 +529,7 @@ export default function HomePage() {
                       <span className="text-ink-300">${store.minOrder}</span>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2 mb-4">
                     {store.categories.slice(0, 3).map((category) => (
                       <span
@@ -464,7 +544,7 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-          
+
           <div className="text-center mt-12">
             <button
               onClick={() => router.push('/buyer/marketplace')}

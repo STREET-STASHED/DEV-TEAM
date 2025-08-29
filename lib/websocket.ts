@@ -1,5 +1,6 @@
-import { Server as SocketIOServer } from "socket.io";
 import { Server as HTTPServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
+import { pushService } from "./push";
 
 export interface WebSocketEvents {
   // Driver events
@@ -148,17 +149,21 @@ export class WebSocketServer {
     socket: { id: string; join: (_room: string) => void; emit: (_event: string, _data: unknown) => void },
     data: { userId: string; userType: string },
   ) {
-    this.connectedUsers.set(data.userId, socket.id);
+    const { userId, userType } = data;
 
-    if (data.userType === "driver") {
-      this.driverSockets.set(data.userId, socket.id);
-      socket.join(`driver:${data.userId}`);
+    // Store user connection
+    this.connectedUsers.set(userId, socket.id);
+
+    // Join user-specific room
+    socket.join(`user:${userId}`);
+
+    // If driver, also join driver room
+    if (userType === "driver") {
+      this.driverSockets.set(userId, socket.id);
+      socket.join(`driver:${userId}`);
     }
 
-    socket.join(`user:${data.userId}`);
-    socket.emit("authenticated", { success: true });
-
-    console.log(`User ${data.userId} authenticated as ${data.userType}`);
+    console.log(`User ${userId} (${userType}) authenticated on socket ${socket.id}`);
   }
 
   private subscribeToOrder(socketId: string, orderId: string) {
@@ -170,10 +175,10 @@ export class WebSocketServer {
   }
 
   private unsubscribeFromOrder(socketId: string, orderId: string) {
-    const subscribers = this.orderSubscriptions.get(orderId);
-    if (subscribers) {
-      subscribers.delete(socketId);
-      if (subscribers.size === 0) {
+    const subscriptions = this.orderSubscriptions.get(orderId);
+    if (subscriptions) {
+      subscriptions.delete(socketId);
+      if (subscriptions.size === 0) {
         this.orderSubscriptions.delete(orderId);
       }
     }
@@ -181,7 +186,7 @@ export class WebSocketServer {
   }
 
   private handleDriverLocationUpdate(
-    _socket: { id: string },
+    socket: { id: string },
     data: WebSocketEvents["driver:location_update"],
   ) {
     // Broadcast to all users tracking this driver's orders
@@ -194,41 +199,40 @@ export class WebSocketServer {
   }
 
   private handleDriverStatusUpdate(
-    _socket: { id: string },
+    socket: { id: string },
     data: WebSocketEvents["driver:status_update"],
   ) {
     // Broadcast order status change to all subscribers
-    const subscribers = this.orderSubscriptions.get(data.orderId);
-    if (subscribers) {
-      subscribers.forEach((socketId) => {
-        this.io.to(socketId).emit("order:status_change", {
-          ...data,
-          timestamp: new Date().toISOString(),
-        });
-      });
-    }
-
-    console.log(`Order ${data.orderId} status updated to ${data.status}`);
-  }
-
-  private handleChatMessage(
-    socket: { id: string; emit: (_event: string, _data: unknown) => void },
-    data: WebSocketEvents["chat:message"],
-  ) {
-    // Send message to specific user
-    const targetSocketId = this.connectedUsers.get(data.to);
-    if (targetSocketId) {
-      this.io.to(targetSocketId).emit("chat:message", {
-        ...data,
+    const orderSubscriptions = this.orderSubscriptions.get(data.orderId);
+    if (orderSubscriptions) {
+      this.io.to(Array.from(orderSubscriptions)).emit("order:status_change", {
+        orderId: data.orderId,
+        status: data.status,
+        driverId: data.driverId,
         timestamp: new Date().toISOString(),
       });
     }
 
-    // Also send back to sender for confirmation
-    socket.emit("chat:message:sent", {
+    // Send push notification for important status changes
+    if (["picked_up", "in_transit", "delivered"].includes(data.status)) {
+      this.sendOrderStatusPushNotification(data.orderId, data.status, data.driverId);
+    }
+
+    console.log(`Driver ${data.driverId} updated order ${data.orderId} to ${data.status}`);
+  }
+
+  private handleChatMessage(
+    socket: { id: string },
+    data: WebSocketEvents["chat:message"],
+  ) {
+    // Send message to recipient
+    this.io.to(`user:${data.to}`).emit("chat:message", {
       ...data,
       timestamp: new Date().toISOString(),
     });
+
+    // Send push notification for chat messages
+    this.sendChatPushNotification(data.to, data.from, data.message);
   }
 
   private handleDisconnect(socket: { id: string }) {
@@ -237,78 +241,107 @@ export class WebSocketServer {
       if (socketId === socket.id) {
         this.connectedUsers.delete(userId);
 
-        // Remove from driver sockets if applicable
+        // If driver, remove from driver sockets
         if (this.driverSockets.has(userId)) {
           this.driverSockets.delete(userId);
         }
-
-        // Remove from all order subscriptions
-        for (const [
-          orderId,
-          subscribers,
-        ] of this.orderSubscriptions.entries()) {
-          subscribers.delete(socket.id);
-          if (subscribers.size === 0) {
-            this.orderSubscriptions.delete(orderId);
-          }
-        }
-
         break;
       }
     }
 
-    console.log(`User disconnected: ${socket.id}`);
+    // Remove from order subscriptions
+    for (const [orderId, subscriptions] of this.orderSubscriptions.entries()) {
+      subscriptions.delete(socket.id);
+      if (subscriptions.size === 0) {
+        this.orderSubscriptions.delete(orderId);
+      }
+    }
+
+    console.log(`Socket ${socket.id} disconnected`);
   }
 
-  // Public methods for broadcasting events
-  public broadcastOrderStatusChange(
-    orderId: string,
-    status: string,
-    driverId?: string,
-  ) {
-    const event: WebSocketEvents["order:status_change"] = {
+  // Public methods for external use
+  public broadcastOrderStatusChange(orderId: string, status: string, driverId?: string) {
+    const eventData: WebSocketEvents["order:status_change"] = {
       orderId,
       status,
       driverId,
       timestamp: new Date().toISOString(),
     };
 
-    this.io.emit("order:status_change", event);
+    // Broadcast to order subscribers
+    const orderSubscriptions = this.orderSubscriptions.get(orderId);
+    if (orderSubscriptions) {
+      this.io.to(Array.from(orderSubscriptions)).emit("order:status_change", eventData);
+    }
+
+    // Send push notification
+    this.sendOrderStatusPushNotification(orderId, status, driverId);
   }
 
-  public broadcastOrderAssigned(
-    orderId: string,
-    driverId: string,
-    driverName: string,
-    estimatedArrival: string,
-  ) {
-    const event: WebSocketEvents["order:assigned"] = {
-      orderId,
+  public broadcastDriverLocation(driverId: string, location: { lat: number; lng: number }) {
+    const eventData: WebSocketEvents["location:driver_update"] = {
       driverId,
-      driverName,
-      estimatedArrival,
+      orderId: "", // Will be filled by client
+      location,
+      heading: 0,
+      speed: 0,
       timestamp: new Date().toISOString(),
     };
 
-    this.io.emit("order:assigned", event);
+    this.io.to(`driver:${driverId}`).emit("location:driver_update", eventData);
   }
 
-  public sendNotificationToUser(
-    userId: string,
-    notification: Omit<
-      WebSocketEvents["system:notification"],
-      "userId" | "timestamp"
-    >,
-  ) {
-    const socketId = this.connectedUsers.get(userId);
-    if (socketId) {
-      const event: WebSocketEvents["system:notification"] = {
-        userId,
-        ...notification,
-        timestamp: new Date().toISOString(),
-      };
+  public sendSystemNotification(userId: string, type: "info" | "success" | "warning" | "error", title: string, message: string) {
+    const eventData: WebSocketEvents["system:notification"] = {
+      userId,
+      type,
+      title,
+      message,
+      timestamp: new Date().toISOString(),
+    };
 
-      this.io.to(socketId).emit("system:notification", event);
+    this.io.to(`user:${userId}`).emit("system:notification", eventData);
+
+    // Send push notification
+    this.sendSystemPushNotification(userId, type, title, message);
+  }
+
+  private async sendOrderStatusPushNotification(orderId: string, status: string, driverId?: string) {
+    try {
+      // Get order details and send push notification
+      // This would integrate with your notification service
+      await pushService.sendToUser(orderId, {
+        title: `Order Update: ${status.replace('_', ' ').toUpperCase()}`,
+        message: `Your order status has been updated to ${status}`,
+        data: { orderId, status, driverId },
+      });
+    } catch (error) {
+      console.error("Failed to send order status push notification:", error);
+    }
+  }
+
+  private async sendChatPushNotification(toUserId: string, fromUserId: string, message: string) {
+    try {
+      await pushService.sendToUser(toUserId, {
+        title: "New Message",
+        message: message.substring(0, 100) + (message.length > 100 ? "..." : ""),
+        data: { fromUserId, message },
+      });
+    } catch (error) {
+      console.error("Failed to send chat push notification:", error);
+    }
+  }
+
+  private async sendSystemPushNotification(userId: string, type: string, title: string, message: string) {
+    try {
+      await pushService.sendToUser(userId, {
+        title,
+        message,
+        data: { type, timestamp: new Date().toISOString() },
+      });
+    } catch (error) {
+      console.error("Failed to send system push notification:", error);
     }
   }
 
@@ -316,7 +349,7 @@ export class WebSocketServer {
     return this.connectedUsers.size;
   }
 
-  public getDriverCount(): number {
+  public getConnectedDriversCount(): number {
     return this.driverSockets.size;
   }
 

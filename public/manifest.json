@@ -1,92 +1,158 @@
 {
-  "name": "StreetStashed - Streetwear Marketplace",
+  "name": "StreetStashed Driver",
   "short_name": "StreetStashed",
-  "description": "Discover and buy authentic streetwear from verified sellers with AI-powered recommendations",
-  "start_url": "/",
+  "description": "Professional delivery driver app for StreetStashed - manage orders, track deliveries, and earn money",
+  "start_url": "/driver-dashboard",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#FFD700",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en",
-  "categories": ["shopping", "fashion", "lifestyle"],
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
+      "purpose": "any maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "/screenshots/mobile-home.png",
-      "sizes": "390x844",
+      "src": "/screenshots/driver-dashboard.png",
+      "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "wide",
+      "label": "Driver Dashboard - Main view of orders and status"
     },
     {
-      "src": "/screenshots/desktop-home.png",
-      "sizes": "1920x1080",
+      "src": "/screenshots/order-details.png",
+      "sizes": "1280x720",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "Order Details - View pickup and delivery information"
+    },
+    {
+      "src": "/screenshots/photo-capture.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Photo Capture - Take photos for proof of pickup/delivery"
     }
   ],
   "shortcuts": [
     {
-      "name": "Search Products",
-      "short_name": "Search",
-      "description": "Quick access to product search",
-      "url": "/buyer/marketplace?action=search",
+      "name": "Go Online",
+      "short_name": "Online",
+      "description": "Quickly go online to receive orders",
+      "url": "/driver-dashboard?action=online",
       "icons": [
         {
-          "src": "/icons/search.png",
+          "src": "/icons/shortcut-online.png",
           "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "My Cart",
-      "short_name": "Cart",
-      "description": "View your shopping cart",
-      "url": "/buyer/marketplace/@cart",
-      "icons": [
-        {
-          "src": "/icons/cart.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "My Orders",
+      "name": "View Orders",
       "short_name": "Orders",
-      "description": "Track your orders",
-      "url": "/buyer/orders",
+      "description": "View all your current and completed orders",
+      "url": "/driver-dashboard?tab=orders",
       "icons": [
         {
-          "src": "/icons/orders.png",
+          "src": "/icons/shortcut-orders.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Earnings",
+      "short_name": "Earnings",
+      "description": "View your earnings and payment history",
+      "url": "/driver-dashboard?tab=earnings",
+      "icons": [
+        {
+          "src": "/icons/shortcut-earnings.png",
           "sizes": "96x96"
         }
       ]
     }
   ],
-  "related_applications": [],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://streetstashed.com/driver-app"
+    }
+  ],
   "prefer_related_applications": false,
   "edge_side_panel": {
     "preferred_width": 400
   },
   "launch_handler": {
     "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "capture_links": "existing-client-navigate",
+  "permissions": [
+    "geolocation",
+    "notifications",
+    "camera",
+    "microphone"
+  ],
+  "features": [
+    "Cross Platform",
+    "fast",
+    "simple",
+    "GPS Tracking",
+    "Photo Capture",
+    "Real-time Updates",
+    "Offline Support"
+  ],
+  "developer": {
+    "name": "StreetStashed Team",
+    "url": "https://streetstashed.com"
   }
 }
