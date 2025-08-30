@@ -72,6 +72,6 @@ After adding all variables:
 
 ---
 
-**Status**: 🟢 **READY FOR DEPLOYMENT** - All environment variables provided  
-**Next Step**: Add these to Vercel dashboard and redeploy  
+**Status**: 🟢 **READY FOR DEPLOYMENT** - All environment variables provided
+**Next Step**: Add these to Vercel dashboard and redeploy
 **Estimated Time**: 5-10 minutes for setup

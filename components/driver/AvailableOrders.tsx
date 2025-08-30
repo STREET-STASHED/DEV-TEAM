@@ -23,7 +23,7 @@ interface AvailableOrder {
 }
 
 interface AvailableOrdersProps {
-  onOrderAccepted?: (orderId: string) => void
+  onOrderAccepted?: (_orderId: string) => void
 }
 
 export default function AvailableOrders({ onOrderAccepted }: AvailableOrdersProps) {
@@ -52,23 +52,23 @@ export default function AvailableOrders({ onOrderAccepted }: AvailableOrdersProp
     }
   }, [])
 
-  const acceptOrder = useCallback(async (orderId: string) => {
+  const acceptOrder = useCallback(async (_orderId: string) => {
     try {
       const response = await fetch('/api/orders/assign-driver', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          orderId,
+          orderId: _orderId,
           driverId: 'current-user-id' // This should come from auth context
         })
       })
 
       if (response.ok) {
         // Remove order from available list
-        setOrders(prev => prev.filter(order => order.id !== orderId))
+        setOrders(prev => prev.filter(order => order.id !== _orderId))
 
         // Notify parent component
-        onOrderAccepted?.(orderId)
+        onOrderAccepted?.(_orderId)
 
         // Show success message
         alert('Order accepted successfully! 🚚')

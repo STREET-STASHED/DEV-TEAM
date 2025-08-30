@@ -1,9 +1,9 @@
 'use client';
 
-import { createSupabaseBrowser } from '@/app/lib/supabase/client';
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser';
 import { useGPSTracking } from '@/hooks/useGPSTracking';
 import { Camera, CheckCircle, MapPin, MessageCircle, Phone } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface Order {
   id: string;
@@ -57,10 +57,10 @@ export default function DriverDashboardPage() {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [photoType, setPhotoType] = useState<'pickup' | 'delivery'>('pickup');
   const [photoData, setPhotoData] = useState<string | null>(null);
-  const [locationHistory, setLocationHistory] = useState<Array<{lat: number; lng: number; timestamp: string}>>([]);
+  const [_locationHistory, setLocationHistory] = useState<Array<{lat: number; lng: number; timestamp: string}>>([]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const locationUpdateInterval = useRef<NodeJS.Timeout | null>(null);
+  const _locationUpdateInterval = useRef<NodeJS.Timeout | null>(null);
 
   // GPS tracking hook
   const {
@@ -68,10 +68,7 @@ export default function DriverDashboardPage() {
     isTracking,
     startTracking,
     stopTracking,
-    getCurrentLocation,
-    accuracy,
-    speed,
-    heading
+    accuracy
   } = useGPSTracking({
     enableHighAccuracy: true,
     timeout: 10000,
@@ -83,26 +80,7 @@ export default function DriverDashboardPage() {
     }
   });
 
-  // Fetch driver profile and orders
-  useEffect(() => {
-    fetchDriverProfile();
-    fetchOrders();
-  }, []);
-
-  // Start location tracking when component mounts
-  useEffect(() => {
-    if (isOnline) {
-      startTracking();
-    }
-    return () => {
-      stopTracking();
-      if (locationUpdateInterval.current) {
-        clearInterval(locationUpdateInterval.current);
-      }
-    };
-  }, [isOnline, startTracking, stopTracking]);
-
-  const fetchDriverProfile = async () => {
+  const fetchDriverProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -115,16 +93,41 @@ export default function DriverDashboardPage() {
 
       if (error) throw error;
 
-      setDriverProfile(profile);
+      // Transform database profile to match interface
+      const transformedProfile: DriverProfile = {
+        id: profile.id,
+        user_id: profile.user_id,
+        full_name: (profile as any).full_name || 'Unknown',
+        phone: (profile as any).phone || 'Unknown',
+        vehicle_info: profile.vehicle_info as any || {
+          make: 'Unknown',
+          model: 'Unknown',
+          year: 0,
+          color: 'Unknown',
+          license_plate: 'Unknown'
+        },
+        rating: (profile as any).rating || 0,
+        total_deliveries: profile.completed_orders || 0,
+        total_earnings: (profile as any).total_earnings || 0,
+        is_online: profile.is_online || false,
+        is_available: (profile as any).is_available || false,
+        current_location: profile.current_location as any || {
+          lat: 0,
+          lng: 0,
+          address: 'Unknown'
+        }
+      };
+
+      setDriverProfile(transformedProfile);
       setIsOnline(profile.is_online || false);
     } catch (error) {
       console.error('Failed to fetch driver profile:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -143,22 +146,38 @@ export default function DriverDashboardPage() {
 
       const formattedOrders = driverOrders.map(order => ({
         ...order,
-        buyer_name: order.profiles?.full_name || 'Unknown',
-        buyer_phone: order.profiles?.phone || 'Unknown',
+        buyer_name: (order.profiles as any)?.full_name || 'Unknown',
+        buyer_phone: (order.profiles as any)?.phone || 'Unknown',
         items: order.items || []
       }));
 
-      setOrders(formattedOrders);
+      setOrders(formattedOrders as any);
 
       // Set current order if there's an active one
       const activeOrder = formattedOrders.find(o =>
         ['assigned_to_driver', 'picked_up', 'in_transit'].includes(o.status)
       );
-      setCurrentOrder(activeOrder || null);
+      setCurrentOrder(activeOrder as any || null);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
     }
-  };
+  }, [supabase]);
+
+  // Fetch driver profile and orders
+  useEffect(() => {
+    fetchDriverProfile();
+    fetchOrders();
+  }, [fetchDriverProfile, fetchOrders]);
+
+  // Start location tracking when component mounts
+  useEffect(() => {
+    if (isOnline) {
+      startTracking();
+    }
+    return () => {
+      stopTracking();
+    };
+  }, [isOnline, startTracking, stopTracking]);
 
   const updateDriverLocation = async (lat: number, lng: number) => {
     try {

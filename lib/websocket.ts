@@ -314,7 +314,7 @@ export class WebSocketServer {
       await pushService.sendToUser(orderId, {
         title: `Order Update: ${status.replace('_', ' ').toUpperCase()}`,
         message: `Your order status has been updated to ${status}`,
-        data: { orderId, status, driverId },
+        data: { orderId, status, driverId: driverId || '' },
       });
     } catch (error) {
       console.error("Failed to send order status push notification:", error);

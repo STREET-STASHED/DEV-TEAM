@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
+  apiVersion: '2025-08-27.basil',
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -13,7 +13,8 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = headers().get('stripe-signature');
+    const headersList = await headers();
+    const signature = headersList.get('stripe-signature');
 
     if (!signature) {
       console.error('Missing Stripe signature');
@@ -273,12 +274,12 @@ async function handlePaymentIntentCanceled(paymentIntent: Stripe.PaymentIntent, 
   }
 }
 
-async function handleChargeSucceeded(charge: Stripe.Charge, supabase: any) {
+async function handleChargeSucceeded(charge: Stripe.Charge, _supabase: any) {
   // Handle successful charge (additional to payment intent)
   console.log(`Charge succeeded: ${charge.id}`);
 }
 
-async function handleChargeFailed(charge: Stripe.Charge, supabase: any) {
+async function handleChargeFailed(charge: Stripe.Charge, _supabase: any) {
   // Handle failed charge
   console.log(`Charge failed: ${charge.id}`);
 }
@@ -431,10 +432,10 @@ async function handleAccountUpdated(account: Stripe.Account, supabase: any) {
   }
 }
 
-async function handlePayoutPaid(payout: Stripe.Payout, supabase: any) {
+async function handlePayoutPaid(payout: Stripe.Payout, _supabase: any) {
   try {
     // Log successful payout
-    await supabase
+    await _supabase
       .from('payouts')
       .insert({
         stripe_payout_id: payout.id,
@@ -454,10 +455,10 @@ async function handlePayoutPaid(payout: Stripe.Payout, supabase: any) {
   }
 }
 
-async function handlePayoutFailed(payout: Stripe.Payout, supabase: any) {
+async function handlePayoutFailed(payout: Stripe.Payout, _supabase: any) {
   try {
     // Log failed payout
-    await supabase
+    await _supabase
       .from('payouts')
       .insert({
         stripe_payout_id: payout.id,
@@ -478,40 +479,39 @@ async function handlePayoutFailed(payout: Stripe.Payout, supabase: any) {
   }
 }
 
-async function handleSetupIntentCreated(setupIntent: Stripe.SetupIntent, supabase: any) {
+async function handleSetupIntentCreated(setupIntent: Stripe.SetupIntent, _supabase: any) {
   try {
-    const { customerId, metadata } = setupIntent;
+    const { customer } = setupIntent;
 
-    if (customerId) {
+    if (customer) {
       // Log setup intent creation
-      await supabase
+      await _supabase
         .from('payment_setups')
         .insert({
           stripe_setup_intent_id: setupIntent.id,
-          customer_id: customerId,
+          customer_id: customer,
           status: 'created',
           created_at: new Date(setupIntent.created * 1000).toISOString(),
           metadata: {
             payment_method_types: setupIntent.payment_method_types,
-            usage: setupIntent.usage,
-            ...metadata
+            usage: setupIntent.usage
           }
         });
 
-      console.log(`Setup intent created: ${setupIntent.id} for customer: ${customerId}`);
+      console.log(`Setup intent created: ${setupIntent.id} for customer: ${customer}`);
     }
   } catch (error) {
     console.error('Error handling setup intent created:', error);
   }
 }
 
-async function handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent, supabase: any) {
+async function handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent, _supabase: any) {
   try {
-    const { customerId, metadata } = setupIntent;
+    const { customer } = setupIntent;
 
-    if (customerId) {
+    if (customer) {
       // Update setup intent status to succeeded
-      await supabase
+      await _supabase
         .from('payment_setups')
         .update({
           status: 'succeeded',
@@ -521,10 +521,10 @@ async function handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent, supab
         .eq('stripe_setup_intent_id', setupIntent.id);
 
       // Create notification for customer
-      await supabase
+      await _supabase
         .from('notifications')
         .insert({
-          user_id: customerId,
+          user_id: customer,
           type: 'payment_method_saved',
           title: 'Payment Method Saved',
           message: 'Your payment method has been successfully saved for future use.',
@@ -534,20 +534,20 @@ async function handleSetupIntentSucceeded(setupIntent: Stripe.SetupIntent, supab
           }
         });
 
-      console.log(`Setup intent succeeded: ${setupIntent.id} for customer: ${customerId}`);
+      console.log(`Setup intent succeeded: ${setupIntent.id} for customer: ${customer}`);
     }
   } catch (error) {
     console.error('Error handling setup intent succeeded:', error);
   }
 }
 
-async function handleSetupIntentCanceled(setupIntent: Stripe.SetupIntent, supabase: any) {
+async function handleSetupIntentCanceled(setupIntent: Stripe.SetupIntent, _supabase: any) {
   try {
-    const { customerId } = setupIntent;
+    const { customer } = setupIntent;
 
-    if (customerId) {
+    if (customer) {
       // Update setup intent status to canceled
-      await supabase
+      await _supabase
         .from('payment_setups')
         .update({
           status: 'canceled',
@@ -556,7 +556,7 @@ async function handleSetupIntentCanceled(setupIntent: Stripe.SetupIntent, supaba
         })
         .eq('stripe_setup_intent_id', setupIntent.id);
 
-      console.log(`Setup intent canceled: ${setupIntent.id} for customer: ${customerId}`);
+      console.log(`Setup intent canceled: ${setupIntent.id} for customer: ${customer}`);
     }
   } catch (error) {
     console.error('Error handling setup intent canceled:', error);

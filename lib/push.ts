@@ -116,7 +116,7 @@ class PushNotificationService {
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey || '')
+          applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey || '') as unknown as ArrayBuffer
         });
       }
 

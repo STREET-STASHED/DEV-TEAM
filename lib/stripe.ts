@@ -1,5 +1,5 @@
-import Stripe from "stripe";
 import { loadStripe } from "@stripe/stripe-js";
+import Stripe from "stripe";
 
 // Determine if we're in development mode
 const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_IS_TEST_MODE === 'true';
@@ -12,7 +12,7 @@ const getStripeKeys = () => {
       secretKey: process.env.STRIPE_SECRET_KEY?.replace('sk_live_', 'sk_test_') || 'sk_test_fallback'
     };
   }
-  
+
   return {
     publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
     secretKey: process.env.STRIPE_SECRET_KEY!
@@ -22,7 +22,7 @@ const getStripeKeys = () => {
 const { publishableKey, secretKey } = getStripeKeys();
 
 const stripe = new Stripe(secretKey, {
-  apiVersion: "2025-07-30.basil",
+  apiVersion: "2025-08-27.basil",
 });
 
 // Client-side Stripe instance

@@ -1,6 +1,6 @@
 'use client';
 
-import { createSupabaseBrowser } from '@/app/lib/supabase/client';
+import { createSupabaseBrowser } from '@/app/lib/supabase/browser';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { AlertCircle, CheckCircle, Clock, MapPin, MessageCircle, Phone, Truck } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -48,7 +48,7 @@ interface DriverLocation {
 
 interface RealTimeOrderTrackerProps {
   orderId: string;
-  onStatusUpdate?: (status: string) => void;
+  onStatusUpdate?: (_status: string) => void;
   showDriverInfo?: boolean;
   showLocation?: boolean;
   className?: string;
@@ -64,64 +64,28 @@ export default function RealTimeOrderTracker({
   const supabase = createSupabaseBrowser();
   const [order, setOrder] = useState<Order | null>(null);
   const [statusHistory, setStatusHistory] = useState<OrderStatus[]>([]);
-  const [driverLocation, setDriverLocation] = useState<DriverLocation | null>(null);
+  const [_driverLocation, setDriverLocation] = useState<DriverLocation | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [estimatedTime, setEstimatedTime] = useState<string | null>(null);
 
-  const locationUpdateInterval = useRef<NodeJS.Timeout | null>(null);
+  const _locationUpdateInterval = useRef<NodeJS.Timeout | null>(null);
   const statusCheckInterval = useRef<NodeJS.Timeout | null>(null);
 
   // WebSocket connection for real-time updates
   const { isConnected, connect, disconnect } = useWebSocket({
     url: process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:3000',
-    onMessage: handleWebSocketMessage,
-    onError: handleWebSocketError,
-    onClose: handleWebSocketClose,
+    onMessage: () => {}, // Will be set after function definitions
+    onError: () => {}, // Will be set after function definitions
+    onClose: () => {}, // Will be set after function definitions
     shouldReconnect: true,
     reconnectInterval: 5000,
     maxReconnectAttempts: 10
   });
 
-  // Fetch initial order data
-  useEffect(() => {
-    fetchOrderData();
-    fetchStatusHistory();
-  }, [orderId]);
 
-  // Connect to WebSocket when component mounts
-  useEffect(() => {
-    if (orderId) {
-      connect();
-    }
 
-    return () => {
-      disconnect();
-      if (locationUpdateInterval.current) {
-        clearInterval(locationUpdateInterval.current);
-      }
-      if (statusCheckInterval.current) {
-        clearInterval(statusCheckInterval.current);
-      }
-    };
-  }, [orderId, connect, disconnect]);
-
-  // Set up periodic status checks as fallback
-  useEffect(() => {
-    if (order && order.status !== 'delivered' && order.status !== 'cancelled') {
-      statusCheckInterval.current = setInterval(() => {
-        fetchStatusHistory();
-      }, 30000); // Check every 30 seconds
-    }
-
-    return () => {
-      if (statusCheckInterval.current) {
-        clearInterval(statusCheckInterval.current);
-      }
-    };
-  }, [order]);
-
-  const fetchOrderData = async () => {
+  const fetchOrderData = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -143,15 +107,15 @@ export default function RealTimeOrderTracker({
 
       if (error) throw error;
 
-      const formattedOrder: Order = {
+      const formattedOrder = {
         ...data,
-        buyer_name: data.profiles?.full_name || 'Unknown',
-        buyer_phone: data.profiles?.phone || 'Unknown',
-        driver_name: data.driver_profiles?.full_name,
-        driver_phone: data.driver_profiles?.phone,
-        driver_rating: data.driver_profiles?.rating,
-        driver_vehicle: data.driver_profiles?.vehicle_info?.make + ' ' + data.driver_profiles?.vehicle_info?.model
-      };
+        buyer_name: (data.profiles as any)?.[0]?.full_name || 'Unknown',
+        buyer_phone: (data.profiles as any)?.[0]?.phone || 'Unknown',
+        driver_name: (data.driver_profiles as any)?.[0]?.full_name,
+        driver_phone: (data.driver_profiles as any)?.[0]?.phone,
+        driver_rating: (data.driver_profiles as any)?.[0]?.rating,
+        driver_vehicle: (data.driver_profiles as any)?.[0]?.vehicle_info?.make + ' ' + (data.driver_profiles as any)?.[0]?.vehicle_info?.model
+      } as any;
 
       setOrder(formattedOrder);
 
@@ -164,9 +128,9 @@ export default function RealTimeOrderTracker({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [orderId, supabase, onStatusUpdate]);
 
-  const fetchStatusHistory = async () => {
+  const fetchStatusHistory = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('order_status_history')
@@ -176,13 +140,83 @@ export default function RealTimeOrderTracker({
 
       if (error) throw error;
 
-      setStatusHistory(data || []);
+      setStatusHistory((data || []) as any);
     } catch (err) {
       console.error('Failed to fetch status history:', err);
     }
-  };
+  }, [orderId, supabase]);
 
-  const handleWebSocketMessage = useCallback((event: MessageEvent) => {
+
+
+  const _handleWebSocketError = useCallback((error: Event) => {
+    console.error('WebSocket error:', error);
+    setError('Connection error - updates may be delayed');
+  }, []);
+
+  const _handleWebSocketClose = useCallback(() => {
+    console.log('WebSocket connection closed');
+    // Attempt to reconnect after a delay
+    setTimeout(() => {
+      if (orderId) {
+        connect();
+      }
+    }, 5000);
+  }, [orderId, connect]);
+
+  const updateEstimatedDeliveryTime = useCallback(() => {
+    if (order && order.status === 'picked_up') {
+      // Calculate estimated delivery time based on distance and current time
+      const now = new Date();
+      const estimatedTime = new Date(now.getTime() + 30 * 60000); // Add 30 minutes
+      setEstimatedTime(estimatedTime.toLocaleTimeString());
+    }
+  }, [order]);
+
+  const handleOrderStatusUpdate = useCallback((data: any) => {
+    if (order) {
+      const updatedOrder = { ...order, status: data.status };
+      setOrder(updatedOrder);
+
+      if (onStatusUpdate) {
+        onStatusUpdate(data.status);
+      }
+
+      // Refresh status history
+      fetchStatusHistory();
+
+      // Update estimated delivery time if status changed
+      if (data.status === 'picked_up') {
+        updateEstimatedDeliveryTime();
+      }
+    }
+  }, [order, onStatusUpdate, fetchStatusHistory, updateEstimatedDeliveryTime]);
+
+  const handleDriverLocationUpdate = useCallback((data: any) => {
+    setDriverLocation({
+      driverId: data.driverId,
+      orderId: data.orderId,
+      location: data.location,
+      heading: data.heading,
+      speed: data.speed,
+      timestamp: data.timestamp
+    });
+  }, []);
+
+  const handleDriverAssigned = useCallback((data: any) => {
+    if (order) {
+      const updatedOrder = {
+        ...order,
+        driver_id: data.driverId,
+        driver_name: data.driverName
+      };
+      setOrder(updatedOrder);
+
+      // Refresh order data to get complete driver information
+      fetchOrderData();
+    }
+  }, [order, fetchOrderData]);
+
+  const _handleWebSocketMessage = useCallback((event: MessageEvent) => {
     try {
       const data = JSON.parse(event.data);
 
@@ -212,75 +246,39 @@ export default function RealTimeOrderTracker({
     } catch (error) {
       console.error('Error parsing WebSocket message:', error);
     }
-  }, [orderId]);
+  }, [orderId, handleOrderStatusUpdate, handleDriverLocationUpdate, handleDriverAssigned]);
 
-  const handleWebSocketError = useCallback((error: Event) => {
-    console.error('WebSocket error:', error);
-    setError('Connection error - updates may be delayed');
-  }, []);
+  // Fetch initial order data
+  useEffect(() => {
+    fetchOrderData();
+    fetchStatusHistory();
+  }, [orderId, fetchOrderData, fetchStatusHistory]);
 
-  const handleWebSocketClose = useCallback(() => {
-    console.log('WebSocket connection closed');
-    // Attempt to reconnect after a delay
-    setTimeout(() => {
-      if (orderId) {
-        connect();
-      }
-    }, 5000);
-  }, [orderId, connect]);
-
-  const handleOrderStatusUpdate = (data: any) => {
-    if (order) {
-      const updatedOrder = { ...order, status: data.status };
-      setOrder(updatedOrder);
-
-      if (onStatusUpdate) {
-        onStatusUpdate(data.status);
-      }
-
-      // Refresh status history
-      fetchStatusHistory();
-
-      // Update estimated delivery time if status changed
-      if (data.status === 'picked_up') {
-        updateEstimatedDeliveryTime();
-      }
+  // Connect to WebSocket when component mounts
+  useEffect(() => {
+    if (orderId) {
+      connect();
     }
-  };
 
-  const handleDriverLocationUpdate = (data: any) => {
-    setDriverLocation({
-      driverId: data.driverId,
-      orderId: data.orderId,
-      location: data.location,
-      heading: data.heading,
-      speed: data.speed,
-      timestamp: data.timestamp
-    });
-  };
+    return () => {
+      disconnect();
+    };
+  }, [orderId, connect, disconnect]);
 
-  const handleDriverAssigned = (data: any) => {
-    if (order) {
-      const updatedOrder = {
-        ...order,
-        driver_id: data.driverId,
-        driver_name: data.driverName
-      };
-      setOrder(updatedOrder);
-
-      // Refresh order data to get complete driver information
-      fetchOrderData();
+  // Set up periodic status checks as fallback
+  useEffect(() => {
+    if (order && order.status !== 'delivered' && order.status !== 'cancelled') {
+      statusCheckInterval.current = setInterval(() => {
+        fetchStatusHistory();
+      }, 30000); // Check every 30 seconds
     }
-  };
 
-  const updateEstimatedDeliveryTime = () => {
-    if (order && order.status === 'picked_up') {
-      // Calculate estimated delivery time based on distance and current time
-      const now = new Date();
-      const estimatedTime = new Date(now.getTime() + 30 * 60000); // Add 30 minutes
-      setEstimatedTime(estimatedTime.toLocaleTimeString());
-    }
-  };
+    return () => {
+      if (statusCheckInterval.current) {
+        clearInterval(statusCheckInterval.current);
+      }
+    };
+  }, [order, fetchStatusHistory]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

@@ -67,7 +67,7 @@ export const getFCMToken = async (): Promise<string | null> => {
 };
 
 // Handle foreground messages
-export const onForegroundMessage = (callback: (payload: any) => void) => {
+export const onForegroundMessage = (callback: (_payload: any) => void) => {
   if (!messaging) {
     console.warn('[Firebase] Messaging not initialized');
     return () => {};

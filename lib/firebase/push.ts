@@ -1,4 +1,4 @@
-import { Message, getMessaging, getToken, isSupported, onMessage } from 'firebase/messaging';
+import { getMessaging, getToken, isSupported, onMessage } from 'firebase/messaging';
 import { getFirebaseApp } from './config';
 
 interface FirebasePushPayload {
@@ -76,7 +76,7 @@ class FirebasePushService {
   /**
    * Get FCM token for the current user
    */
-  async getToken(): Promise<string | null> {
+  async getFCMToken(): Promise<string | null> {
     try {
       if (!this.isInitialized) {
         await this.initialize();
@@ -106,7 +106,7 @@ class FirebasePushService {
   /**
    * Handle foreground messages
    */
-  onForegroundMessage(callback: (payload: Message) => void): (() => void) | null {
+  onForegroundMessage(callback: (_payload: any) => void): (() => void) | null {
     try {
       if (!this.messaging) {
         console.warn('[Firebase Push] Messaging not initialized');
@@ -163,7 +163,7 @@ class FirebasePushService {
   /**
    * Check if Firebase push is supported
    */
-  isSupported(): boolean {
+  isPushSupported(): boolean {
     return this.isInitialized && !!this.messaging;
   }
 
@@ -182,11 +182,11 @@ export const firebasePushService = new FirebasePushService();
 export const {
   initialize,
   requestPermission,
-  getToken,
+  getFCMToken,
   onForegroundMessage,
   sendToToken,
   sendToTokens,
-  isSupported
+  isPushSupported
 } = firebasePushService;
 
 export default firebasePushService;
