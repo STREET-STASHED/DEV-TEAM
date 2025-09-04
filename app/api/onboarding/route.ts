@@ -23,7 +23,7 @@ export async function POST(_request: NextRequest) {
     // Validate request body
     const validationResult = onboardingSchema.safeParse(body)
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map(err => 
+      const errors = validationResult.error.issues.map(err => 
         `${err.path.join('.')}: ${err.message}`
       ).join(', ')
       

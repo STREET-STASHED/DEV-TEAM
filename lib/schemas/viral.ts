@@ -4,7 +4,7 @@ import { z } from 'zod';
 export const reviewSchema = z.object({
   orderId: z.string().uuid('Invalid order ID'),
   subjectType: z.enum(['seller', 'stylist', 'driver'], {
-    errorMap: () => ({ message: 'Subject type must be seller, stylist, or driver' })
+    message: 'Subject type must be seller, stylist, or driver'
   }),
   subjectId: z.string().uuid('Invalid subject ID'),
   rating: z.number().int().min(1).max(5, 'Rating must be between 1 and 5'),

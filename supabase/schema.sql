@@ -390,3 +390,204 @@ ADD CONSTRAINT orders_buyer_fk FOREIGN KEY (buyer_id) REFERENCES public.profiles
 -- Helpful: keep prior indexes and RLS already defined above.
 -- 4) (Safety) Ensure unique index for cart_items already exists (no-op if present)
 CREATE UNIQUE INDEX IF NOT EXISTS cart_items_user_id_id_idx ON public.cart_items (user_id, id);
+
+-- ROLE-SPECIFIC PROFILE TABLES
+-- Seller Profiles
+CREATE TABLE IF NOT EXISTS seller_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_name TEXT,
+  business_type TEXT,
+  specialties TEXT[],
+  experience_years INTEGER DEFAULT 0,
+  verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'approved', 'rejected', 'auto_approved')),
+  auto_approved_at TIMESTAMP WITH TIME ZONE,
+  approval_confidence DECIMAL(3,2),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+-- Stylist Profiles
+CREATE TABLE IF NOT EXISTS stylist_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  specialties TEXT[],
+  experience_years INTEGER DEFAULT 0,
+  services_offered TEXT[],
+  hourly_rate DECIMAL(10,2) DEFAULT 50.00,
+  verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'approved', 'rejected', 'auto_approved')),
+  auto_approved_at TIMESTAMP WITH TIME ZONE,
+  approval_confidence DECIMAL(3,2),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+-- Stasher (Driver) Profiles
+CREATE TABLE IF NOT EXISTS stasher_profiles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  vehicle_type TEXT,
+  is_online BOOLEAN DEFAULT false,
+  is_available BOOLEAN DEFAULT true,
+  verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'approved', 'rejected', 'auto_approved')),
+  auto_approved_at TIMESTAMP WITH TIME ZONE,
+  approval_confidence DECIMAL(3,2),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id)
+);
+
+-- GAMIFICATION TABLES
+-- User Progress
+CREATE TABLE IF NOT EXISTS user_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  current_level INTEGER DEFAULT 1,
+  total_xp INTEGER DEFAULT 0,
+  xp_to_next_level INTEGER DEFAULT 1000,
+  completion_percentage DECIMAL(5,2) DEFAULT 0,
+  streak INTEGER DEFAULT 0,
+  last_activity TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id, role)
+);
+
+-- Achievements
+CREATE TABLE IF NOT EXISTS achievements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  achievement_id TEXT NOT NULL,
+  achievement_name TEXT NOT NULL,
+  achievement_description TEXT,
+  category TEXT,
+  points INTEGER DEFAULT 0,
+  unlocked BOOLEAN DEFAULT false,
+  unlocked_at TIMESTAMP WITH TIME ZONE,
+  progress INTEGER DEFAULT 0,
+  max_progress INTEGER DEFAULT 1,
+  reward_type TEXT,
+  reward_value TEXT,
+  reward_description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id, achievement_id)
+);
+
+-- Milestones
+CREATE TABLE IF NOT EXISTS milestones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  milestone_id TEXT NOT NULL,
+  milestone_name TEXT NOT NULL,
+  milestone_description TEXT,
+  target INTEGER NOT NULL,
+  current INTEGER DEFAULT 0,
+  reward TEXT,
+  completed BOOLEAN DEFAULT false,
+  completed_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(user_id, milestone_id)
+);
+
+-- Reward Claims
+CREATE TABLE IF NOT EXISTS reward_claims (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  reward_id TEXT NOT NULL,
+  reward_name TEXT NOT NULL,
+  reward_type TEXT NOT NULL,
+  reward_value TEXT NOT NULL,
+  claimed_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  expires_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- XP Transactions
+CREATE TABLE IF NOT EXISTS xp_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  action TEXT NOT NULL,
+  points INTEGER NOT NULL,
+  reason TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Approval History
+CREATE TABLE IF NOT EXISTS approval_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role TEXT NOT NULL,
+  risk_score DECIMAL(3,2),
+  confidence_score DECIMAL(3,2),
+  auto_approved BOOLEAN DEFAULT false,
+  verification_required TEXT[],
+  restrictions TEXT[],
+  approval_time TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- Enable RLS on all new tables
+ALTER TABLE seller_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stylist_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE stasher_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE milestones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reward_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE xp_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE approval_history ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for role profiles
+CREATE POLICY "Users can view their own seller profile" ON seller_profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own seller profile" ON seller_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own seller profile" ON seller_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own stylist profile" ON stylist_profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own stylist profile" ON stylist_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own stylist profile" ON stylist_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own stasher profile" ON stasher_profiles FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own stasher profile" ON stasher_profiles FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own stasher profile" ON stasher_profiles FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- RLS Policies for gamification tables
+CREATE POLICY "Users can view their own progress" ON user_progress FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own progress" ON user_progress FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own progress" ON user_progress FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own achievements" ON achievements FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own achievements" ON achievements FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own achievements" ON achievements FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own milestones" ON milestones FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update their own milestones" ON milestones FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own milestones" ON milestones FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own reward claims" ON reward_claims FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own reward claims" ON reward_claims FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own XP transactions" ON xp_transactions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own XP transactions" ON xp_transactions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can view their own approval history" ON approval_history FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own approval history" ON approval_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_seller_profiles_user_id ON seller_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_stylist_profiles_user_id ON stylist_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_stasher_profiles_user_id ON stasher_profiles(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_user_id ON user_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_progress_role ON user_progress(role);
+CREATE INDEX IF NOT EXISTS idx_achievements_user_id ON achievements(user_id);
+CREATE INDEX IF NOT EXISTS idx_achievements_unlocked ON achievements(unlocked);
+CREATE INDEX IF NOT EXISTS idx_milestones_user_id ON milestones(user_id);
+CREATE INDEX IF NOT EXISTS idx_milestones_role ON milestones(role);
+CREATE INDEX IF NOT EXISTS idx_reward_claims_user_id ON reward_claims(user_id);
+CREATE INDEX IF NOT EXISTS idx_xp_transactions_user_id ON xp_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_approval_history_user_id ON approval_history(user_id);

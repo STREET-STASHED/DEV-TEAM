@@ -75,7 +75,7 @@ export default function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-ink-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-ink-300">Loading StreetStashed...</p>
@@ -85,7 +85,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header with Join Us Button */}
       <header className="bg-ink-900/80 backdrop-blur-sm border-b border-ink-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">

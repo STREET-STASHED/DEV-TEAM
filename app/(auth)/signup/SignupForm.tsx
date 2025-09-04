@@ -134,13 +134,10 @@ export function SignupForm() {
           await router.push('/buyer/dashboard')
           break
         case 'seller':
-          await router.push('/seller-dashboard')
-          break
         case 'stylist':
-          await router.push('/stylist/dashboard')
-          break
         case 'driver':
-          await router.push('/driver-dashboard')
+          // Redirect to streamlined onboarding for sellers, stylists, and drivers
+          await router.push(`/onboarding/streamlined?role=${role}`)
           break
         default:
           await router.push('/onboarding')

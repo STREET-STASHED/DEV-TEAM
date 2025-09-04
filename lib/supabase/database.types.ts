@@ -3309,39 +3309,6 @@ export type Database = {
           },
         ]
       }
-      seller_profiles: {
-        Row: {
-          business_license: string | null
-          business_name: string | null
-          created_at: string | null
-          experience_years: number | null
-          id: string
-          specialties: string[] | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          business_license?: string | null
-          business_name?: string | null
-          created_at?: string | null
-          experience_years?: number | null
-          id?: string
-          specialties?: string[] | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          business_license?: string | null
-          business_name?: string | null
-          created_at?: string | null
-          experience_years?: number | null
-          id?: string
-          specialties?: string[] | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       social_challenges: {
         Row: {
           active: boolean | null
@@ -3658,81 +3625,6 @@ export type Database = {
           },
         ]
       }
-      stasher_profiles: {
-        Row: {
-          background_check_consent: boolean | null
-          completion_rate: number | null
-          created_at: string | null
-          driver_license: string | null
-          id: string
-          insurance_expiry: string | null
-          insurance_policy_number: string | null
-          insurance_provider: string | null
-          is_available: boolean | null
-          is_online: boolean | null
-          last_activity: string | null
-          last_location: Json | null
-          license_plate: string | null
-          rating: number | null
-          total_deliveries: number | null
-          total_earnings: number | null
-          updated_at: string | null
-          user_id: string
-          vehicle_make: string | null
-          vehicle_model: string | null
-          vehicle_type: string | null
-          vehicle_year: string | null
-        }
-        Insert: {
-          background_check_consent?: boolean | null
-          completion_rate?: number | null
-          created_at?: string | null
-          driver_license?: string | null
-          id?: string
-          insurance_expiry?: string | null
-          insurance_policy_number?: string | null
-          insurance_provider?: string | null
-          is_available?: boolean | null
-          is_online?: boolean | null
-          last_activity?: string | null
-          last_location?: Json | null
-          license_plate?: string | null
-          rating?: number | null
-          total_deliveries?: number | null
-          total_earnings?: number | null
-          updated_at?: string | null
-          user_id: string
-          vehicle_make?: string | null
-          vehicle_model?: string | null
-          vehicle_type?: string | null
-          vehicle_year?: string | null
-        }
-        Update: {
-          background_check_consent?: boolean | null
-          completion_rate?: number | null
-          created_at?: string | null
-          driver_license?: string | null
-          id?: string
-          insurance_expiry?: string | null
-          insurance_policy_number?: string | null
-          insurance_provider?: string | null
-          is_available?: boolean | null
-          is_online?: boolean | null
-          last_activity?: string | null
-          last_location?: Json | null
-          license_plate?: string | null
-          rating?: number | null
-          total_deliveries?: number | null
-          total_earnings?: number | null
-          updated_at?: string | null
-          user_id?: string
-          vehicle_make?: string | null
-          vehicle_model?: string | null
-          vehicle_type?: string | null
-          vehicle_year?: string | null
-        }
-        Relationships: []
-      }
       stores: {
         Row: {
           created_at: string | null
@@ -3760,42 +3652,6 @@ export type Database = {
           name?: string
           owner_id?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      stylist_profiles: {
-        Row: {
-          created_at: string | null
-          experience_years: number | null
-          hourly_rate: number | null
-          id: string
-          portfolio_url: string | null
-          services_offered: string[] | null
-          specialties: string[] | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          experience_years?: number | null
-          hourly_rate?: number | null
-          id?: string
-          portfolio_url?: string | null
-          services_offered?: string[] | null
-          specialties?: string[] | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          experience_years?: number | null
-          hourly_rate?: number | null
-          id?: string
-          portfolio_url?: string | null
-          services_offered?: string[] | null
-          specialties?: string[] | null
-          updated_at?: string | null
-          user_id?: string
         }
         Relationships: []
       }
@@ -4285,6 +4141,450 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      seller_profiles: {
+        Row: {
+          approval_confidence: number | null
+          auto_approved_at: string | null
+          business_name: string | null
+          business_type: string | null
+          created_at: string | null
+          experience_years: number | null
+          id: string
+          specialties: string[] | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          approval_confidence?: number | null
+          auto_approved_at?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          specialties?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          approval_confidence?: number | null
+          auto_approved_at?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          specialties?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seller_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      stylist_profiles: {
+        Row: {
+          approval_confidence: number | null
+          auto_approved_at: string | null
+          created_at: string | null
+          experience_years: number | null
+          hourly_rate: number | null
+          id: string
+          services_offered: string[] | null
+          specialties: string[] | null
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          approval_confidence?: number | null
+          auto_approved_at?: string | null
+          created_at?: string | null
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          services_offered?: string[] | null
+          specialties?: string[] | null
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          approval_confidence?: number | null
+          auto_approved_at?: string | null
+          created_at?: string | null
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          services_offered?: string[] | null
+          specialties?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stylist_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      stasher_profiles: {
+        Row: {
+          approval_confidence: number | null
+          auto_approved_at: string | null
+          created_at: string | null
+          id: string
+          is_available: boolean | null
+          is_online: boolean | null
+          updated_at: string | null
+          user_id: string
+          vehicle_type: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          approval_confidence?: number | null
+          auto_approved_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_available?: boolean | null
+          is_online?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_type?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          approval_confidence?: number | null
+          auto_approved_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_available?: boolean | null
+          is_online?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_type?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stasher_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      user_progress: {
+        Row: {
+          completion_percentage: number | null
+          created_at: string | null
+          current_level: number | null
+          id: string
+          last_activity: string | null
+          role: string
+          streak: number | null
+          total_xp: number | null
+          updated_at: string | null
+          user_id: string
+          xp_to_next_level: number | null
+        }
+        Insert: {
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          last_activity?: string | null
+          role: string
+          streak?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          user_id: string
+          xp_to_next_level?: number | null
+        }
+        Update: {
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          last_activity?: string | null
+          role?: string
+          streak?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          user_id?: string
+          xp_to_next_level?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      achievements: {
+        Row: {
+          achievement_description: string | null
+          achievement_id: string
+          achievement_name: string
+          category: string | null
+          created_at: string | null
+          id: string
+          max_progress: number | null
+          points: number | null
+          progress: number | null
+          reward_description: string | null
+          reward_type: string | null
+          reward_value: string | null
+          unlocked: boolean | null
+          unlocked_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_description?: string | null
+          achievement_id: string
+          achievement_name: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          max_progress?: number | null
+          points?: number | null
+          progress?: number | null
+          reward_description?: string | null
+          reward_type?: string | null
+          reward_value?: string | null
+          unlocked?: boolean | null
+          unlocked_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_description?: string | null
+          achievement_id?: string
+          achievement_name?: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          max_progress?: number | null
+          points?: number | null
+          progress?: number | null
+          reward_description?: string | null
+          reward_type?: string | null
+          reward_value?: string | null
+          unlocked?: boolean | null
+          unlocked_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      milestones: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          current: number | null
+          id: string
+          milestone_description: string | null
+          milestone_id: string
+          milestone_name: string
+          reward: string | null
+          role: string
+          target: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current?: number | null
+          id?: string
+          milestone_description?: string | null
+          milestone_id: string
+          milestone_name: string
+          reward?: string | null
+          role: string
+          target: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          current?: number | null
+          id?: string
+          milestone_description?: string | null
+          milestone_id?: string
+          milestone_name?: string
+          reward?: string | null
+          role?: string
+          target?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestones_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      reward_claims: {
+        Row: {
+          claimed_at: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          reward_id: string
+          reward_name: string
+          reward_type: string
+          reward_value: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          reward_id: string
+          reward_name: string
+          reward_type: string
+          reward_value: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          reward_id?: string
+          reward_name?: string
+          reward_type?: string
+          reward_value?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_claims_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      xp_transactions: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          points: number
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          points: number
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          points?: number
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xp_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      approval_history: {
+        Row: {
+          approval_time: string | null
+          auto_approved: boolean | null
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          restrictions: string[] | null
+          risk_score: number | null
+          role: string
+          user_id: string
+          verification_required: string[] | null
+        }
+        Insert: {
+          approval_time?: string | null
+          auto_approved?: boolean | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          restrictions?: string[] | null
+          risk_score?: number | null
+          role: string
+          user_id: string
+          verification_required?: string[] | null
+        }
+        Update: {
+          approval_time?: string | null
+          auto_approved?: boolean | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          restrictions?: string[] | null
+          risk_score?: number | null
+          role?: string
+          user_id?: string
+          verification_required?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
