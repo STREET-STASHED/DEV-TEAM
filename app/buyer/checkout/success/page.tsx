@@ -73,7 +73,7 @@ function CheckoutSuccessContent() {
           <p className="text-ink-300 mb-6">We couldn&apos;t find your order details.</p>
           <Link
             href="/buyer/marketplace"
-            className="bg-brand-600 text-ink-black px-6 py-2 rounded-lg hover:bg-brand-500 transition-colors"
+            className="bg-brand-600 text-black px-6 py-2 rounded-lg hover:bg-brand-500 transition-colors"
           >
             Continue Shopping
           </Link>
@@ -154,7 +154,7 @@ function CheckoutSuccessContent() {
         <div className="flex flex-col sm:flex-row gap-4">
           <Link
             href="/buyer/dashboard"
-            className="flex-1 bg-brand-600 text-ink-black py-3 px-4 rounded-lg hover:bg-brand-500 transition-colors text-center font-medium"
+            className="flex-1 bg-brand-600 text-black py-3 px-4 rounded-lg hover:bg-brand-500 transition-colors text-center font-medium"
           >
             View Order Status
           </Link>

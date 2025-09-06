@@ -159,7 +159,7 @@ export default function StylistClientsPage() {
         </div>
         <Link
           href="/stylist/clients/add"
-          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
         >
           Add Client
         </Link>
@@ -191,7 +191,7 @@ export default function StylistClientsPage() {
           onClick={() => setActiveTab('all')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'all'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -201,7 +201,7 @@ export default function StylistClientsPage() {
           onClick={() => setActiveTab('active')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'active'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -211,7 +211,7 @@ export default function StylistClientsPage() {
           onClick={() => setActiveTab('new')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'new'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -238,7 +238,7 @@ export default function StylistClientsPage() {
           </p>
           <Link
             href="/stylist/clients/add"
-            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
           >
             Add Your First Client
           </Link>
@@ -334,7 +334,7 @@ export default function StylistClientsPage() {
                     <button className="px-4 py-2 bg-ink-700 hover:bg-ink-600 text-white text-sm rounded transition-colors">
                       View Profile
                     </button>
-                    <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black text-sm rounded transition-colors">
+                    <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black text-sm rounded transition-colors">
                       Schedule Session
                     </button>
                     <button className="px-4 py-2 bg-ink-700 hover:bg-ink-600 text-white text-sm rounded transition-colors">

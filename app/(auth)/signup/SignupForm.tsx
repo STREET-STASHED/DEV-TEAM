@@ -353,7 +353,7 @@ export function SignupForm() {
                               <button
                   type="submit"
                   disabled={loading || !role}
-                  className="w-full bg-gradient-to-r from-brand-500 to-brand-600 text-ink-black py-4 px-6 rounded-xl font-bold text-lg hover:from-brand-600 hover:to-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-500/25"
+                  className="w-full bg-gradient-to-r from-brand-500 to-brand-600 text-black py-4 px-6 rounded-xl font-bold text-lg hover:from-brand-600 hover:to-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-400/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-lg shadow-brand-500/25"
                 >
                   {loading ? 'Creating Your Account...' : 'Launch Your Fashion Journey'}
                 </button>

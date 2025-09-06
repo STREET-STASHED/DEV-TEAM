@@ -40,7 +40,7 @@ export function CommissionCalculator() {
             onClick={() => setUserType('seller')}
             className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
               userType === 'seller'
-                ? 'bg-brand-600 text-ink-black'
+                ? 'bg-brand-600 text-black'
                 : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
             }`}
           >
@@ -50,7 +50,7 @@ export function CommissionCalculator() {
             onClick={() => setUserType('stylist')}
             className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
               userType === 'stylist'
-                ? 'bg-brand-600 text-ink-black'
+                ? 'bg-brand-600 text-black'
                 : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
             }`}
           >

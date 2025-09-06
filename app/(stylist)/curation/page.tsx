@@ -194,7 +194,7 @@ export default function StylistCurationPage() {
         </div>
         <Link
           href="/stylist/curation/create"
-          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
         >
           Create Package
         </Link>
@@ -226,7 +226,7 @@ export default function StylistCurationPage() {
           onClick={() => setActiveTab('active')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'active'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -236,7 +236,7 @@ export default function StylistCurationPage() {
           onClick={() => setActiveTab('proposals')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'proposals'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -246,7 +246,7 @@ export default function StylistCurationPage() {
           onClick={() => setActiveTab('completed')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'completed'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -256,7 +256,7 @@ export default function StylistCurationPage() {
           onClick={() => setActiveTab('all')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'all'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -285,7 +285,7 @@ export default function StylistCurationPage() {
           </p>
           <Link
             href="/stylist/curation/create"
-            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
           >
             Create Your First Package
           </Link>
@@ -385,7 +385,7 @@ export default function StylistCurationPage() {
                   </button>
                   {pkg.status === 'proposal_sent' && (
                     <>
-                      <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black text-sm rounded transition-colors">
+                      <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black text-sm rounded transition-colors">
                         Edit Proposal
                       </button>
                       <button className="px-4 py-2 bg-success-600 hover:bg-success-700 text-white text-sm rounded transition-colors">

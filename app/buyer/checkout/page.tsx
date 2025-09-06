@@ -291,7 +291,7 @@ export default function CheckoutPage() {
             <p className="text-ink-300 mb-8">Add some items to your cart to continue shopping.</p>
             <button
               onClick={() => router.push('/buyer/marketplace')}
-              className="bg-brand-600 text-ink-black px-6 py-3 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+              className="bg-brand-600 text-black px-6 py-3 rounded-lg font-medium hover:bg-brand-500 transition-colors"
             >
               Continue Shopping
             </button>
@@ -401,7 +401,7 @@ export default function CheckoutPage() {
                   <button
                     onClick={handleAuthenticatedCheckout}
                     disabled={isProcessingOrder}
-                    className="w-full mt-6 bg-brand-600 text-ink-black py-3 px-4 rounded-lg font-medium hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    className="w-full mt-6 bg-brand-600 text-black py-3 px-4 rounded-lg font-medium hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                   >
                     {isProcessingOrder ? 'Processing...' : 'Complete Order'}
                   </button>

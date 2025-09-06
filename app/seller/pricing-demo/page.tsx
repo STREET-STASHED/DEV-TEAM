@@ -75,7 +75,7 @@ export default function SellerPricingDemoPage() {
               onClick={() => setActiveTab('calculator')}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'calculator'
-                  ? 'bg-brand-600 text-ink-black'
+                  ? 'bg-brand-600 text-black'
                   : 'text-ink-300 hover:text-white'
               }`}
             >
@@ -85,7 +85,7 @@ export default function SellerPricingDemoPage() {
               onClick={() => setActiveTab('dashboard')}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'dashboard'
-                  ? 'bg-brand-600 text-ink-black'
+                  ? 'bg-brand-600 text-black'
                   : 'text-ink-300 hover:text-white'
               }`}
             >
@@ -95,7 +95,7 @@ export default function SellerPricingDemoPage() {
               onClick={() => setActiveTab('commission')}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'commission'
-                  ? 'bg-brand-600 text-ink-black'
+                  ? 'bg-brand-600 text-black'
                   : 'text-ink-300 hover:text-white'
               }`}
             >

@@ -294,7 +294,7 @@ export function OrderPageBuyer({ orderId, buyerId }: OrderPageBuyerProps) {
             <div className="bg-ink-700/50 rounded-lg p-4">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-brand-500 rounded-full flex items-center justify-center">
-                  <span className="text-ink-black font-bold text-lg">D</span>
+                  <span className="text-black font-bold text-lg">D</span>
                 </div>
                 <div>
                   <div className="text-white font-medium">Driver Assigned</div>

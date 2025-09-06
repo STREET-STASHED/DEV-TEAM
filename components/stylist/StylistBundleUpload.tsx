@@ -231,7 +231,7 @@ export function StylistBundleUpload({ onBundleCreate }: StylistBundleUploadProps
         
         <button
           onClick={addItem}
-          className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+          className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
         >
           Add Item
         </button>
@@ -301,7 +301,7 @@ export function StylistBundleUpload({ onBundleCreate }: StylistBundleUploadProps
       <button
         onClick={handleCreateBundle}
         disabled={!bundleName || items.length === 0}
-        className="w-full px-6 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-ink-600 disabled:cursor-not-allowed text-ink-black font-medium rounded-lg transition-colors"
+        className="w-full px-6 py-3 bg-brand-600 hover:bg-brand-700 disabled:bg-ink-600 disabled:cursor-not-allowed text-black font-medium rounded-lg transition-colors"
       >
         Create Bundle
       </button>

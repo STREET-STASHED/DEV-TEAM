@@ -221,7 +221,7 @@ export function DriverRewards({ ordersThisMonth, basePay, onViewProfile }: Drive
         <div className="mt-6 text-center">
           <button
             onClick={onViewProfile}
-            className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+            className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
           >
             View My Driver Profile
           </button>

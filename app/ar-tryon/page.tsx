@@ -836,7 +836,7 @@ export default function ARTryOnPage() {
                     <button
                       onClick={capturePhoto}
                       disabled={!isCameraActive && !demoMode}
-                      className="flex-1 bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+                      className="flex-1 bg-brand-600 text-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
                     >
                       <PhotoIcon className="w-4 h-4" />
                       <span>{demoMode ? 'Simulate Capture' : 'Capture Photo'}</span>
@@ -1023,7 +1023,7 @@ export default function ARTryOnPage() {
                         <button
                           onClick={() => tryOnOutfit(multipleProducts)}
                           disabled={isProcessing}
-                          className="w-full bg-brand-600 text-ink-black py-2 px-3 rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors disabled:opacity-50"
+                          className="w-full bg-brand-600 text-black py-2 px-3 rounded-lg text-sm font-medium hover:bg-brand-500 transition-colors disabled:opacity-50"
                         >
                           Try On Outfit ({multipleProducts.length} items)
                         </button>
@@ -1059,7 +1059,7 @@ export default function ARTryOnPage() {
                             }}
                             className={`py-2 px-3 rounded-lg text-xs font-medium transition-colors ${
                               multipleProducts.some(p => p.id === product.id)
-                                ? 'bg-brand-600 text-ink-black'
+                                ? 'bg-brand-600 text-black'
                                 : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
                             }`}
                           >
@@ -1123,7 +1123,7 @@ export default function ARTryOnPage() {
                     <div className="flex space-x-3">
                       <button
                         onClick={() => router.push(`/buyer/marketplace/product/${currentProduct.id}`)}
-                        className="flex-1 bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+                        className="flex-1 bg-brand-600 text-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors"
                       >
                         View Product
                       </button>

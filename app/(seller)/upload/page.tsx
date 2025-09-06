@@ -300,7 +300,7 @@ export default function SellerUploadPage() {
               <div key={step} className="flex items-center">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
                   currentStep >= step 
-                    ? 'bg-brand-600 text-ink-black' 
+                    ? 'bg-brand-600 text-black' 
                     : 'bg-ink-700 text-ink-400'
                 }`}>
                   {step}
@@ -512,7 +512,7 @@ export default function SellerUploadPage() {
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {formData.tags.map(tag => (
-                    <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-brand-600 text-ink-black">
+                    <span key={tag} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-brand-600 text-black">
                       {tag}
                       <button
                         type="button"
@@ -538,7 +538,7 @@ export default function SellerUploadPage() {
                     type="button"
                     onClick={addTag}
                     disabled={!newTag.trim() || formData.tags.length >= 10}
-                    className="px-4 py-2 bg-brand-600 text-ink-black rounded-md hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-brand-600 text-black rounded-md hover:bg-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Add
                   </button>
@@ -707,7 +707,7 @@ export default function SellerUploadPage() {
                 <button
                   type="button"
                   onClick={nextStep}
-                  className="px-6 py-3 bg-brand-600 text-ink-black rounded-lg hover:bg-brand-500 transition-colors"
+                  className="px-6 py-3 bg-brand-600 text-black rounded-lg hover:bg-brand-500 transition-colors"
                 >
                   Next Step
                 </button>
@@ -715,7 +715,7 @@ export default function SellerUploadPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-8 py-3 bg-brand-600 text-ink-black rounded-lg hover:bg-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-card hover:shadow-hover transform hover:scale-105"
+                  className="px-8 py-3 bg-brand-600 text-black rounded-lg hover:bg-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-card hover:shadow-hover transform hover:scale-105"
                 >
                   {isSubmitting ? 'Uploading...' : 'Upload Item'}
                 </button>

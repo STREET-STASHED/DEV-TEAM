@@ -134,7 +134,7 @@ export function BuyerHeader() {
               className="relative p-2 text-ink-300 hover:text-brand-400 transition-colors"
             >
               <TrophyIcon className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 bg-yellow-500 text-ink-black text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+              <span className="absolute -top-1 -right-1 bg-yellow-500 text-black text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
                 3
               </span>
             </Link>

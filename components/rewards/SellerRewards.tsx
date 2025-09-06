@@ -160,7 +160,7 @@ export function SellerRewards({ currentTier, monthlySales, currentPoints, onUpgr
                       ) : canUpgrade ? (
                         <button
                           onClick={() => onUpgradeTier(tier.tier)}
-                          className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-ink-black text-sm rounded transition-colors"
+                          className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-black text-sm rounded transition-colors"
                         >
                           Upgrade
                         </button>

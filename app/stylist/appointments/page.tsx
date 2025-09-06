@@ -130,7 +130,7 @@ export default function StylistAppointmentsPage() {
         </div>
         <Link
           href="/stylist/appointments/schedule"
-          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
         >
           Schedule Session
         </Link>
@@ -166,7 +166,7 @@ export default function StylistAppointmentsPage() {
           onClick={() => setActiveTab('upcoming')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'upcoming'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -176,7 +176,7 @@ export default function StylistAppointmentsPage() {
           onClick={() => setActiveTab('past')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'past'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -191,7 +191,7 @@ export default function StylistAppointmentsPage() {
           onClick={() => setActiveTab('all')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'all'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -219,7 +219,7 @@ export default function StylistAppointmentsPage() {
           {activeTab === 'upcoming' && (
             <Link
               href="/stylist/appointments/schedule"
-              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
             >
               Schedule Your First Session
             </Link>
@@ -283,7 +283,7 @@ export default function StylistAppointmentsPage() {
                     </button>
                   )}
                   {appointment.status === 'confirmed' && (
-                    <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black text-sm rounded transition-colors">
+                    <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black text-sm rounded transition-colors">
                       Start Session
                     </button>
                   )}

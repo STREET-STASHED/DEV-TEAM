@@ -96,7 +96,7 @@ export default function HomePage() {
             {/* Logo */}
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-brand-400 rounded-lg flex items-center justify-center">
-                <span className="text-ink-black font-bold text-xl">S</span>
+                <span className="text-black font-bold text-xl">S</span>
               </div>
               <span className="text-xl font-bold text-white">STREETSTASHED</span>
             </div>

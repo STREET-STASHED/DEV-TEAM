@@ -24,7 +24,7 @@ export default function NotFound() {
         <div className="space-y-4">
           <Link
             href="/"
-            className="w-full inline-flex justify-center items-center px-6 py-3 text-base font-medium rounded-xl text-ink-black bg-brand-600 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all duration-200"
+            className="w-full inline-flex justify-center items-center px-6 py-3 text-base font-medium rounded-xl text-black bg-brand-600 hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-all duration-200"
           >
             Go Home
           </Link>

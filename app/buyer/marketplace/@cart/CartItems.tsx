@@ -44,7 +44,7 @@ export function CartItems() {
           <button
             type="button"
             onClick={handleContinue}
-            className="px-4 py-2 rounded-lg bg-brand-600 text-ink-black hover:bg-brand-500 focus-visible:shadow-ring shadow-card transition"
+            className="px-4 py-2 rounded-lg bg-brand-600 text-black hover:bg-brand-500 focus-visible:shadow-ring shadow-card transition"
           >
             Browse products
           </button>
@@ -89,7 +89,7 @@ export function CartItems() {
           type="button"
           onClick={handleCheckout}
           disabled={items.length === 0}
-          className="w-full bg-brand-600 text-ink-black hover:bg-brand-500 focus:ring-brand-400 shadow-card hover:shadow-hover transform hover:scale-105 transition-all duration-300 py-4 rounded-xl text-lg font-semibold focus-visible:shadow-ring disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-brand-600 text-black hover:bg-brand-500 focus:ring-brand-400 shadow-card hover:shadow-hover transform hover:scale-105 transition-all duration-300 py-4 rounded-xl text-lg font-semibold focus-visible:shadow-ring disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Proceed to Checkout
         </button>

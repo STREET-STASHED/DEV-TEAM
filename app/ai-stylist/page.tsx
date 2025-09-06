@@ -734,7 +734,7 @@ export default function AIStylistPage() {
                   }}
                   className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                     !showFavorites && !showSocial
-                      ? 'bg-brand-600 text-ink-black'
+                      ? 'bg-brand-600 text-black'
                       : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
                   }`}
                 >
@@ -744,7 +744,7 @@ export default function AIStylistPage() {
                   onClick={() => setShowFavorites(true)}
                   className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                     showFavorites
-                      ? 'bg-brand-600 text-ink-black'
+                      ? 'bg-brand-600 text-black'
                       : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
                   }`}
                 >
@@ -754,7 +754,7 @@ export default function AIStylistPage() {
                   onClick={() => setShowSocial(true)}
                   className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                     showSocial
-                      ? 'bg-brand-600 text-ink-black'
+                      ? 'bg-brand-600 text-black'
                       : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
                   }`}
                 >
@@ -820,7 +820,7 @@ export default function AIStylistPage() {
                         <div className="space-y-2">
                           <button
                             onClick={() => addToCart(outfit)}
-                            className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
+                            className="w-full bg-brand-600 text-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
                           >
                             <ShoppingCartIcon className="w-4 h-4" />
                             <span>Add to Cart</span>
@@ -900,7 +900,7 @@ export default function AIStylistPage() {
                           <div className="space-y-2">
                             <button
                               onClick={() => addToCart(outfit)}
-                              className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
+                              className="w-full bg-brand-600 text-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
                             >
                               <ShoppingCartIcon className="w-4 h-4" />
                               <span>Add to Cart</span>
@@ -1027,7 +1027,7 @@ export default function AIStylistPage() {
                           <div className="space-y-2 mt-4">
                             <button
                               onClick={() => addToCart(outfit)}
-                              className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
+                              className="w-full bg-brand-600 text-black py-2 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors flex items-center justify-center space-x-2"
                             >
                               <ShoppingCartIcon className="w-4 h-4" />
                               <span>Add to Cart</span>
@@ -1058,7 +1058,7 @@ export default function AIStylistPage() {
 
                 <button
                   onClick={() => router.push('/buyer/marketplace')}
-                  className="bg-brand-600 text-ink-black py-3 px-6 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+                  className="bg-brand-600 text-black py-3 px-6 rounded-lg font-medium hover:bg-brand-500 transition-colors"
                 >
                   Browse More Products
                 </button>
@@ -1110,7 +1110,7 @@ export default function AIStylistPage() {
                         addToCart(selectedOutfit)
                         setSelectedOutfit(null)
                       }}
-                      className="w-full bg-brand-600 text-ink-black py-3 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors"
+                      className="w-full bg-brand-600 text-black py-3 px-4 rounded-lg font-medium hover:bg-brand-500 transition-colors"
                     >
                       Add Complete Outfit to Cart
                     </button>

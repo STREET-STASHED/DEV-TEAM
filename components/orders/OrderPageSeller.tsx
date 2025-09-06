@@ -238,7 +238,7 @@ export function OrderPageSeller({ sellerId }: OrderPageSellerProps) {
                   onClick={() => setStatusFilter(status)}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     statusFilter === status
-                      ? 'bg-brand-600 text-ink-black'
+                      ? 'bg-brand-600 text-black'
                       : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
                   }`}
                 >

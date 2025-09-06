@@ -254,7 +254,7 @@ export default function RecommendationSection({
                 
                 {/* Confidence Badge */}
                 <div className="absolute top-2 left-2">
-                  <div className="bg-brand-600/90 text-ink-black text-xs px-2 py-1 rounded-full font-medium">
+                  <div className="bg-brand-600/90 text-black text-xs px-2 py-1 rounded-full font-medium">
                     {Math.round(rec.confidence * 100)}% match
                   </div>
                 </div>

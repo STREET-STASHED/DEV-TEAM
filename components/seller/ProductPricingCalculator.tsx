@@ -193,7 +193,7 @@ export function ProductPricingCalculator({
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-medium text-white capitalize">{strategy}</span>
                   {isRecommended && (
-                    <span className="text-xs bg-brand-400 text-ink-black px-2 py-1 rounded">
+                    <span className="text-xs bg-brand-400 text-black px-2 py-1 rounded">
                       Recommended
                     </span>
                   )}

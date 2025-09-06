@@ -16,7 +16,7 @@ export default function ClientLayout() {
         aria-label="Open AI Assistant"
       >
         <MessageCircle className="w-6 h-6" />
-        <div className="absolute -top-2 -right-2 bg-gold-500 text-ink-black text-xs font-bold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute -top-2 -right-2 bg-gold-500 text-black text-xs font-bold px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           AI
         </div>
       </button>

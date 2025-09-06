@@ -127,7 +127,7 @@ export default function StylistEarningsPage() {
           onClick={() => setTimeframe('month')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             timeframe === 'month'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -137,7 +137,7 @@ export default function StylistEarningsPage() {
           onClick={() => setTimeframe('quarter')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             timeframe === 'quarter'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -147,7 +147,7 @@ export default function StylistEarningsPage() {
           onClick={() => setTimeframe('year')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             timeframe === 'year'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >

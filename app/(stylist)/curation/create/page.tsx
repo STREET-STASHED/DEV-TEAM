@@ -309,7 +309,7 @@ export default function CreateCurationPackagePage() {
                       }}
                       className={`px-3 py-2 rounded text-sm transition-colors ${
                         client.style.includes(style)
-                          ? 'bg-brand-600 text-ink-black'
+                          ? 'bg-brand-600 text-black'
                           : 'bg-ink-700 text-ink-300 hover:bg-ink-600'
                       }`}
                     >
@@ -356,7 +356,7 @@ export default function CreateCurationPackagePage() {
                   <label className="block text-sm font-medium text-ink-300">Outfit Days</label>
                   <button
                     onClick={addOutfitDay}
-                    className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-ink-black text-sm rounded transition-colors"
+                    className="px-3 py-1 bg-brand-600 hover:bg-brand-700 text-black text-sm rounded transition-colors"
                   >
                     Add Day
                   </button>
@@ -423,7 +423,7 @@ export default function CreateCurationPackagePage() {
                 <button
                   onClick={addItem}
                   disabled={!newItem.name || !newItem.price || !newItem.outfitDay}
-                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-ink-600 text-ink-black disabled:text-ink-400 rounded transition-colors"
+                  className="px-4 py-2 bg-brand-600 hover:bg-brand-700 disabled:bg-ink-600 text-black disabled:text-ink-400 rounded transition-colors"
                 >
                   Add Item
                 </button>
@@ -608,7 +608,7 @@ export default function CreateCurationPackagePage() {
               step > index + 1 
                 ? 'bg-success-600 text-white' 
                 : step === index + 1
-                ? 'bg-brand-600 text-ink-black'
+                ? 'bg-brand-600 text-black'
                 : 'bg-ink-700 text-ink-400'
             }`}>
               {step > index + 1 ? '✓' : index + 1}
@@ -641,7 +641,7 @@ export default function CreateCurationPackagePage() {
         {step < 4 ? (
           <button
             onClick={() => setStep(step + 1)}
-            className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black rounded-lg transition-colors"
+            className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black rounded-lg transition-colors"
           >
             Next
           </button>
@@ -650,7 +650,7 @@ export default function CreateCurationPackagePage() {
             <button className="px-6 py-3 bg-ink-700 hover:bg-ink-600 text-white rounded-lg transition-colors">
               Save as Draft
             </button>
-            <button className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black rounded-lg transition-colors">
+            <button className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black rounded-lg transition-colors">
               Send Proposal
             </button>
           </div>

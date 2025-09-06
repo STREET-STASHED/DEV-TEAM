@@ -35,7 +35,7 @@ export default function Error({
         <div className="space-y-4">
           <button
             onClick={reset}
-            className="w-full bg-brand-600 text-ink-black py-2 px-4 rounded-lg hover:bg-brand-500 transition-colors shadow-card hover:shadow-hover transform hover:scale-105"
+            className="w-full bg-brand-600 text-black py-2 px-4 rounded-lg hover:bg-brand-500 transition-colors shadow-card hover:shadow-hover transform hover:scale-105"
           >
             Try again
           </button>

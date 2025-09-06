@@ -127,7 +127,7 @@ export default function StylistLooksPage() {
         </div>
         <Link
           href="/stylist/looks/create"
-          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+          className="px-6 py-3 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
         >
           Create Look
         </Link>
@@ -159,7 +159,7 @@ export default function StylistLooksPage() {
           onClick={() => setActiveTab('published')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'published'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -169,7 +169,7 @@ export default function StylistLooksPage() {
           onClick={() => setActiveTab('draft')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'draft'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -179,7 +179,7 @@ export default function StylistLooksPage() {
           onClick={() => setActiveTab('all')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'all'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -206,7 +206,7 @@ export default function StylistLooksPage() {
           </p>
           <Link
             href="/stylist/looks/create"
-            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+            className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
           >
             Create Your First Look
           </Link>
@@ -280,7 +280,7 @@ export default function StylistLooksPage() {
                   <button className="flex-1 px-3 py-2 bg-ink-700 hover:bg-ink-600 text-white text-sm rounded transition-colors">
                     Edit
                   </button>
-                  <button className="flex-1 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black text-sm rounded transition-colors">
+                  <button className="flex-1 px-3 py-2 bg-brand-600 hover:bg-brand-700 text-black text-sm rounded transition-colors">
                     View
                   </button>
                   {look.status === 'draft' && (

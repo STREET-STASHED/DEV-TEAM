@@ -74,7 +74,7 @@ export function StylistHeader() {
               </svg>
             </button>
             <div className="w-8 h-8 bg-brand-400 rounded-full flex items-center justify-center">
-              <span className="text-ink-black text-sm font-medium">SM</span>
+              <span className="text-black text-sm font-medium">SM</span>
             </div>
           </div>
 

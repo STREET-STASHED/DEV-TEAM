@@ -44,7 +44,7 @@ export default function StylistBundleUploadPage() {
           onClick={() => setActiveTab('upload')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'upload'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -54,7 +54,7 @@ export default function StylistBundleUploadPage() {
           onClick={() => setActiveTab('gallery')}
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             activeTab === 'gallery'
-              ? 'bg-brand-600 text-ink-black'
+              ? 'bg-brand-600 text-black'
               : 'text-ink-400 hover:text-ink-300'
           }`}
         >
@@ -80,7 +80,7 @@ export default function StylistBundleUploadPage() {
               <p className="text-ink-400 mb-4">Create your first curated bundle to get started</p>
               <button
                 onClick={() => setActiveTab('upload')}
-                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-ink-black font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-black font-medium rounded-lg transition-colors"
               >
                 Create Your First Bundle
               </button>
