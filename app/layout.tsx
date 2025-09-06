@@ -6,6 +6,10 @@ import { Inter } from 'next/font/google'
 import '../styles/globals.css'
 import ClientLayout from '@/components/ClientLayout'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',

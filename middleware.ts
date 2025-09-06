@@ -16,6 +16,10 @@ export async function middleware(req: NextRequest) {
 
   const res = NextResponse.next();
 
+  // Add headers to prevent static caching
+  res.headers.set('Cache-Control', 'no-store, max-age=0');
+  res.headers.set('X-Dynamic-Render', 'true');
+
   // 🔓 Allow ALL paths for guest users - only restrict specific actions, not page access
   if (
     pathname.startsWith("/_next") ||

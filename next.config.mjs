@@ -7,6 +7,10 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },
+  // Force dynamic rendering for all pages
+  output: 'standalone',
+  trailingSlash: false,
+  generateEtags: false,
   images: {
     remotePatterns: [
       {

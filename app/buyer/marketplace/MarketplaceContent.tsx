@@ -1,5 +1,8 @@
 'use client'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 import EnhancedSearchFilters from '@/components/search/EnhancedSearchFilters'
 import { useCart } from '@/context/CartContext'
 import { mockCategories, mockProducts, mockStores } from '@/lib/mockData'
