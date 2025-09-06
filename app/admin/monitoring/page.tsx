@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import SystemHealthMonitoring from '@/components/monitoring/SystemHealthMonitoring'
 
 interface MonitoringData {
   isMonitoring: boolean
@@ -235,6 +236,20 @@ export default function AdminMonitoringPage() {
               <p className="text-ink-400">No insights generated yet</p>
             )}
           </div>
+        </div>
+
+        {/* System Health Monitoring */}
+        <div className="mb-8">
+          <SystemHealthMonitoring
+            onAlert={(alert) => {
+              console.log('New alert:', alert)
+              // In real implementation, this would handle alert notifications
+            }}
+            onRefresh={() => {
+              console.log('Refreshing system health data')
+              // In real implementation, this would refresh from API
+            }}
+          />
         </div>
 
         {/* Recent Metrics */}

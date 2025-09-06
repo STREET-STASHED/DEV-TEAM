@@ -1,6 +1,6 @@
 'use client'
 
-import AdvancedSearch from '@/components/search/AdvancedSearch'
+import EnhancedSearchFilters from '@/components/search/EnhancedSearchFilters'
 import { useCart } from '@/context/CartContext'
 import { mockCategories, mockProducts, mockStores } from '@/lib/mockData'
 import {
@@ -28,6 +28,7 @@ export default function MarketplaceContent() {
   const [selectedStore, setSelectedStore] = useState('all')
   const [priceRange, setPriceRange] = useState([0, 1000])
   const [sortBy, setSortBy] = useState('trending')
+  const [_useEnhancedSearch] = useState(true)
   const [products, _setProducts] = useState(mockProducts)
   const [categories, _setCategories] = useState(mockCategories)
   const [stores, _setStores] = useState(mockStores)
@@ -104,11 +105,26 @@ export default function MarketplaceContent() {
     }
   }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy, applyFilters])
 
-  const _handleSearch = () => {
+  const _handleSearch = (filters?: any) => {
     const params = new URLSearchParams()
-    if (searchQuery.trim()) params.set('search', searchQuery.trim())
-    if (selectedCategory !== 'all') params.set('category', selectedCategory)
-    if (selectedStore !== 'all') params.set('store', selectedStore)
+    
+    if (filters) {
+      // Enhanced search with filters
+      if (filters.query) params.set('search', filters.query)
+      if (filters.category !== 'all') params.set('category', filters.category)
+      if (filters.brand !== 'all') params.set('brand', filters.brand)
+      if (filters.size.length > 0) params.set('size', filters.size.join(','))
+      if (filters.color.length > 0) params.set('color', filters.color.join(','))
+      if (filters.condition.length > 0) params.set('condition', filters.condition.join(','))
+      if (filters.priceRange[0] > 0) params.set('minPrice', filters.priceRange[0].toString())
+      if (filters.priceRange[1] < 1000) params.set('maxPrice', filters.priceRange[1].toString())
+      if (filters.sortBy !== 'relevance') params.set('sort', filters.sortBy)
+    } else {
+      // Legacy search
+      if (searchQuery.trim()) params.set('search', searchQuery.trim())
+      if (selectedCategory !== 'all') params.set('category', selectedCategory)
+      if (selectedStore !== 'all') params.set('store', selectedStore)
+    }
 
     const queryString = params.toString()
     router.push(`/buyer/marketplace${queryString ? `?${queryString}` : ''}`)
@@ -326,8 +342,8 @@ export default function MarketplaceContent() {
       {/* Search and Filters */}
       <div className="bg-ink-800 border-b border-ink-700 p-4">
         <div className="max-w-7xl mx-auto">
-          {/* Advanced Search Component */}
-          <AdvancedSearch />
+          {/* Enhanced Search Filters Component */}
+          <EnhancedSearchFilters />
 
           {/* Filters Panel */}
           {showFilters && (

@@ -3,6 +3,8 @@
 import { NavigationButton } from '@/components/ui/Navigation'
 import { createSupabaseBrowser } from '@/app/lib/supabase/browser'
 import { useEffect, useState } from 'react'
+import EnhancedWishlist from '@/components/wishlist/EnhancedWishlist'
+import { Heart } from 'lucide-react'
 
 type Order = {
   id: string
@@ -14,6 +16,7 @@ type Order = {
 export function BuyerDashboardContent() {
   const [orders, setOrders] = useState<Order[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [showWishlist, setShowWishlist] = useState(false)
 
   useEffect(() => {
     async function getOrders() {
@@ -103,6 +106,20 @@ export function BuyerDashboardContent() {
             <div className="text-2xl font-bold text-white mb-1">Gold</div>
             <div className="text-ink-300 text-sm">Member Level</div>
           </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-4 mt-6">
+          <button
+            onClick={() => setShowWishlist(true)}
+            className="bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 px-6 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 border border-purple-500/30"
+          >
+            <Heart className="w-5 h-5" />
+            <span>View Wishlist</span>
+          </button>
+          <NavigationButton action="start-shopping" className="bg-brand-500/20 hover:bg-brand-500/30 text-brand-400 px-6 py-3 rounded-lg font-semibold transition-colors border border-brand-500/30">
+            Start Shopping
+          </NavigationButton>
         </div>
       </div>
 
@@ -310,6 +327,12 @@ export function BuyerDashboardContent() {
           </div>
         )}
       </div>
+
+      {/* Enhanced Wishlist Modal */}
+      <EnhancedWishlist
+        isOpen={showWishlist}
+        onClose={() => setShowWishlist(false)}
+      />
     </div>
   )
 }

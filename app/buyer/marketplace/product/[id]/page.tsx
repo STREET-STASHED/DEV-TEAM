@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import EnhancedReviewSystem from '@/components/reviews/EnhancedReviewSystem'
 
 type Props = {
   params: Promise<{ id: string }>
@@ -56,28 +57,81 @@ export default async function ProductPage({ params }: Props) {
   }
 
   return (
-    <div className="container-premium py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-      {/* Product Image */}
-      <div className="aspect-square bg-ink-800 rounded-xl overflow-hidden">
-        {item.image ? (
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-ink-400">
-            <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+    <div className="min-h-screen bg-ink-black text-white">
+      <div className="container mx-auto px-4 py-8">
+        {/* Product Header */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Product Image */}
+          <div className="aspect-square bg-ink-800 rounded-xl overflow-hidden">
+            {item.image ? (
+              <img
+                src={item.image}
+                alt={item.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-ink-400">
+                <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Product Info */}
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-white">{item.name}</h1>
-        <p className="text-ink-400">{item.description}</p>
+          {/* Product Info */}
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">{item.name}</h1>
+              <p className="text-2xl font-bold text-purple-400 mb-4">${item.price}</p>
+              <p className="text-ink-300 leading-relaxed">{item.description}</p>
+            </div>
+
+            {/* Product Details */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <h4 className="text-sm font-medium text-ink-400">Category</h4>
+                <p className="text-sm text-white">{item.category}</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-ink-400">Added</h4>
+                <p className="text-sm text-white">{new Date(item.created_at).toLocaleDateString()}</p>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-4">
+              <button className="bg-purple-500 hover:bg-purple-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                Add to Cart
+              </button>
+              <button className="bg-ink-800 hover:bg-ink-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+                Add to Wishlist
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Review System */}
+        <EnhancedReviewSystem
+          productId={item.id}
+          productName={item.name}
+          productImage={item.image || '/mock/default-product.jpg'}
+          onReviewSubmit={(review) => {
+            console.log('New review submitted:', review)
+            // In real implementation, this would save to database
+          }}
+          onReviewUpdate={(reviewId, review) => {
+            console.log('Review updated:', reviewId, review)
+            // In real implementation, this would update in database
+          }}
+          onReviewDelete={(reviewId) => {
+            console.log('Review deleted:', reviewId)
+            // In real implementation, this would delete from database
+          }}
+          onReviewReport={(reviewId, reason) => {
+            console.log('Review reported:', reviewId, reason)
+            // In real implementation, this would handle report
+          }}
+        />
       </div>
     </div>
   )

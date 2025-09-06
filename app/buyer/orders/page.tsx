@@ -1,12 +1,12 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'My Orders',
-  description: 'Track your orders and view order history',
-}
+import Link from 'next/link'
+import { useState } from 'react'
+import RealTimeOrderTracking from '@/components/orders/RealTimeOrderTracking'
 
 export default function BuyerOrdersPage() {
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
+
   return (
     <div className="min-h-screen bg-ink-black text-white py-20 px-4">
       <div className="max-w-7xl mx-auto">
@@ -91,9 +91,12 @@ export default function BuyerOrdersPage() {
                   </div>
                 </div>
                 <div className="flex flex-col space-y-3 lg:items-end">
-                  <Link href="/buyer/orders/track" className="bg-brand-500 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center">
+                  <button 
+                    onClick={() => setSelectedOrderId('ST-2024-001')}
+                    className="bg-brand-500 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center"
+                  >
                     Track Order
-                  </Link>
+                  </button>
                   <Link href="/buyer/orders/review" className="bg-ink-700 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-ink-600 transition-colors text-center">
                     Write Review
                   </Link>
@@ -144,9 +147,12 @@ export default function BuyerOrdersPage() {
                   </div>
                 </div>
                 <div className="flex flex-col space-y-3 lg:items-end">
-                  <Link href="/buyer/orders/track" className="bg-brand-500 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center">
+                  <button 
+                    onClick={() => setSelectedOrderId('ST-2024-002')}
+                    className="bg-brand-500 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center"
+                  >
                     Track Order
-                  </Link>
+                  </button>
                   <button className="bg-ink-700 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-ink-600 transition-colors">
                     View Details
                   </button>
@@ -206,6 +212,31 @@ export default function BuyerOrdersPage() {
           </Link>
         </div>
       </div>
+
+      {/* Order Tracking Modal */}
+      {selectedOrderId && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-ink-900 rounded-2xl w-full max-w-6xl mx-4 max-h-[90vh] overflow-hidden border border-ink-700 shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-ink-700">
+              <h2 className="text-2xl font-bold text-white">Order Tracking</h2>
+              <button
+                onClick={() => setSelectedOrderId(null)}
+                className="text-ink-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[80vh]">
+              <RealTimeOrderTracking 
+                orderId={selectedOrderId}
+                onStatusUpdate={(status) => console.log('Order status updated:', status)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
