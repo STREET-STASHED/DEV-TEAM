@@ -81,7 +81,7 @@ export default function HomePage() {
         setCategories(enhancedCategories)
         
         // Process live activity data
-        const activityItems = []
+        const activityItems: any[] = []
         
         // Add social posts as activity
         if (socialData.posts && socialData.posts.length > 0) {
@@ -680,7 +680,7 @@ export default function HomePage() {
                   </div>
 
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {store.categories.slice(0, 3).map((category) => (
+                    {store.categories.slice(0, 3).map((category: string) => (
                       <span
                         key={category}
                         className="bg-purple-500/20 text-purple-400 text-xs px-2 py-1 rounded-full"

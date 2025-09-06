@@ -130,7 +130,7 @@ export default function MarketplaceContent() {
         setCategories(enhancedCategories)
         
         // Process live activity data
-        const activityItems = []
+        const activityItems: any[] = []
         
         // Add social posts as activity
         if (socialData.posts && socialData.posts.length > 0) {
