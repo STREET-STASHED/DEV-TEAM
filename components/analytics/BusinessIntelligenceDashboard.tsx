@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { BarChart3, PieChart, TrendingUp, Users, Star, Eye, Download, RefreshCw, Filter } from 'lucide-react'
 
 interface KPI {
@@ -36,7 +36,7 @@ interface TopPerformer {
 }
 
 interface BusinessIntelligenceDashboardProps {
-  onExport?: (type: string) => void
+  onExport?: (_type: string) => void
   onRefresh?: () => void
 }
 
@@ -51,7 +51,7 @@ export default function BusinessIntelligenceDashboard({
   const [isLoading, setIsLoading] = useState(false)
 
   // Mock data
-  const mockKPIs: KPI[] = [
+  const mockKPIs: KPI[] = useMemo(() => [
     {
       id: 'revenue',
       name: 'Total Revenue',
@@ -132,9 +132,9 @@ export default function BusinessIntelligenceDashboard({
       unit: '%',
       category: 'orders'
     }
-  ]
+  ], [])
 
-  const mockCharts: ChartData[] = [
+  const mockCharts: ChartData[] = useMemo(() => [
     {
       id: 'revenue_trend',
       type: 'line',
@@ -184,9 +184,9 @@ export default function BusinessIntelligenceDashboard({
         { label: 'Off-White Tee', value: 32 }
       ]
     }
-  ]
+  ], [])
 
-  const mockTopPerformers: TopPerformer[] = [
+  const mockTopPerformers: TopPerformer[] = useMemo(() => [
     {
       id: '1',
       name: 'Nike Air Jordan 1 Retro High',
@@ -227,7 +227,7 @@ export default function BusinessIntelligenceDashboard({
       category: 'Streetwear',
       rank: 5
     }
-  ]
+  ], [])
 
   useEffect(() => {
     setKpis(mockKPIs)
@@ -259,10 +259,10 @@ export default function BusinessIntelligenceDashboard({
   }
 
   // Handle export
-  const handleExport = (type: string) => {
-    onExport?.(type)
+  const handleExport = (_type: string) => {
+    _onExport?.(_type)
     // Simulate export
-    console.log(`Exporting data as ${type}`)
+    console.log(`Exporting data as ${_type}`)
   }
 
   // Get trend icon and color

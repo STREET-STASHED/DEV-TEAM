@@ -87,7 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const isInWishlist = hasWishlistItem(product.id)
 
   return (
-    <div className="bg-ink-black rounded-3xl shadow-card border border-ink-800 hover:shadow-hover transition-all duration-500 hover:scale-[1.02] overflow-hidden relative group mx-auto w-full">
+    <div className="bg-black rounded-3xl shadow-card border border-ink-800 hover:shadow-hover transition-all duration-500 hover:scale-[1.02] overflow-hidden relative group mx-auto w-full">
       {/* Product Image */}
       <div className="relative aspect-square bg-ink-900 overflow-hidden">
         {product.image_url ? (

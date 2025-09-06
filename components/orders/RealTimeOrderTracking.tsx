@@ -135,7 +135,7 @@ export default function RealTimeOrderTracking({ orderId, onStatusUpdate }: RealT
       setTrackingData(data)
       
       if (data.location) {
-        setMapCenter(data.location)
+        _setMapCenter(data.location)
       }
 
       if (onStatusUpdate) {
@@ -169,7 +169,7 @@ export default function RealTimeOrderTracking({ orderId, onStatusUpdate }: RealT
         })
 
         if (update.location) {
-          setMapCenter(update.location)
+          _setMapCenter(update.location)
         }
 
         if (update.status && onStatusUpdate) {
@@ -318,7 +318,7 @@ export default function RealTimeOrderTracking({ orderId, onStatusUpdate }: RealT
                         <span
                           key={i}
                           className={`text-sm ${
-                            i < Math.floor(trackingData.driver.rating) ? 'text-yellow-400' : 'text-gray-300'
+                            i < Math.floor(trackingData.driver?.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
                           }`}
                         >
                           ★

@@ -51,13 +51,33 @@ export default function EnhancedSearchFilters() {
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
   const [trendingSearches, setTrendingSearches] = useState<string[]>([])
   
-  const [filters, setFilters] = useState<EnhancedSearchFilters>({
+  const [filters, setFilters] = useState<{
+    category: string
+    brand: string
+    size: string
+    color: string
+    condition: string
+    priceRange: { min: number; max: number }
+    rating: number
+    availability: string
+    sellerRating: number
+    shippingSpeed: string
+    location: string
+    sortBy: string
+    viewMode: string
+    inStock: boolean
+    trending: boolean
+    onSale: boolean
+    newArrivals: boolean
+    verified: boolean
+    freeShipping: boolean
+  }>({
     category: '',
     brand: '',
     size: '',
     color: '',
     condition: '',
-    priceRange: [0, 2000],
+    priceRange: { min: 0, max: 2000 },
     rating: 0,
     availability: 'all',
     sellerRating: 0,
@@ -214,8 +234,8 @@ export default function EnhancedSearchFilters() {
     if (filters.condition) params.set('condition', filters.condition)
     
     // Price range
-    if (filters.priceRange[0] > 0) params.set('minPrice', filters.priceRange[0].toString())
-    if (filters.priceRange[1] < 2000) params.set('maxPrice', filters.priceRange[1].toString())
+    if (filters.priceRange.min > 0) params.set('minPrice', filters.priceRange.min.toString())
+    if (filters.priceRange.max < 2000) params.set('maxPrice', filters.priceRange.max.toString())
     
     // Advanced filters
     if (filters.rating > 0) params.set('rating', filters.rating.toString())
@@ -296,7 +316,7 @@ export default function EnhancedSearchFilters() {
   }, [router])
 
   // Handle filter changes
-  const handleFilterChange = (key: keyof EnhancedSearchFilters, value: any) => {
+  const handleFilterChange = (key: string, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 
@@ -308,7 +328,7 @@ export default function EnhancedSearchFilters() {
       size: '',
       color: '',
       condition: '',
-      priceRange: [0, 2000],
+      priceRange: { min: 0, max: 2000 },
       rating: 0,
       availability: 'all',
       sellerRating: 0,
@@ -327,7 +347,7 @@ export default function EnhancedSearchFilters() {
 
   // Get active filter count
   const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
-    if (key === 'priceRange') return value[0] !== 0 || value[1] !== 2000
+    if (key === 'priceRange') return (value as { min: number; max: number }).min !== 0 || (value as { min: number; max: number }).max !== 2000
     if (key === 'viewMode') return false // Don't count view mode
     if (typeof value === 'boolean') return value
     if (typeof value === 'number') return value > 0
@@ -660,7 +680,7 @@ export default function EnhancedSearchFilters() {
           {/* Price Range */}
           <div className="mt-8">
             <label className="block text-ink-300 text-sm font-medium mb-4">
-              Price Range: ${filters.priceRange[0]} - ${filters.priceRange[1]}
+              Price Range: ${filters.priceRange.min} - ${filters.priceRange.max}
             </label>
             <div className="flex items-center space-x-4">
               <input
@@ -668,8 +688,8 @@ export default function EnhancedSearchFilters() {
                 min="0"
                 max="2000"
                 step="10"
-                value={filters.priceRange[0]}
-                onChange={(e) => handleFilterChange('priceRange', [parseInt(e.target.value), filters.priceRange[1]])}
+                value={filters.priceRange.min}
+                onChange={(e) => handleFilterChange('priceRange', { min: parseInt(e.target.value), max: filters.priceRange.max })}
                 className="flex-1"
               />
               <input
@@ -677,8 +697,8 @@ export default function EnhancedSearchFilters() {
                 min="0"
                 max="2000"
                 step="10"
-                value={filters.priceRange[1]}
-                onChange={(e) => handleFilterChange('priceRange', [filters.priceRange[0], parseInt(e.target.value)])}
+                value={filters.priceRange.max}
+                onChange={(e) => handleFilterChange('priceRange', { min: filters.priceRange.min, max: parseInt(e.target.value) })}
                 className="flex-1"
               />
             </div>
@@ -699,8 +719,8 @@ export default function EnhancedSearchFilters() {
                 <label key={filter.key} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg hover:bg-ink-800 transition-colors">
                   <input
                     type="checkbox"
-                    checked={filters[filter.key as keyof EnhancedSearchFilters] as boolean}
-                    onChange={(e) => handleFilterChange(filter.key as keyof EnhancedSearchFilters, e.target.checked)}
+                    checked={filters[filter.key as keyof typeof filters] as boolean}
+                    onChange={(e) => handleFilterChange(filter.key, e.target.checked)}
                     className="w-4 h-4 rounded border-ink-600 bg-ink-800 text-purple-500 focus:ring-purple-500 focus:ring-2"
                   />
                   <span className="text-ink-300 text-sm flex items-center space-x-1">

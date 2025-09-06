@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { TrendingUp, TrendingDown, BarChart3, Calendar, Target, Zap, Brain, DollarSign, AlertTriangle } from 'lucide-react'
 
 interface DemandForecast {
@@ -58,7 +58,7 @@ export default function PredictiveAnalytics({
   const [isGenerating, setIsGenerating] = useState(false)
 
   // Mock data
-  const mockForecasts: DemandForecast[] = [
+  const mockForecasts: DemandForecast[] = useMemo(() => [
     {
       id: '1',
       category: 'Sneakers',
@@ -173,18 +173,18 @@ export default function PredictiveAnalytics({
       ],
       timeframe: '30d'
     }
-  ]
+  ], [])
 
-  const mockSalesPredictions: SalesPrediction[] = [
+  const mockSalesPredictions: SalesPrediction[] = useMemo(() => [
     { id: '1', period: 'Jan 2024', actual: 125000, predicted: 118000, accuracy: 94, trend: 'up', confidence: 89 },
     { id: '2', period: 'Feb 2024', actual: 142000, predicted: 135000, accuracy: 95, trend: 'up', confidence: 91 },
     { id: '3', period: 'Mar 2024', actual: 138000, predicted: 145000, accuracy: 95, trend: 'down', confidence: 87 },
     { id: '4', period: 'Apr 2024', actual: 0, predicted: 152000, accuracy: 0, trend: 'up', confidence: 85 },
     { id: '5', period: 'May 2024', actual: 0, predicted: 168000, accuracy: 0, trend: 'up', confidence: 82 },
     { id: '6', period: 'Jun 2024', actual: 0, predicted: 175000, accuracy: 0, trend: 'up', confidence: 79 }
-  ]
+  ], [])
 
-  const mockInsights: MarketInsight[] = [
+  const mockInsights: MarketInsight[] = useMemo(() => [
     {
       id: '1',
       type: 'trend',
@@ -245,7 +245,7 @@ export default function PredictiveAnalytics({
         'Create contingency plans'
       ]
     }
-  ]
+  ], [])
 
   useEffect(() => {
     setForecasts(mockForecasts)

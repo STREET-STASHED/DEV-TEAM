@@ -284,7 +284,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-ink-black text-white py-12">
+      <div className="min-h-screen bg-black text-white py-12">
         <div className="container mx-auto px-4">
           <div className="text-center">
             <h1 className="text-3xl font-bold mb-4">Your Cart is Empty</h1>
@@ -302,7 +302,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white py-12">
+    <div className="min-h-screen bg-black text-white py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-3xl font-bold mb-8 text-center">Checkout</h1>

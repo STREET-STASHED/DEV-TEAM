@@ -526,7 +526,7 @@ export default function AIStylistPage() {
   // Show loading state only briefly
   if (!isClient) {
     return (
-      <div className="min-h-screen bg-ink-black text-white py-12">
+      <div className="min-h-screen bg-black text-white py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center">
@@ -543,7 +543,7 @@ export default function AIStylistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white py-12">
+    <div className="min-h-screen bg-black text-white py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Step 1: Style Profile Form */}

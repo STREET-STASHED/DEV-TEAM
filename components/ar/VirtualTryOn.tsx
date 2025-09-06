@@ -199,7 +199,7 @@ export default function VirtualTryOn({
 
   return (
     <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
-      <div className="relative w-full h-full max-w-6xl max-h-[90vh] bg-ink-black rounded-2xl overflow-hidden">
+      <div className="relative w-full h-full max-w-6xl max-h-[90vh] bg-black rounded-2xl overflow-hidden">
         {/* Header */}
         <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/80 to-transparent p-6">
           <div className="flex items-center justify-between">

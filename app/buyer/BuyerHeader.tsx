@@ -83,7 +83,7 @@ export function BuyerHeader() {
   }
 
   return (
-    <header className="bg-ink-black/90 backdrop-blur-md border-b border-ink-800 sticky top-0 z-40">
+    <header className="bg-black/90 backdrop-blur-md border-b border-ink-800 sticky top-0 z-40">
       <div className="container-premium">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}

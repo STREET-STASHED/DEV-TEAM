@@ -82,7 +82,7 @@ export default function AdminMonitoringPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-ink-black text-white p-8">
+      <div className="min-h-screen bg-black text-white p-8">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-400 mx-auto"></div>
       </div>
     )
@@ -93,7 +93,7 @@ export default function AdminMonitoringPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white p-8">
+    <div className="min-h-screen bg-black text-white p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

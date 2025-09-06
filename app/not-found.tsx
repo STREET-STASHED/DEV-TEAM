@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-ink-black">
+    <div className="min-h-screen flex items-center justify-center bg-black">
       <div className="text-center max-w-md mx-auto px-4">
         {/* 404 Icon */}
         <div className="mx-auto h-24 w-24 text-ink-400 mb-6">

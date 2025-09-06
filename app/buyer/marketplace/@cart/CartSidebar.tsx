@@ -4,7 +4,7 @@ import { CartSkeleton } from './CartSkeleton'
 
 export function CartSidebar() {
   return (
-    <div className="bg-ink-black/80 backdrop-blur-sm rounded-3xl shadow-xl border border-ink-800 p-6 sticky top-8">
+    <div className="bg-black/80 backdrop-blur-sm rounded-3xl shadow-xl border border-ink-800 p-6 sticky top-8">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

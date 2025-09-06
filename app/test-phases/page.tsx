@@ -27,7 +27,7 @@ export default function TestPhasesPage() {
   const [activePhase, setActivePhase] = useState<'phase3' | 'phase4' | 'all'>('all')
   const [activeFeature, setActiveFeature] = useState<string>('overview')
 
-  const phases = [
+  const phases: any[] = [
     {
       id: 'phase3',
       name: 'Phase 3: Customer Experience',
@@ -234,7 +234,7 @@ export default function TestPhasesPage() {
           >
             All Phases
           </button>
-          {phases.map((phase) => (
+          {phases.map((phase: any) => (
             <button
               key={phase.id}
               onClick={() => setActivePhase(phase.id as 'phase3' | 'phase4')}
@@ -253,7 +253,7 @@ export default function TestPhasesPage() {
         {activeFeature === 'overview' && (
           <div className="space-y-8">
             {/* Phase Overview */}
-            {getActivePhase().map((phase) => (
+            {getActivePhase().map((phase: any) => (
               <div key={phase.id} className="bg-ink-800 rounded-2xl p-8">
                 <div className="flex items-center space-x-4 mb-8">
                   <div className={`p-4 rounded-xl ${phase.bgColor}`}>
@@ -266,7 +266,7 @@ export default function TestPhasesPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {phase.features.map((feature) => (
+                  {phase.features.map((feature: any) => (
                     <div
                       key={feature.id}
                       className="bg-ink-700 rounded-xl p-6 cursor-pointer hover:bg-ink-600 transition-colors group"
@@ -344,13 +344,13 @@ export default function TestPhasesPage() {
                 </button>
                 <div className="w-px h-6 bg-ink-700"></div>
                 <h2 className="text-2xl font-bold text-white">
-                  {getActiveFeatures().find(f => f.id === activeFeature)?.name}
+                  {getActiveFeatures().find((f: any) => f.id === activeFeature)?.name}
                 </h2>
               </div>
             </div>
 
             <div className="bg-ink-800 rounded-2xl p-8">
-              {renderComponent(getActiveFeatures().find(f => f.id === activeFeature))}
+              {renderComponent(getActiveFeatures().find((f: any) => f.id === activeFeature))}
             </div>
           </div>
         )}

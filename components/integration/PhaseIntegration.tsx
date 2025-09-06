@@ -36,7 +36,7 @@ export default function PhaseIntegration({
   const [activeTab, setActiveTab] = useState<string>('overview')
   const [_isLoading, _setIsLoading] = useState(false)
 
-  const phases = [
+  const phases: any[] = [
     {
       id: 'phase3',
       name: 'Phase 3: Customer Experience',
@@ -184,7 +184,7 @@ export default function PhaseIntegration({
 
   const getActiveFeatures = () => {
     if (currentPhase === 'all') {
-      return phases.flatMap(phase => phase.features)
+      return phases.flatMap(phase => phase.features) as any[]
     }
     return phases.find(phase => phase.id === currentPhase)?.features || []
   }
@@ -264,7 +264,7 @@ export default function PhaseIntegration({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {phase.features.map((feature) => (
+                  {phase.features.map((feature: any) => (
                     <div
                       key={feature.id}
                       className="bg-ink-700 rounded-lg p-4 cursor-pointer hover:bg-ink-600 transition-colors"
@@ -338,13 +338,13 @@ export default function PhaseIntegration({
                 </button>
                 <div className="w-px h-6 bg-ink-700"></div>
                 <h2 className="text-2xl font-bold text-white">
-                  {getActiveFeatures().find(f => f.id === activeTab)?.name}
+                  {getActiveFeatures().find((f: any) => f.id === activeTab)?.name}
                 </h2>
               </div>
             </div>
 
             <div className="bg-ink-800 rounded-lg p-6">
-              {renderComponent(getActiveFeatures().find(f => f.id === activeTab))}
+              {renderComponent(getActiveFeatures().find((f: any) => f.id === activeTab))}
             </div>
           </div>
         )}

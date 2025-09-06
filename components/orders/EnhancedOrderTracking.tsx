@@ -225,7 +225,7 @@ export default function EnhancedOrderTracking({
       
       // Simulate driver location updates
       if (mockOrder.status === 'in_transit' && mockOrder.driver) {
-        setDriverLocation({
+        _setDriverLocation({
           lat: 40.7589 + (Math.random() - 0.5) * 0.01,
           lng: -73.9851 + (Math.random() - 0.5) * 0.01
         })

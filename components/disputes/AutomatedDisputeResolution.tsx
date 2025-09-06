@@ -243,7 +243,7 @@ export default function AutomatedDisputeResolution({
           description: 'AI analyzing evidence and comparing with listing',
           timestamp: '2024-02-12T10:00:00Z',
           actor: 'ai',
-          status: 'in_progress'
+          status: 'pending'
         }
       ],
       createdAt: '2024-02-12T09:00:00Z',

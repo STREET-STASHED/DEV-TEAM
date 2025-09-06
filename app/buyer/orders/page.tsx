@@ -8,7 +8,7 @@ export default function BuyerOrdersPage() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null)
 
   return (
-    <div className="min-h-screen bg-ink-black text-white py-20 px-4">
+    <div className="min-h-screen bg-black text-white py-20 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h1 className="text-5xl font-bold text-white mb-6">My Orders</h1>

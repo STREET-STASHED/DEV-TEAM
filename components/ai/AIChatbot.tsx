@@ -3,6 +3,30 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bot, Send, Mic, MicOff, Paperclip, X, ThumbsUp, ThumbsDown } from 'lucide-react'
 
+// Speech Recognition types
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  abort(): void
+  onresult: ((_event: any) => void) | null
+  onerror: ((_event: any) => void) | null
+  onend: (() => void) | null
+}
+
+interface SpeechRecognitionConstructor {
+  new (): SpeechRecognition
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: SpeechRecognitionConstructor
+    webkitSpeechRecognition: SpeechRecognitionConstructor
+  }
+}
+
 interface ChatMessage {
   id: string
   type: 'user' | 'bot' | 'system'
@@ -58,22 +82,24 @@ export default function AIChatbot({
   useEffect(() => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
       recognitionRef.current = new (window as any).webkitSpeechRecognition()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = false
-      recognitionRef.current.lang = 'en-US'
+      if (recognitionRef.current) {
+        recognitionRef.current.continuous = false
+        recognitionRef.current.interimResults = false
+        recognitionRef.current.lang = 'en-US'
 
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript
-        setInputMessage(transcript)
-        setIsListening(false)
-      }
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript
+          setInputMessage(transcript)
+          setIsListening(false)
+        }
 
-      recognitionRef.current.onerror = () => {
-        setIsListening(false)
-      }
+        recognitionRef.current.onerror = () => {
+          setIsListening(false)
+        }
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false)
+        recognitionRef.current.onend = () => {
+          setIsListening(false)
+        }
       }
     }
   }, [])
@@ -399,7 +425,7 @@ export default function AIChatbot({
         </div>
 
         {/* Suggestions */}
-        {showSuggestions && messages.length > 0 && messages[messages.length - 1].suggestions && (
+        {_showSuggestions && messages.length > 0 && messages[messages.length - 1].suggestions && (
           <div className="p-4 border-t border-ink-700">
             <div className="flex flex-wrap gap-2">
               {messages[messages.length - 1].suggestions?.map((suggestion, index) => (

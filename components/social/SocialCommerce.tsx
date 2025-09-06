@@ -307,7 +307,7 @@ export default function SocialCommerce() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30 p-6">
         <div className="max-w-7xl mx-auto">

@@ -94,7 +94,7 @@ async function getSalesData(_supabase: any, _sellerId: string, _startDate: Date,
     return data
   }
 
-  let dailyData = []
+  let dailyData: Array<{ date: string; revenue: number; orders: number }> = []
   switch (timeRange) {
     case '7d':
       dailyData = generateSalesData(7)

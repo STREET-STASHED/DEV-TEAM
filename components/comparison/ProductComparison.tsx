@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { X, Plus, Star, Heart, ShoppingCart, Share2, CheckCircle } from 'lucide-react'
 
 interface Product {
@@ -60,7 +60,7 @@ export default function ProductComparison({
   const [searchResults, setSearchResults] = useState<Product[]>([])
 
   // Mock search results for adding products
-  const mockSearchResults: Product[] = [
+  const mockSearchResults: Product[] = useMemo(() => [
     {
       id: '1',
       name: 'Nike Air Jordan 1 Retro High',
@@ -141,7 +141,7 @@ export default function ProductComparison({
       isInStock: true,
       isOnSale: false
     }
-  ]
+  ], [])
 
   const maxProducts = 4
 

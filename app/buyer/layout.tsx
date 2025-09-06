@@ -17,7 +17,7 @@ export default function BuyerLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-ink-black">
+    <div className="min-h-screen bg-black">
       <WishlistProvider>
         <NotificationsProvider>
           <BuyerHeader />

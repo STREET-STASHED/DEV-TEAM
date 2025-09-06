@@ -57,7 +57,7 @@ export default async function ProductPage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-ink-black text-white">
+    <div className="min-h-screen bg-black text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Product Header */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">

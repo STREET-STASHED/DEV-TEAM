@@ -2,7 +2,7 @@ export function ProductGridSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="bg-ink-black rounded-3xl shadow-card border border-ink-800 animate-pulse">
+        <div key={i} className="bg-black rounded-3xl shadow-card border border-ink-800 animate-pulse">
           {/* Image skeleton */}
           <div className="aspect-square bg-ink-800 rounded-t-2xl"></div>
           

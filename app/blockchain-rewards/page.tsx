@@ -515,7 +515,7 @@ export default function BlockchainRewardsPage() {
   const totalChange24h = tokenBalances.reduce((sum, token) => sum + token.change24h, 0)
 
   return (
-    <div className="min-h-screen bg-ink-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border-b border-green-400/30 p-6">
         <div className="max-w-7xl mx-auto">

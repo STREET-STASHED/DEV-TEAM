@@ -1,6 +1,9 @@
 'use client'
 
 import { mockCategories, mockProducts, mockStores } from '@/lib/mockData'
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
 import {
     CameraIcon,
     ChatBubbleLeftRightIcon,

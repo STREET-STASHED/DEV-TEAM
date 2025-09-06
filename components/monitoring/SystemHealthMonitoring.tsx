@@ -203,23 +203,6 @@ export default function SystemHealthMonitoring({
     }
   ]
 
-  useEffect(() => {
-    setMetrics(mockMetrics)
-    setServices(mockServices)
-    setAlerts(mockAlerts)
-  }, [mockMetrics, mockServices, mockAlerts])
-
-  // Auto-refresh effect
-  useEffect(() => {
-    if (!autoRefresh) return
-
-    const interval = setInterval(() => {
-      handleRefresh()
-    }, 30000) // Refresh every 30 seconds
-
-    return () => clearInterval(interval)
-  }, [autoRefresh, handleRefresh])
-
   // Handle refresh
   const handleRefresh = async () => {
     setIsLoading(true)
@@ -242,6 +225,23 @@ export default function SystemHealthMonitoring({
       setIsLoading(false)
     }
   }
+
+  useEffect(() => {
+    setMetrics(mockMetrics)
+    setServices(mockServices)
+    setAlerts(mockAlerts)
+  }, [mockMetrics, mockServices, mockAlerts])
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (!autoRefresh) return
+
+    const interval = setInterval(() => {
+      handleRefresh()
+    }, 30000) // Refresh every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [autoRefresh, handleRefresh])
 
   // Get status icon and color
   const getStatusIcon = (status: string) => {
