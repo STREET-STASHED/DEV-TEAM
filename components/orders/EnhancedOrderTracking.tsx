@@ -236,7 +236,7 @@ export default function EnhancedOrderTracking({
     } finally {
       setIsLoading(false)
     }
-  }, [orderId, mockOrder])
+  }, [mockOrder])
 
   // Refresh order status
   const refreshOrderStatus = useCallback(async () => {

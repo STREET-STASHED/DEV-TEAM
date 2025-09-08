@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { CheckCircle, XCircle, AlertTriangle, Eye, RefreshCw, Zap, Shield, FileText, Clock } from 'lucide-react'
 
 interface QualityCheck {
@@ -70,7 +70,7 @@ export default function QualityControlAutomation({
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Mock data
-  const mockChecks: QualityCheck[] = [
+  const mockChecks: QualityCheck[] = useMemo(() => [
     {
       id: '1',
       type: 'image',
@@ -317,9 +317,9 @@ export default function QualityControlAutomation({
       createdAt: '2024-02-15T13:25:00Z',
       updatedAt: '2024-02-15T13:30:00Z'
     }
-  ]
+  ], [])
 
-  const mockMetrics: QualityMetrics = {
+  const mockMetrics: QualityMetrics = useMemo(() => ({
     totalChecks: 2847,
     passedChecks: 2156,
     failedChecks: 234,
@@ -330,7 +330,7 @@ export default function QualityControlAutomation({
     falsePositiveRate: 3.8,
     averageProcessingTime: 2.3,
     qualityTrend: 'up'
-  }
+  }), [])
 
   useEffect(() => {
     setChecks(mockChecks)

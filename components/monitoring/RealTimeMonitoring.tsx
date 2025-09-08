@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Activity, TrendingUp, AlertTriangle, CheckCircle, Clock, RefreshCw, XCircle } from 'lucide-react'
 
 interface SystemMetric {
@@ -62,7 +62,7 @@ export default function RealTimeMonitoring({
   const [lastUpdate, setLastUpdate] = useState(new Date())
 
   // Mock data
-  const mockMetrics: SystemMetric[] = [
+  const mockMetrics: SystemMetric[] = useMemo(() => [
     {
       id: 'cpu',
       name: 'CPU Usage',
@@ -151,9 +151,9 @@ export default function RealTimeMonitoring({
       lastUpdated: new Date().toISOString(),
       history: []
     }
-  ]
+  ], [])
 
-  const mockServices: ServiceStatus[] = [
+  const mockServices: ServiceStatus[] = useMemo(() => [
     {
       id: 'api',
       name: 'API Gateway',
@@ -223,9 +223,9 @@ export default function RealTimeMonitoring({
       responseTime: 34,
       dependencies: []
     }
-  ]
+  ], [])
 
-  const mockAlerts: Alert[] = [
+  const mockAlerts: Alert[] = useMemo(() => [
     {
       id: '1',
       severity: 'warning',
@@ -266,7 +266,7 @@ export default function RealTimeMonitoring({
       acknowledged: false,
       resolved: false
     }
-  ]
+  ], [])
 
   useEffect(() => {
     setMetrics(mockMetrics)

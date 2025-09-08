@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Shield, AlertTriangle, CheckCircle, X, Eye, Ban, Activity, Zap } from 'lucide-react'
 
 interface FraudAlert {
@@ -61,7 +61,7 @@ export default function FraudDetectionSystem({
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Mock data
-  const mockAlerts: FraudAlert[] = [
+  const mockAlerts: FraudAlert[] = useMemo(() => [
     {
       id: '1',
       type: 'payment',
@@ -227,9 +227,9 @@ export default function FraudDetectionSystem({
       resolvedAt: '2024-02-14T15:45:00Z',
       resolvedBy: 'fraud_analyst_1'
     }
-  ]
+  ], [])
 
-  const mockMetrics: FraudMetrics = {
+  const mockMetrics: FraudMetrics = useMemo(() => ({
     totalAlerts: 1247,
     activeAlerts: 23,
     resolvedAlerts: 1180,
@@ -238,7 +238,7 @@ export default function FraudDetectionSystem({
     preventedLoss: 234500,
     averageResponseTime: 4.2,
     detectionAccuracy: 94.5
-  }
+  }), [])
 
   useEffect(() => {
     setAlerts(mockAlerts)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Star, ThumbsUp, ThumbsDown, Flag, Camera, Send, CheckCircle } from 'lucide-react'
 
 interface Review {
@@ -77,7 +77,7 @@ export default function EnhancedReviewSystem({
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Mock data
-  const mockReviews: Review[] = [
+  const mockReviews: Review[] = useMemo(() => [
     {
       id: '1',
       userId: 'user1',
@@ -144,9 +144,9 @@ export default function EnhancedReviewSystem({
       reportCount: 0,
       isReported: false
     }
-  ]
+  ], [])
 
-  const mockStats: ReviewStats = {
+  const mockStats: ReviewStats = useMemo(() => ({
     averageRating: 4.7,
     totalReviews: 247,
     ratingDistribution: {
@@ -158,7 +158,7 @@ export default function EnhancedReviewSystem({
     },
     verifiedPurchaseRate: 0.89,
     recentTrend: 'up'
-  }
+  }), [])
 
   useEffect(() => {
     // Load reviews and stats

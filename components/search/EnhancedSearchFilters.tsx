@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { Search, Camera, X, SlidersHorizontal, Star, TrendingUp, Clock, DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -94,16 +94,16 @@ export default function EnhancedSearchFilters() {
   })
 
   // Enhanced categories with subcategories
-  const categories = [
+  const categories = useMemo(() => [
     { value: 'sneakers', label: 'Sneakers', subcategories: ['jordan', 'nike', 'adidas', 'yeezy', 'vintage'] },
     { value: 'streetwear', label: 'Streetwear', subcategories: ['hoodies', 'tees', 'jackets', 'pants', 'shorts'] },
     { value: 'accessories', label: 'Accessories', subcategories: ['bags', 'hats', 'belts', 'jewelry', 'watches'] },
     { value: 'vintage', label: 'Vintage', subcategories: ['90s', '80s', '70s', 'designer', 'streetwear'] },
     { value: 'limited_edition', label: 'Limited Edition', subcategories: ['collabs', 'drops', 'exclusives', 'rares'] }
-  ]
+  ], [])
 
   // Enhanced brands with popularity scores
-  const brands = [
+  const brands = useMemo(() => [
     { value: 'nike', label: 'Nike', popularity: 95 },
     { value: 'adidas', label: 'Adidas', popularity: 90 },
     { value: 'jordan', label: 'Jordan', popularity: 88 },
@@ -114,7 +114,7 @@ export default function EnhancedSearchFilters() {
     { value: 'yeezy', label: 'Yeezy', popularity: 85 },
     { value: 'travis_scott', label: 'Travis Scott', popularity: 78 },
     { value: 'fear_of_god', label: 'Fear of God', popularity: 72 }
-  ]
+  ], [])
 
   // Enhanced sizes with category-specific options
   const sizeOptions = {

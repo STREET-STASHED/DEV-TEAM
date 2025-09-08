@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { AlertTriangle, CheckCircle, Clock, X, FileText, Scale, Bot, User } from 'lucide-react'
 
 interface Dispute {
@@ -81,7 +81,7 @@ export default function AutomatedDisputeResolution({
   })
 
   // Mock data
-  const mockDisputes: Dispute[] = [
+  const mockDisputes: Dispute[] = useMemo(() => [
     {
       id: '1',
       type: 'payment',
@@ -249,7 +249,7 @@ export default function AutomatedDisputeResolution({
       createdAt: '2024-02-12T09:00:00Z',
       updatedAt: '2024-02-12T15:00:00Z'
     }
-  ]
+  ], [])
 
   useEffect(() => {
     setDisputes(mockDisputes)

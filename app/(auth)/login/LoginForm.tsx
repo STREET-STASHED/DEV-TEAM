@@ -29,40 +29,8 @@ export function LoginForm() {
         return
       }
 
-      const { error: profileError } = await supabase.from('profiles')
-        .select('has_completed_onboarding')
-        .eq('user_id', data.user.id)
-        .single()
-
-      if (profileError) {
-        console.error('Profile fetch error:', profileError.message)
-        setError('Failed to fetch profile')
-        return
-      }
-
-      try {
-        const redirectResponse = await fetch('/functions/v1/handle-redirect', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${data.session?.access_token}`,
-          },
-          body: JSON.stringify({ user_id: data.user.id }),
-        })
-
-        const redirectData = await redirectResponse.json()
-        if (redirectData.redirectTo) {
-          router.replace(redirectData.redirectTo)
-          if (redirectData.redirectTo === '/onboarding') {
-            router.refresh() // Use refresh instead of reload for App Router
-          }
-        } else {
-          router.replace('/onboarding') // Fallback
-        }
-      } catch (redirectError) {
-        console.error('[ROUTING FALLBACK ERROR]', redirectError)
-        router.replace('/onboarding')
-      }
+      // Let AuthContext load the profile; send user to homepage for now.
+      router.replace('/')
     } catch (err) {
       console.error('Login error:', err)
       setError('An unexpected error occurred')

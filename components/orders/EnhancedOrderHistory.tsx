@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Search, Filter, Download, Eye, RefreshCw, Star, ShoppingCart, Package, Truck, CheckCircle, X, Clock } from 'lucide-react'
 
 interface OrderItem {
@@ -71,7 +71,7 @@ export default function EnhancedOrderHistory({
   const [isLoading, setIsLoading] = useState(true)
 
   // Mock data
-  const mockOrders: Order[] = [
+  const mockOrders: Order[] = useMemo(() => [
     {
       id: '1',
       orderNumber: 'SS-2024-001234',
@@ -207,7 +207,7 @@ export default function EnhancedOrderHistory({
       canReturn: false,
       canReorder: true
     }
-  ]
+  ], [])
 
   useEffect(() => {
     // Load orders

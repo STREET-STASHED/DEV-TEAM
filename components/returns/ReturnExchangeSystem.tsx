@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { ArrowLeft, Package, RefreshCw, CheckCircle, Clock, Camera, Upload, X, FileText, CreditCard, Truck } from 'lucide-react'
 
 interface ReturnItem {
@@ -51,7 +51,7 @@ export default function ReturnExchangeSystem({
   const [_uploadedImages, _setUploadedImages] = useState<string[]>([])
 
   // Mock data
-  const mockReturnRequests: ReturnRequest[] = [
+  const mockReturnRequests: ReturnRequest[] = useMemo(() => [
     {
       id: 'RET-001',
       orderId: 'ORD-12345',
@@ -78,7 +78,7 @@ export default function ReturnExchangeSystem({
       createdAt: '2024-01-15T10:30:00Z',
       trackingNumber: 'TRK-789456123'
     }
-  ]
+  ], [])
 
   const mockOrders = [
     {

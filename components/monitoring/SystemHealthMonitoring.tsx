@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Activity, AlertTriangle, CheckCircle, XCircle, Server, Clock, RefreshCw, Settings, Bell } from 'lucide-react'
 
 interface SystemMetric {
@@ -53,7 +53,7 @@ export default function SystemHealthMonitoring({
   const [autoRefresh, setAutoRefresh] = useState(true)
 
   // Mock data
-  const mockMetrics: SystemMetric[] = [
+  const mockMetrics: SystemMetric[] = useMemo(() => [
     {
       id: 'cpu_usage',
       name: 'CPU Usage',
@@ -114,9 +114,9 @@ export default function SystemHealthMonitoring({
       trend: 'down',
       lastUpdated: '45 seconds ago'
     }
-  ]
+  ], [])
 
-  const mockServices: ServiceStatus[] = [
+  const mockServices: ServiceStatus[] = useMemo(() => [
     {
       id: 'api_gateway',
       name: 'API Gateway',
@@ -171,9 +171,9 @@ export default function SystemHealthMonitoring({
       lastCheck: '1 minute ago',
       description: 'Product search and filtering'
     }
-  ]
+  ], [])
 
-  const mockAlerts: Alert[] = [
+  const mockAlerts: Alert[] = useMemo(() => [
     {
       id: '1',
       severity: 'medium',
@@ -201,10 +201,10 @@ export default function SystemHealthMonitoring({
       resolved: true,
       service: 'Database'
     }
-  ]
+  ], [])
 
   // Handle refresh
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsLoading(true)
     
     try {
@@ -224,7 +224,7 @@ export default function SystemHealthMonitoring({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [onRefresh])
 
   useEffect(() => {
     setMetrics(mockMetrics)
