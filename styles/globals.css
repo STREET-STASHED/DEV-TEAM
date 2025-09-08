@@ -84,7 +84,9 @@
   }
 
   body {
-    @apply bg-black text-white;
+    /* Avoid @apply here due to Tailwind processing differences in some builds */
+    background-color: #000000;
+    color: #ffffff;
     font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
     line-height: 1.6;
   }
@@ -93,7 +95,7 @@
     font-family: 'SF Pro Display', 'Inter', system-ui, sans-serif;
     font-weight: 600;
     line-height: 1.2;
-    @apply text-white;
+    color: #ffffff;
   }
 }
 
