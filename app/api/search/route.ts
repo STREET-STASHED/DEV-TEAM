@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const minPrice = searchParams.get('minPrice')
     const maxPrice = searchParams.get('maxPrice')
     const condition = searchParams.get('condition')
-    const sellerRating = searchParams.get('sellerRating')
+    const _sellerRating = searchParams.get('sellerRating')
     const tags = searchParams.get('tags')
     const sortBy = searchParams.get('sortBy') || 'relevance'
 

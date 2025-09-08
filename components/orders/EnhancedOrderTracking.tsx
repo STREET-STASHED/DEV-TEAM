@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { MapPin, Clock, Package, Truck, CheckCircle, AlertCircle, Phone, MessageCircle, RefreshCw, Download, Share2 } from 'lucide-react'
 
 interface OrderStatus {
@@ -93,7 +93,7 @@ export default function EnhancedOrderTracking({
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Mock order data
-  const mockOrder: Order = {
+  const mockOrder: Order = useMemo(() => ({
     id: orderId,
     orderNumber: 'SS-2024-001234',
     status: 'in_transit',
@@ -211,7 +211,7 @@ export default function EnhancedOrderTracking({
     ],
     createdAt: '2024-02-10T10:00:00Z',
     updatedAt: '2024-02-11T10:00:00Z'
-  }
+  }), [orderId])
 
   // Load order data
   const loadOrderData = useCallback(async () => {
