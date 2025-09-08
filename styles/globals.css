@@ -1,6 +1,8 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../tailwind.config.mjs";
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
+@plugin "@tailwindcss/aspect-ratio";
 
 /* Custom CSS Variables */
 :root {
@@ -797,7 +799,7 @@
 
   /* Responsive Design */
   .responsive-container {
-    @apply container-premium;
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   .responsive-grid {

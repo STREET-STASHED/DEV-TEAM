@@ -1,11 +1,12 @@
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
+const withBundleAnalyzer = require('@next/bundle-analyzer')({ enabled: process.env.ANALYZE === 'true' });
 
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const baseConfig = {
   experimental: {
-    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@heroicons/react'],
   },
   // Force dynamic rendering for all pages
   output: 'standalone',
@@ -77,4 +78,9 @@ const nextConfig = {
   },
 }
 
+<<<<<<< Current (Your changes)
+=======
+// Enable bundle analyzer when ANALYZE=true. Export a single config.
+const nextConfig = process.env.ANALYZE ? withBundleAnalyzer(baseConfig) : baseConfig
+>>>>>>> Incoming (Background Agent changes)
 export default nextConfig
