@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 interface StyleProfile {
   name: string
-  age: number
+  age: number | ''
   gender: string
   occasion: string
   stylePreferences: string[]
@@ -43,7 +43,7 @@ interface Outfit {
 
 const defaultStyleProfile: StyleProfile = {
   name: '',
-  age: 25,
+  age: 25 as number | '',
   gender: '',
   occasion: '',
   stylePreferences: [],
@@ -179,9 +179,14 @@ export default function AIStylistPage() {
         // Load profile
         const saved = localStorage.getItem('ai-stylist-profile')
         if (saved) {
-          const parsed = JSON.parse(saved)
-          setStyleProfile({ ...defaultStyleProfile, ...parsed })
-        }
+  const parsed = JSON.parse(saved)
+  setStyleProfile({
+    ...defaultStyleProfile,
+    ...parsed,
+    age: parsed.age !== undefined ? Number(parsed.age) : defaultStyleProfile.age
+  })
+}
+
 
         // Load favorites
         const savedFavorites = localStorage.getItem('ai-stylist-favorites')
@@ -577,29 +582,35 @@ export default function AIStylistPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Basic Info */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Name *</label>
-                    <input
-                      type="text"
-                      value={styleProfile.name}
-                      onChange={(e) => setStyleProfile({ ...styleProfile, name: e.target.value })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none transition-colors"
-                      placeholder="Enter your name"
-                    />
-                  </div>
+<div>
+  <label className="block text-sm font-medium mb-2">Name *</label>
+  <input
+    type="text"
+    value={styleProfile.name}
+    onChange={(e) => setStyleProfile({ ...styleProfile, name: e.target.value })}
+    className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none transition-colors"
+    placeholder="Enter your name"
+  />
+</div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Age</label>
-                    <input
-                      type="number"
-                      value={styleProfile.age}
-                      onChange={(e) => setStyleProfile({ ...styleProfile, age: parseInt(e.target.value) || 25 })}
-                      className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none transition-colors"
-                      placeholder="25"
-                      min="13"
-                      max="100"
-                    />
-                  </div>
+<div>
+  <label className="block text-sm font-medium mb-2">Age</label>
+  <input
+    type="number"
+    value={styleProfile.age === '' ? '' : styleProfile.age}
+    onChange={(e) => {
+      const value = e.target.value;
+      setStyleProfile({
+        ...styleProfile,
+        age: value === '' ? '' : parseInt(value)
+      });
+    }}
+    className="w-full bg-ink-800 border border-ink-600 rounded-lg px-4 py-3 text-white placeholder-ink-400 focus:border-brand-400 focus:outline-none transition-colors"
+    placeholder="25"
+    min="0"
+    max="100"
+  />
+</div>
 
                   <div>
                     <label className="block text-sm font-medium mb-2">Gender *</label>
