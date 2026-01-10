@@ -3,6 +3,7 @@
 import { useCart } from '@/context/CartContext'
 import { useWishlist } from '@/context/WishlistContext'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { HeartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartSolidIcon } from '@heroicons/react/24/solid'
 
@@ -23,10 +24,19 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter()
   const [isAdding, setIsAdding] = useState(false)
   const [message, setMessage] = useState('')
   const { addItem, hasItem } = useCart()
   const { addItem: addToWishlist, removeItem: removeFromWishlist, hasItem: hasWishlistItem } = useWishlist()
+
+  const handleProductClick = (e: React.MouseEvent) => {
+    // Only navigate if clicking on the card itself, not buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return
+    }
+    router.push(`/buyer/marketplace/product/${product.id}`)
+  }
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation
@@ -87,7 +97,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const isInWishlist = hasWishlistItem(product.id)
 
   return (
-    <div className="bg-black rounded-3xl shadow-card border border-ink-800 hover:shadow-hover transition-all duration-500 hover:scale-[1.02] overflow-hidden relative group mx-auto w-full">
+    <div 
+      onClick={handleProductClick}
+      className="bg-black rounded-3xl shadow-card border border-ink-800 hover:shadow-hover transition-all duration-500 hover:scale-[1.02] overflow-hidden relative group mx-auto w-full cursor-pointer"
+    >
       {/* Product Image */}
       <div className="relative aspect-square bg-ink-900 overflow-hidden">
         {product.image_url ? (

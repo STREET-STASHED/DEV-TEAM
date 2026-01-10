@@ -7,6 +7,7 @@ import {
     type ProductRecommendation
 } from '@/lib/ai/recommendations'
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface ProductRecommendationsProps {
   userId?: string
@@ -27,6 +28,7 @@ export default function ProductRecommendations({
   showReason = true,
   className = ''
 }: ProductRecommendationsProps) {
+  const router = useRouter()
   const [recommendations, setRecommendations] = useState<ProductRecommendation[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -194,8 +196,8 @@ export default function ProductRecommendations({
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  // Navigate to product detail
-                  window.location.href = `/buyer/marketplace/product/${product.id}`
+                  // Navigate to product detail using client-side routing
+                  router.push(`/buyer/marketplace/product/${product.id}`)
                 }}
                 className="bg-ink-700 hover:bg-ink-600 text-ink-200 text-xs py-2 px-3 rounded-md transition-colors"
               >

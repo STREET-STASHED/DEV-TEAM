@@ -58,16 +58,17 @@ export function ProductModal({ product }: ProductModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
         {/* Background overlay */}
         <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity z-[99]"
           onClick={handleClose}
+          aria-label="Close modal"
         />
 
         {/* Modal panel */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div className="relative z-[100] inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full max-h-[90vh] overflow-y-auto">
           <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <div className="sm:flex sm:items-start">
               <div className="w-full">
@@ -115,7 +116,7 @@ export function ProductModal({ product }: ProductModalProps) {
 
                     <div>
                       <h4 className="text-sm font-medium text-gray-500 mb-1">Description</h4>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-gray-600 text-sm break-words overflow-wrap-anywhere">
                         {product.description}
                       </p>
                     </div>

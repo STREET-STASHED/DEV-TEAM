@@ -38,28 +38,104 @@ export default function MarketplaceContent() {
   const [liveActivity, setLiveActivity] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [showFilters, _setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [_showAIStylist, _setShowAIStylist] = useState(false)
   const [_showARTryOn, _setShowARTryOn] = useState(false)
   const [_showSocialChallenges, _setShowSocialChallenges] = useState(false)
 
   const applyFilters = useCallback(() => {
-    // Since we're now fetching filtered data from the API,
-    // we just need to set the products as filtered products
-    setFilteredProducts(products)
-  }, [products])
+    let filtered = [...products]
+    
+    // Apply search query filter first (most important)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(product =>
+        product.name?.toLowerCase().includes(query) ||
+        product.description?.toLowerCase().includes(query) ||
+        product.category?.toLowerCase().includes(query) ||
+        product.tags?.some((tag: string) => tag.toLowerCase().includes(query))
+      )
+    }
+    
+    // Apply category filter
+    if (selectedCategory && selectedCategory !== 'all') {
+      filtered = filtered.filter(product => {
+        const productCategory = product.category?.toLowerCase() || ''
+        const productCategoryId = product.category_id?.toLowerCase() || ''
+        const selectedCat = selectedCategory.toLowerCase()
+        // Match by category name, ID, or if category contains the selected value
+        return productCategory === selectedCat || 
+               productCategoryId === selectedCat ||
+               productCategory.includes(selectedCat) ||
+               (categories.find(c => c.id === selectedCategory)?.name?.toLowerCase() === productCategory)
+      })
+    }
+    
+    // Apply store filter
+    if (selectedStore && selectedStore !== 'all') {
+      filtered = filtered.filter(product => 
+        product.seller_id === selectedStore ||
+        product.seller_name?.toLowerCase() === selectedStore.toLowerCase() ||
+        product.storeName?.toLowerCase() === selectedStore.toLowerCase()
+      )
+    }
+    
+    // Apply price range filter
+    if (priceRange[0] > 0 || priceRange[1] < 1000) {
+      filtered = filtered.filter(product => {
+        const price = product.price || 0
+        return price >= priceRange[0] && price <= priceRange[1]
+      })
+    }
+    
+    // Apply sorting
+    switch (sortBy) {
+      case 'price-low':
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
+        break
+      case 'price-high':
+        filtered.sort((a, b) => (b.price || 0) - (a.price || 0))
+        break
+      case 'newest':
+        filtered.sort((a, b) => 
+          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        )
+        break
+      case 'rating':
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        break
+      default:
+        // Keep original order for 'trending' and default
+        break
+    }
+    
+    setFilteredProducts(filtered)
+  }, [products, selectedCategory, selectedStore, priceRange, searchQuery, sortBy])
 
+  // Sync URL parameters to local state - single effect to avoid conflicts
   useEffect(() => {
-    // Get URL parameters
     const search = searchParams.get('search')
     const category = searchParams.get('category')
     const store = searchParams.get('store')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
+    const sort = searchParams.get('sort')
 
-    if (search) setSearchQuery(search)
+    if (search !== null) {
+      setSearchQuery(search || '')
+    } else {
+      setSearchQuery('')
+    }
     if (category) setSelectedCategory(category)
+    else setSelectedCategory('all')
     if (store) setSelectedStore(store)
+    else setSelectedStore('all')
+    if (minPrice) setPriceRange([Number(minPrice), priceRange[1]])
+    if (maxPrice) setPriceRange([priceRange[0], Number(maxPrice)])
+    if (sort) setSortBy(sort)
   }, [searchParams])
 
+  // Apply filters whenever products or filter state changes
   useEffect(() => {
     if (products.length > 0) {
       applyFilters()
@@ -86,7 +162,14 @@ export default function MarketplaceContent() {
           })
           productsRes = await fetch(`/api/search?${searchParams}`)
         } else {
-          productsRes = await fetch('/api/items')
+          // Build items API URL with filters
+          const itemsParams = new URLSearchParams()
+          if (selectedCategory !== 'all') itemsParams.set('category', selectedCategory)
+          if (selectedStore !== 'all') itemsParams.set('store', selectedStore)
+          if (priceRange[0] > 0) itemsParams.set('minPrice', priceRange[0].toString())
+          if (priceRange[1] < 1000) itemsParams.set('maxPrice', priceRange[1].toString())
+          const itemsUrl = itemsParams.toString() ? `/api/items?${itemsParams}` : '/api/items'
+          productsRes = await fetch(itemsUrl)
         }
 
         // Fetch other data in parallel
@@ -104,9 +187,31 @@ export default function MarketplaceContent() {
         ])
 
         // Set the data, with fallback to empty arrays if API fails
-        const products = searchQuery.trim() 
+        let products = searchQuery.trim() 
           ? (productsData.results || [])
           : (productsData.items || productsData.results || [])
+        
+        // Normalize categories from API once so we can safely use them for filtering
+        const rawCategories = categoriesData.categories || categoriesData.results || []
+
+        // Apply category filter if needed (before setting state)
+        if (selectedCategory !== 'all' && products.length > 0) {
+          products = products.filter((product: any) => {
+            const productCategory = product.category?.toLowerCase() || ''
+            const productCategoryId = product.category_id?.toLowerCase() || ''
+            const selectedCat = selectedCategory.toLowerCase()
+            const categoryMatch = rawCategories.find(
+              (c: any) =>
+                c.id === selectedCategory ||
+                c.id?.toString().toLowerCase() === selectedCat ||
+                c.name?.toLowerCase() === selectedCat
+            )
+            return productCategory === selectedCat || 
+                   productCategoryId === selectedCat ||
+                   productCategory.includes(selectedCat) ||
+                   (categoryMatch && categoryMatch.name?.toLowerCase() === productCategory)
+          })
+        }
         
         // Ensure products have required properties for styling
         const enhancedProducts = products.map((product: any) => ({
@@ -115,11 +220,15 @@ export default function MarketplaceContent() {
           rating: product.rating ?? (4 + Math.random()), // Random rating if not provided
           reviewCount: product.reviewCount ?? Math.floor(Math.random() * 500),
           inStock: product.inStock ?? true,
-          images: product.images || product.image_url ? [product.image_url] : ['/mock/default-product.jpg']
+          images: product.images && product.images.length > 0 
+            ? product.images 
+            : product.image_url 
+              ? [product.image_url] 
+              : ['/mock/default-product.jpg']
         }))
         
         // Ensure categories have icons
-        const enhancedCategories = (categoriesData.categories || categoriesData.results || []).map((category: any) => ({
+        const enhancedCategories = rawCategories.map((category: any) => ({
           ...category,
           icon: category.icon || '🛍️', // Default icon if not provided
           productCount: category.productCount || Math.floor(Math.random() * 50)
@@ -171,6 +280,58 @@ export default function MarketplaceContent() {
     fetchData()
   }, [searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
 
+  // Set up real-time live activity updates via polling
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null
+    
+    const pollForUpdates = async () => {
+      try {
+        const socialRes = await fetch('/api/social/posts?type=trending&limit=3', { 
+          cache: 'no-store',
+          headers: { 'Cache-Control': 'no-cache' }
+        })
+        const socialData = socialRes.ok ? await socialRes.json() : null
+        
+        const activityItems: any[] = []
+        
+        if (socialData?.posts) {
+          socialData.posts.forEach((post: any) => {
+            activityItems.push({
+              id: `social-${post.id}`,
+              type: 'social',
+              title: 'New Social Post',
+              description: post.content,
+              timestamp: post.created_at,
+              icon: '💬',
+              color: 'blue',
+              colorClasses: {
+                bg: 'bg-blue-500',
+                text: 'text-blue-400',
+                border: 'hover:border-blue-500/50'
+              }
+            })
+          })
+        }
+        
+        if (activityItems.length > 0) {
+          setLiveActivity(activityItems.slice(0, 3))
+        }
+      } catch (err) {
+        console.error('Error polling for updates:', err)
+      }
+    }
+    
+    // Poll immediately, then every 10 seconds
+    pollForUpdates()
+    pollInterval = setInterval(pollForUpdates, 10000)
+    
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+      }
+    }
+  }, [])
+
   const _handleSearch = (filters?: any) => {
     const params = new URLSearchParams()
     
@@ -197,7 +358,11 @@ export default function MarketplaceContent() {
   }
 
   const handleProductClick = (productId: string) => {
-    router.push(`/buyer/marketplace/product/${productId}`)
+    if (productId) {
+      router.push(`/buyer/marketplace/product/${productId}`)
+    } else {
+      console.error('Product ID is missing')
+    }
   }
 
   const handleAddToCart = (product: any) => {
@@ -271,26 +436,28 @@ export default function MarketplaceContent() {
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30 p-6">
+      <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-b border-purple-400/30 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">🛍️ Marketplace</h1>
-              <p className="text-ink-300">Discover amazing products from local stores</p>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">🛍️ Marketplace</h1>
+              <p className="text-sm sm:text-base text-ink-300">Discover amazing products from local stores</p>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
               <button
                 onClick={() => router.push('/buyer/checkout')}
-                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                className="bg-purple-500 hover:bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base flex-1 sm:flex-initial"
               >
-                <ShoppingCartIcon className="w-5 h-5" />
-                <span>Cart ({totalCount})</span>
+                <ShoppingCartIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Cart ({totalCount})</span>
+                <span className="sm:hidden">({totalCount})</span>
               </button>
               <button
                 onClick={() => router.back()}
-                className="bg-ink-800 hover:bg-ink-700 px-4 py-2 rounded-lg transition-colors"
+                className="bg-ink-800 hover:bg-ink-700 px-3 sm:px-4 py-2 rounded-lg transition-colors text-sm sm:text-base"
               >
-                ← Back
+                <span className="hidden sm:inline">← Back</span>
+                <span className="sm:hidden">←</span>
               </button>
             </div>
           </div>
@@ -300,59 +467,70 @@ export default function MarketplaceContent() {
       {/* Advanced Features Bar */}
       <div className="bg-gradient-to-r from-yellow-500/20 via-purple-500/20 to-pink-500/20 border-b border-yellow-400/30 p-4">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4">
             {/* AI Stylist */}
             <button
               onClick={handleAIStylist}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base"
             >
-              <SparklesIcon className="w-5 h-5" />
-              <span>AI Stylist</span>
+              <SparklesIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">AI Stylist</span>
+              <span className="sm:hidden">AI</span>
             </button>
 
             {/* AR Try-On */}
             <button
               onClick={handleARTryOn}
-              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+              className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base"
             >
-              <CameraIcon className="w-5 h-5" />
-              <span>AR Try-On</span>
+              <CameraIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">AR Try-On</span>
+              <span className="sm:hidden">AR</span>
             </button>
 
             {/* Social Challenges */}
             <button
               onClick={handleSocialChallenges}
-              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base"
             >
-              <TrophyIcon className="w-5 h-5" />
-              <span>Challenges</span>
+              <TrophyIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Challenges</span>
+              <span className="sm:hidden">Chal</span>
             </button>
 
             {/* Live Chat */}
             <button
-              onClick={() => alert('Live chat coming soon!')}
-              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                // Navigate to support page instead of popup
+                router.push('/support')
+              }}
+              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base"
             >
-              <ChatBubbleLeftRightIcon className="w-5 h-5" />
-              <span>Live Chat</span>
+              <ChatBubbleLeftRightIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Live Chat</span>
+              <span className="sm:hidden">Chat</span>
             </button>
 
             {/* Social Sharing */}
-            <button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
-              <ShareIcon className="w-5 h-5" />
-              <span>Share</span>
+            <button className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base">
+              <ShareIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Share</span>
             </button>
-            <button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
               </svg>
-              <span>NFT Collection</span>
+              <span className="hidden sm:inline">NFT Collection</span>
+              <span className="sm:hidden">NFT</span>
             </button>
-            <button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-6 py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-2 shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+            <button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
               </svg>
-              <span>Smart Contracts</span>
+              <span className="hidden sm:inline">Smart Contracts</span>
+              <span className="sm:hidden">Smart</span>
             </button>
           </div>
         </div>
@@ -369,7 +547,11 @@ export default function MarketplaceContent() {
             <div className="flex items-center space-x-2">
               <span className="text-green-500 text-sm">Real-time updates</span>
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <button className="text-ink-400 hover:text-white transition-colors">
+              <button 
+                className="text-ink-400 hover:text-white transition-colors"
+                aria-label="More options"
+                title="More options"
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                 </svg>
@@ -433,7 +615,16 @@ export default function MarketplaceContent() {
 
           {/* Filters Panel */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-ink-900 rounded-lg border border-ink-700">
+            <div className="mt-4 p-4 bg-ink-900 rounded-lg border border-ink-700 relative">
+              <button
+                onClick={() => setShowFilters(false)}
+                className="absolute top-2 right-2 text-ink-400 hover:text-white transition-colors"
+                aria-label="Close filters"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Category Filter */}
                 <div>
@@ -442,6 +633,8 @@ export default function MarketplaceContent() {
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="w-full bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    aria-label="Filter by category"
+                    title="Filter by category"
                   >
                     <option value="all">All Categories</option>
                     {categories.map((category) => (
@@ -459,6 +652,8 @@ export default function MarketplaceContent() {
                     value={selectedStore}
                     onChange={(e) => setSelectedStore(e.target.value)}
                     className="w-full bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    aria-label="Filter by store"
+                    title="Filter by store"
                   >
                     <option value="all">All Stores</option>
                     {stores.map((store) => (
@@ -519,9 +714,9 @@ export default function MarketplaceContent() {
       </div>
 
       {/* Products Grid */}
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 overflow-x-hidden">
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 px-4">
             <div className="w-24 h-24 bg-ink-800 rounded-full flex items-center justify-center mx-auto mb-6">
               <MagnifyingGlassIcon className="w-12 h-12 text-ink-400" />
             </div>
@@ -537,22 +732,33 @@ export default function MarketplaceContent() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 w-full">
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-ink-900 rounded-xl overflow-hidden border border-ink-800 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-105"
+                className="bg-ink-900 rounded-xl overflow-hidden border border-ink-800 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:scale-105 w-full"
               >
                 {/* Product Image */}
                 <div className="relative">
                   <img
-                    src={product.images && product.images.length > 0 ? product.images[0] : '/mock/default-product.jpg'}
-                    alt={product.name}
+                    src={
+                      (product.images && product.images.length > 0 && product.images[0]) ||
+                      product.image_url ||
+                      product.image ||
+                      '/mock/default-product.jpg'
+                    }
+                    alt={product.name || 'Product'}
                     className="w-full h-64 object-cover cursor-pointer"
                     onClick={() => handleProductClick(product.id)}
                     onError={(e) => {
-                      e.currentTarget.src = '/mock/default-product.jpg'
+                      const target = e.currentTarget
+                      const fallbackSrc = '/mock/default-product.jpg'
+                      if (target.src && !target.src.includes(fallbackSrc) && !target.src.includes('default-product')) {
+                        target.src = fallbackSrc
+                      }
                     }}
+                    loading="lazy"
+                    decoding="async"
                   />
 
                   {/* Badges */}
@@ -573,6 +779,8 @@ export default function MarketplaceContent() {
                     <button
                       onClick={() => handleAddToWishlist(product)}
                       className="bg-ink-800/80 hover:bg-ink-700/80 text-white p-2 rounded-full transition-colors backdrop-blur-sm"
+                      aria-label="Add to wishlist"
+                      title="Add to wishlist"
                     >
                       <HeartIcon className="w-4 h-4" />
                     </button>
@@ -607,7 +815,7 @@ export default function MarketplaceContent() {
                     </h3>
                     <div className="flex items-center space-x-1">
                       <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-ink-300 text-sm">{product.rating}</span>
+                      <span className="text-ink-300 text-sm">{typeof product.rating === 'number' ? Math.round(product.rating * 10) / 10 : product.rating}</span>
                     </div>
                   </div>
 

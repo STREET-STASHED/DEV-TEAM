@@ -78,8 +78,8 @@ export default function ARTryOnPage() {
       } else {
         console.log('AR Try-On: Browser is compatible')
         setDebugInfo('Browser is compatible with AR features')
-        // Auto-enable demo mode for better user experience
-        setDemoMode(true)
+        // Don't auto-enable demo mode - let user choose
+        // setDemoMode(true)
       }
 
             // Mark as hydrated immediately
@@ -90,11 +90,9 @@ export default function ARTryOnPage() {
 
   // Initialize camera
   const initializeCamera = useCallback(async () => {
-    if (!isBrowserCompatible) {
-      setCameraError('AR features not supported in this browser')
-      return false
-    }
-
+    // Allow camera initialization even if browser compatibility check failed
+    // The actual getUserMedia call will handle compatibility
+    
     setIsCameraLoading(true)
     setCameraError(null)
 
@@ -104,6 +102,13 @@ export default function ARTryOnPage() {
 
       if (!isSecure) {
         setCameraError('Camera access requires HTTPS or localhost. Please use https://localhost:3000 or enable demo mode.')
+        setIsCameraLoading(false)
+        return false
+      }
+      
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError('Camera API not available in this browser. Please enable demo mode.')
         setIsCameraLoading(false)
         return false
       }
@@ -120,23 +125,41 @@ export default function ARTryOnPage() {
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.onloadedmetadata = () => {
+        const video = videoRef.current
+        
+        // Set up timeout before attaching stream
+        const timeoutId = setTimeout(() => {
+          setIsCameraLoading(false)
+          setCameraError('Camera took too long to initialize. Please try again or use demo mode.')
+        }, 10000) // 10 second timeout
+
+        video.srcObject = stream
+        
+        // Handle successful load
+        const handleLoadedMetadata = () => {
+          clearTimeout(timeoutId)
           setIsCameraActive(true)
           setIsCameraLoading(false)
           setDebugInfo('Camera initialized successfully')
+          video.removeEventListener('loadedmetadata', handleLoadedMetadata)
         }
-        videoRef.current.onerror = () => {
+        
+        video.addEventListener('loadedmetadata', handleLoadedMetadata)
+        
+        video.onerror = () => {
+          clearTimeout(timeoutId)
+          setIsCameraLoading(false)
+          setCameraError('Failed to load video stream')
           throw new Error('Failed to load video stream')
         }
-
-        // Add timeout in case video doesn't load
-        setTimeout(() => {
-          if (!isCameraActive && isCameraLoading) {
-            setCameraError('Camera took too long to initialize. Please try again or use demo mode.')
-            setIsCameraLoading(false)
-          }
-        }, 10000) // 10 second timeout
+        
+        // Play the video to ensure it starts
+        video.play().catch(err => {
+          clearTimeout(timeoutId)
+          console.error('Error playing video:', err)
+          setIsCameraLoading(false)
+          setCameraError('Failed to start video playback')
+        })
       }
 
       return true
@@ -162,7 +185,7 @@ export default function ARTryOnPage() {
       setIsCameraLoading(false)
       return false
     }
-  }, [isBrowserCompatible, isCameraActive, isCameraLoading])
+  }, [isBrowserCompatible])
 
   // Stop camera
   const stopCamera = useCallback(() => {
@@ -743,7 +766,7 @@ export default function ARTryOnPage() {
                       {!isCameraActive ? (
                         <button
                           onClick={initializeCamera}
-                          disabled={isCameraLoading || !isBrowserCompatible}
+                          disabled={isCameraLoading}
                           className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-ink-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
                         >
                           {isCameraLoading ? (
@@ -812,17 +835,17 @@ export default function ARTryOnPage() {
 
                     {/* AR Overlay Indicator */}
                     {arOverlay && currentProduct && (
-                      <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg animate-pulse">
+                      <div className="absolute top-2 left-2 md:top-4 md:left-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-medium shadow-lg animate-pulse z-10 max-w-[calc(100%-1rem)]">
                         <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-green-400 rounded-full animate-ping"></div>
-                          <span>AR Active: {currentProduct.name}</span>
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-ping flex-shrink-0"></div>
+                          <span className="truncate">AR Active: {currentProduct.name}</span>
                         </div>
                       </div>
                     )}
 
                     {/* Success Message */}
                     {arOverlay && currentProduct && recommendedSize && (
-                      <div className="absolute bottom-4 left-4 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+                      <div className="absolute bottom-2 left-2 md:bottom-4 md:left-4 bg-green-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-xs md:text-sm font-medium shadow-lg z-10">
                         <div className="flex items-center space-x-2">
                           <span>✓</span>
                           <span>Size: {recommendedSize}</span>
