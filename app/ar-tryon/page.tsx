@@ -126,39 +126,68 @@ export default function ARTryOnPage() {
 
       if (videoRef.current) {
         const video = videoRef.current
+        let timeoutId: NodeJS.Timeout | null = null
+        let isInitialized = false
         
-        // Set up timeout before attaching stream
-        const timeoutId = setTimeout(() => {
-          setIsCameraLoading(false)
-          setCameraError('Camera took too long to initialize. Please try again or use demo mode.')
+        // Helper to safely clear timeout and prevent race conditions
+        const clearTimeoutSafely = () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+            timeoutId = null
+          }
+        }
+        
+        // Set up timeout - only fires if initialization doesn't complete
+        timeoutId = setTimeout(() => {
+          if (!isInitialized) {
+            setIsCameraLoading(false)
+            setCameraError('Camera took too long to initialize. Please try again or use demo mode.')
+            // Stop the stream if timeout fires
+            stream.getTracks().forEach(track => track.stop())
+          }
         }, 10000) // 10 second timeout
 
         video.srcObject = stream
         
-        // Handle successful load
+        // Handle successful load - this is the only success path
         const handleLoadedMetadata = () => {
-          clearTimeout(timeoutId)
+          if (isInitialized) return // Prevent duplicate calls
+          isInitialized = true
+          clearTimeoutSafely()
           setIsCameraActive(true)
           setIsCameraLoading(false)
           setDebugInfo('Camera initialized successfully')
           video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+          video.removeEventListener('error', handleVideoError)
         }
         
-        video.addEventListener('loadedmetadata', handleLoadedMetadata)
-        
-        video.onerror = () => {
-          clearTimeout(timeoutId)
+        // Handle video errors
+        const handleVideoError = () => {
+          if (isInitialized) return // Prevent duplicate calls
+          clearTimeoutSafely()
           setIsCameraLoading(false)
           setCameraError('Failed to load video stream')
-          throw new Error('Failed to load video stream')
+          stream.getTracks().forEach(track => track.stop())
+          video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+          video.removeEventListener('error', handleVideoError)
         }
+        
+        // Attach event listeners before attempting to play
+        video.addEventListener('loadedmetadata', handleLoadedMetadata)
+        video.addEventListener('error', handleVideoError)
         
         // Play the video to ensure it starts
         video.play().catch(err => {
-          clearTimeout(timeoutId)
-          console.error('Error playing video:', err)
-          setIsCameraLoading(false)
-          setCameraError('Failed to start video playback')
+          // Only handle play error if not already initialized
+          if (!isInitialized) {
+            clearTimeoutSafely()
+            console.error('Error playing video:', err)
+            setIsCameraLoading(false)
+            setCameraError('Failed to start video playback')
+            stream.getTracks().forEach(track => track.stop())
+            video.removeEventListener('loadedmetadata', handleLoadedMetadata)
+            video.removeEventListener('error', handleVideoError)
+          }
         })
       }
 

@@ -130,8 +130,15 @@ export default function MarketplaceContent() {
     else setSelectedCategory('all')
     if (store) setSelectedStore(store)
     else setSelectedStore('all')
-    if (minPrice) setPriceRange([Number(minPrice), priceRange[1]])
-    if (maxPrice) setPriceRange([priceRange[0], Number(maxPrice)])
+    
+    // Fix: Read both price values and apply together to avoid stale state
+    if (minPrice || maxPrice) {
+      setPriceRange((prevRange) => [
+        minPrice ? Number(minPrice) : prevRange[0],
+        maxPrice ? Number(maxPrice) : prevRange[1]
+      ])
+    }
+    
     if (sort) setSortBy(sort)
   }, [searchParams])
 
