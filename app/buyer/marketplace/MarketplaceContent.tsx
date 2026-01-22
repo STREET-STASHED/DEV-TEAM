@@ -1,376 +1,419 @@
-'use client'
+"use client";
 
 // Force dynamic rendering
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-import EnhancedSearchFilters from '@/components/search/EnhancedSearchFilters'
-import { useCart } from '@/context/CartContext'
+import EnhancedSearchFilters from "@/components/search/EnhancedSearchFilters";
+import { useCart } from "@/context/CartContext";
 import {
-    CameraIcon,
-    ChatBubbleLeftRightIcon,
-    FireIcon,
-    HeartIcon,
-    MagnifyingGlassIcon,
-    MapPinIcon,
-    ShareIcon,
-    ShoppingCartIcon,
-    SparklesIcon,
-    StarIcon,
-    TrophyIcon
-} from '@heroicons/react/24/outline'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
-
+  CameraIcon,
+  ChatBubbleLeftRightIcon,
+  FireIcon,
+  HeartIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  ShareIcon,
+  ShoppingCartIcon,
+  SparklesIcon,
+  StarIcon,
+  TrophyIcon,
+} from "@heroicons/react/24/outline";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 export default function MarketplaceContent() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { addItem, hasItem, totalCount } = useCart()
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedStore, setSelectedStore] = useState('all')
-  const [priceRange, setPriceRange] = useState([0, 1000])
-  const [sortBy, setSortBy] = useState('trending')
-  const [_useEnhancedSearch] = useState(true)
-  const [products, setProducts] = useState<any[]>([])
-  const [categories, setCategories] = useState<any[]>([])
-  const [stores, setStores] = useState<any[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([])
-  const [liveActivity, setLiveActivity] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showFilters, setShowFilters] = useState(false)
-  const [_showAIStylist, _setShowAIStylist] = useState(false)
-  const [_showARTryOn, _setShowARTryOn] = useState(false)
-  const [_showSocialChallenges, _setShowSocialChallenges] = useState(false)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { addItem, hasItem, totalCount } = useCart();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedStore, setSelectedStore] = useState("all");
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [sortBy, setSortBy] = useState("trending");
+  const [_useEnhancedSearch] = useState(true);
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [stores, setStores] = useState<any[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [liveActivity, setLiveActivity] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [_showAIStylist, _setShowAIStylist] = useState(false);
+  const [_showARTryOn, _setShowARTryOn] = useState(false);
+  const [_showSocialChallenges, _setShowSocialChallenges] = useState(false);
 
   const applyFilters = useCallback(() => {
-    let filtered = [...products]
-    
+    let filtered = [...products];
+
     // Apply search query filter first (most important)
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(product =>
-        product.name?.toLowerCase().includes(query) ||
-        product.description?.toLowerCase().includes(query) ||
-        product.category?.toLowerCase().includes(query) ||
-        product.tags?.some((tag: string) => tag.toLowerCase().includes(query))
-      )
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name?.toLowerCase().includes(query) ||
+          product.description?.toLowerCase().includes(query) ||
+          product.category?.toLowerCase().includes(query) ||
+          product.tags?.some((tag: string) =>
+            tag.toLowerCase().includes(query),
+          ),
+      );
     }
-    
+
     // Apply category filter
-    if (selectedCategory && selectedCategory !== 'all') {
-      filtered = filtered.filter(product => {
-        const productCategory = product.category?.toLowerCase() || ''
-        const productCategoryId = product.category_id?.toLowerCase() || ''
-        const selectedCat = selectedCategory.toLowerCase()
+    if (selectedCategory && selectedCategory !== "all") {
+      filtered = filtered.filter((product) => {
+        const productCategory = product.category?.toLowerCase() || "";
+        const productCategoryId = product.category_id?.toLowerCase() || "";
+        const selectedCat = selectedCategory.toLowerCase();
         // Match by category name, ID, or if category contains the selected value
-        return productCategory === selectedCat || 
-               productCategoryId === selectedCat ||
-               productCategory.includes(selectedCat) ||
-               (categories.find(c => c.id === selectedCategory)?.name?.toLowerCase() === productCategory)
-      })
+        return (
+          productCategory === selectedCat ||
+          productCategoryId === selectedCat ||
+          productCategory.includes(selectedCat) ||
+          categories
+            .find((c) => c.id === selectedCategory)
+            ?.name?.toLowerCase() === productCategory
+        );
+      });
     }
-    
+
     // Apply store filter
-    if (selectedStore && selectedStore !== 'all') {
-      filtered = filtered.filter(product => 
-        product.seller_id === selectedStore ||
-        product.seller_name?.toLowerCase() === selectedStore.toLowerCase() ||
-        product.storeName?.toLowerCase() === selectedStore.toLowerCase()
-      )
+    if (selectedStore && selectedStore !== "all") {
+      filtered = filtered.filter(
+        (product) =>
+          product.seller_id === selectedStore ||
+          product.seller_name?.toLowerCase() === selectedStore.toLowerCase() ||
+          product.storeName?.toLowerCase() === selectedStore.toLowerCase(),
+      );
     }
-    
+
     // Apply price range filter
     if (priceRange[0] > 0 || priceRange[1] < 1000) {
-      filtered = filtered.filter(product => {
-        const price = product.price || 0
-        return price >= priceRange[0] && price <= priceRange[1]
-      })
+      filtered = filtered.filter((product) => {
+        const price = product.price || 0;
+        return price >= priceRange[0] && price <= priceRange[1];
+      });
     }
-    
+
     // Apply sorting
     switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => (a.price || 0) - (b.price || 0))
-        break
-      case 'price-high':
-        filtered.sort((a, b) => (b.price || 0) - (a.price || 0))
-        break
-      case 'newest':
-        filtered.sort((a, b) => 
-          new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-        )
-        break
-      case 'rating':
-        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0))
-        break
+      case "price-low":
+        filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "price-high":
+        filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case "newest":
+        filtered.sort(
+          (a, b) =>
+            new Date(b.created_at || 0).getTime() -
+            new Date(a.created_at || 0).getTime(),
+        );
+        break;
+      case "rating":
+        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        break;
       default:
         // Keep original order for 'trending' and default
-        break
+        break;
     }
-    
-    setFilteredProducts(filtered)
-  }, [products, selectedCategory, selectedStore, priceRange, searchQuery, sortBy])
+
+    setFilteredProducts(filtered);
+  }, [
+    products,
+    selectedCategory,
+    selectedStore,
+    priceRange,
+    searchQuery,
+    sortBy,
+  ]);
 
   // Sync URL parameters to local state - single effect to avoid conflicts
   useEffect(() => {
-    const search = searchParams.get('search')
-    const category = searchParams.get('category')
-    const store = searchParams.get('store')
-    const minPrice = searchParams.get('minPrice')
-    const maxPrice = searchParams.get('maxPrice')
-    const sort = searchParams.get('sort')
+    const search = searchParams.get("search");
+    const category = searchParams.get("category");
+    const store = searchParams.get("store");
+    const minPrice = searchParams.get("minPrice");
+    const maxPrice = searchParams.get("maxPrice");
+    const sort = searchParams.get("sort");
 
     if (search !== null) {
-      setSearchQuery(search || '')
+      setSearchQuery(search || "");
     } else {
-      setSearchQuery('')
+      setSearchQuery("");
     }
-    if (category) setSelectedCategory(category)
-    else setSelectedCategory('all')
-    if (store) setSelectedStore(store)
-    else setSelectedStore('all')
-    
+    if (category) setSelectedCategory(category);
+    else setSelectedCategory("all");
+    if (store) setSelectedStore(store);
+    else setSelectedStore("all");
+
     // Fix: Read both price values and apply together to avoid stale state
     if (minPrice || maxPrice) {
       setPriceRange((prevRange) => [
         minPrice ? Number(minPrice) : prevRange[0],
-        maxPrice ? Number(maxPrice) : prevRange[1]
-      ])
+        maxPrice ? Number(maxPrice) : prevRange[1],
+      ]);
     }
-    
-    if (sort) setSortBy(sort)
-  }, [searchParams])
+
+    if (sort) setSortBy(sort);
+  }, [searchParams]);
 
   // Apply filters whenever products or filter state changes
   useEffect(() => {
     if (products.length > 0) {
-      applyFilters()
+      applyFilters();
     }
-  }, [products, searchQuery, selectedCategory, selectedStore, priceRange, sortBy, applyFilters])
+  }, [
+    products,
+    searchQuery,
+    selectedCategory,
+    selectedStore,
+    priceRange,
+    sortBy,
+    applyFilters,
+  ]);
 
   // Fetch data from APIs
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
+        setIsLoading(true);
+        setError(null);
 
         // If there's a search query, use search API, otherwise use items API
-        let productsRes
+        let productsRes;
         if (searchQuery.trim()) {
           const searchParams = new URLSearchParams({
             q: searchQuery,
-            ...(selectedCategory !== 'all' && { category: selectedCategory }),
-            ...(selectedStore !== 'all' && { store: selectedStore }),
+            ...(selectedCategory !== "all" && { category: selectedCategory }),
+            ...(selectedStore !== "all" && { store: selectedStore }),
             ...(priceRange[0] > 0 && { minPrice: priceRange[0].toString() }),
             ...(priceRange[1] < 1000 && { maxPrice: priceRange[1].toString() }),
-            sortBy: sortBy === 'trending' ? 'relevance' : sortBy
-          })
-          productsRes = await fetch(`/api/search?${searchParams}`)
+            sortBy: sortBy === "trending" ? "relevance" : sortBy,
+          });
+          productsRes = await fetch(`/api/search?${searchParams}`);
         } else {
           // Build items API URL with filters
-          const itemsParams = new URLSearchParams()
-          if (selectedCategory !== 'all') itemsParams.set('category', selectedCategory)
-          if (selectedStore !== 'all') itemsParams.set('store', selectedStore)
-          if (priceRange[0] > 0) itemsParams.set('minPrice', priceRange[0].toString())
-          if (priceRange[1] < 1000) itemsParams.set('maxPrice', priceRange[1].toString())
-          const itemsUrl = itemsParams.toString() ? `/api/items?${itemsParams}` : '/api/items'
-          productsRes = await fetch(itemsUrl)
+          const itemsParams = new URLSearchParams();
+          if (selectedCategory !== "all")
+            itemsParams.set("category", selectedCategory);
+          if (selectedStore !== "all") itemsParams.set("store", selectedStore);
+          if (priceRange[0] > 0)
+            itemsParams.set("minPrice", priceRange[0].toString());
+          if (priceRange[1] < 1000)
+            itemsParams.set("maxPrice", priceRange[1].toString());
+          const itemsUrl = itemsParams.toString()
+            ? `/api/items?${itemsParams}`
+            : "/api/items";
+          productsRes = await fetch(itemsUrl);
         }
 
         // Fetch other data in parallel
         const [storesRes, categoriesRes, socialRes] = await Promise.all([
-          fetch('/api/stores'),
-          fetch('/api/categories'),
-          fetch('/api/social/posts?type=trending&limit=3')
-        ])
+          fetch("/api/stores"),
+          fetch("/api/categories"),
+          fetch("/api/social/posts?type=trending&limit=3"),
+        ]);
 
-        const [productsData, storesData, categoriesData, socialData] = await Promise.all([
-          productsRes.json(),
-          storesRes.json(),
-          categoriesRes.json(),
-          socialRes.json()
-        ])
+        const [productsData, storesData, categoriesData, socialData] =
+          await Promise.all([
+            productsRes.json(),
+            storesRes.json(),
+            categoriesRes.json(),
+            socialRes.json(),
+          ]);
 
         // Set the data, with fallback to empty arrays if API fails
-        let products = searchQuery.trim() 
-          ? (productsData.results || [])
-          : (productsData.items || productsData.results || [])
-        
+        let products = searchQuery.trim()
+          ? productsData.results || []
+          : productsData.items || productsData.results || [];
+
         // Normalize categories from API once so we can safely use them for filtering
-        const rawCategories = categoriesData.categories || categoriesData.results || []
+        const rawCategories =
+          categoriesData.categories || categoriesData.results || [];
 
         // Apply category filter if needed (before setting state)
-        if (selectedCategory !== 'all' && products.length > 0) {
+        if (selectedCategory !== "all" && products.length > 0) {
           products = products.filter((product: any) => {
-            const productCategory = product.category?.toLowerCase() || ''
-            const productCategoryId = product.category_id?.toLowerCase() || ''
-            const selectedCat = selectedCategory.toLowerCase()
+            const productCategory = product.category?.toLowerCase() || "";
+            const productCategoryId = product.category_id?.toLowerCase() || "";
+            const selectedCat = selectedCategory.toLowerCase();
             const categoryMatch = rawCategories.find(
               (c: any) =>
                 c.id === selectedCategory ||
                 c.id?.toString().toLowerCase() === selectedCat ||
-                c.name?.toLowerCase() === selectedCat
-            )
-            return productCategory === selectedCat || 
-                   productCategoryId === selectedCat ||
-                   productCategory.includes(selectedCat) ||
-                   (categoryMatch && categoryMatch.name?.toLowerCase() === productCategory)
-          })
+                c.name?.toLowerCase() === selectedCat,
+            );
+            return (
+              productCategory === selectedCat ||
+              productCategoryId === selectedCat ||
+              productCategory.includes(selectedCat) ||
+              (categoryMatch &&
+                categoryMatch.name?.toLowerCase() === productCategory)
+            );
+          });
         }
-        
+
         // Ensure products have required properties for styling
         const enhancedProducts = products.map((product: any) => ({
           ...product,
           isTrending: product.isTrending ?? Math.random() > 0.7, // Random trending status if not provided
-          rating: product.rating ?? (4 + Math.random()), // Random rating if not provided
+          rating: product.rating ?? 4 + Math.random(), // Random rating if not provided
           reviewCount: product.reviewCount ?? Math.floor(Math.random() * 500),
           inStock: product.inStock ?? true,
-          images: product.images && product.images.length > 0 
-            ? product.images 
-            : product.image_url 
-              ? [product.image_url] 
-              : ['/mock/default-product.jpg']
-        }))
-        
+          images:
+            product.images && product.images.length > 0
+              ? product.images
+              : product.image_url
+                ? [product.image_url]
+                : ["/mock/default-product.jpg"],
+        }));
+
         // Ensure categories have icons
         const enhancedCategories = rawCategories.map((category: any) => ({
           ...category,
-          icon: category.icon || '🛍️', // Default icon if not provided
-          productCount: category.productCount || Math.floor(Math.random() * 50)
-        }))
-        
-        setProducts(enhancedProducts)
-        setStores(storesData.stores || storesData.results || [])
-        setCategories(enhancedCategories)
-        
+          icon: category.icon || "🛍️", // Default icon if not provided
+          productCount: category.productCount || Math.floor(Math.random() * 50),
+        }));
+
+        setProducts(enhancedProducts);
+        setStores(storesData.stores || storesData.results || []);
+        setCategories(enhancedCategories);
+
         // Process live activity data
-        const activityItems: any[] = []
-        
+        const activityItems: any[] = [];
+
         // Add social posts as activity
         if (socialData.posts && socialData.posts.length > 0) {
           socialData.posts.forEach((post: any) => {
             activityItems.push({
               id: `social-${post.id}`,
-              type: 'social',
-              title: 'New Social Post',
+              type: "social",
+              title: "New Social Post",
               description: post.content,
               timestamp: post.created_at,
-              icon: '💬',
-              color: 'blue',
+              icon: "💬",
+              color: "blue",
               colorClasses: {
-                bg: 'bg-blue-500',
-                text: 'text-blue-400'
-              }
-            })
-          })
+                bg: "bg-blue-500",
+                text: "text-blue-400",
+              },
+            });
+          });
         }
-        
-        setLiveActivity(activityItems.slice(0, 3)) // Show top 3 activities
 
+        setLiveActivity(activityItems.slice(0, 3)); // Show top 3 activities
       } catch (error) {
-        console.error('Error fetching marketplace data:', error)
-        setError('Failed to load marketplace data. Please refresh the page.')
-        
-        // Fallback to mock data to maintain colorful appearance
-        const { mockProducts, mockStores, mockCategories } = await import('@/lib/mockData')
-        setProducts(mockProducts)
-        setStores(mockStores)
-        setCategories(mockCategories)
-        setLiveActivity([])
-      } finally {
-        setIsLoading(false)
-      }
-    }
+        console.error("Error fetching marketplace data:", error);
+        setError("Failed to load marketplace data. Please refresh the page.");
 
-    fetchData()
-  }, [searchQuery, selectedCategory, selectedStore, priceRange, sortBy])
+        // Fallback to mock data to maintain colorful appearance
+        const { mockProducts, mockStores, mockCategories } =
+          await import("@/lib/mockData");
+        setProducts(mockProducts);
+        setStores(mockStores);
+        setCategories(mockCategories);
+        setLiveActivity([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [searchQuery, selectedCategory, selectedStore, priceRange, sortBy]);
 
   // Set up real-time live activity updates via polling
   useEffect(() => {
-    let pollInterval: NodeJS.Timeout | null = null
-    
+    let pollInterval: NodeJS.Timeout | null = null;
+
     const pollForUpdates = async () => {
       try {
-        const socialRes = await fetch('/api/social/posts?type=trending&limit=3', { 
-          cache: 'no-store',
-          headers: { 'Cache-Control': 'no-cache' }
-        })
-        const socialData = socialRes.ok ? await socialRes.json() : null
-        
-        const activityItems: any[] = []
-        
+        const socialRes = await fetch(
+          "/api/social/posts?type=trending&limit=3",
+          {
+            cache: "no-store",
+            headers: { "Cache-Control": "no-cache" },
+          },
+        );
+        const socialData = socialRes.ok ? await socialRes.json() : null;
+
+        const activityItems: any[] = [];
+
         if (socialData?.posts) {
           socialData.posts.forEach((post: any) => {
             activityItems.push({
               id: `social-${post.id}`,
-              type: 'social',
-              title: 'New Social Post',
+              type: "social",
+              title: "New Social Post",
               description: post.content,
               timestamp: post.created_at,
-              icon: '💬',
-              color: 'blue',
+              icon: "💬",
+              color: "blue",
               colorClasses: {
-                bg: 'bg-blue-500',
-                text: 'text-blue-400',
-                border: 'hover:border-blue-500/50'
-              }
-            })
-          })
+                bg: "bg-blue-500",
+                text: "text-blue-400",
+                border: "hover:border-blue-500/50",
+              },
+            });
+          });
         }
-        
+
         if (activityItems.length > 0) {
-          setLiveActivity(activityItems.slice(0, 3))
+          setLiveActivity(activityItems.slice(0, 3));
         }
       } catch (err) {
-        console.error('Error polling for updates:', err)
+        console.error("Error polling for updates:", err);
       }
-    }
-    
+    };
+
     // Poll immediately, then every 10 seconds
-    pollForUpdates()
-    pollInterval = setInterval(pollForUpdates, 10000)
-    
+    pollForUpdates();
+    pollInterval = setInterval(pollForUpdates, 10000);
+
     return () => {
       if (pollInterval) {
-        clearInterval(pollInterval)
+        clearInterval(pollInterval);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   const _handleSearch = (filters?: any) => {
-    const params = new URLSearchParams()
-    
+    const params = new URLSearchParams();
+
     if (filters) {
       // Enhanced search with filters
-      if (filters.query) params.set('search', filters.query)
-      if (filters.category !== 'all') params.set('category', filters.category)
-      if (filters.brand !== 'all') params.set('brand', filters.brand)
-      if (filters.size.length > 0) params.set('size', filters.size.join(','))
-      if (filters.color.length > 0) params.set('color', filters.color.join(','))
-      if (filters.condition.length > 0) params.set('condition', filters.condition.join(','))
-      if (filters.priceRange[0] > 0) params.set('minPrice', filters.priceRange[0].toString())
-      if (filters.priceRange[1] < 1000) params.set('maxPrice', filters.priceRange[1].toString())
-      if (filters.sortBy !== 'relevance') params.set('sort', filters.sortBy)
+      if (filters.query) params.set("search", filters.query);
+      if (filters.category !== "all") params.set("category", filters.category);
+      if (filters.brand !== "all") params.set("brand", filters.brand);
+      if (filters.size.length > 0) params.set("size", filters.size.join(","));
+      if (filters.color.length > 0)
+        params.set("color", filters.color.join(","));
+      if (filters.condition.length > 0)
+        params.set("condition", filters.condition.join(","));
+      if (filters.priceRange[0] > 0)
+        params.set("minPrice", filters.priceRange[0].toString());
+      if (filters.priceRange[1] < 1000)
+        params.set("maxPrice", filters.priceRange[1].toString());
+      if (filters.sortBy !== "relevance") params.set("sort", filters.sortBy);
     } else {
       // Legacy search
-      if (searchQuery.trim()) params.set('search', searchQuery.trim())
-      if (selectedCategory !== 'all') params.set('category', selectedCategory)
-      if (selectedStore !== 'all') params.set('store', selectedStore)
+      if (searchQuery.trim()) params.set("search", searchQuery.trim());
+      if (selectedCategory !== "all") params.set("category", selectedCategory);
+      if (selectedStore !== "all") params.set("store", selectedStore);
     }
 
-    const queryString = params.toString()
-    router.push(`/buyer/marketplace${queryString ? `?${queryString}` : ''}`)
-  }
+    const queryString = params.toString();
+    router.push(`/buyer/marketplace${queryString ? `?${queryString}` : ""}`);
+  };
 
   const handleProductClick = (productId: string) => {
     if (productId) {
-      router.push(`/buyer/marketplace/product/${productId}`)
+      router.push(`/buyer/marketplace/product/${productId}`);
     } else {
-      console.error('Product ID is missing')
+      console.error("Product ID is missing");
     }
-  }
+  };
 
   const handleAddToCart = (product: any) => {
     const cartItem = {
@@ -378,56 +421,60 @@ export default function MarketplaceContent() {
       name: product.name,
       price: product.price,
       quantity: 1,
-      image_url: product.images && product.images.length > 0 ? product.images[0] : '/mock/default-product.jpg',
-      category: product.category
-    }
+      image_url:
+        product.images && product.images.length > 0
+          ? product.images[0]
+          : "/mock/default-product.jpg",
+      category: product.category,
+    };
 
-    addItem(cartItem)
+    addItem(cartItem);
 
     // Show success message
-    const message = document.createElement('div')
-    message.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50'
-    message.textContent = `${product.name} added to cart!`
-    document.body.appendChild(message)
+    const message = document.createElement("div");
+    message.className =
+      "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50";
+    message.textContent = `${product.name} added to cart!`;
+    document.body.appendChild(message);
 
     setTimeout(() => {
-      document.body.removeChild(message)
-    }, 3000)
-  }
+      document.body.removeChild(message);
+    }, 3000);
+  };
 
   const handleAddToWishlist = (product: any) => {
     // In real implementation, this would add to wishlist
-    console.log('Adding to wishlist:', product.name)
+    console.log("Adding to wishlist:", product.name);
     // Show success message
-    alert(`${product.name} added to wishlist!`)
-  }
+    alert(`${product.name} added to wishlist!`);
+  };
 
   const clearFilters = () => {
-    setSearchQuery('')
-    setSelectedCategory('all')
-    setSelectedStore('all')
-    setPriceRange([0, 1000])
-    setSortBy('trending')
-    router.push('/buyer/marketplace')
-  }
+    setSearchQuery("");
+    setSelectedCategory("all");
+    setSelectedStore("all");
+    setPriceRange([0, 1000]);
+    setSortBy("trending");
+    router.push("/buyer/marketplace");
+  };
 
   const handleAIStylist = () => {
-    _setShowAIStylist(true)
+    _setShowAIStylist(true);
     // In real implementation, this would open AI Stylist modal or navigate to page
-    router.push('/ai-stylist')
-  }
+    router.push("/ai-stylist");
+  };
 
   const handleARTryOn = () => {
-    _setShowARTryOn(true)
+    _setShowARTryOn(true);
     // In real implementation, this would open AR Try-On modal or navigate to page
-    router.push('/ar-tryon')
-  }
+    router.push("/ar-tryon");
+  };
 
   const handleSocialChallenges = () => {
-    _setShowSocialChallenges(true)
+    _setShowSocialChallenges(true);
     // In real implementation, this would open Social Challenges modal or navigate to page
-    router.push('/social/challenges')
-  }
+    router.push("/social/challenges");
+  };
 
   if (isLoading) {
     return (
@@ -437,7 +484,7 @@ export default function MarketplaceContent() {
           <p className="text-ink-300">Loading marketplace...</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -447,12 +494,16 @@ export default function MarketplaceContent() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">🛍️ Marketplace</h1>
-              <p className="text-sm sm:text-base text-ink-300">Discover amazing products from local stores</p>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">
+                🛍️ Marketplace
+              </h1>
+              <p className="text-sm sm:text-base text-ink-300">
+                Discover amazing products from local stores
+              </p>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
               <button
-                onClick={() => router.push('/buyer/checkout')}
+                onClick={() => router.push("/buyer/checkout")}
                 className="bg-purple-500 hover:bg-purple-600 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base flex-1 sm:flex-initial"
               >
                 <ShoppingCartIcon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -508,10 +559,10 @@ export default function MarketplaceContent() {
             {/* Live Chat */}
             <button
               onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
+                e.preventDefault();
+                e.stopPropagation();
                 // Navigate to support page instead of popup
-                router.push('/support')
+                router.push("/support");
               }}
               className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base"
             >
@@ -526,15 +577,37 @@ export default function MarketplaceContent() {
               <span className="hidden sm:inline">Share</span>
             </button>
             <button className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-4 h-4 sm:w-5 sm:h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"
+                />
               </svg>
               <span className="hidden sm:inline">NFT Collection</span>
               <span className="sm:hidden">NFT</span>
             </button>
             <button className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-full font-semibold transition-all duration-300 transform hover:scale-105 flex items-center space-x-1 sm:space-x-2 shadow-lg text-sm sm:text-base">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 sm:w-5 sm:h-5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={1.5}
+                stroke="currentColor"
+                className="w-4 h-4 sm:w-5 sm:h-5"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+                />
               </svg>
               <span className="hidden sm:inline">Smart Contracts</span>
               <span className="sm:hidden">Smart</span>
@@ -554,13 +627,24 @@ export default function MarketplaceContent() {
             <div className="flex items-center space-x-2">
               <span className="text-green-500 text-sm">Real-time updates</span>
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <button 
+              <button
                 className="text-ink-400 hover:text-white transition-colors"
                 aria-label="More options"
                 title="More options"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-5 h-5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 6.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"
+                  />
                 </svg>
               </button>
             </div>
@@ -568,11 +652,22 @@ export default function MarketplaceContent() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {liveActivity.length > 0 ? (
               liveActivity.map((activity) => (
-                <div key={activity.id} className="bg-ink-800 rounded-lg p-4 border border-ink-700">
+                <div
+                  key={activity.id}
+                  className="bg-ink-800 rounded-lg p-4 border border-ink-700"
+                >
                   <div className="flex items-center space-x-2 mb-2">
-                    <div className={`w-2 h-2 ${activity.colorClasses?.bg || 'bg-blue-500'} rounded-full animate-pulse`}></div>
-                    <span className={`${activity.colorClasses?.text || 'text-blue-400'} text-sm font-semibold`}>
-                      {activity.type === 'social' ? 'SOCIAL' : activity.type === 'analytics' ? 'LIVE' : 'UPDATE'}
+                    <div
+                      className={`w-2 h-2 ${activity.colorClasses?.bg || "bg-blue-500"} rounded-full animate-pulse`}
+                    ></div>
+                    <span
+                      className={`${activity.colorClasses?.text || "text-blue-400"} text-sm font-semibold`}
+                    >
+                      {activity.type === "social"
+                        ? "SOCIAL"
+                        : activity.type === "analytics"
+                          ? "LIVE"
+                          : "UPDATE"}
                     </span>
                   </div>
                   <p className="text-white text-sm">{activity.description}</p>
@@ -587,25 +682,37 @@ export default function MarketplaceContent() {
                 <div className="bg-ink-800 rounded-lg p-4 border border-ink-700">
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-green-400 text-sm font-semibold">LIVE</span>
+                    <span className="text-green-400 text-sm font-semibold">
+                      LIVE
+                    </span>
                   </div>
-                  <p className="text-white text-sm">@StyleMaster just dropped 50 new pieces</p>
+                  <p className="text-white text-sm">
+                    @StyleMaster just dropped 50 new pieces
+                  </p>
                   <span className="text-ink-400 text-xs">2 min ago</span>
                 </div>
                 <div className="bg-ink-800 rounded-lg p-4 border border-ink-700">
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-blue-400 text-sm font-semibold">AI</span>
+                    <span className="text-blue-400 text-sm font-semibold">
+                      AI
+                    </span>
                   </div>
-                  <p className="text-white text-sm">AI Stylist generated 127 new outfit combinations</p>
+                  <p className="text-white text-sm">
+                    AI Stylist generated 127 new outfit combinations
+                  </p>
                   <span className="text-ink-400 text-xs">5 min ago</span>
                 </div>
                 <div className="bg-ink-800 rounded-lg p-4 border border-ink-700">
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                    <span className="text-purple-400 text-sm font-semibold">NFT</span>
+                    <span className="text-purple-400 text-sm font-semibold">
+                      NFT
+                    </span>
                   </div>
-                  <p className="text-white text-sm">New NFT collection minted: &apos;Streetwear Legends&apos;</p>
+                  <p className="text-white text-sm">
+                    New NFT collection minted: &apos;Streetwear Legends&apos;
+                  </p>
                   <span className="text-ink-400 text-xs">8 min ago</span>
                 </div>
               </>
@@ -628,14 +735,26 @@ export default function MarketplaceContent() {
                 className="absolute top-2 right-2 text-ink-400 hover:text-white transition-colors"
                 aria-label="Close filters"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Category Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Category</label>
+                  <label className="block text-sm font-medium text-ink-300 mb-2">
+                    Category
+                  </label>
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
@@ -654,7 +773,9 @@ export default function MarketplaceContent() {
 
                 {/* Store Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Store</label>
+                  <label className="block text-sm font-medium text-ink-300 mb-2">
+                    Store
+                  </label>
                   <select
                     value={selectedStore}
                     onChange={(e) => setSelectedStore(e.target.value)}
@@ -673,12 +794,16 @@ export default function MarketplaceContent() {
 
                 {/* Price Range */}
                 <div>
-                  <label className="block text-sm font-medium text-ink-300 mb-2">Price Range</label>
+                  <label className="block text-sm font-medium text-ink-300 mb-2">
+                    Price Range
+                  </label>
                   <div className="flex items-center space-x-2">
                     <input
                       type="number"
                       value={priceRange[0]}
-                      onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                      onChange={(e) =>
+                        setPriceRange([Number(e.target.value), priceRange[1]])
+                      }
                       placeholder="Min"
                       className="w-20 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
@@ -686,7 +811,9 @@ export default function MarketplaceContent() {
                     <input
                       type="number"
                       value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                      onChange={(e) =>
+                        setPriceRange([priceRange[0], Number(e.target.value)])
+                      }
                       placeholder="Max"
                       className="w-20 bg-ink-800 border border-ink-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
@@ -714,8 +841,10 @@ export default function MarketplaceContent() {
           <p className="text-ink-300">
             Showing {filteredProducts.length} of {products.length} products
             {searchQuery && ` for "${searchQuery}"`}
-            {selectedCategory !== 'all' && ` in ${categories.find(c => c.id === selectedCategory)?.name}`}
-            {selectedStore !== 'all' && ` from ${stores.find(s => s.id === selectedStore)?.name}`}
+            {selectedCategory !== "all" &&
+              ` in ${categories.find((c) => c.id === selectedCategory)?.name}`}
+            {selectedStore !== "all" &&
+              ` from ${stores.find((s) => s.id === selectedStore)?.name}`}
           </p>
         </div>
       </div>
@@ -727,7 +856,9 @@ export default function MarketplaceContent() {
             <div className="w-24 h-24 bg-ink-800 rounded-full flex items-center justify-center mx-auto mb-6">
               <MagnifyingGlassIcon className="w-12 h-12 text-ink-400" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">No products found</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">
+              No products found
+            </h3>
             <p className="text-ink-300 mb-6">
               Try adjusting your search terms or filters
             </p>
@@ -747,27 +878,36 @@ export default function MarketplaceContent() {
               >
                 {/* Product Image */}
                 <div className="relative">
-                  <img
-                    src={
-                      (product.images && product.images.length > 0 && product.images[0]) ||
-                      product.image_url ||
-                      product.image ||
-                      '/mock/default-product.jpg'
-                    }
-                    alt={product.name || 'Product'}
-                    className="w-full h-64 object-cover cursor-pointer"
-                    onClick={() => handleProductClick(product.id)}
-                    onError={(e) => {
-                      const target = e.currentTarget
-                      const fallbackSrc = '/mock/default-product.jpg'
-                      if (target.src && !target.src.includes(fallbackSrc) && !target.src.includes('default-product')) {
-                        target.src = fallbackSrc
+                  <Link
+                    href={`/buyer/marketplace/product/${product.id}`}
+                    prefetch={false}
+                  >
+                    <img
+                      src={
+                        (product.images &&
+                          product.images.length > 0 &&
+                          product.images[0]) ||
+                        product.image_url ||
+                        product.image ||
+                        "/mock/default-product.jpg"
                       }
-                    }}
-                    loading="lazy"
-                    decoding="async"
-                  />
-
+                      alt={product.name || "Product"}
+                      className="w-full h-64 object-cover cursor-pointer"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fallbackSrc = "/mock/default-product.jpg";
+                        if (
+                          target.src &&
+                          !target.src.includes(fallbackSrc) &&
+                          !target.src.includes("default-product")
+                        ) {
+                          target.src = fallbackSrc;
+                        }
+                      }}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </Link>
                   {/* Badges */}
                   {product.isTrending && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center space-x-1">
@@ -784,7 +924,11 @@ export default function MarketplaceContent() {
                   {/* Quick Actions */}
                   <div className="absolute bottom-4 right-4 flex space-x-2">
                     <button
-                      onClick={() => handleAddToWishlist(product)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddToWishlist(product);
+                      }}
                       className="bg-ink-800/80 hover:bg-ink-700/80 text-white p-2 rounded-full transition-colors backdrop-blur-sm"
                       aria-label="Add to wishlist"
                       title="Add to wishlist"
@@ -792,17 +936,34 @@ export default function MarketplaceContent() {
                       <HeartIcon className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleAddToCart(product)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAddToCart(product);
+                      }}
                       className={`p-2 rounded-full transition-colors ${
                         hasItem(product.id)
-                          ? 'bg-green-500 hover:bg-green-600 text-white'
-                          : 'bg-purple-500 hover:bg-purple-600 text-white'
+                          ? "bg-green-500 hover:bg-green-600 text-white"
+                          : "bg-purple-500 hover:bg-purple-600 text-white"
                       }`}
-                      title={hasItem(product.id) ? 'Already in cart' : 'Add to cart'}
+                      title={
+                        hasItem(product.id) ? "Already in cart" : "Add to cart"
+                      }
                     >
                       {hasItem(product.id) ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4.5 12.75l6 6 9-13.5"
+                          />
                         </svg>
                       ) : (
                         <ShoppingCartIcon className="w-4 h-4" />
@@ -814,19 +975,27 @@ export default function MarketplaceContent() {
                 {/* Product Info */}
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3
-                      className="font-semibold text-white text-lg line-clamp-2 cursor-pointer hover:text-purple-400 transition-colors"
-                      onClick={() => handleProductClick(product.id)}
+                    <Link
+                      href={`/buyer/marketplace/product/${product.id}`}
+                      prefetch={false}
                     >
-                      {product.name}
-                    </h3>
+                      <h3 className="font-semibold text-white text-lg line-clamp-2 cursor-pointer hover:text-purple-400 transition-colors">
+                        {product.name}
+                      </h3>
+                    </Link>
                     <div className="flex items-center space-x-1">
                       <StarIcon className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-ink-300 text-sm">{typeof product.rating === 'number' ? Math.round(product.rating * 10) / 10 : product.rating}</span>
+                      <span className="text-ink-300 text-sm">
+                        {typeof product.rating === "number"
+                          ? Math.round(product.rating * 10) / 10
+                          : product.rating}
+                      </span>
                     </div>
                   </div>
 
-                  <p className="text-ink-400 text-sm mb-3 line-clamp-2">{product.description}</p>
+                  <p className="text-ink-400 text-sm mb-3 line-clamp-2">
+                    {product.description}
+                  </p>
 
                   {/* Store Info */}
                   <div className="flex items-center space-x-2 mb-3 text-sm">
@@ -837,19 +1006,25 @@ export default function MarketplaceContent() {
                   {/* Price */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <span className="text-xl font-bold text-white">${product.price}</span>
+                      <span className="text-xl font-bold text-white">
+                        ${product.price}
+                      </span>
                       {product.originalPrice && (
-                        <span className="text-ink-400 line-through">${product.originalPrice}</span>
+                        <span className="text-ink-400 line-through">
+                          ${product.originalPrice}
+                        </span>
                       )}
                     </div>
 
                     {/* Stock Status */}
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      product.inStock
-                        ? 'bg-green-500/20 text-green-400'
-                        : 'bg-red-500/20 text-red-400'
-                    }`}>
-                      {product.inStock ? 'In Stock' : 'Out of Stock'}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        product.inStock
+                          ? "bg-green-500/20 text-green-400"
+                          : "bg-red-500/20 text-red-400"
+                      }`}
+                    >
+                      {product.inStock ? "In Stock" : "Out of Stock"}
                     </span>
                   </div>
                 </div>
@@ -868,5 +1043,5 @@ export default function MarketplaceContent() {
         </div>
       )}
     </div>
-  )
+  );
 }
