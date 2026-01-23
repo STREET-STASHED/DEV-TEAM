@@ -56,13 +56,10 @@ export default async function ProductPage({ params }: Props) {
       </div>
     );
   }
+  console.log("PRODUCT PAGE RENDER");
 
   return (
     <div className="min-h-screen bg-black text-white">
-      <div className="fixed top-2 left-2 z-[9999] bg-red-600 text-white px-3 py-1 rounded">
-        PRODUCT PAGE
-      </div>
-
       <div className="container mx-auto px-4 py-8">
         {/* Product Header */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">

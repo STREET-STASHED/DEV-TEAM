@@ -20,6 +20,8 @@ const MarketplaceContent = dynamicImport(() => import('./MarketplaceContent'), {
 })
 
 export default function MarketplacePage() {
+  console.log("MARKETPLACE PAGE RENDER", typeof window === "undefined" ? "server" : "client");
+
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
