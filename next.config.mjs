@@ -78,9 +78,7 @@ const baseConfig = {
   },
 }
 
-<<<<<<< Current (Your changes)
-=======
 // Enable bundle analyzer when ANALYZE=true. Export a single config.
 const nextConfig = process.env.ANALYZE ? withBundleAnalyzer(baseConfig) : baseConfig
->>>>>>> Incoming (Background Agent changes)
+
 export default nextConfig
