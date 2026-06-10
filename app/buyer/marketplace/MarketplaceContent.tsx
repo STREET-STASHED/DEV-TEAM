@@ -110,7 +110,7 @@ export default function MarketplaceContent() {
     }
     
     setFilteredProducts(filtered)
-  }, [products, selectedCategory, selectedStore, priceRange, searchQuery, sortBy])
+  }, [products, selectedCategory, selectedStore, priceRange, searchQuery, sortBy, categories])
 
   // Sync URL parameters to local state - single effect to avoid conflicts
   useEffect(() => {

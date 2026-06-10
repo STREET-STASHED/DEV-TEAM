@@ -121,6 +121,9 @@ export default [
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      // Discourage stray console.log; allow warn/error for diagnostics.
+      // These are stripped from production builds (see next.config.mjs).
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
     },
   },
 
@@ -170,6 +173,7 @@ export default [
       },
     },
     rules: {
+      'no-console': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -199,6 +203,7 @@ export default [
       'no-undef': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      'no-console': 'off',
     },
   },
 

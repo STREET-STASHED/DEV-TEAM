@@ -214,7 +214,7 @@ export default function ARTryOnPage() {
       setIsCameraLoading(false)
       return false
     }
-  }, [isBrowserCompatible])
+  }, [])
 
   // Stop camera
   const stopCamera = useCallback(() => {

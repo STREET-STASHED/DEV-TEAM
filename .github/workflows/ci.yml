@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        # Version is taken from the "packageManager" field in package.json.
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Node 22: some browser-oriented deps reference the global `navigator`
+          # at module load, which only exists on Node 21+.
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type check
+        run: pnpm type-check
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Build
+        # Placeholder values so module-level Supabase/Stripe clients can be
+        # constructed at build time. These are NOT real secrets — real values
+        # are supplied at runtime via the hosting provider's env config.
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-role-key
+          SUPABASE_URL: https://placeholder.supabase.co
+          SUPABASE_ANON_KEY: placeholder-anon-key
+          STRIPE_SECRET_KEY: sk_test_placeholder
+          STRIPE_WEBHOOK_SECRET: whsec_placeholder
+          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: pk_test_placeholder
+        run: pnpm build
