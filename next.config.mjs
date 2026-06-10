@@ -8,6 +8,10 @@ const baseConfig = {
   experimental: {
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react', '@heroicons/react'],
   },
+  // Strip console.* in production builds, keeping error/warn for diagnostics.
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
+  },
   // Force dynamic rendering for all pages
   output: 'standalone',
   trailingSlash: false,
@@ -78,9 +82,6 @@ const baseConfig = {
   },
 }
 
-<<<<<<< Current (Your changes)
-=======
 // Enable bundle analyzer when ANALYZE=true. Export a single config.
 const nextConfig = process.env.ANALYZE ? withBundleAnalyzer(baseConfig) : baseConfig
->>>>>>> Incoming (Background Agent changes)
 export default nextConfig

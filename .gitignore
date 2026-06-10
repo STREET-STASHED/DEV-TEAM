@@ -11,12 +11,23 @@ out/
 # System files
 .DS_Store
 
-# Environment variables
+# Environment variables (never commit real secrets)
 .env
-.env.local
+.env.*
+!.env.example
+
+# Certificates / private keys
+*.pem
+*.key
 
 # Logs
 *.log
+
+# Caches / tooling artifacts
+.eslintcache
+test-results/
+playwright-report/
+lighthouse-report.html
 
 # TypeScript build info
 *.tsbuildinfo
