@@ -21,7 +21,9 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Node 22: some browser-oriented deps reference the global `navigator`
+          # at module load, which only exists on Node 21+.
+          node-version: 22
           cache: pnpm
 
       - name: Install dependencies
