@@ -27,7 +27,7 @@ describe('getAppliedBonuses', () => {
   });
 
   it('adds a night bonus after 10pm', () => {
-    expect(getAppliedBonuses(3, 22)).toContain('Night Bonus ($2.00)');
+    expect(getAppliedBonuses(3, 22)).toContain('Night Bonus ($1.50)');
   });
 
   it('adds a long trip bonus for 10+ miles', () => {

@@ -89,7 +89,7 @@ export function getAppliedBonuses(distanceMiles: number, localHour: number): str
   
   // Check for night bonus (after 10pm)
   if (localHour >= 22) {
-    bonuses.push('Night Bonus ($2.00)');
+    bonuses.push('Night Bonus ($1.50)');
   }
   
   // Check for long trip bonus (10+ miles)
